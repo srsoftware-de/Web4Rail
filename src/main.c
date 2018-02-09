@@ -1,9 +1,9 @@
 #include <stdio.h>
 int main(){
 
-	int laenge=312500, breite=50;
-	printf("\nLaenge: %d cm\nBreite: %d cm\n", laenge, breite);
-	printf("\nLaenge: %10d cm\nBreite: %10d cm\n", laenge, breite);
+	float laenge=312.5789, breite=5.6;
+	printf("\nLaenge: %f cm\nBreite: %f cm\n", laenge, breite);
+	printf("\nLaenge: %10.2f cm\nBreite: %10.2f cm\n", laenge, breite);
 
 	getchar();
 	return 0;
