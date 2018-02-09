@@ -1,13 +1,11 @@
 #include<stdio.h>
 
-int zaehlen() {
-	static int counter = 0;
-	return ++counter;
-}
+// Symbolische Konstante
+#define MWSTFAKTOR 0.19
 
 int main() {
-	printf("Zähler: %d\n", zaehlen());
-	printf("Zähler: %d\n", zaehlen());
-	printf("Zähler: %d\n", zaehlen());
+	float betrag = 350.0;
+	float mwst = betrag * MWSTFAKTOR;
+	printf("%.f% von %.2f Euro: %.2f Euro\n", MWSTFAKTOR * 100, betrag, mwst);
 	return 0;
 }
