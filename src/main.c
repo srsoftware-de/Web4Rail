@@ -2,25 +2,17 @@
 #include<string.h>
 
 int main() {
-
-	struct adresse {
+	struct person {
 		char name[50];
-		char strasse[100];
-		short hausnummer;
-		long plz;
-		char stadt[50];
-	};
+		int alter;
+	}
+	kurt = { "Kurt Kanns", 33 },
+	antonia = { "Antonia", 23 };
 
-	// Variable der Struktur erstellen
-	struct adresse adresseKurt;
+	struct person dieter = { "Dieter Dunkel", 27 };
 
-	// Zugriff auf die Elemente
-	strcpy(adresseKurt.name, "Kurt Kanns");
-	strcpy(adresseKurt.strasse, "Kannichweg");
-	adresseKurt.hausnummer = 23;
-	adresseKurt.plz = 45678;
-	strcpy(adresseKurt.stadt, "Kannstadt");
-
-	printf("Name: %s\n", adresseKurt.name);
+	printf("kurt, Name: %s, Alter: %d\n", kurt.name, kurt.alter);
+	printf("antonia, Name: %s, Alter: %d\n", antonia.name, antonia.alter);
+	printf("dieter, Name: %s, Alter: %d\n", dieter.name, dieter.alter);
 	return 0;
 }
