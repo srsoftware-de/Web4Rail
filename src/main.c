@@ -2,8 +2,7 @@
 #include<string.h>
 
 int main() {
-	char string[] = "Die schoenen Dinge im Leben sind umsonst.";
-	int laenge = strlen(string);
-	printf("Laenge: %d Zeichen\n", laenge);
+	enum { kreuz=4, pik=3, karo, herz };
+	printf("Kreuz: %d, Pik: %d, Karo: %d, Herz: %d\n", kreuz, pik, karo, herz);
 	return 0;
 }
