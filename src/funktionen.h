@@ -30,11 +30,7 @@ long hoch3(int n) {
 }
 
 int fakultaet(int x) {
-	if(x > 1) {
-		return x * fakultaet(x-1);
-	}else {
-		return 1;
-	}
+	return x > 1 ? x * fakultaet(x-1) : 1;
 }
 
 #endif
