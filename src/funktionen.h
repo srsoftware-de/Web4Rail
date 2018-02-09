@@ -29,4 +29,12 @@ long hoch3(int n) {
 	return n * n * n;
 }
 
+int fakultaet(int x) {
+	if(x > 1) {
+		return x * fakultaet(x-1);
+	}else {
+		return 1;
+	}
+}
+
 #endif
