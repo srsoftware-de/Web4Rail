@@ -1,11 +1,10 @@
 #include <stdio.h>
 int main(){
 
-	char c;
-	printf("Mit welchem Buchstaben beginnt ihr Vorname? ");
-	c = getchar();
-	printf("\nIch weiss jetzt, dass Ihr Vorname mit '%c' beginnt.\n", c);
-
+	int alter;
+	printf("Wie alt sind sie? ");
+	scanf("%d", &alter);
+	printf("\nIn %d Jahren sind Sie 100!\n", 100-alter);
 
 	return 0;
 }
