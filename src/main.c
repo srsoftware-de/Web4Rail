@@ -1,6 +1,8 @@
 #include <stdio.h>
 int main(){
-	printf( "I am alive!  Beware.\n" );
+	int telefonnummer;
+	telefonnummer = 7705281;
+	printf( "Telefonnummer: %d\n", telefonnummer );
 	getchar();
 	return 0;
 }
