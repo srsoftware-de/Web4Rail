@@ -21,4 +21,12 @@ void printTime(){
 	printf("%02d:%02d:%02d Uhr\n", myTm->tm_hour, myTm->tm_min, myTm->tm_sec);
 }
 
+long hoch2(int n) {
+	return n * n;
+}
+
+long hoch3(int n) {
+	return n * n * n;
+}
+
 #endif
