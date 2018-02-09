@@ -2,7 +2,6 @@
 #include "funktionen.h"
 
 int main() {
-	printf("Produkt: %d\n", mult(4, 5));
-	printf("Summe: %d\n", add(4, 5));
+	printTime();
 	return 0;
 }
