@@ -1,8 +1,7 @@
 #include <stdio.h>
 int main(){
-	int telefonnummer;
-	telefonnummer = 7705281;
-	printf( "Telefonnummer: %d\n", telefonnummer );
+	char c = '@';
+	printf( "Zeichen: %c\n", c);
 	getchar();
 	return 0;
 }
