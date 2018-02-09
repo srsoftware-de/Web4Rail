@@ -1,10 +1,13 @@
 #include<stdio.h>
+#define DEBUG
 
 int main() {
-	printf("Details zur Kompilierung\n\n");
-	printf("Datum: %s\n", __DATE__);
-	printf("Zeit: %s\n", __TIME__);
-	printf("Zeile: %d\n", __LINE__);
-	printf("Datei: %s\n", __FILE__);
+	int a=2, b=3, ergebnis;
+	ergebnis = (2*a) + (2*b);
+	#ifdef DEBUG
+	printf("* Debug: ergebnis = (2*%d) + (2*%d);\n", a, b);
+	#else
+	printf("Das Ergebnis ist %d\n", ergebnis);
+	#endif
 	return 0;
 }
