@@ -1,10 +1,11 @@
 #include <stdio.h>
 int main(){
 
-	int alter;
-	printf("Wie alt sind sie? ");
-	scanf("%d", &alter);
-	printf("\nIn %d Jahren sind Sie 100!\n", 100-alter);
-
+	float a,b;
+	printf("erste Zahl eingeben:");
+	scanf("%f",&a);
+	printf("erste Zahl eingeben:");
+	scanf("%f",&b);
+	printf("die Summe aus %f und %f ist %.3f",a,b,a+b);
 	return 0;
 }
