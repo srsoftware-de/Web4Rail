@@ -1,16 +1,29 @@
-#include <stdio.h>
+#include<stdio.h>
 
-float sum(float a, float b){
-	return a+b;
+// Funktions-Prototypen
+float eingabeZahl();
+float multipliziere(float zahl1, float zahl2);
+void ausgabeErgebnis(float ergebnis);
+
+// Hauptprogramm
+int main() {
+	// Rechenvorgang
+	ausgabeErgebnis(multipliziere(eingabeZahl(), eingabeZahl()));
+	return 0;
 }
 
-int main(){
+// Funktionen
+float eingabeZahl() {
+	float eingabe;
+	printf("\nEingabe Zahl: ");
+	scanf("%f", &eingabe);
+	return eingabe;
+}
 
-	float a,b;
-	printf("erste Zahl eingeben:");
-	scanf("%f",&a);
-	printf("erste Zahl eingeben:");
-	scanf("%f",&b);
-	printf("die Summe aus %f und %f ist %.3f",a,b,sum(a,b));
-	return 0;
+float multipliziere(float zahl1, float zahl2) {
+	return (zahl1 * zahl2);
+}
+
+void ausgabeErgebnis(float ergebnis) {
+	printf("\nErgebnis: %f\n", ergebnis);
 }
