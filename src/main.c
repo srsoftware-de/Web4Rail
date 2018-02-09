@@ -1,4 +1,9 @@
 #include <stdio.h>
+
+float sum(float a, float b){
+	return a+b;
+}
+
 int main(){
 
 	float a,b;
@@ -6,6 +11,6 @@ int main(){
 	scanf("%f",&a);
 	printf("erste Zahl eingeben:");
 	scanf("%f",&b);
-	printf("die Summe aus %f und %f ist %.3f",a,b,a+b);
+	printf("die Summe aus %f und %f ist %.3f",a,b,sum(a,b));
 	return 0;
 }
