@@ -2,7 +2,25 @@
 #include<string.h>
 
 int main() {
-	enum { kreuz=4, pik=3, karo, herz };
-	printf("Kreuz: %d, Pik: %d, Karo: %d, Herz: %d\n", kreuz, pik, karo, herz);
+
+	struct adresse {
+		char name[50];
+		char strasse[100];
+		short hausnummer;
+		long plz;
+		char stadt[50];
+	};
+
+	// Variable der Struktur erstellen
+	struct adresse adresseKurt;
+
+	// Zugriff auf die Elemente
+	strcpy(adresseKurt.name, "Kurt Kanns");
+	strcpy(adresseKurt.strasse, "Kannichweg");
+	adresseKurt.hausnummer = 23;
+	adresseKurt.plz = 45678;
+	strcpy(adresseKurt.stadt, "Kannstadt");
+
+	printf("Name: %s\n", adresseKurt.name);
 	return 0;
 }
