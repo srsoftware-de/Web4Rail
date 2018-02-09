@@ -1,24 +1,13 @@
 #include<stdio.h>
-#include<stdlib.h>
+
+int zaehlen() {
+	static int counter = 0;
+	return ++counter;
+}
 
 int main() {
-	int size=0;
-	int *array;
-
-	printf("Array-Groesse eingeben: ");
-	scanf("%d", &size);
-
-	// Speicher reservieren
-	array = (int *) calloc(size, sizeof(int));
-
-	if(array != NULL) {
-		printf("\nSpeicher ist reserviert\n");
-		free(array);
-		printf("\nSpeicher wurde wieder freigegeben\n");
-	}else {
-		printf("\nKein freier Speicher vorhanden.\n");
-	}
-
-
+	printf("Zähler: %d\n", zaehlen());
+	printf("Zähler: %d\n", zaehlen());
+	printf("Zähler: %d\n", zaehlen());
 	return 0;
 }
