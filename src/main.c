@@ -1,18 +1,22 @@
 #include<stdio.h>
 #include<string.h>
 
+
 int main() {
-	struct person {
-		char name[50];
-		int alter;
+	// Dateizeiger erstellen
+	FILE *fp;
+	int temp;
+
+	// Datei oeffnen
+	fp = fopen("Web4Rail", "r");
+
+	if(fp == NULL) {
+		printf("Datei konnte NICHT geoeffnet werden.\n");
+	}else {
+		// komplette Datei zeichenweise ausgeben
+		while((temp = fgetc(fp))!=EOF) {
+			printf("%c ", temp);
+		}
+		fclose(fp);
 	}
-	kurt = { "Kurt Kanns", 33 },
-	antonia = { "Antonia", 23 };
-
-	struct person dieter = { "Dieter Dunkel", 27 };
-
-	printf("kurt, Name: %s, Alter: %d\n", kurt.name, kurt.alter);
-	printf("antonia, Name: %s, Alter: %d\n", antonia.name, antonia.alter);
-	printf("dieter, Name: %s, Alter: %d\n", dieter.name, dieter.alter);
-	return 0;
 }
