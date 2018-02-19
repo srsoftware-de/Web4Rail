@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/python
 
 import socket,sys,os
 from thread import *
@@ -25,27 +25,32 @@ class web4rail_server:
 
 	def create_system(self,path):
 		print 'creating new system at '+path
-
+		os.mkdir(path, 0755)
+		file = open(path+'/plan.json', 'w+')
+		
 	def load_system(self,path):
 		print 'loading system from '+path
+		
 
 	def select_system(self,conn):
 		path='/'
 		conn.send("Welcome to the Web2Rail server. Please select a SYSTEM first:\n");
 		while True:
 			conn.send('current dir: '+path+"\n")
-			contents = os.listdir(path)
+			contents = sorted(os.listdir(path))
+			
 			conn.send("select one from\n")
 			for entry in contents:
 				conn.send('  '+entry+"\n")
+			conn.send("--\n")
 			entry = conn.recv(1024).strip()
 			if entry in contents:
-				path += entry
-				if os.path.isfile(path):
+				if os.path.isfile(path+entry):
 					break
-				path += '/'
+				path += entry+'/'
 			else:
-				conn.send(path+entry+' does not exist. Create (yes/no/abort)? ')
+				print entry
+				conn.send(path+entry+' does not exist. Create (yes/no/abort)?\n')
 				input = conn.recv(1024).strip()
 				if input == 'yes':
 					path += entry
@@ -54,6 +59,8 @@ class web4rail_server:
 				if input == 'abort':
 					path = None
 					break
+				path = '/'
+								
 		if path == None:
 			return
 		

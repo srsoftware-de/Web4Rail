@@ -1,56 +1,61 @@
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
-
-class ConnectDialog(Gtk.Window):
-
-	host = None
-	port = None
-
-	def __init__(self):
-		Gtk.Window.__init__(self, title="Connect to server")
-
-		grid = Gtk.Grid()
-		self.add(grid)
-
-		self.host_label = Gtk.Label('Hostname or IP')
-		
-		self.host_input = Gtk.Entry();
-		self.host_input.set_text('localhost')
-
-		self.port_label = Gtk.Label('Port')
-		self.port_input = Gtk.Entry();
-		self.port_input.set_text('7887')
-
-		self.connect_btn = Gtk.Button(label="Connect")
-                self.connect_btn.connect("clicked", self.try_connect)
-
-		self.abort_btn = Gtk.Button(label="Abort")
-                self.abort_btn.connect("clicked", self.abort)
-
-		grid.attach(self.host_label,0,0,1,1)
-		grid.attach(self.host_input,1,0,1,1)
-		grid.attach(self.port_label,0,1,1,1)
-		grid.attach(self.port_input,1,1,1,1)
-		grid.attach(self.abort_btn,0,2,1,1)
-                grid.attach(self.connect_btn,1,2,1,1)
-
-		self.connect("delete-event", Gtk.main_quit)
-
-	def abort(self, widget):
-		Gtk.main_quit()
-
-	def run(self):
-		self.show_all()
-		Gtk.main()
-		
-
-	def try_connect(self, widget):
-		self.host = self.host_input.get_text()
-		self.port = self.port_input.get_text()
-		Gtk.main_quit()
+#!/usr/bin/python
+import socket
+from ConnectDialog import *
+from FileDialog import *
+from YesNoDialog import *
+	
+def readline(socket):
+	buffer = socket.recv(4096)
+	buffering = True
+	while buffering:
+		if "\n" in buffer:
+			(line, buffer) = buffer.split("\n", 1)
+			yield line
+		else:
+			more = socket.recv(4096)
+			if not more:
+				buffering = False
+			else:
+				buffer += more
+	if buffer:
+		yield buffer
 
 conn_dlg = ConnectDialog()
 conn_dlg.run()
-print str(conn_dlg.host)
-print str(conn_dlg.port)
+
+if conn_dlg.port != None:
+	client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	client_sock.connect((conn_dlg.host,conn_dlg.port))
+	client = readline(client_sock)
+	current_dir = ''
+			
+	while True:
+		line = client.next()
+		
+		if line.startswith('current dir'):
+			current_dir = line
+			continue
+			
+		if line.startswith('select one'):
+			file_dialog = FileDialog(line,current_dir)
+			while True:
+				line = client.next()
+				if line.startswith('--'):
+					break
+				file_dialog.add_dir(line.strip())
+			file_dialog.run()
+			
+			client_sock.send(file_dialog.dir+"\n")
+			continue
+		
+		if 'does not exist. Create' in line:
+			dir = line.split('does not exist')[0].strip()
+			dialog = YesNoDialog(line)
+			if dialog.answer:
+				client_sock.send("yes\n")
+			else:
+				client_sock.send("no\n")
+			continue
+			
+		print line
+print "Test"
