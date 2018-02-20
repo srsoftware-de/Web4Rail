@@ -2,6 +2,7 @@
 import socket
 from ConnectDialog import *
 from FileDialog import *
+from TrackPlan import *
 from YesNoDialog import *
 	
 def readline(socket):
@@ -46,6 +47,11 @@ if conn_dlg.port != None:
 			file_dialog.run()
 			
 			client_sock.send(file_dialog.dir+"\n")
+			continue
+			
+		if line == 'PLAN:':
+			json = client.next()
+			plan = TrackPlan(json)
 			continue
 		
 		if 'does not exist. Create' in line:

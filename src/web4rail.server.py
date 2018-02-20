@@ -28,12 +28,15 @@ class web4rail_server:
 		os.mkdir(path, 0755)
 		file = open(path+'/plan.json', 'w+')
 		
-	def load_system(self,path):
+	def load_system(self,path,conn):
 		print 'loading system from '+path
-		
+		with open(path+'/plan.json', 'r') as plan_file:
+			plan=plan_file.read()
+		conn.send("PLAN:\n")
+		conn.send(plan+"\n")
 
 	def select_system(self,conn):
-		path='/'
+		path='/tmp/srichter/mops/'
 		conn.send("Welcome to the Web2Rail server. Please select a SYSTEM first:\n");
 		while True:
 			conn.send('current dir: '+path+"\n")
@@ -49,7 +52,6 @@ class web4rail_server:
 					break
 				path += entry+'/'
 			else:
-				print entry
 				conn.send(path+entry+' does not exist. Create (yes/no/abort)?\n')
 				input = conn.recv(1024).strip()
 				if input == 'yes':
@@ -64,7 +66,7 @@ class web4rail_server:
 		if path == None:
 			return
 		
-		self.load_system(path)
+		self.load_system(path,conn)
 
 
 	def start(self):
