@@ -20,7 +20,7 @@ def readline(socket):
 				buffer += more
 	if buffer:
 		yield buffer
-
+		
 conn_dlg = ConnectDialog()
 conn_dlg.run()
 
@@ -52,6 +52,8 @@ if conn_dlg.port != None:
 		if line == 'PLAN:':
 			json = client.next()
 			plan = TrackPlan(json)
+			plan.run()
+			break
 			continue
 		
 		if 'does not exist. Create' in line:

@@ -11,13 +11,41 @@ class TileSelector(Gtk.Window):
 		
 		self.grid = Gtk.Grid()
 		
-		self.add_tile(StraightH,0,0)
-		self.add_tile(StraightV,1,0)
-		self.add_tile(Diag_TL,0,1)
-		self.add_tile(Diag_TR,1,1)
-		self.add_tile(Diag_BR,2,1)
-		self.add_tile(Diag_BL,3,1)
-		self.add_tile(TO_BRL,0,2)
+		x0=0
+		x1=0
+		x2=0
+		
+		if connection in {Tile.LEFT,Tile.RIGHT,None}:
+			self.add_tile(StraightH,x0,0)
+			x0+=1
+			
+		if connection in {Tile.TOP,Tile.BOTTOM,None}:
+			self.add_tile(StraightV,x0,0)
+			x0+=1
+			
+		if connection in {Tile.TOP,Tile.LEFT,None}:
+			self.add_tile(Diag_TL,x1,1)
+			x1+=1
+			
+		if connection in {Tile.TOP,Tile.RIGHT,None}:
+			self.add_tile(Diag_TR,x1,1)
+			x1+=1
+			
+		if connection in {Tile.BOTTOM,Tile.RIGHT,None}:
+			self.add_tile(Diag_BR,x1,1)
+			x1+=1
+			
+		if connection in {Tile.BOTTOM,Tile.LEFT,None}:
+			self.add_tile(Diag_BL,x1,1)
+			x1+=1
+			
+		if connection in {Tile.BOTTOM,Tile.LEFT,Tile.RIGHT,None}:
+			self.add_tile(TO_BRL,0,2)
+			self.add_tile(TO_BLR,1,2)
+			
+		if connection in {Tile.TOP,Tile.LEFT,Tile.RIGHT,None}:
+			self.add_tile(TO_TRL,0,3)
+			self.add_tile(TO_TLR,1,3)
 		
 		self.add(self.grid)
 		
