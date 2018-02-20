@@ -36,7 +36,7 @@ class web4rail_server:
 		conn.send(plan+"\n")
 
 	def select_system(self,conn):
-		path='/tmp/srichter/mops/'
+		path='/'
 		conn.send("Welcome to the Web2Rail server. Please select a SYSTEM first:\n");
 		while True:
 			conn.send('current dir: '+path+"\n")

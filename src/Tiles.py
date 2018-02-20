@@ -28,7 +28,7 @@ class Tile(Gtk.DrawingArea):
 	def connects_left(self):
 		return self.connections()[3]
 
-class StraigthH(Tile):
+class StraightH(Tile):
 	def draw(self,widget,cr):
 		cr.set_source_rgb(0,0,0)
 		cr.rectangle(0,11,32,10)
@@ -37,7 +37,7 @@ class StraigthH(Tile):
 	def connections(self):
 		return (False,True,False,True)
 		
-class StraigthV(Tile):
+class StraightV(Tile):
 	def draw(self,widget,cr):
 		cr.set_source_rgb(0,0,0)
 		cr.rectangle(11,0,10,32)
@@ -57,6 +57,18 @@ class Diag_TL(Tile):
 	def connections(self):
 		return (True,False,False,True)
 
+class Diag_TR(Tile):
+	def draw(self,widget,cr):
+		cr.set_source_rgb(0,0,0)
+		cr.set_line_width(7)
+		cr.move_to(12,-5)
+		cr.line_to(38,21)
+		cr.stroke()
+		
+	def connections(self):
+		return (True,True,False,False)
+
+
 class Diag_BR(Tile):
 	def draw(self,widget,cr):
 		cr.set_source_rgb(0,0,0)
@@ -67,6 +79,18 @@ class Diag_BR(Tile):
 		
 	def connections(self):
 		return (False,True,True,False)
+
+class Diag_BL(Tile):
+	def draw(self,widget,cr):
+		cr.set_source_rgb(0,0,0)
+		cr.set_line_width(7)
+		cr.move_to(-5,11)
+		cr.line_to(21,37)
+		cr.stroke()
+		
+	def connections(self):
+		return (False,False,True,True)
+
 
 class TO_BRL(Tile):
 	def draw(self,widget,cr):

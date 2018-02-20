@@ -19,14 +19,14 @@ class TrackPlan(Gtk.Window):
 		Gtk.main()
 		
 	def select_tile(self,widget,connections):
-		print 'Button at ({},{}) pressed'.format(widget.x, widget.y)
+		#print 'Button at ({},{}) pressed'.format(widget.x, widget.y)
 		tileSelector = TileSelector(connections)
 		tile = tileSelector.tile()
 		self.putTile(tile,widget.x,widget.y)
 		widget.destroy()
 		
 	def putButton(self,x,y,connections):
-		print 'putButton({},{})'.format(x,y)
+		#print 'putButton({},{})'.format(x,y)
 		btn = Gtk.Button('?')
 		btn.x = x
 		btn.y = y
@@ -35,7 +35,7 @@ class TrackPlan(Gtk.Window):
 		btn.show()		
 		
 	def putTile(self,tile,x,y):
-		print 'putTile({},{})'.format(x,y)
+		#print 'putTile({},{})'.format(x,y)
 		tile.x = x
 		tile.y = y
 		self.grid.attach(tile,x,y,1,1)
@@ -57,4 +57,8 @@ class TrackPlan(Gtk.Window):
 			bottom = self.grid.get_child_at(x,y+1)
 			if bottom == None:
 				self.putButton(x,y+1,tile.connections())
-			
+		
+		self.save()
+		
+	def save(self):
+		print 'Saving plan not implemented'
