@@ -22,6 +22,7 @@ def readline(socket):
 	if buff:
 		yield buff
 
+print ('starting')
 conn_dlg = ConnectDialog()
 conn_dlg.run()
 
@@ -52,8 +53,9 @@ if conn_dlg.port is not None:
 
 		if line == 'PLAN:':
 			json = client.next()
-			plan = TrackPlan(json)
+			plan = TrackPlan(json, client_sock)
 			plan.run()
+			client_sock.send('EXIT')
 			break
 			continue
 
