@@ -1,5 +1,6 @@
 package de.srsoftware.web4rail;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -25,7 +26,7 @@ public class Plan {
 		return column == null ? null : column.get(y);
 	}
 
-	public Page html() {
+	public Page html() throws IOException {
 		Page page = new Page();
 		for (Entry<Integer, HashMap<Integer, Tile>> column : tiles.entrySet()) {
 			int x = column.getKey();

@@ -20,6 +20,7 @@ import de.srsoftware.web4rail.tiles.DiagNE;
 import de.srsoftware.web4rail.tiles.DiagSW;
 import de.srsoftware.web4rail.tiles.DiagWN;
 import de.srsoftware.web4rail.tiles.EndE;
+import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
 import de.srsoftware.web4rail.tiles.TurnoutSE;
@@ -42,6 +43,7 @@ public class Application {
 		plan.set(3, 1, new TurnoutSE());
 		plan.set(3, 0, new TurnoutSW());
 		plan.set(2, 0, new EndE());
+		plan.set(4, 1, new EndW());
 		InetSocketAddress addr = new InetSocketAddress(config.getOrAdd("port", 8080));
 		HttpServer server = HttpServer.create(addr, 0);
 		server.createContext("/plan", client -> sendPlan(client));
