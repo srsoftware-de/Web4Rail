@@ -1,55 +1,46 @@
 package de.srsoftware.web4rail.tiles;
 
-import java.util.HashMap;
+import java.util.HashSet;
+
+import de.keawe.tools.translations.Translation;
+import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Application;
 
 public abstract class Tile {
 	
-	public enum Direction{
-		NORTH,SOUTH,EAST,WEST;
-	}
-	private class Position {
-		int x,y;
-	}
+	protected int x,y;	
+	protected HashSet<String> classes = new HashSet<String>();
 	
-	Position position;
-	private HashMap<Direction,Tile> neighbours = new HashMap();
-	
-	public abstract boolean hasConnector(Direction direction);
-	
-	public boolean connect(Direction direction, Tile neighbour) {
-		if (hasConnector(direction)) {
-			switch (direction) {
-				case NORTH:
-					neighbour.neighbours.put(Direction.SOUTH, this);
-					neighbour.position.x = position.x;
-					neighbour.position.y = position.y-1;
-				case SOUTH:
-					neighbour.neighbours.put(Direction.NORTH, this);
-					neighbour.position.x = position.x;
-					neighbour.position.y = position.y+1;
-				case EAST:
-					neighbour.neighbours.put(Direction.WEST, this);
-					neighbour.position.x = position.x+1;
-					neighbour.position.y = position.y;
-				case WEST:
-					neighbour.neighbours.put(Direction.EAST, this);
-					neighbour.position.x = position.x-1;
-					neighbour.position.y = position.y;					
-			}
-			neighbours.put(direction, neighbour);
-			return true;
-		}
-		return false;
+	public Tile() {
+		classes.add("tile");
 	}
 	
-	public Tile neighbour(Direction direction) {
-		return neighbours.get(direction);
+	public Tile position(int x, int y) {
+		this.x = x;
+		this.y = y;
+		return this;
 	}
 
-	public Tile position(int x, int y) {
-		position.x = x;
-		position.y = y;
-		return this;
+	public String html() {
+		Tag svg = new Tag("svg")
+				.id("tile-"+x+"-"+y)
+				.clazz(classes)
+				.size(100,100)
+				.attr("viewbox", "0 0 100 100")
+				.style("left: "+(30*x)+"px; top: "+(30*y)+"px");
+		new Tag("title").content(t("No display defined for this tile ({})",getClass().getSimpleName())).addTo(svg);
+
+		new Tag("text")
+				.pos(35,70)	
+				.content("?")
+				.addTo(svg);
+
+		
+		return svg.toString();
+	}
+
+	private String t(String txt, Object...fills) {
+		return Translation.get(Application.class, txt, fills);
 	}
 	
 }
