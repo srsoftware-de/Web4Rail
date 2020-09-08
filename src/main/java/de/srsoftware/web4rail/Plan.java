@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.tiles.StraightH;
+import de.srsoftware.web4rail.tiles.StraightV;
 import de.srsoftware.web4rail.tiles.Tile;
 
 public class Plan {
@@ -36,6 +39,19 @@ public class Plan {
 				page.append("\t\t"+tile.html()+"\n");
 			}
 		}
+		page.append(menu());
 		return page;
+	}
+
+	private Tag menu() throws IOException {
+		Tag menu = new Tag("div").clazz("menu");
+		Tag tileMenu = new Tag("div").clazz("tile").content("Add tile");
+		
+		StringBuffer tiles = new StringBuffer();
+		tiles.append(new StraightH().html());
+		tiles.append(new StraightV().html());
+		new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu).addTo(menu);
+			
+		return menu;
 	}
 }

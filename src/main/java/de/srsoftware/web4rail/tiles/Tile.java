@@ -31,10 +31,11 @@ public abstract class Tile {
 				.id("tile-"+x+"-"+y)
 				.clazz(classes)
 				.size(100,100)
+				.attr("name", getClass().getSimpleName())
 				.attr("viewbox", "0 0 100 100")
 				.style("left: "+(30*x)+"px; top: "+(30*y)+"px");
 
-		File file = new File(System.getProperty("user.dir")+"/svg/"+getClass().getSimpleName()+".svg");
+		File file = new File(System.getProperty("user.dir")+"/resources/svg/"+getClass().getSimpleName()+".svg");
 		if (file.exists()) {
 			Scanner scanner = new Scanner(file, StandardCharsets.UTF_8);
 			StringBuffer sb = new StringBuffer();
