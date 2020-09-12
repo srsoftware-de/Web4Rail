@@ -58,12 +58,12 @@ public abstract class Tile {
 		return svg.toString();
 	}
 
-	private String t(String txt, Object...fills) {
+	private static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
 	}
 
 	public static Tag propMenu() {
-		return new Window("tile-properties").content("Eigenschaften...");
+		return new Window("tile-properties",t("Properties")).content(t("This tile has no properties"));
 	}
 	
 }

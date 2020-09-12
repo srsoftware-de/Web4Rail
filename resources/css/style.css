@@ -82,13 +82,21 @@ svg text{
 	left: 10px;
 	right: 10px;
 	background: yellow;
+	padding: 5px;
+}
+
+h2{
+	margin: 0 0 10px;
+	text-align: center;
+	background: #627fda;
 }
 
 .closebtn{
 	position: absolute;
 	right: 10px;
+	top: 10px;
 	font-size: 30px;
-	background: gray;
+	background: red;
 	color: white;
 }
 
