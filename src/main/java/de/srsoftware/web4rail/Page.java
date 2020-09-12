@@ -24,6 +24,7 @@ public class Page {
 		StringBuffer sb = new StringBuffer()
 				.append("<html>\n")
 				.append("\t<head>\n");
+		sb.append("\t\t"+new Tag("meta").attr("charset", "UTF-8")+"\n");
 		for (String cssFile : cssFiles) {
 			sb.append("\t\t"+new Tag("link").attr("rel", "stylesheet").attr("type", "text/css").attr("href", cssFile)+"\n");
 		}

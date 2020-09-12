@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,7 @@ public class Application {
 		File file = new File(System.getProperty("user.dir")+"/resources"+uri);
 		LOG.debug("requesting file: {}",file);
 		if (file.exists()) {
+			client.getResponseHeaders().add("Content-Type", Files.probeContentType(file.toPath()));
 			client.sendResponseHeaders(200, file.length());
 			OutputStream out = client.getResponseBody();
 			FileInputStream in = new FileInputStream(file);
@@ -86,7 +88,7 @@ public class Application {
 	}
 
 	private static void sendPlan(HttpExchange client) throws IOException {
-		send(client,plan.html().style("css/style.css").js("jquery-3.5.1.slim.min.js").js("js/plan.js"));
+		send(client,plan.html().style("css/style.css").js("js/jquery-3.5.1.slim.min.js").js("js/plan.js"));
 	}
 
 	private static void send(HttpExchange client, Page response) throws IOException {

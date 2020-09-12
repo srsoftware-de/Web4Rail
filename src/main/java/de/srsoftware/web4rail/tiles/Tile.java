@@ -12,7 +12,7 @@ import de.srsoftware.web4rail.Application;
 
 public abstract class Tile {
 	
-	protected int x,y;	
+	protected int x = -1,y = -1;	
 	protected HashSet<String> classes = new HashSet<String>();
 	
 	public Tile() {
@@ -28,12 +28,12 @@ public abstract class Tile {
 	public String html() throws IOException {
 		
 		Tag svg = new Tag("svg")
-				.id("tile-"+x+"-"+y)
+				.id((x!=-1 && y!=-1)?("tile-"+x+"-"+y):(getClass().getSimpleName()))
 				.clazz(classes)
 				.size(100,100)
 				.attr("name", getClass().getSimpleName())
-				.attr("viewbox", "0 0 100 100")
-				.style("left: "+(30*x)+"px; top: "+(30*y)+"px");
+				.attr("viewbox", "0 0 100 100");
+				if (x>-1) svg.style("left: "+(30*x)+"px; top: "+(30*y)+"px");
 
 		File file = new File(System.getProperty("user.dir")+"/resources/svg/"+getClass().getSimpleName()+".svg");
 		if (file.exists()) {

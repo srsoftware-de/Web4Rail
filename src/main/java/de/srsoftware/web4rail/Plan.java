@@ -5,9 +5,18 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.tiles.DiagES;
+import de.srsoftware.web4rail.tiles.DiagNE;
+import de.srsoftware.web4rail.tiles.DiagSW;
+import de.srsoftware.web4rail.tiles.DiagWN;
+import de.srsoftware.web4rail.tiles.EndE;
+import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
 import de.srsoftware.web4rail.tiles.Tile;
+import de.srsoftware.web4rail.tiles.TurnoutSE;
+import de.srsoftware.web4rail.tiles.TurnoutSW;
+import de.srsoftware.web4rail.tiles.TurnoutWS;
 
 public class Plan {
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
@@ -50,6 +59,15 @@ public class Plan {
 		StringBuffer tiles = new StringBuffer();
 		tiles.append(new StraightH().html());
 		tiles.append(new StraightV().html());
+		tiles.append(new DiagES().html());
+		tiles.append(new DiagSW().html());
+		tiles.append(new DiagNE().html());
+		tiles.append(new DiagWN().html());
+		tiles.append(new EndE().html());
+		tiles.append(new EndW().html());
+		tiles.append(new TurnoutSE().html());
+		tiles.append(new TurnoutWS().html());
+		tiles.append(new TurnoutSW().html());
 		new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu).addTo(menu);
 			
 		return menu;
