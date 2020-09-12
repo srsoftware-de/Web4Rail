@@ -1,7 +1,9 @@
 package de.srsoftware.web4rail;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -39,6 +41,15 @@ public class Plan {
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	
+	private Tag actionMenu() throws IOException {
+
+		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));
+		
+		StringBuffer tiles = new StringBuffer();
+		tiles.append(new Tag("div").id("save").content(t("Save plan")));
+		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
+	}
+	
 	private Tile addTile(String clazz, String xs, String ys) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		int x = Integer.parseInt(xs);
 		int y = Integer.parseInt(ys);
@@ -67,6 +78,19 @@ public class Plan {
 		}
 		return page.append(menu()).append(messages());
 	}
+	
+	public static Plan load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		Plan result = new Plan();
+		File file = new File(filename);
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		while (br.ready()) {
+			String line = br.readLine().trim();
+			String[] parts = line.split(":");
+			result.addTile(parts[2].trim(), parts[0].trim(), parts[1].trim());
+		}
+		br.close();
+		return result;
+	}
 
 	private Tag messages() {
 		return new Tag("div").id("messages").content("");
@@ -79,15 +103,6 @@ public class Plan {
 		actionMenu().addTo(menu);
 			
 		return menu;
-	}
-
-	private Tag actionMenu() throws IOException {
-
-		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));
-		
-		StringBuffer tiles = new StringBuffer();
-		tiles.append(new Tag("div").id("save").content(t("Save plan")));
-		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 
 	public String process(HashMap<String, String> params) {
@@ -123,7 +138,7 @@ public class Plan {
 			}
 		}
 		br.close();
-		return "saving "+name;
+		return t("Plan saved as \"{}\".",file);
 	}
 
 	public Tile set(int x,int y,Tile tile) {
@@ -160,4 +175,6 @@ public class Plan {
 		tiles.append(new Eraser().html());
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
+
+
 }

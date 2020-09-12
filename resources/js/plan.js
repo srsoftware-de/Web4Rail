@@ -69,7 +69,7 @@ function savePlan(ev){
 	$.ajax({
 		url : PLAN,
 		method : POST,
-		data : {action:'save',name:'default'},
+		data : {action:'save',name:'default'}, // todo: ask for name
 		success: function(resp){ addMessage(resp);}
 	});
 	return false;

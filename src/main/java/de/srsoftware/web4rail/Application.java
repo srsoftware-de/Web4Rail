@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -38,10 +39,11 @@ public class Application {
 	private static final String PORT = "port";
 	private static final Charset UTF8 = StandardCharsets.UTF_8;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Configuration config = new Configuration(Configuration.dir("Web4Rail")+"/app.config");
 		LOG.debug("Config: {}",config);
-		plan = new Plan();
+		plan = Plan.load("default.plan");
+		/*plan = new Plan();
 		plan.set(0, 0, new StraightH());
 		plan.set(1, 0, new DiagSW());
 		plan.set(1, 1, new StraightV());
@@ -51,7 +53,7 @@ public class Application {
 		plan.set(3, 1, new TurnoutSE());
 		plan.set(3, 0, new TurnoutSW());
 		plan.set(2, 0, new EndE());
-		plan.set(4, 1, new EndW());
+		plan.set(4, 1, new EndW());*/
 		InetSocketAddress addr = new InetSocketAddress(config.getOrAdd(PORT, 8080));
 		HttpServer server = HttpServer.create(addr, 0);
 		server.createContext("/plan", client -> sendPlan(client));
