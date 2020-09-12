@@ -50,3 +50,13 @@ svg text{
 .menu .tile .list .tile{
 	position: relative;
 }
+
+#messages{
+	display: none;
+	position: fixed;
+	bottom: 5px;
+	right: 5px;
+	padding: 5px;
+	border-radius: 5px;
+	background: yellow;
+}

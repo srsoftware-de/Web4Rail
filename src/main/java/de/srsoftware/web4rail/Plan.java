@@ -59,8 +59,11 @@ public class Plan {
 				page.append("\t\t"+tile.html()+"\n");
 			}
 		}
-		page.append(menu());
-		return page;
+		return page.append(menu()).append(messages());
+	}
+
+	private Tag messages() {
+		return new Tag("div").id("messages").content("");
 	}
 
 	private Tag menu() throws IOException {
@@ -84,8 +87,7 @@ public class Plan {
 		return menu;
 	}
 
-	public Page process(HashMap<String, String> params) {
-		Page page = new Page();
+	public String process(HashMap<String, String> params) {
 		try {
 			String mode = params.get(MODE);
 			
@@ -93,13 +95,13 @@ public class Plan {
 			switch (mode) {
 				case MODE_ADD:
 					Tile tile = addTile(params.get(TILE),params.get(X),params.get(Y));
-					return page.append(t("Added {}",tile.getClass().getSimpleName()));
+					return t("Added {}",tile.getClass().getSimpleName());
 				default:
 					LOG.warn("Unknown mode: {}",mode);
 			}
-			return page.append("unknown "+MODE+": "+mode);
+			return t("unknown mode: {}",mode);
 		} catch (Exception e) {
-			return page.append(e.getMessage());
+			return e.getMessage();
 		}
 	}
 	

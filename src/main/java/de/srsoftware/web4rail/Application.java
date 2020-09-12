@@ -106,12 +106,20 @@ public class Application {
 	}
 
 	private static void send(HttpExchange client, Page response) throws IOException {
-		client.getResponseHeaders().set("content-type", "text/plain");
-		StringBuffer html = response.html();
+		byte[] html = response.html().toString().getBytes(UTF8);
 		client.getResponseHeaders().add("content-type", "text/html");
-        client.sendResponseHeaders(200, html.length());
+        client.sendResponseHeaders(200, html.length);
         OutputStream os = client.getResponseBody();
-        os.write(html.toString().getBytes(UTF8));
+        os.write(html);
+        os.close();
+	}
+	
+	private static void send(HttpExchange client, String response) throws IOException {
+		byte[] html = response.getBytes(UTF8);
+		client.getResponseHeaders().add("content-type", "text/plain");
+        client.sendResponseHeaders(200, html.length);
+        OutputStream os = client.getResponseBody();
+        os.write(html);
         os.close();
 	}
 	

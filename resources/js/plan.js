@@ -5,21 +5,30 @@ const SVG = 'svg';
 var selected = null;
 var mode = null;
 
+function addMessage(txt){
+	$('#messages').html(txt).show().delay(1000).fadeOut();
+}
 
-function addTile(tile,x,y){	
-	console.log("addTile:",tile.id,x,y);
+function addTile(x,y){	
+	console.log("addTile:",selected.id,x,y);
 	x = Math.floor(x/SQUARE);
 	y = Math.floor(y/SQUARE);
 	$.ajax({
 		url : 'plan',
 		method: 'POST',
-		data : {mode:mode,tile:tile.id,x:x,y:y}
+		data : {mode:mode,tile:selected.id,x:x,y:y},
+		success: function(resp){
+			var id = 'tile-'+x+'-'+y;
+			$('#'+id).remove();
+			console.log("x: ",x);
+			var tile = $(selected).clone().css({left:(30*x)+'px',top:(30*y)+'px','border':''}).attr('id',id);
+			
+			$(BODY).append(tile);
+			
+			addMessage(resp);
+		}
 	});
-	var id = 'tile-'+x+'-'+y;
-	$('#'+id).remove();
-	var tile = $(tile).clone().css({left:(30*x)+'px',top:(30*y)+'px','border':''}).attr('id',id);
-	console.log(tile);
-	$(BODY).append(tile);
+
 }
 
 function bodyClick(ev){
@@ -28,7 +37,7 @@ function bodyClick(ev){
 	case undefined:
 		case null: return;
 		case ADD:
-			return addTile(selected,ev.clientX,ev.clientY);
+			return addTile(ev.clientX,ev.clientY);
 	}
 	console.log(ev.clientX,ev.clientY);
 }
