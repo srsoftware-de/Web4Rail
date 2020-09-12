@@ -1,9 +1,14 @@
 package de.srsoftware.web4rail;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.tiles.DiagES;
 import de.srsoftware.web4rail.tiles.DiagNE;
@@ -19,18 +24,24 @@ import de.srsoftware.web4rail.tiles.TurnoutSW;
 import de.srsoftware.web4rail.tiles.TurnoutWS;
 
 public class Plan {
+	private static final String MODE = "mode";
+	private static final String MODE_ADD = "1";
+	private static final String TILE = "tile";
+	private static final Logger LOG = LoggerFactory.getLogger(Plan.class);
+	private static final String X = "x";
+	private static final String Y = "y";
+	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	
-	public Tile set(int x,int y,Tile tile) {
-		Tile old = null;
-		HashMap<Integer, Tile> column = tiles.get(x);
-		if (column == null) {
-			column = new HashMap<Integer,Tile>();
-			tiles.put(x, column);
-		}
-		old = column.get(y);
-		column.put(y,tile.position(x, y));
-		return old;
+	private Tile addTile(String clazz, String xs, String ys) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		int x = Integer.parseInt(xs);
+		int y = Integer.parseInt(ys);
+		if (clazz == null) throw new NullPointerException(TILE+" must not be null!");
+		Class<Tile> tc = Tile.class;
+		clazz = tc.getName().replace(".Tile", "."+clazz);
+		Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
+		set(x, y, tile);
+		return tile;
 	}
 	
 	public Tile get(int x, int y) {
@@ -71,5 +82,40 @@ public class Plan {
 		new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu).addTo(menu);
 			
 		return menu;
+	}
+
+	public Page process(HashMap<String, String> params) {
+		Page page = new Page();
+		try {
+			String mode = params.get(MODE);
+			
+			if (mode == null) throw new NullPointerException(MODE+" should not be null!");
+			switch (mode) {
+				case MODE_ADD:
+					Tile tile = addTile(params.get(TILE),params.get(X),params.get(Y));
+					return page.append(t("Added {}",tile.getClass().getSimpleName()));
+				default:
+					LOG.warn("Unknown mode: {}",mode);
+			}
+			return page.append("unknown "+MODE+": "+mode);
+		} catch (Exception e) {
+			return page.append(e.getMessage());
+		}
+	}
+	
+	public Tile set(int x,int y,Tile tile) {
+		Tile old = null;
+		HashMap<Integer, Tile> column = tiles.get(x);
+		if (column == null) {
+			column = new HashMap<Integer,Tile>();
+			tiles.put(x, column);
+		}
+		old = column.get(y);
+		column.put(y,tile.position(x, y));
+		return old;
+	}
+	
+	private String t(String message, Object...fills) {
+		return Translation.get(Application.class, message, fills);
 	}
 }

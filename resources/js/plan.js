@@ -10,6 +10,11 @@ function addTile(tile,x,y){
 	console.log("addTile:",tile.id,x,y);
 	x = Math.floor(x/SQUARE);
 	y = Math.floor(y/SQUARE);
+	$.ajax({
+		url : 'plan',
+		method: 'POST',
+		data : {mode:mode,tile:tile.id,x:x,y:y}
+	});
 	var id = 'tile-'+x+'-'+y;
 	$('#'+id).remove();
 	var tile = $(tile).clone().css({left:(30*x)+'px',top:(30*y)+'px','border':''}).attr('id',id);

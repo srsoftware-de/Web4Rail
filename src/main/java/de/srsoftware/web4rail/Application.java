@@ -7,8 +7,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +36,7 @@ public class Application {
 	private static Plan plan;
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 	private static final String PORT = "port";
+	private static final Charset UTF8 = StandardCharsets.UTF_8;
 
 	public static void main(String[] args) throws IOException {
 		Configuration config = new Configuration(Configuration.dir("Web4Rail")+"/app.config");
@@ -79,16 +83,26 @@ public class Application {
 		client.sendResponseHeaders(code, msg.length());
 		LOG.error(msg);
 		OutputStream out = client.getResponseBody();
-		out.write(msg.getBytes(StandardCharsets.UTF_8));
+		out.write(msg.getBytes(UTF8));
 		out.close();
 	}
 
-	private static String t(String text, Object...fills) {
-		return Translation.get(Application.class, text, fills);
+	private static HashMap<String, String> inflate(byte[] data) {
+		return inflate(new String(data,UTF8));
 	}
 
-	private static void sendPlan(HttpExchange client) throws IOException {
-		send(client,plan.html().style("css/style.css").js("js/jquery-3.5.1.slim.min.js").js("js/plan.js"));
+	private static HashMap<String, String> inflate(String data) {
+		LOG.debug("inflate({})",data);
+		HashMap<String, String> params = new HashMap<String, String>();
+		if (data == null || data.trim().isEmpty()) return params;
+		String[] parts = data.split("&");
+		
+		for (String part : parts) {
+			String[] entry = part.split("=", 2);
+			params.put(URLDecoder.decode(entry[0],UTF8),URLDecoder.decode(entry[1], UTF8));
+		}
+		
+		return params;
 	}
 
 	private static void send(HttpExchange client, Page response) throws IOException {
@@ -97,7 +111,23 @@ public class Application {
 		client.getResponseHeaders().add("content-type", "text/html");
         client.sendResponseHeaders(200, html.length());
         OutputStream os = client.getResponseBody();
-        os.write(html.toString().getBytes(StandardCharsets.UTF_8));
+        os.write(html.toString().getBytes(UTF8));
         os.close();
+	}
+	
+	private static void sendPlan(HttpExchange client) throws IOException {
+		HashMap<String, String> params = inflate(client.getRequestBody().readAllBytes());
+		try {
+			if (!params.isEmpty()) {
+				send(client,plan.process(params));
+			} else send(client,plan.html().style("css/style.css").js("js/jquery-3.5.1.min.js").js("js/plan.js"));
+		} catch (Exception e) {
+			LOG.error("Error during sendPlan(): {}",e);
+			send(client,new Page().append(e.getMessage()));
+		}		
+	}
+	
+	private static String t(String text, Object...fills) {
+		return Translation.get(Application.class, text, fills);
 	}
 }
