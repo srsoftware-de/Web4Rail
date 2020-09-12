@@ -1,7 +1,9 @@
-const ADD = 1;
+const ADD = 'add';
 const SQUARE = 30;
 const BODY = 'body';
 const SVG = 'svg';
+const PLAN = 'plan';
+const POST = 'POST';
 var selected = null;
 var mode = null;
 
@@ -14,17 +16,14 @@ function addTile(x,y){
 	x = Math.floor(x/SQUARE);
 	y = Math.floor(y/SQUARE);
 	$.ajax({
-		url : 'plan',
-		method: 'POST',
-		data : {mode:mode,tile:selected.id,x:x,y:y},
+		url : PLAN,
+		method: POST,
+		data : {action:mode,tile:selected.id,x:x,y:y},
 		success: function(resp){
 			var id = 'tile-'+x+'-'+y;
 			$('#'+id).remove();
-			console.log("x: ",x);
 			var tile = $(selected).clone().css({left:(30*x)+'px',top:(30*y)+'px','border':''}).attr('id',id);
-			
-			$(BODY).append(tile);
-			
+			if (selected.id != 'Eraser') $(BODY).append(tile);
 			addMessage(resp);
 		}
 	});
@@ -52,7 +51,7 @@ function closeMenu(ev){
 }
 
 function enableAdding(ev){
-	console.log('enableAdding:',ev);
+//	console.log('enableAdding:',ev);
 	if (selected != null) $(selected).css('border','');
 	selected = ev.target;
 	while (selected != null && selected.nodeName != SVG) selected = selected.parentNode;
@@ -66,9 +65,20 @@ function enableAdding(ev){
 	return false; // otherwise body.click would also be triggered
 }
 
+function savePlan(ev){
+	$.ajax({
+		url : PLAN,
+		method : POST,
+		data : {action:'save',name:'default'},
+		success: function(resp){ addMessage(resp);}
+	});
+	return false;
+}
+
 window.onload = function () {
 	var isDragging = false;
 	$('.menu > div').click(closeMenu);
 	$('.menu .addtile .list svg').click(enableAdding);
 	$(BODY).click(bodyClick);
+	$('#save').click(savePlan);
 }

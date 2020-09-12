@@ -1,5 +1,8 @@
 package de.srsoftware.web4rail;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -16,6 +19,7 @@ import de.srsoftware.web4rail.tiles.DiagSW;
 import de.srsoftware.web4rail.tiles.DiagWN;
 import de.srsoftware.web4rail.tiles.EndE;
 import de.srsoftware.web4rail.tiles.EndW;
+import de.srsoftware.web4rail.tiles.Eraser;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -24,12 +28,14 @@ import de.srsoftware.web4rail.tiles.TurnoutSW;
 import de.srsoftware.web4rail.tiles.TurnoutWS;
 
 public class Plan {
-	private static final String MODE = "mode";
-	private static final String MODE_ADD = "1";
+	private static final String ACTION = "action";
+	private static final String ACTION_ADD = "add";
+	private static final String ACTION_SAVE = "save";
 	private static final String TILE = "tile";
 	private static final Logger LOG = LoggerFactory.getLogger(Plan.class);
 	private static final String X = "x";
 	private static final String Y = "y";
+	private static final String NAME = "name";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	
@@ -56,7 +62,7 @@ public class Plan {
 			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
 				int y = row.getKey();
 				Tile tile = row.getValue().position(x, y);
-				page.append("\t\t"+tile.html()+"\n");
+				if (tile != null) page.append("\t\t"+tile.html()+"\n");
 			}
 		}
 		return page.append(menu()).append(messages());
@@ -75,29 +81,51 @@ public class Plan {
 		return menu;
 	}
 
-	private Tag actionMenu() {
-		Tag menu = new Tag("div").clazz("actions").content("Actions");
-		return menu;
+	private Tag actionMenu() throws IOException {
+
+		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));
+		
+		StringBuffer tiles = new StringBuffer();
+		tiles.append(new Tag("div").id("save").content(t("Save plan")));
+		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 
 	public String process(HashMap<String, String> params) {
 		try {
-			String mode = params.get(MODE);
+			String action = params.get(ACTION);
 			
-			if (mode == null) throw new NullPointerException(MODE+" should not be null!");
-			switch (mode) {
-				case MODE_ADD:
+			if (action == null) throw new NullPointerException(ACTION+" should not be null!");
+			switch (action) {
+				case ACTION_ADD:
 					Tile tile = addTile(params.get(TILE),params.get(X),params.get(Y));
 					return t("Added {}",tile.getClass().getSimpleName());
+				case ACTION_SAVE:
+					return saveTo(params.get(NAME));
 				default:
-					LOG.warn("Unknown mode: {}",mode);
+					LOG.warn("Unknown action: {}",action);
 			}
-			return t("unknown mode: {}",mode);
+			return t("Unknown action: {}",action);
 		} catch (Exception e) {
 			return e.getMessage();
 		}
 	}
 	
+	private String saveTo(String name) throws IOException {
+		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
+		File file = new File(name+".plan");
+		BufferedWriter br = new BufferedWriter(new FileWriter(file));
+		for (Entry<Integer, HashMap<Integer, Tile>> column : tiles.entrySet()) {
+			int x = column.getKey();
+			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
+				int y = row.getKey();
+				Tile tile = row.getValue().position(x, y);
+				if (tile != null) br.append(x+":"+y+":"+tile.getClass().getSimpleName()+"\n");
+			}
+		}
+		br.close();
+		return "saving "+name;
+	}
+
 	public Tile set(int x,int y,Tile tile) {
 		Tile old = null;
 		HashMap<Integer, Tile> column = tiles.get(x);
@@ -105,8 +133,8 @@ public class Plan {
 			column = new HashMap<Integer,Tile>();
 			tiles.put(x, column);
 		}
-		old = column.get(y);
-		column.put(y,tile.position(x, y));
+		old = column.remove(y);
+		if (!(tile instanceof Eraser)) column.put(y,tile.position(x, y));
 		return old;
 	}
 	
@@ -115,7 +143,7 @@ public class Plan {
 	}
 	
 	private Tag tileMenu() throws IOException {
-		Tag tileMenu = new Tag("div").clazz("addtile").content("Add tile");
+		Tag tileMenu = new Tag("div").clazz("addtile").content(t("Add tile"));
 		
 		StringBuffer tiles = new StringBuffer();
 		tiles.append(new StraightH().html());
@@ -129,6 +157,7 @@ public class Plan {
 		tiles.append(new TurnoutSE().html());
 		tiles.append(new TurnoutWS().html());
 		tiles.append(new TurnoutSW().html());
+		tiles.append(new Eraser().html());
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 }

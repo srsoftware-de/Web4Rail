@@ -12,7 +12,7 @@ import de.srsoftware.web4rail.Application;
 
 public abstract class Tile {
 	
-	protected int x = -1,y = -1;	
+	protected int x = -1,y = -1;
 	protected HashSet<String> classes = new HashSet<String>();
 	
 	public Tile() {

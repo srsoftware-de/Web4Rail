@@ -60,6 +60,8 @@ svg text{
 
 .menu > div > .list > *{
 	position: relative;
+	border: 1px solid black;
+	height: 30px;
 	float: left;
 }
 
@@ -71,4 +73,8 @@ svg text{
 	padding: 5px;
 	border-radius: 5px;
 	background: yellow;
+}
+
+#Eraser polygon{
+	stroke: red;
 }
