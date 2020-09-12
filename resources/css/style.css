@@ -75,6 +75,23 @@ svg text{
 	background: yellow;
 }
 
+#tile-properties{
+	position: fixed;
+	top: 10px;
+	bottom: 10px;
+	left: 10px;
+	right: 10px;
+	background: yellow;
+}
+
+.closebtn{
+	position: absolute;
+	right: 10px;
+	font-size: 30px;
+	background: gray;
+	color: white;
+}
+
 #Eraser polygon{
 	stroke: red;
 }

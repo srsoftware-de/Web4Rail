@@ -9,6 +9,7 @@ import java.util.Scanner;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.Window;
 
 public abstract class Tile {
 	
@@ -59,6 +60,10 @@ public abstract class Tile {
 
 	private String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
+	}
+
+	public static Tag propMenu() {
+		return new Window("tile-properties").content("Eigenschaften...");
 	}
 	
 }

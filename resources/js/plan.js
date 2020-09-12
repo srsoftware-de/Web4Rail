@@ -31,14 +31,32 @@ function addTile(x,y){
 }
 
 function bodyClick(ev){
-	console.log('bodyClick:',ev);
+	//console.log('bodyClick:',ev);
 	switch (mode){
-	case undefined:
-		case null: return;
+		case undefined:
+		case null:
+			return clickTile(ev.clientX,ev.clientY);
 		case ADD:
 			return addTile(ev.clientX,ev.clientY);
 	}
 	console.log(ev.clientX,ev.clientY);
+}
+
+function clickTile(x,y){
+	console.log("clickTile:",x,y);
+	x = Math.floor(x/SQUARE);
+	y = Math.floor(y/SQUARE);
+	if ($('#tile-'+x+'-'+y).length > 0){
+		$.ajax({
+			url : PLAN,
+			method : POST,
+			data : {action:'openProps',x:x,y:y},
+			success: function(resp){
+				$('body').append($(resp));
+			}
+		});
+	}
+	return false;
 }
 
 function closeMenu(ev){

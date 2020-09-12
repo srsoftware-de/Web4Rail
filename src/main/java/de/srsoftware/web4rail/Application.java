@@ -22,16 +22,6 @@ import com.sun.net.httpserver.HttpServer;
 
 import de.keawe.localconfig.Configuration;
 import de.keawe.tools.translations.Translation;
-import de.srsoftware.web4rail.tiles.DiagNE;
-import de.srsoftware.web4rail.tiles.DiagSW;
-import de.srsoftware.web4rail.tiles.DiagWN;
-import de.srsoftware.web4rail.tiles.EndE;
-import de.srsoftware.web4rail.tiles.EndW;
-import de.srsoftware.web4rail.tiles.StraightH;
-import de.srsoftware.web4rail.tiles.StraightV;
-import de.srsoftware.web4rail.tiles.TurnoutSE;
-import de.srsoftware.web4rail.tiles.TurnoutSW;
-import de.srsoftware.web4rail.tiles.TurnoutWS;
 
 public class Application {
 	private static Plan plan;
@@ -42,18 +32,6 @@ public class Application {
 	public static void main(String[] args) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Configuration config = new Configuration(Configuration.dir("Web4Rail")+"/app.config");
 		LOG.debug("Config: {}",config);
-		plan = Plan.load("default.plan");
-		/*plan = new Plan();
-		plan.set(0, 0, new StraightH());
-		plan.set(1, 0, new DiagSW());
-		plan.set(1, 1, new StraightV());
-		plan.set(1, 2, new DiagNE());
-		plan.set(2, 2, new TurnoutWS());
-		plan.set(3, 2, new DiagWN());
-		plan.set(3, 1, new TurnoutSE());
-		plan.set(3, 0, new TurnoutSW());
-		plan.set(2, 0, new EndE());
-		plan.set(4, 1, new EndW());*/
 		InetSocketAddress addr = new InetSocketAddress(config.getOrAdd(PORT, 8080));
 		HttpServer server = HttpServer.create(addr, 0);
 		server.createContext("/plan", client -> sendPlan(client));
@@ -61,6 +39,7 @@ public class Application {
 		server.createContext("/js" , client -> sendFile(client));
         server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
         server.start();
+		plan = Plan.load("default.plan");
         Desktop.getDesktop().browse(URI.create("http://localhost:"+config.getInt(PORT)+"/plan"));
 	}
 
@@ -107,18 +86,16 @@ public class Application {
 		return params;
 	}
 
-	private static void send(HttpExchange client, Page response) throws IOException {
-		byte[] html = response.html().toString().getBytes(UTF8);
-		client.getResponseHeaders().add("content-type", "text/html");
-        client.sendResponseHeaders(200, html.length);
-        OutputStream os = client.getResponseBody();
-        os.write(html);
-        os.close();
-	}
-	
-	private static void send(HttpExchange client, String response) throws IOException {
-		byte[] html = response.getBytes(UTF8);
-		client.getResponseHeaders().add("content-type", "text/plain");
+	private static void send(HttpExchange client, Object response) throws IOException {
+		byte[] html;
+		if (response instanceof Page) {
+			html = ((Page)response).html().toString().getBytes(UTF8);
+			client.getResponseHeaders().add("content-type", "text/html");
+		} else {
+			html = response.toString().getBytes(UTF8);	
+			client.getResponseHeaders().add("content-type", "text/plain");	
+		}
+		
         client.sendResponseHeaders(200, html.length);
         OutputStream os = client.getResponseBody();
         os.write(html);

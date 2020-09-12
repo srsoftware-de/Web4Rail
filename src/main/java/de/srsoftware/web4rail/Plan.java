@@ -38,6 +38,7 @@ public class Plan {
 	private static final String X = "x";
 	private static final String Y = "y";
 	private static final String NAME = "name";
+	private static final String ACTION_PROPS = "openProps";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	
@@ -105,7 +106,7 @@ public class Plan {
 		return menu;
 	}
 
-	public String process(HashMap<String, String> params) {
+	public Object process(HashMap<String, String> params) {
 		try {
 			String action = params.get(ACTION);
 			
@@ -116,6 +117,8 @@ public class Plan {
 					return t("Added {}",tile.getClass().getSimpleName());
 				case ACTION_SAVE:
 					return saveTo(params.get(NAME));
+				case ACTION_PROPS:
+					return Tile.propMenu();
 				default:
 					LOG.warn("Unknown action: {}",action);
 			}
@@ -175,6 +178,4 @@ public class Plan {
 		tiles.append(new Eraser().html());
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
-
-
 }
