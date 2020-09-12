@@ -60,7 +60,7 @@ function enableAdding(ev){
 		mode = null;
 	} else {
 		$(selected).css('border','2px solid red');
-		$('.menu .tile .list').css('display','inherit');
+		$('.menu .addtile .list').css('display','inherit');
 		mode = ADD;
 	}
 	return false; // otherwise body.click would also be triggered
@@ -69,6 +69,6 @@ function enableAdding(ev){
 window.onload = function () {
 	var isDragging = false;
 	$('.menu > div').click(closeMenu);
-	$('.menu .tile .list svg').click(enableAdding);
+	$('.menu .addtile .list svg').click(enableAdding);
 	$(BODY).click(bodyClick);
 }

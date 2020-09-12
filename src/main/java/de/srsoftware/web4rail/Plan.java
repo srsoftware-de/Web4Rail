@@ -68,22 +68,15 @@ public class Plan {
 
 	private Tag menu() throws IOException {
 		Tag menu = new Tag("div").clazz("menu");
-		Tag tileMenu = new Tag("div").clazz("tile").content("Add tile");
 		
-		StringBuffer tiles = new StringBuffer();
-		tiles.append(new StraightH().html());
-		tiles.append(new StraightV().html());
-		tiles.append(new DiagES().html());
-		tiles.append(new DiagSW().html());
-		tiles.append(new DiagNE().html());
-		tiles.append(new DiagWN().html());
-		tiles.append(new EndE().html());
-		tiles.append(new EndW().html());
-		tiles.append(new TurnoutSE().html());
-		tiles.append(new TurnoutWS().html());
-		tiles.append(new TurnoutSW().html());
-		new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu).addTo(menu);
+		tileMenu().addTo(menu);
+		actionMenu().addTo(menu);
 			
+		return menu;
+	}
+
+	private Tag actionMenu() {
+		Tag menu = new Tag("div").clazz("actions").content("Actions");
 		return menu;
 	}
 
@@ -119,5 +112,23 @@ public class Plan {
 	
 	private String t(String message, Object...fills) {
 		return Translation.get(Application.class, message, fills);
+	}
+	
+	private Tag tileMenu() throws IOException {
+		Tag tileMenu = new Tag("div").clazz("addtile").content("Add tile");
+		
+		StringBuffer tiles = new StringBuffer();
+		tiles.append(new StraightH().html());
+		tiles.append(new StraightV().html());
+		tiles.append(new DiagES().html());
+		tiles.append(new DiagSW().html());
+		tiles.append(new DiagNE().html());
+		tiles.append(new DiagWN().html());
+		tiles.append(new EndE().html());
+		tiles.append(new EndW().html());
+		tiles.append(new TurnoutSE().html());
+		tiles.append(new TurnoutWS().html());
+		tiles.append(new TurnoutSW().html());
+		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 }
