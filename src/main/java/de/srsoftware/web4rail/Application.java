@@ -92,7 +92,7 @@ public class Application {
 			html = ((Page)response).html().toString().getBytes(UTF8);
 			client.getResponseHeaders().add("content-type", "text/html");
 		} else {
-			html = response.toString().getBytes(UTF8);	
+			html = (response == null ? "" : response.toString()).getBytes(UTF8);	
 			client.getResponseHeaders().add("content-type", "text/plain");	
 		}
 		

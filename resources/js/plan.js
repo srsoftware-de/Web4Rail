@@ -1,6 +1,8 @@
 const ADD = 'add';
+const MOVE = 'move';
 const SQUARE = 30;
 const BODY = 'body';
+const DIV = 'DIV';
 const SVG = 'svg';
 const PLAN = 'plan';
 const POST = 'POST';
@@ -27,19 +29,20 @@ function addTile(x,y){
 			addMessage(resp);
 		}
 	});
-
 }
 
 function bodyClick(ev){
-	//console.log('bodyClick:',ev);
+	console.log('bodyClick:',ev);
 	switch (mode){
 		case undefined:
 		case null:
 			return clickTile(ev.clientX,ev.clientY);
 		case ADD:
 			return addTile(ev.clientX,ev.clientY);
+		case MOVE:
+			return moveTile(ev.clientX,ev.clientY);
 	}
-	console.log(ev.clientX,ev.clientY);
+	console.log('unknown action "'+mode+'" @ ('+ev.clientX+','+ev.clientY+')');
 }
 
 function clickTile(x,y){
@@ -83,11 +86,46 @@ function enableAdding(ev){
 	return false; // otherwise body.click would also be triggered
 }
 
+function enableMove(ev){
+	console.log('enableMove:',ev);
+	if (selected != null) $(selected).css('border','');
+	selected = ev.target;
+	while (selected != null && selected.nodeName != DIV) selected = selected.parentNode;
+	if (selected == null){
+		mode = null;
+	} else {
+		$(selected).css('border','2px solid red');
+		$('.menu .move .list').css('display','inherit');
+		mode = MOVE;
+	}
+	return false; // otherwise body.click would also be triggered
+}
+
+function moveTile(x,y){	
+	console.log("moveTile:",selected.id,x,y);
+	x = Math.floor(x/SQUARE);
+	y = Math.floor(y/SQUARE);
+	$.ajax({
+		url : PLAN,
+		method: POST,
+		data : {action:mode,direction:selected.id,x:x,y:y},
+		success: function(resp){
+			$(resp).each(function(){
+				if (this.id != undefined){
+					$('#'+this.id).remove();
+					$(BODY).append($(this));
+				}				
+			});
+			$('#tile-'+x+'-'+y).remove();
+		}
+	});
+}
+
 function savePlan(ev){
 	$.ajax({
 		url : PLAN,
 		method : POST,
-		data : {action:'save',name:'default'}, // todo: ask for name
+		data : {action:'save',name:'default'}, // TODO: ask for name
 		success: function(resp){ addMessage(resp);}
 	});
 	return false;
@@ -97,6 +135,7 @@ window.onload = function () {
 	var isDragging = false;
 	$('.menu > div').click(closeMenu);
 	$('.menu .addtile .list svg').click(enableAdding);
+	$('.menu .move .list div').click(enableMove);
 	$(BODY).click(bodyClick);
 	$('#save').click(savePlan);
 }

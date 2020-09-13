@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +26,11 @@ import de.srsoftware.web4rail.tiles.Eraser;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
 import de.srsoftware.web4rail.tiles.Tile;
+import de.srsoftware.web4rail.tiles.TurnoutEN;
+import de.srsoftware.web4rail.tiles.TurnoutES;
 import de.srsoftware.web4rail.tiles.TurnoutSE;
 import de.srsoftware.web4rail.tiles.TurnoutSW;
+import de.srsoftware.web4rail.tiles.TurnoutWN;
 import de.srsoftware.web4rail.tiles.TurnoutWS;
 
 public class Plan {
@@ -39,13 +43,15 @@ public class Plan {
 	private static final String Y = "y";
 	private static final String NAME = "name";
 	private static final String ACTION_PROPS = "openProps";
+	private static final String ACTION_MOVE = "move";
+	private static final String DIRECTION = "direction";
+	private static final String EAST = "east";
+	private static final String WEST = "west";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	
 	private Tag actionMenu() throws IOException {
-
-		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));
-		
+		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));		
 		StringBuffer tiles = new StringBuffer();
 		tiles.append(new Tag("div").id("save").content(t("Save plan")));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
@@ -99,11 +105,18 @@ public class Plan {
 
 	private Tag menu() throws IOException {
 		Tag menu = new Tag("div").clazz("menu");
-		
-		tileMenu().addTo(menu);
 		actionMenu().addTo(menu);
-			
+		moveMenu().addTo(menu);		
+		tileMenu().addTo(menu);
 		return menu;
+	}
+
+	private Tag moveMenu() {
+		Tag tileMenu = new Tag("div").clazz("move").title(t("Move tiles")).content(t("↹"));		
+		StringBuffer tiles = new StringBuffer();
+		tiles.append(new Tag("div").id("west").title(t("Move west")).content("🢀"));
+		tiles.append(new Tag("div").id("east").title(t("Move east")).content("🢂"));
+		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 
 	public Object process(HashMap<String, String> params) {
@@ -115,10 +128,12 @@ public class Plan {
 				case ACTION_ADD:
 					Tile tile = addTile(params.get(TILE),params.get(X),params.get(Y));
 					return t("Added {}",tile.getClass().getSimpleName());
-				case ACTION_SAVE:
-					return saveTo(params.get(NAME));
+				case ACTION_MOVE:
+					return moveTile(params.get(DIRECTION),params.get(X),params.get(Y));
 				case ACTION_PROPS:
 					return Tile.propMenu();
+				case ACTION_SAVE:
+					return saveTo(params.get(NAME));
 				default:
 					LOG.warn("Unknown action: {}",action);
 			}
@@ -128,6 +143,40 @@ public class Plan {
 		}
 	}
 	
+	private String moveTile(String direction, String x, String y) throws NumberFormatException, IOException {
+		return moveTile(direction,Integer.parseInt(x),Integer.parseInt(y));
+	}
+
+	private String moveTile(String direction, int x, int y) throws IOException {
+		LOG.debug("moveTile({},{},{})",direction,x,y);
+		Vector<Tile> moved = null;
+		switch (direction) {
+			case EAST:
+				moved = moveHorizontal(x,y,+1);
+				break;
+			case WEST:
+				moved = moveHorizontal(x,y,-1);
+				break;
+		}
+		if (!moved.isEmpty()) {
+			set(x,y,null);
+			StringBuilder sb = new StringBuilder();
+			for (Tile tile : moved) sb.append(tile.html()+"\n");
+			return sb.toString();
+		}		
+		return null;
+	}
+
+	private Vector<Tile> moveHorizontal(int x, int y,int step) {
+		LOG.debug("moveEast({},{})",x,y);
+		Tile tile = this.get(x, y);
+		if (tile == null) return new Vector<Tile>();
+		Vector<Tile> result = moveHorizontal(x+step,y,step);
+		set(x+step, y, tile);
+		result.add(tile);
+		return result;
+	}
+
 	private String saveTo(String name) throws IOException {
 		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
 		File file = new File(name+".plan");
@@ -152,7 +201,7 @@ public class Plan {
 			tiles.put(x, column);
 		}
 		old = column.remove(y);
-		if (!(tile instanceof Eraser)) column.put(y,tile.position(x, y));
+		if (tile != null && !(tile instanceof Eraser)) column.put(y,tile.position(x, y));
 		return old;
 	}
 	
@@ -161,7 +210,7 @@ public class Plan {
 	}
 	
 	private Tag tileMenu() throws IOException {
-		Tag tileMenu = new Tag("div").clazz("addtile").content(t("Add tile"));
+		Tag tileMenu = new Tag("div").clazz("addtile").title(t("Add tile")).content("◫");
 		
 		StringBuffer tiles = new StringBuffer();
 		tiles.append(new StraightH().html());
@@ -173,7 +222,10 @@ public class Plan {
 		tiles.append(new EndE().html());
 		tiles.append(new EndW().html());
 		tiles.append(new TurnoutSE().html());
+		tiles.append(new TurnoutEN().html());
+		tiles.append(new TurnoutES().html());
 		tiles.append(new TurnoutWS().html());
+		tiles.append(new TurnoutWN().html());
 		tiles.append(new TurnoutSW().html());
 		tiles.append(new Eraser().html());
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
