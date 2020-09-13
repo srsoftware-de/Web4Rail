@@ -70,12 +70,12 @@ public class Plan {
 		int x = Integer.parseInt(xs);
 		int y = Integer.parseInt(ys);
 		if (clazz == null) throw new NullPointerException(TILE+" must not be null!");
-		Class<Tile> tc = Tile.class;
-		clazz = tc.getName().replace(".Tile", "."+clazz);
+		Class<Tile> tc = Tile.class;		
+		clazz = tc.getName().replace(".Tile", "."+clazz);		
 		Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
 		set(x, y, tile);
-		for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow());
-		for (int i=1; i<tile.height(); i++) set(x,y+1,new Shadow());
+		for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow(tile));
+		for (int i=1; i<tile.height(); i++) set(x,y+1,new Shadow(tile));
 		
 		return tile;
 	}
@@ -105,7 +105,11 @@ public class Plan {
 		while (br.ready()) {
 			String line = br.readLine().trim();
 			String[] parts = line.split(":");
-			result.addTile(parts[2].trim(), parts[0].trim(), parts[1].trim());
+			try {
+				result.addTile(parts[2].trim(), parts[0].trim(), parts[1].trim());
+			} catch (Exception e) {
+				LOG.warn("Was not able to load \"{}\":",line,e);
+			}
 		}
 		br.close();
 		return result;
@@ -188,7 +192,7 @@ public class Plan {
 				case ACTION_MOVE:
 					return moveTile(params.get(DIRECTION),params.get(X),params.get(Y));
 				case ACTION_PROPS:
-					return Tile.propMenu();
+					return propMenu(params.get(X),params.get(Y));
 				case ACTION_SAVE:
 					return saveTo(params.get(NAME));
 				default:
@@ -200,6 +204,17 @@ public class Plan {
 		}
 	}
 
+	private Tag propMenu(String x, String y) {
+		return propMenu(Integer.parseInt(x),Integer.parseInt(y));
+	}
+
+	private Tag propMenu(int x, int y) {
+		Tile tile = get(x, y);
+		if (tile == null) return null;
+		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay();
+		return tile.propMenu();
+	}
+
 	private String saveTo(String name) throws IOException {
 		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
 		File file = new File(name+".plan");
@@ -209,7 +224,7 @@ public class Plan {
 			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
 				int y = row.getKey();
 				Tile tile = row.getValue().position(x, y);
-				if (tile != null) br.append(x+":"+y+":"+tile.getClass().getSimpleName()+"\n");
+				if (tile != null && !(tile instanceof Shadow)) br.append(x+":"+y+":"+tile.getClass().getSimpleName()+"\n");
 			}
 		}
 		br.close();

@@ -35,8 +35,8 @@ public abstract class Tile {
 		return this;
 	}
 	
-	public static Tag propMenu() {
-		return new Window("tile-properties",t("Properties")).content(t("This tile has no properties"));
+	public Tag propMenu() {
+		return new Window("tile-properties",t("Properties")).content(t("This tile ({}) has no properties",getClass().getSimpleName()));
 	}
 
 	public Tag tag() throws IOException {
