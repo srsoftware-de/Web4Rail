@@ -1,7 +1,7 @@
 const ADD = 'add';
 const MOVE = 'move';
 const SQUARE = 30;
-const BODY = 'body';
+const BODY = '#plan';
 const DIV = 'DIV';
 const SVG = 'svg';
 const PLAN = 'plan';
@@ -137,6 +137,7 @@ function savePlan(ev){
 
 window.onload = function () {
 	var isDragging = false;
+	console.log($(BODY).each(function(){console.log(this)}));
 	$('.menu > div').click(closeMenu);
 	$('.menu .addtile .list svg').click(enableAdding);
 	$('.menu .move .list div').click(enableMove);

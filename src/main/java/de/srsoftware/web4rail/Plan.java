@@ -56,6 +56,7 @@ public class Plan {
 	private static final String WEST = "west";
 	private static final String SOUTH = "south";
 	private static final String NORTH = "north";
+	private static final String ACTION_UPDATE = "update";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	
@@ -74,8 +75,6 @@ public class Plan {
 		clazz = tc.getName().replace(".Tile", "."+clazz);		
 		Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
 		set(x, y, tile);
-		for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow(tile));
-		for (int i=1; i<tile.height(); i++) set(x,y+1,new Shadow(tile));
 		
 		return tile;
 	}
@@ -86,7 +85,7 @@ public class Plan {
 	}
 
 	public Page html() throws IOException {
-		Page page = new Page();
+		Page page = new Page().append("<div id=\"plan\">");
 		for (Entry<Integer, HashMap<Integer, Tile>> column : tiles.entrySet()) {
 			int x = column.getKey();
 			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
@@ -95,7 +94,7 @@ public class Plan {
 				if (tile != null) page.append("\t\t"+tile.tag()+"\n");
 			}
 		}
-		return page.append(menu()).append(messages());
+		return page.append(menu()).append(messages()).append("</div>").style("css/style.css").js("js/jquery-3.5.1.min.js").js("js/plan.js");
 	}
 	
 	public static Plan load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
@@ -195,6 +194,8 @@ public class Plan {
 					return propMenu(params.get(X),params.get(Y));
 				case ACTION_SAVE:
 					return saveTo(params.get(NAME));
+				case ACTION_UPDATE:
+					return update(params);
 				default:
 					LOG.warn("Unknown action: {}",action);
 			}
@@ -202,6 +203,16 @@ public class Plan {
 		} catch (Exception e) {
 			return e.getMessage();
 		}
+	}
+
+	private Page update(HashMap<String, String> params) throws IOException {
+		return update(Integer.parseInt(params.get("x")),Integer.parseInt(params.get("y")),params);
+	}
+
+	private Page update(int x,int y, HashMap<String, String> params) throws IOException {
+		Tile tile = get(x,y);
+		if (tile != null) set(x,y,tile.update(params));
+		return this.html();
 	}
 
 	private Tag propMenu(String x, String y) {
@@ -239,7 +250,11 @@ public class Plan {
 			tiles.put(x, column);
 		}
 		old = column.remove(y);
-		if (tile != null && !(tile instanceof Eraser)) column.put(y,tile.position(x, y));
+		if (tile != null && !(tile instanceof Eraser)) {
+			column.put(y,tile.position(x, y));
+			for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow(tile));
+			for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
+		}
 		return old;
 	}
 	

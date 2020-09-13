@@ -107,7 +107,7 @@ public class Application {
 		try {
 			if (!params.isEmpty()) {
 				send(client,plan.process(params));
-			} else send(client,plan.html().style("css/style.css").js("js/jquery-3.5.1.min.js").js("js/plan.js"));
+			} else send(client,plan.html());
 		} catch (Exception e) {
 			LOG.error("Error during sendPlan(): {}",e);
 			send(client,new Page().append(e.getMessage()));
