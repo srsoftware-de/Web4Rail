@@ -110,13 +110,17 @@ function moveTile(x,y){
 		method: POST,
 		data : {action:mode,direction:selected.id,x:x,y:y},
 		success: function(resp){
-			$(resp).each(function(){
-				if (this.id != undefined){
-					$('#'+this.id).remove();
-					$(BODY).append($(this));
-				}				
-			});
-			$('#tile-'+x+'-'+y).remove();
+			if (resp.startsWith('<')){
+				$(resp).each(function(){
+					if (this.id != undefined){
+						$('#'+this.id).remove();
+						$(BODY).append($(this));
+					}
+				});
+				$('#tile-'+x+'-'+y).remove();
+			} else {
+				addMessage(resp);
+			}
 		}
 	});
 }

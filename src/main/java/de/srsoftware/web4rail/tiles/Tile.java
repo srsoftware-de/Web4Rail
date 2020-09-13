@@ -18,6 +18,15 @@ public abstract class Tile {
 	
 	public Tile() {
 		classes.add("tile");
+		classes.add(getClass().getSimpleName());
+	}
+	
+	public int height() {
+		return 1;
+	}
+	
+	public int len() {
+		return 1;
 	}
 	
 	public Tile position(int x, int y) {
@@ -25,8 +34,12 @@ public abstract class Tile {
 		this.y = y;
 		return this;
 	}
+	
+	public static Tag propMenu() {
+		return new Window("tile-properties",t("Properties")).content(t("This tile has no properties"));
+	}
 
-	public String html() throws IOException {
+	public Tag tag() throws IOException {
 		
 		Tag svg = new Tag("svg")
 				.id((x!=-1 && y!=-1)?("tile-"+x+"-"+y):(getClass().getSimpleName()))
@@ -55,15 +68,15 @@ public abstract class Tile {
 				.addTo(svg);
 		}
 		
-		return svg.toString();
+		return svg;
 	}
 
 	private static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
-	}
-
-	public static Tag propMenu() {
-		return new Window("tile-properties",t("Properties")).content(t("This tile has no properties"));
-	}
+	}	
 	
+	@Override
+	public String toString() {
+		return t("{}({},{})",getClass().getSimpleName(),x,y) ;
+	}
 }

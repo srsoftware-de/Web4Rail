@@ -1,3 +1,5 @@
 package de.srsoftware.web4rail.tiles;
 
-public class EndW extends Tile{}
+public class Shadow extends Tile{
+
+}

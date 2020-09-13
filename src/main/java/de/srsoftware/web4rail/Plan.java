@@ -16,18 +16,25 @@ import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.tiles.CrossH;
+import de.srsoftware.web4rail.tiles.CrossV;
 import de.srsoftware.web4rail.tiles.DiagES;
 import de.srsoftware.web4rail.tiles.DiagNE;
 import de.srsoftware.web4rail.tiles.DiagSW;
 import de.srsoftware.web4rail.tiles.DiagWN;
 import de.srsoftware.web4rail.tiles.EndE;
+import de.srsoftware.web4rail.tiles.EndN;
+import de.srsoftware.web4rail.tiles.EndS;
 import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.Eraser;
+import de.srsoftware.web4rail.tiles.Shadow;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
 import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.TurnoutEN;
 import de.srsoftware.web4rail.tiles.TurnoutES;
+import de.srsoftware.web4rail.tiles.TurnoutNE;
+import de.srsoftware.web4rail.tiles.TurnoutNW;
 import de.srsoftware.web4rail.tiles.TurnoutSE;
 import de.srsoftware.web4rail.tiles.TurnoutSW;
 import de.srsoftware.web4rail.tiles.TurnoutWN;
@@ -67,6 +74,9 @@ public class Plan {
 		clazz = tc.getName().replace(".Tile", "."+clazz);
 		Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
 		set(x, y, tile);
+		for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow());
+		for (int i=1; i<tile.height(); i++) set(x,y+1,new Shadow());
+		
 		return tile;
 	}
 	
@@ -82,7 +92,7 @@ public class Plan {
 			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
 				int y = row.getKey();
 				Tile tile = row.getValue().position(x, y);
-				if (tile != null) page.append("\t\t"+tile.html()+"\n");
+				if (tile != null) page.append("\t\t"+tile.tag()+"\n");
 			}
 		}
 		return page.append(menu()).append(messages());
@@ -147,18 +157,21 @@ public class Plan {
 		if (!moved.isEmpty()) {
 			set(x,y,null);
 			StringBuilder sb = new StringBuilder();
-			for (Tile tile : moved) sb.append(tile.html()+"\n");
+			for (Tile tile : moved) sb.append(tile.tag()+"\n");
 			return sb.toString();
 		}		
 		return null;
 	}
 
 	private Vector<Tile> moveTile(int x, int y,int xstep,int ystep) {
-		LOG.debug("moveEast({},{})",x,y);
+		LOG.debug("moveTile({}+{},{}+{})",x,xstep,y,ystep);
+		if (x+xstep < -1 || y+ystep < -1) {
+			throw new IndexOutOfBoundsException("Can not move tile out of screen!");
+		}
 		Tile tile = this.get(x, y);
 		if (tile == null) return new Vector<Tile>();
 		Vector<Tile> result = moveTile(x+xstep,y+ystep,xstep,ystep);
-		set(x+xstep, y+ystep, tile);
+		set(x+xstep,y+ystep, tile);
 		result.add(tile);
 		return result;
 	}
@@ -223,21 +236,27 @@ public class Plan {
 		Tag tileMenu = new Tag("div").clazz("addtile").title(t("Add tile")).content("◫");
 		
 		StringBuffer tiles = new StringBuffer();
-		tiles.append(new StraightH().html());
-		tiles.append(new StraightV().html());
-		tiles.append(new DiagES().html());
-		tiles.append(new DiagSW().html());
-		tiles.append(new DiagNE().html());
-		tiles.append(new DiagWN().html());
-		tiles.append(new EndE().html());
-		tiles.append(new EndW().html());
-		tiles.append(new TurnoutSE().html());
-		tiles.append(new TurnoutEN().html());
-		tiles.append(new TurnoutES().html());
-		tiles.append(new TurnoutWS().html());
-		tiles.append(new TurnoutWN().html());
-		tiles.append(new TurnoutSW().html());
-		tiles.append(new Eraser().html());
+		tiles.append(new StraightH().tag());
+		tiles.append(new StraightV().tag());
+		tiles.append(new DiagES().tag());
+		tiles.append(new DiagSW().tag());
+		tiles.append(new DiagNE().tag());
+		tiles.append(new DiagWN().tag());
+		tiles.append(new EndE().tag());
+		tiles.append(new EndW().tag());
+		tiles.append(new EndN().tag());
+		tiles.append(new EndS().tag());
+		tiles.append(new TurnoutSW().tag());
+		tiles.append(new TurnoutSE().tag());
+		tiles.append(new TurnoutNW().tag());
+		tiles.append(new TurnoutNE().tag());
+		tiles.append(new TurnoutES().tag());
+		tiles.append(new TurnoutEN().tag());
+		tiles.append(new TurnoutWS().tag());
+		tiles.append(new TurnoutWN().tag());
+		tiles.append(new CrossH().tag());
+		tiles.append(new CrossV().tag());
+		tiles.append(new Eraser().tag());
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 }
