@@ -47,6 +47,8 @@ public class Plan {
 	private static final String DIRECTION = "direction";
 	private static final String EAST = "east";
 	private static final String WEST = "west";
+	private static final String SOUTH = "south";
+	private static final String NORTH = "north";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	
@@ -116,9 +118,51 @@ public class Plan {
 		StringBuffer tiles = new StringBuffer();
 		tiles.append(new Tag("div").id("west").title(t("Move west")).content("🢀"));
 		tiles.append(new Tag("div").id("east").title(t("Move east")).content("🢂"));
+		tiles.append(new Tag("div").id("north").title(t("Move north")).content("🢁"));
+		tiles.append(new Tag("div").id("south").title(t("Move south")).content("🢃"));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
+	
+	private String moveTile(String direction, String x, String y) throws NumberFormatException, IOException {
+		return moveTile(direction,Integer.parseInt(x),Integer.parseInt(y));
+	}
 
+	private String moveTile(String direction, int x, int y) throws IOException {
+		LOG.debug("moveTile({},{},{})",direction,x,y);
+		Vector<Tile> moved = null;
+		switch (direction) {
+			case EAST:
+				moved = moveTile(x,y,+1,0);
+				break;
+			case WEST:
+				moved = moveTile(x,y,-1,0);
+				break;
+			case NORTH:
+				moved = moveTile(x,y,0,-1);
+				break;
+			case SOUTH:
+				moved = moveTile(x,y,0,+1);
+				break;
+		}
+		if (!moved.isEmpty()) {
+			set(x,y,null);
+			StringBuilder sb = new StringBuilder();
+			for (Tile tile : moved) sb.append(tile.html()+"\n");
+			return sb.toString();
+		}		
+		return null;
+	}
+
+	private Vector<Tile> moveTile(int x, int y,int xstep,int ystep) {
+		LOG.debug("moveEast({},{})",x,y);
+		Tile tile = this.get(x, y);
+		if (tile == null) return new Vector<Tile>();
+		Vector<Tile> result = moveTile(x+xstep,y+ystep,xstep,ystep);
+		set(x+xstep, y+ystep, tile);
+		result.add(tile);
+		return result;
+	}
+	
 	public Object process(HashMap<String, String> params) {
 		try {
 			String action = params.get(ACTION);
@@ -141,40 +185,6 @@ public class Plan {
 		} catch (Exception e) {
 			return e.getMessage();
 		}
-	}
-	
-	private String moveTile(String direction, String x, String y) throws NumberFormatException, IOException {
-		return moveTile(direction,Integer.parseInt(x),Integer.parseInt(y));
-	}
-
-	private String moveTile(String direction, int x, int y) throws IOException {
-		LOG.debug("moveTile({},{},{})",direction,x,y);
-		Vector<Tile> moved = null;
-		switch (direction) {
-			case EAST:
-				moved = moveHorizontal(x,y,+1);
-				break;
-			case WEST:
-				moved = moveHorizontal(x,y,-1);
-				break;
-		}
-		if (!moved.isEmpty()) {
-			set(x,y,null);
-			StringBuilder sb = new StringBuilder();
-			for (Tile tile : moved) sb.append(tile.html()+"\n");
-			return sb.toString();
-		}		
-		return null;
-	}
-
-	private Vector<Tile> moveHorizontal(int x, int y,int step) {
-		LOG.debug("moveEast({},{})",x,y);
-		Tile tile = this.get(x, y);
-		if (tile == null) return new Vector<Tile>();
-		Vector<Tile> result = moveHorizontal(x+step,y,step);
-		set(x+step, y, tile);
-		result.add(tile);
-		return result;
 	}
 
 	private String saveTo(String name) throws IOException {
