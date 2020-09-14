@@ -52,14 +52,19 @@ public abstract class Tile {
 	}
 
 	public Tag tag() throws IOException {
-		
+		int width = 100*len();
+		int height = 100*height();
+		String style = "";
 		Tag svg = new Tag("svg")
 				.id((x!=-1 && y!=-1)?("tile-"+x+"-"+y):(getClass().getSimpleName()))
 				.clazz(classes)
 				.size(100,100)
 				.attr("name", getClass().getSimpleName())
-				.attr("viewbox", "0 0 100 100");
-				if (x>-1) svg.style("left: "+(30*x)+"px; top: "+(30*y)+"px;");
+				.attr("viewbox", "0 0 "+width+" "+height);
+				if (x>-1) style="left: "+(30*x)+"px; top: "+(30*y)+"px;";
+				if (len()>1) style+=" width: "+(30*len())+"px;";
+				if (height()>1) style+=" height: "+(30*height())+"px;";
+		if (!style.isEmpty()) svg.style(style);
 
 		File file = new File(System.getProperty("user.dir")+"/resources/svg/"+getClass().getSimpleName()+".svg");
 		if (file.exists()) {
@@ -68,6 +73,8 @@ public abstract class Tile {
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();
 				if (line.startsWith("<svg") || line.endsWith("svg>")) continue;
+				line = replace(line,"%width%",width);
+				line = replace(line,"%height%",height);
 				sb.append(line+"\n");
 			}
 			scanner.close();
@@ -81,6 +88,18 @@ public abstract class Tile {
 		}
 		
 		return svg;
+	}
+
+	private static String replace(String line, String key, int val) {
+		int start = line.indexOf(key);
+		int len = key.length();
+		while (start>0) {
+			String tag = line.substring(start, line.indexOf("\"",start));
+			int summand = (tag.length()>len) ? Integer.parseInt(tag.substring(len)) : 0;
+			line = line.replace(tag, ""+(val+summand));
+			start = line.indexOf(key);
+		}
+		return line;
 	}
 
 	protected static String t(String txt, Object...fills) {
