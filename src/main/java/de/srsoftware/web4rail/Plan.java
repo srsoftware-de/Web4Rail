@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Vector;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,13 +68,14 @@ public class Plan {
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 	
-	private Tile addTile(String clazz, String xs, String ys) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	private Tile addTile(String clazz, String xs, String ys, String configJson) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		int x = Integer.parseInt(xs);
 		int y = Integer.parseInt(ys);
 		if (clazz == null) throw new NullPointerException(TILE+" must not be null!");
 		Class<Tile> tc = Tile.class;		
 		clazz = tc.getName().replace(".Tile", "."+clazz);		
 		Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
+		if (configJson != null) tile.configure(new JSONObject(configJson));		
 		set(x, y, tile);
 		
 		return tile;
@@ -103,9 +105,12 @@ public class Plan {
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		while (br.ready()) {
 			String line = br.readLine().trim();
-			String[] parts = line.split(":");
+			String[] parts = line.split(":",4);
 			try {
-				result.addTile(parts[2].trim(), parts[0].trim(), parts[1].trim());
+				String x = parts[0];
+				String y = parts[1];
+				String clazz = parts[2];
+				result.addTile(clazz, x, y, parts.length>3 ? parts[3] : null);
 			} catch (Exception e) {
 				LOG.warn("Was not able to load \"{}\":",line,e);
 			}
@@ -141,7 +146,7 @@ public class Plan {
 	}
 
 	private String moveTile(String direction, int x, int y) throws IOException {
-		LOG.debug("moveTile({},{},{})",direction,x,y);
+		//LOG.debug("moveTile({},{},{})",direction,x,y);
 		Vector<Tile> moved = null;
 		switch (direction) {
 			case EAST:
@@ -186,7 +191,7 @@ public class Plan {
 			if (action == null) throw new NullPointerException(ACTION+" should not be null!");
 			switch (action) {
 				case ACTION_ADD:
-					Tile tile = addTile(params.get(TILE),params.get(X),params.get(Y));
+					Tile tile = addTile(params.get(TILE),params.get(X),params.get(Y),null);
 					return t("Added {}",tile.getClass().getSimpleName());
 				case ACTION_MOVE:
 					return moveTile(params.get(DIRECTION),params.get(X),params.get(Y));
@@ -235,7 +240,12 @@ public class Plan {
 			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
 				int y = row.getKey();
 				Tile tile = row.getValue().position(x, y);
-				if (tile != null && !(tile instanceof Shadow)) br.append(x+":"+y+":"+tile.getClass().getSimpleName()+"\n");
+				if (tile != null && !(tile instanceof Shadow)) {
+					br.append(x+":"+y+":"+tile.getClass().getSimpleName());
+					JSONObject config = tile.config();
+					if (!config.isEmpty()) br.append(":"+config);
+					br.append("\n");
+				}
 			}
 		}
 		br.close();

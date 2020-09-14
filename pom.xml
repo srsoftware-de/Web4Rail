@@ -33,7 +33,7 @@
 		<dependency>
 			<groupId>de.srsoftware</groupId>
 			<artifactId>tools</artifactId>
-			<version>1.1.6</version>
+			<version>1.1.7</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
@@ -48,6 +48,11 @@
 			<version>1.1.2</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+		    <groupId>org.json</groupId>
+		    <artifactId>json</artifactId>
+		    <version>20200518</version>
+		</dependency>		
 	</dependencies>
 
 	<build>

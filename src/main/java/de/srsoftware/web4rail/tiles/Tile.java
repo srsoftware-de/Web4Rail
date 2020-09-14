@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,12 @@ public abstract class Tile {
 		classes.add("tile");
 		classes.add(getClass().getSimpleName());
 	}
+	
+	public JSONObject config() {
+		return new JSONObject();
+	}
+
+	public void configure(JSONObject config) {}
 	
 	public int height() {
 		return 1;
