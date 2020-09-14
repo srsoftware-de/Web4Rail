@@ -40,6 +40,9 @@ svg rect{
 svg text{
 	font-size: 50px;
 }
+svg .block{
+	fill: #ffffff;
+}
 
 .menu{
 	position: fixed;

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.CrossH;
 import de.srsoftware.web4rail.tiles.CrossV;
 import de.srsoftware.web4rail.tiles.DiagES;
@@ -297,6 +298,7 @@ public class Plan {
 		tiles.append(new CrossH().tag());
 		tiles.append(new CrossV().tag());
 		tiles.append(new Eraser().tag());
+		tiles.append(new BlockH().tag());
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 }
