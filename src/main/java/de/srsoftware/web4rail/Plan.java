@@ -95,7 +95,7 @@ public class Plan {
 			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
 				int y = row.getKey();
 				Tile tile = row.getValue().position(x, y);
-				if (tile != null) page.append("\t\t"+tile.tag()+"\n");
+				if (tile != null) page.append("\t\t"+tile.tag(null)+"\n");
 			}
 		}
 		return page.append(menu()).append(messages()).append("</div>").style("css/style.css").js("js/jquery-3.5.1.min.js").js("js/plan.js");
@@ -167,7 +167,7 @@ public class Plan {
 		if (!moved.isEmpty()) {
 			set(x,y,null);
 			StringBuilder sb = new StringBuilder();
-			for (Tile tile : moved) sb.append(tile.tag()+"\n");
+			for (Tile tile : moved) sb.append(tile.tag(null)+"\n");
 			return sb.toString();
 		}		
 		return null;
@@ -278,29 +278,29 @@ public class Plan {
 		Tag tileMenu = new Tag("div").clazz("addtile").title(t("Add tile")).content("◫");
 		
 		StringBuffer tiles = new StringBuffer();
-		tiles.append(new StraightH().tag());
-		tiles.append(new StraightV().tag());
-		tiles.append(new DiagES().tag());
-		tiles.append(new DiagSW().tag());
-		tiles.append(new DiagNE().tag());
-		tiles.append(new DiagWN().tag());
-		tiles.append(new EndE().tag());
-		tiles.append(new EndW().tag());
-		tiles.append(new EndN().tag());
-		tiles.append(new EndS().tag());
-		tiles.append(new TurnoutSW().tag());
-		tiles.append(new TurnoutSE().tag());
-		tiles.append(new TurnoutNW().tag());
-		tiles.append(new TurnoutNE().tag());
-		tiles.append(new TurnoutES().tag());
-		tiles.append(new TurnoutEN().tag());
-		tiles.append(new TurnoutWS().tag());
-		tiles.append(new TurnoutWN().tag());
-		tiles.append(new CrossH().tag());
-		tiles.append(new CrossV().tag());
-		tiles.append(new Eraser().tag());
-		tiles.append(new BlockH().tag());
-		tiles.append(new BlockV().tag());
+		tiles.append(new StraightH().tag(null));
+		tiles.append(new StraightV().tag(null));
+		tiles.append(new DiagES().tag(null));
+		tiles.append(new DiagSW().tag(null));
+		tiles.append(new DiagNE().tag(null));
+		tiles.append(new DiagWN().tag(null));
+		tiles.append(new EndE().tag(null));
+		tiles.append(new EndW().tag(null));
+		tiles.append(new EndN().tag(null));
+		tiles.append(new EndS().tag(null));
+		tiles.append(new TurnoutSW().tag(null));
+		tiles.append(new TurnoutSE().tag(null));
+		tiles.append(new TurnoutNW().tag(null));
+		tiles.append(new TurnoutNE().tag(null));
+		tiles.append(new TurnoutES().tag(null));
+		tiles.append(new TurnoutEN().tag(null));
+		tiles.append(new TurnoutWS().tag(null));
+		tiles.append(new TurnoutWN().tag(null));
+		tiles.append(new CrossH().tag(null));
+		tiles.append(new CrossV().tag(null));
+		tiles.append(new Eraser().tag(null));
+		tiles.append(new BlockH().tag(null));
+		tiles.append(new BlockV().tag(null));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 }

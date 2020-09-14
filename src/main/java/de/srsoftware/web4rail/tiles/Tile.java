@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 
 import org.json.JSONObject;
@@ -47,13 +49,28 @@ public abstract class Tile {
 		return this;
 	}
 	
-	public Tag propMenu() {
-		return new Window("tile-properties",t("Properties")).content(t("This tile ({}) has no properties",getClass().getSimpleName()));
+	public Tag propForm() {
+		return null;
+	}
+	
+	public Tag propMenu() {	
+		Window menu = new Window("tile-properties",t("Properties of {} @ ({},{})",getClass().getSimpleName(),x,y));
+		Tag form = propForm();
+		if (form!=null) {
+			new Tag("button").attr("type", "submit").content(t("save")).addTo(form);
+			form.addTo(menu);
+		} else {
+			menu.content(t("This tile ({}) has no properties",getClass().getSimpleName()));
+		}
+		return menu;
 	}
 
-	public Tag tag() throws IOException {
+	public Tag tag(Map<String,Object> replacements) throws IOException {
 		int width = 100*len();
 		int height = 100*height();
+		if (replacements == null) replacements = new HashMap<String, Object>();
+		replacements.put("%width%",width);
+		replacements.put("%height%",height);
 		String style = "";
 		Tag svg = new Tag("svg")
 				.id((x!=-1 && y!=-1)?("tile-"+x+"-"+y):(getClass().getSimpleName()))
@@ -73,8 +90,9 @@ public abstract class Tile {
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();
 				if (line.startsWith("<svg") || line.endsWith("svg>")) continue;
-				line = replace(line,"%width%",width);
-				line = replace(line,"%height%",height);
+				for (Entry<String, Object> replacement : replacements.entrySet()) {
+					line = replace(line,replacement);
+				}
 				sb.append(line+"\n");
 			}
 			scanner.close();
@@ -90,13 +108,20 @@ public abstract class Tile {
 		return svg;
 	}
 
-	private static String replace(String line, String key, int val) {
+	private static String replace(String line, Entry<String, Object> replacement) {
+		String key = replacement.getKey();
+		Object val = replacement.getValue();
 		int start = line.indexOf(key);
 		int len = key.length();
 		while (start>0) {
-			String tag = line.substring(start, line.indexOf("\"",start));
-			int summand = (tag.length()>len) ? Integer.parseInt(tag.substring(len)) : 0;
-			line = line.replace(tag, ""+(val+summand));
+			int end = line.indexOf("\"",start);
+			int end2 = line.indexOf("<",start);
+			if (end2>0 && (end<0 || end2<end)) end=end2;
+			String tag = line.substring(start, end);
+			if (tag.length()>len) {
+				val = Integer.parseInt(tag.substring(len)) + (int) val;
+			}
+			line = line.replace(tag, ""+val);
 			start = line.indexOf(key);
 		}
 		return line;

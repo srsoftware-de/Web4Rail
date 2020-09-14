@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
+import java.util.Map;
 
 import de.srsoftware.tools.Tag;
 
@@ -12,7 +13,7 @@ public class CrossV extends Tile{
 	}
 	
 	@Override
-	public Tag tag() throws IOException {
-		return super.tag().size(100,200).attr("viewbox", "0 0 100 200");
+	public Tag tag(Map<String,Object> replacements) throws IOException {
+		return super.tag(replacements).size(100,200).attr("viewbox", "0 0 100 200");
 	}
 }
