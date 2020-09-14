@@ -3,12 +3,14 @@ package de.srsoftware.web4rail.tiles;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Route;
 
-public class BlockV extends StraightV{
+public class BlockV extends Block{
 	private static final String NAME = "name";
 	Contact west,center,east;
 	private String name = "Block";
@@ -26,6 +28,10 @@ public class BlockV extends StraightV{
 		if (config.has(NAME)) name = config.getString(NAME);
 	}
 	
+	@Override
+	public int height() {
+		return length;
+	}
 	
 	@Override
 	public Tag propForm() {
@@ -39,10 +45,20 @@ public class BlockV extends StraightV{
 	}
 	
 	@Override
+	public Set<Route> routes() {
+		return null;
+	}
+	
+	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {
 		if (replacements == null) replacements = new HashMap<String, Object>();
 		replacements.put("%text%",name);
 		return super.tag(replacements);
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName()+"("+name+") @ ("+x+","+y+")";
 	}
 	
 	@Override

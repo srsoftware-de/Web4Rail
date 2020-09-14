@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Vector;
 
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.BlockV;
 import de.srsoftware.web4rail.tiles.CrossH;
@@ -46,27 +48,30 @@ import de.srsoftware.web4rail.tiles.TurnoutWS;
 public class Plan {
 	private static final String ACTION = "action";
 	private static final String ACTION_ADD = "add";
+	private static final String ACTION_ANALYZE = "analyze";
+	private static final String ACTION_MOVE = "move";
+	private static final String ACTION_PROPS = "openProps";
 	private static final String ACTION_SAVE = "save";
+	private static final String ACTION_UPDATE = "update";
 	private static final String TILE = "tile";
 	private static final Logger LOG = LoggerFactory.getLogger(Plan.class);
 	private static final String X = "x";
 	private static final String Y = "y";
-	private static final String NAME = "name";
-	private static final String ACTION_PROPS = "openProps";
-	private static final String ACTION_MOVE = "move";
+	private static final String FILE = "file";
 	private static final String DIRECTION = "direction";
 	private static final String EAST = "east";
 	private static final String WEST = "west";
 	private static final String SOUTH = "south";
 	private static final String NORTH = "north";
-	private static final String ACTION_UPDATE = "update";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
+	private HashSet<Block> blocks = new HashSet<Block>();
 	
 	private Tag actionMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));		
 		StringBuffer tiles = new StringBuffer();
 		tiles.append(new Tag("div").id("save").content(t("Save plan")));
+		tiles.append(new Tag("div").id("analyze").content(t("Analyze plan")));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 	
@@ -78,9 +83,15 @@ public class Plan {
 		clazz = tc.getName().replace(".Tile", "."+clazz);		
 		Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
 		if (configJson != null) tile.configure(new JSONObject(configJson));		
-		set(x, y, tile);
-		
+		set(x, y, tile);		
 		return tile;
+	}
+	
+	private String analyze() {
+		for (Block block : blocks) {
+			LOG.debug("searching routes from {}",block);
+		}
+		return "analyze() not implemented, yet!";
 	}
 	
 	public Tile get(int x, int y) {
@@ -195,12 +206,14 @@ public class Plan {
 				case ACTION_ADD:
 					Tile tile = addTile(params.get(TILE),params.get(X),params.get(Y),null);
 					return t("Added {}",tile.getClass().getSimpleName());
+				case ACTION_ANALYZE:
+					return analyze();
 				case ACTION_MOVE:
 					return moveTile(params.get(DIRECTION),params.get(X),params.get(Y));
 				case ACTION_PROPS:
 					return propMenu(params.get(X),params.get(Y));
 				case ACTION_SAVE:
-					return saveTo(params.get(NAME));
+					return saveTo(params.get(FILE));
 				case ACTION_UPDATE:
 					return update(params);
 				default:
@@ -262,10 +275,12 @@ public class Plan {
 			tiles.put(x, column);
 		}
 		old = column.remove(y);
+		if (old instanceof Block) blocks.remove((Block)old);
 		if (tile != null && !(tile instanceof Eraser)) {
 			column.put(y,tile.position(x, y));
 			for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow(tile));
 			for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
+			if (tile instanceof Block) blocks.add((Block)tile);
 		}
 		return old;
 	}

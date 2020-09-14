@@ -125,11 +125,12 @@ function moveTile(x,y){
 	});
 }
 
-function savePlan(ev){
+function runAction(ev){
+	console.log("runAction: ",ev.target.id);
 	$.ajax({
 		url : PLAN,
 		method : POST,
-		data : {action:'save',name:'default'}, // TODO: ask for name
+		data : {action:ev.target.id,file:'default'}, // TODO: ask for name
 		success: function(resp){ addMessage(resp);}
 	});
 	return false;
@@ -141,6 +142,6 @@ window.onload = function () {
 	$('.menu > div').click(closeMenu);
 	$('.menu .addtile .list svg').click(enableAdding);
 	$('.menu .move .list div').click(enableMove);
-	$(BODY).click(bodyClick);
-	$('#save').click(savePlan);
+	$('.menu .actions .list > div').click(runAction);
+	$(BODY).click(bodyClick);	
 }
