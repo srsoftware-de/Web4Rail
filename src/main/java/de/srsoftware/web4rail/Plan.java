@@ -7,8 +7,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
 
@@ -59,10 +61,10 @@ public class Plan {
 	private static final String Y = "y";
 	private static final String FILE = "file";
 	private static final String DIRECTION = "direction";
-	private static final String EAST = "east";
-	private static final String WEST = "west";
-	private static final String SOUTH = "south";
-	private static final String NORTH = "north";
+	public static final String EAST = "east";
+	public static final String WEST = "west";
+	public static final String SOUTH = "south";
+	public static final String NORTH = "north";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -88,12 +90,28 @@ public class Plan {
 	}
 	
 	private String analyze() {
+		Vector<Route> routes = new Vector<Route>();
 		for (Block block : blocks) {
 			LOG.debug("searching routes from {}",block);
+			for (Connector con : block.startPoints()) {
+				routes.addAll(follow(new Route().start(block),con));
+			}
 		}
 		return "analyze() not implemented, yet!";
 	}
 	
+	private Collection<Route> follow(Route route, Connector con) {
+		LOG.debug("follow({}, {})",route,con);
+		Tile tile = get(con.x(),con.y());
+		Vector<Route> result = new Vector<>();
+		if (tile == null) return result;
+		route.add(tile);
+		List<Connector> connectors = tile.connections(con.from());
+		List<Route>routes = route.multiply(connectors.size());
+		for (int i=0; i<connectors.size(); i++) result.addAll(follow(routes.get(i),connectors.get(i)));
+		return routes;
+	}
+
 	public Tile get(int x, int y) {
 		HashMap<Integer, Tile> column = tiles.get(x);
 		return column == null ? null : column.get(y);

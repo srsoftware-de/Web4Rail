@@ -3,6 +3,7 @@ package de.srsoftware.web4rail;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -39,7 +40,11 @@ public class Application {
 		server.createContext("/js" , client -> sendFile(client));
         server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
         server.start();
-		plan = Plan.load("default.plan");
+        try {
+        	plan = Plan.load("default.plan");
+        } catch (FileNotFoundException e) {
+        	plan = new Plan();
+		}
         Desktop.getDesktop().browse(URI.create("http://localhost:"+config.getInt(PORT)+"/plan"));
 	}
 

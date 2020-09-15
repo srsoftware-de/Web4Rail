@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.Vector;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Window;
 
 public abstract class Tile {
@@ -32,6 +35,11 @@ public abstract class Tile {
 	public JSONObject config() {
 		return new JSONObject();
 	}
+	
+	public List<Connector> connections(String from){
+		return new Vector<>();
+	}
+
 
 	public void configure(JSONObject config) {}
 	

@@ -2,12 +2,15 @@ package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Route;
 
 public class BlockV extends Block{
@@ -47,6 +50,11 @@ public class BlockV extends Block{
 	@Override
 	public Set<Route> routes() {
 		return null;
+	}
+	
+	@Override
+	public List<Connector> startPoints() {
+		return List.of(new Connector(x,y-1,Plan.SOUTH),new Connector(x,y+height(),Plan.NORTH));
 	}
 	
 	@Override
