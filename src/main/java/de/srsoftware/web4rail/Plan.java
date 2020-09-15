@@ -295,6 +295,8 @@ public class Plan {
 		StringBuffer tiles = new StringBuffer();
 		tiles.append(new StraightH().tag(null));
 		tiles.append(new StraightV().tag(null));
+		tiles.append(new BlockH().tag(null));
+		tiles.append(new BlockV().tag(null));
 		tiles.append(new DiagES().tag(null));
 		tiles.append(new DiagSW().tag(null));
 		tiles.append(new DiagNE().tag(null));
@@ -314,8 +316,6 @@ public class Plan {
 		tiles.append(new CrossH().tag(null));
 		tiles.append(new CrossV().tag(null));
 		tiles.append(new Eraser().tag(null));
-		tiles.append(new BlockH().tag(null));
-		tiles.append(new BlockV().tag(null));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 }

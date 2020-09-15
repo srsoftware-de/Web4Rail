@@ -103,11 +103,9 @@ public class Application {
 	}
 	
 	private static void sendPlan(HttpExchange client) throws IOException {
-		HashMap<String, String> params = inflate(client.getRequestBody().readAllBytes());
 		try {
-			if (!params.isEmpty()) {
-				send(client,plan.process(params));
-			} else send(client,plan.html());
+			HashMap<String, String> params = inflate(client.getRequestBody().readAllBytes());
+			send(client,params.isEmpty() ? plan.html() : plan.process(params));
 		} catch (Exception e) {
 			LOG.error("Error during sendPlan(): {}",e);
 			send(client,new Page().append(e.getMessage()));
