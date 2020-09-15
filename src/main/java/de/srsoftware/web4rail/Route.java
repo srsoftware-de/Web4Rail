@@ -10,8 +10,9 @@ public class Route {
 	
 	private Vector<Tile> path; 
 
-	public void add(Tile tile) {
+	public Tile add(Tile tile) {
 		path.add(tile);
+		return tile;
 	}
 	
 	protected Route clone() {

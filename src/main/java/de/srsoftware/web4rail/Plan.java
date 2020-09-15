@@ -92,24 +92,22 @@ public class Plan {
 	private String analyze() {
 		Vector<Route> routes = new Vector<Route>();
 		for (Block block : blocks) {
-			LOG.debug("searching routes from {}",block);
-			for (Connector con : block.startPoints()) {
-				routes.addAll(follow(new Route().start(block),con));
-			}
+			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().start(block),con));
 		}
+		for (Route r : routes) LOG.debug("found route: {}",r);
 		return "analyze() not implemented, yet!";
 	}
 	
-	private Collection<Route> follow(Route route, Connector con) {
-		LOG.debug("follow({}, {})",route,con);
+	private Collection<Route> follow(Route route, Connector con) {		
 		Tile tile = get(con.x(),con.y());
-		Vector<Route> result = new Vector<>();
-		if (tile == null) return result;
-		route.add(tile);
+		Vector<Route> results = new Vector<>();
+		if (tile == null) return results;
+		Tile added = route.add(tile instanceof Shadow ? ((Shadow)tile).overlay() : tile);
+		if (added instanceof Block) return List.of(route);
 		List<Connector> connectors = tile.connections(con.from());
 		List<Route>routes = route.multiply(connectors.size());
-		for (int i=0; i<connectors.size(); i++) result.addAll(follow(routes.get(i),connectors.get(i)));
-		return routes;
+		for (int i=0; i<connectors.size(); i++) results.addAll(follow(routes.get(i),connectors.get(i)));
+		return results;
 	}
 
 	public Tile get(int x, int y) {
