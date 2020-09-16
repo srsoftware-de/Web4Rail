@@ -42,8 +42,8 @@ public abstract class Tile {
 		return new JSONObject();
 	}
 	
-	public List<Connector> connections(Direction from){
-		return new Vector<>();
+	public Map<Connector,Turnout.State> connections(Direction from){
+		return new HashMap<>();
 	}
 
 

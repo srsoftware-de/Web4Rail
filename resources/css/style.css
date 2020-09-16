@@ -107,7 +107,7 @@ svg circle{
 
 .window{
 	position: fixed;
-	top: 10px;
+	top: 50%;
 	bottom: 10px;
 	left: 10px;
 	right: 10px;

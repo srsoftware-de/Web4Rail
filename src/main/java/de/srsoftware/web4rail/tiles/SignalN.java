@@ -1,22 +1,23 @@
 package de.srsoftware.web4rail.tiles;
 
-import java.util.List;
-import java.util.Vector;
+import java.util.HashMap;
+import java.util.Map;
 
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.tiles.Turnout.State;
 
 public class SignalN extends Signal {
 	
 	@Override
-	public List<Connector> connections(Direction from) {
+	public Map<Connector, State> connections(Direction from) {
 		switch (from) {
 			case NORTH:
-				return List.of(new Connector(x,y+1,Direction.NORTH));
+				return Map.of(new Connector(x,y+1,Direction.NORTH),State.UNDEF);
 			case SOUTH:
-				return List.of(new Connector(x,y-1,Direction.SOUTH));
+				return Map.of(new Connector(x,y-1,Direction.SOUTH),State.UNDEF);
 			default:
-				return new Vector<>();
+				return new HashMap<>();
 		}
 	}
 	

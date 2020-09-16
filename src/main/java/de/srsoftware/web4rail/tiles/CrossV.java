@@ -1,12 +1,12 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.tiles.Turnout.State;
 
 public class CrossV extends Cross{
 	
@@ -16,7 +16,7 @@ public class CrossV extends Cross{
 	}
 	
 	@Override
-	public List<Connector> offsetConnections(Direction from) {
+	public Map<Connector, State> offsetConnections(Direction from) {
 		return null;
 	}
 	

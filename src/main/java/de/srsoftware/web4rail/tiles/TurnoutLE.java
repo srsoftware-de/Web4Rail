@@ -5,16 +5,18 @@ import java.util.Map;
 
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
-import de.srsoftware.web4rail.tiles.Turnout.State;
 
-public class DiagSW extends Tile{
+public class TurnoutLE extends Turnout{
+	
 	@Override
 	public Map<Connector, State> connections(Direction from) {
 		switch (from) {
+			case EAST:
+				return Map.of(new Connector(x,y+1,Direction.NORTH),State.LEFT,new Connector(x-1, y, Direction.EAST),State.STRAIGHT);
 			case SOUTH:
-				return Map.of(new Connector(x-1,y,Direction.EAST),State.UNDEF);
+				return Map.of(new Connector(x+1,y,Direction.WEST),State.LEFT);
 			case WEST:
-				return Map.of(new Connector(x,y+1,Direction.NORTH),State.UNDEF);
+				return Map.of(new Connector(x+1,y,Direction.WEST),State.STRAIGHT);			
 			default:
 				return new HashMap<>();
 		}

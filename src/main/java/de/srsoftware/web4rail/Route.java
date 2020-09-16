@@ -1,38 +1,47 @@
 package de.srsoftware.web4rail;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
+import de.srsoftware.web4rail.tiles.Shadow;
 import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.Tile;
+import de.srsoftware.web4rail.tiles.Turnout;
+import de.srsoftware.web4rail.tiles.Turnout.State;
 
 public class Route {
 	
 	private Vector<Tile> path;
 	private Vector<Signal> signals;
 	private Vector<Contact> contacts;
+	private HashMap<Turnout,Turnout.State> turnouts;
 	private String id;
 	private String name;
 
-	public Tile add(Tile tile) {
+	public Tile add(Tile tile, Direction direrction) {
+		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay(); 
 		path.add(tile);
 		if (tile instanceof Contact) contacts.add((Contact) tile);
+		if (tile instanceof Signal) {
+			Signal signal = (Signal) tile;
+			if (signal.isAffectedFrom(direrction)) signals.add(signal);			
+		}
+
 		return tile;
 	}	
-
-	public Route addSignal(Signal signal) {
-		signals.add(signal);
-		return this;
-	}
 	
 	protected Route clone() {
 		Route clone = new Route();
 		clone.contacts = new Vector<Contact>(contacts);
 		clone.signals = new Vector<Signal>(signals);
+		clone.turnouts = new HashMap<>(turnouts);
 		clone.path = new Vector<>(path);
 		return clone;
 	}
@@ -68,14 +77,22 @@ public class Route {
 	
 	public Window properties() {	
 		Window win = new Window("route-properties",t("Properties of {})",this));
+
 		new Tag("h4").content(t("Signals")).addTo(win);
 		Tag list = new Tag("ul");
 		for (Signal s : signals) new Tag("li").content(s.toString()).addTo(list);
 		list.addTo(win);
+		
 		new Tag("h4").content(t("Contacts")).addTo(win);
 		list = new Tag("ul");
 		for (Contact c : contacts) new Tag("li").content(c.toString()).addTo(list);
 		list.addTo(win);
+		
+		new Tag("h4").content(t("Turnouts")).addTo(win);
+		list = new Tag("ul");
+		for (Entry<Turnout, State> entry : turnouts.entrySet()) new Tag("li").content(entry.getKey()+" : "+entry.getValue()).addTo(list);
+		list.addTo(win);
+
 		return win;
 	}
 
@@ -83,6 +100,7 @@ public class Route {
 		contacts = new Vector<Contact>();
 		signals = new Vector<Signal>();
 		path = new Vector<Tile>();
+		turnouts = new HashMap<>();
 		path.add(block);
 		return this;
 	}
@@ -98,5 +116,11 @@ public class Route {
 
 	protected static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
+	}
+
+	public void setLast(State state) {
+		if (state == null || state == State.UNDEF) return;
+		Tile lastTile = path.lastElement();
+		if (lastTile instanceof Turnout) turnouts.put((Turnout) lastTile,state);
 	}
 }

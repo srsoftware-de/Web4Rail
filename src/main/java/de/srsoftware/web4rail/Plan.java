@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 
@@ -38,7 +39,6 @@ import de.srsoftware.web4rail.tiles.EndS;
 import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.Eraser;
 import de.srsoftware.web4rail.tiles.Shadow;
-import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.SignalE;
 import de.srsoftware.web4rail.tiles.SignalN;
 import de.srsoftware.web4rail.tiles.SignalS;
@@ -46,14 +46,15 @@ import de.srsoftware.web4rail.tiles.SignalW;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
 import de.srsoftware.web4rail.tiles.Tile;
-import de.srsoftware.web4rail.tiles.TurnoutEN;
-import de.srsoftware.web4rail.tiles.TurnoutES;
-import de.srsoftware.web4rail.tiles.TurnoutNE;
-import de.srsoftware.web4rail.tiles.TurnoutNW;
-import de.srsoftware.web4rail.tiles.TurnoutSE;
-import de.srsoftware.web4rail.tiles.TurnoutSW;
-import de.srsoftware.web4rail.tiles.TurnoutWN;
-import de.srsoftware.web4rail.tiles.TurnoutWS;
+import de.srsoftware.web4rail.tiles.Turnout.State;
+import de.srsoftware.web4rail.tiles.TurnoutLE;
+import de.srsoftware.web4rail.tiles.TurnoutLN;
+import de.srsoftware.web4rail.tiles.TurnoutLS;
+import de.srsoftware.web4rail.tiles.TurnoutLW;
+import de.srsoftware.web4rail.tiles.TurnoutRE;
+import de.srsoftware.web4rail.tiles.TurnoutRN;
+import de.srsoftware.web4rail.tiles.TurnoutRS;
+import de.srsoftware.web4rail.tiles.TurnoutRW;
 
 public class Plan {
 	public enum Direction{		
@@ -102,6 +103,7 @@ public class Plan {
 	private String analyze() {
 		Vector<Route> routes = new Vector<Route>();
 		for (Block block : blocks) {
+			block.routes().clear();
 			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().start(block),con));
 		}
 		this.routes.clear();
@@ -112,19 +114,28 @@ public class Plan {
 		return t("Found {} routes.",routes.size());
 	}
 	
-	private Collection<Route> follow(Route route, Connector con) {		
-		Tile tile = get(con.x,con.y);
+	private Collection<Route> follow(Route route, Connector connector) {
+		Tile tile = get(connector.x,connector.y);
 		Vector<Route> results = new Vector<>();
 		if (tile == null) return results;
-		Tile added = route.add(tile instanceof Shadow ? ((Shadow)tile).overlay() : tile);
-		if (added instanceof Signal) {
-			Signal signal = (Signal) added;
-			if (signal.isAffectedFrom(con.from)) route.addSignal(signal);
-		}
-		if (added instanceof Block) return List.of(route);
-		List<Connector> connectors = tile.connections(con.from);
+		Tile addedTile = route.add(tile,connector.from);
+		if (addedTile instanceof Block) return List.of(route);
+		Map<Connector, State> connectors = tile.connections(connector.from);
 		List<Route>routes = route.multiply(connectors.size());
-		for (int i=0; i<connectors.size(); i++) results.addAll(follow(routes.get(i),connectors.get(i)));
+		LOG.debug("{}",tile);
+		if (connectors.size()>1) LOG.debug("SPLITTING @ {}",tile);
+		
+		for (Entry<Connector, State> entry: connectors.entrySet()) {
+			route = routes.remove(0);
+			connector = entry.getKey();
+			State state = entry.getValue();
+			route.setLast(state);
+			if (connectors.size()>1) {
+				LOG.debug("RESUMING from {}",tile);
+			}
+			results.addAll(follow(route,connector));
+		}
+		
 		return results;
 	}
 
@@ -267,7 +278,9 @@ public class Plan {
 			}
 			return t("Unknown action: {}",action);
 		} catch (Exception e) {
-			return e.getMessage();
+			String msg = e.getMessage();
+			if (msg == null || msg.isEmpty()) msg = t("An unknown error occured!");
+			return msg;
 		}
 	}
 
@@ -363,14 +376,14 @@ public class Plan {
 		tiles.append(new EndW().tag(null));
 		tiles.append(new EndN().tag(null));
 		tiles.append(new EndS().tag(null));
-		tiles.append(new TurnoutSW().tag(null));
-		tiles.append(new TurnoutSE().tag(null));
-		tiles.append(new TurnoutNW().tag(null));
-		tiles.append(new TurnoutNE().tag(null));
-		tiles.append(new TurnoutES().tag(null));
-		tiles.append(new TurnoutEN().tag(null));
-		tiles.append(new TurnoutWS().tag(null));
-		tiles.append(new TurnoutWN().tag(null));
+		tiles.append(new TurnoutRS().tag(null));
+		tiles.append(new TurnoutRN().tag(null));
+		tiles.append(new TurnoutRW().tag(null));
+		tiles.append(new TurnoutRE().tag(null));
+		tiles.append(new TurnoutLN().tag(null));
+		tiles.append(new TurnoutLS().tag(null));
+		tiles.append(new TurnoutLW().tag(null));
+		tiles.append(new TurnoutLE().tag(null));
 		tiles.append(new CrossH().tag(null));
 		tiles.append(new CrossV().tag(null));
 		tiles.append(new Eraser().tag(null));

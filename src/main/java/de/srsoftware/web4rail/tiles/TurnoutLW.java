@@ -5,24 +5,20 @@ import java.util.Map;
 
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
-import de.srsoftware.web4rail.tiles.Turnout.State;
 
-public class StraightV extends StretchableTile{
-	
+public class TurnoutLW extends Turnout{
+
 	@Override
 	public Map<Connector, State> connections(Direction from) {
 		switch (from) {
+			case WEST:
+				return Map.of(new Connector(x+1,y,Direction.WEST),State.STRAIGHT,new Connector(x, y-1, Direction.SOUTH),State.LEFT);
+			case EAST:
+				return Map.of(new Connector(x-1,y,Direction.EAST),State.STRAIGHT);
 			case NORTH:
-				return Map.of(new Connector(x,y+height(),Direction.NORTH),State.UNDEF);
-			case SOUTH:
-				return Map.of(new Connector(x,y-1,Direction.SOUTH),State.UNDEF);
+				return Map.of(new Connector(x-1,y,Direction.EAST),State.LEFT);
 			default:
 				return new HashMap<>();
 		}
-	}
-	
-	@Override
-	public int height() {
-		return length;
 	}
 }
