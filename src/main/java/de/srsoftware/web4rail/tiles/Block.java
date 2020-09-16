@@ -52,7 +52,7 @@ public abstract class Block extends StretchableTile{
 		new Tag("h4").content(t("Routes from here:")).addTo(form);
 		Tag routeList = new Tag("ul");
 		for (Route route : routes) {
-			new Tag("li").content(route.id()).addTo(routeList);
+			new Tag("li").content(route.id()).attr("onclick","openRoute('"+route.id()+"')").addTo(routeList);
 		}
 		routeList.addTo(form);
 

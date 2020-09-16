@@ -8,7 +8,7 @@ public class Window extends Tag{
 
 	public Window(String id, String title) {
 		super("div");
-		id(id);
+		id(id).clazz("window");
 		new Tag("h2")
 			.clazz("title")
 			.content(title).addTo(this);

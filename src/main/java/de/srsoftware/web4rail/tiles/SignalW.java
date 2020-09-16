@@ -20,7 +20,7 @@ public class SignalW extends Signal{
 	}
 	
 	@Override
-	boolean isAffectedFrom(Direction dir) {
+	public boolean isAffectedFrom(Direction dir) {
 		return dir == Direction.WEST;
 	}
 }

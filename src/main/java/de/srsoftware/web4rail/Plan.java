@@ -38,6 +38,7 @@ import de.srsoftware.web4rail.tiles.EndS;
 import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.Eraser;
 import de.srsoftware.web4rail.tiles.Shadow;
+import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.SignalE;
 import de.srsoftware.web4rail.tiles.SignalN;
 import de.srsoftware.web4rail.tiles.SignalS;
@@ -71,9 +72,12 @@ public class Plan {
 	private static final String Y = "y";
 	private static final String FILE = "file";
 	private static final String DIRECTION = "direction";
+	private static final String ACTION_ROUTE = "openRoute";
+	private static final String ID = "id";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	private HashSet<Block> blocks = new HashSet<Block>();
+	private HashMap<String, Route> routes = new HashMap<String, Route>();
 	
 	private Tag actionMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));		
@@ -100,20 +104,25 @@ public class Plan {
 		for (Block block : blocks) {
 			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().start(block),con));
 		}
+		this.routes.clear();
 		for (Route route : routes) {
-			route.start().add(route);			
-			LOG.debug("found route: {}",route);
+			route.start().add(route);
+			this.routes.put(route.id(), route);
 		}
 		return t("Found {} routes.",routes.size());
 	}
 	
 	private Collection<Route> follow(Route route, Connector con) {		
-		Tile tile = get(con.x(),con.y());
+		Tile tile = get(con.x,con.y);
 		Vector<Route> results = new Vector<>();
 		if (tile == null) return results;
 		Tile added = route.add(tile instanceof Shadow ? ((Shadow)tile).overlay() : tile);
+		if (added instanceof Signal) {
+			Signal signal = (Signal) added;
+			if (signal.isAffectedFrom(con.from)) route.addSignal(signal);
+		}
 		if (added instanceof Block) return List.of(route);
-		List<Connector> connectors = tile.connections(con.from());
+		List<Connector> connectors = tile.connections(con.from);
 		List<Route>routes = route.multiply(connectors.size());
 		for (int i=0; i<connectors.size(); i++) results.addAll(follow(routes.get(i),connectors.get(i)));
 		return results;
@@ -247,6 +256,8 @@ public class Plan {
 					return moveTile(params.get(DIRECTION),params.get(X),params.get(Y));
 				case ACTION_PROPS:
 					return propMenu(params.get(X),params.get(Y));
+				case ACTION_ROUTE:
+					return routeProperties(params.get(ID));
 				case ACTION_SAVE:
 					return saveTo(params.get(FILE));
 				case ACTION_UPDATE:
@@ -258,6 +269,12 @@ public class Plan {
 		} catch (Exception e) {
 			return e.getMessage();
 		}
+	}
+
+	private Object routeProperties(String routeId) {
+		Route route = routes.get(routeId);
+		if (route == null) return t("Could not find route \"{}\"",routeId);
+		return route.properties();
 	}
 
 	private Page update(HashMap<String, String> params) throws IOException {

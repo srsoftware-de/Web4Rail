@@ -9,5 +9,5 @@ public abstract class Signal extends Tile{
 		classes.add("signal");
 	}
 	
-	abstract boolean isAffectedFrom(Direction dir);
+	public abstract boolean isAffectedFrom(Direction dir);
 }

@@ -71,6 +71,10 @@ function closeMenu(ev){
 	return false;
 }
 
+function closeWindows(){
+	$('.window').remove();
+}
+
 function enableAdding(ev){
 //	console.log('enableAdding:',ev);
 	if (selected != null) $(selected).css('border','');
@@ -125,6 +129,21 @@ function moveTile(x,y){
 	});
 }
 
+function openRoute(id){
+	closeWindows();
+	$.ajax({
+		url : PLAN,
+		method : POST,
+		data : {action:'openRoute',id:id},
+		success: function(resp){
+			if (resp.startsWith('<')){
+				$('body').append($(resp));
+			} else {
+				addMessage(resp);
+			}
+		}
+	});
+}
 function runAction(ev){
 	console.log("runAction: ",ev.target.id);
 	$.ajax({
