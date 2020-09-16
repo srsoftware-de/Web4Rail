@@ -39,6 +39,7 @@ import de.srsoftware.web4rail.tiles.EndS;
 import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.Eraser;
 import de.srsoftware.web4rail.tiles.Shadow;
+import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.SignalE;
 import de.srsoftware.web4rail.tiles.SignalN;
 import de.srsoftware.web4rail.tiles.SignalS;
@@ -46,6 +47,7 @@ import de.srsoftware.web4rail.tiles.SignalW;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
 import de.srsoftware.web4rail.tiles.Tile;
+import de.srsoftware.web4rail.tiles.Turnout;
 import de.srsoftware.web4rail.tiles.Turnout.State;
 import de.srsoftware.web4rail.tiles.TurnoutLE;
 import de.srsoftware.web4rail.tiles.TurnoutLN;
@@ -114,13 +116,10 @@ public class Plan {
 		for (HashMap<Integer, Tile> column: tiles.values()) {
 			for (Tile tile : column.values()) tile.routes().clear();
 		}
-		for (Route route : routes) {
-			for (Tile tile: route.path()) tile.add(route);
-			this.routes.put(route.id(), route);
-		}
+		for (Route route : routes) registerRoute(route);
 		return t("Found {} routes.",routes.size());
 	}
-	
+
 	private Collection<Route> follow(Route route, Connector connector) {
 		Tile tile = get(connector.x,connector.y);
 		Vector<Route> results = new Vector<>();
@@ -166,7 +165,7 @@ public class Plan {
 	
 	public static Plan load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Plan result = new Plan();
-		File file = new File(filename);
+		File file = new File(filename+".plan");
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		while (br.ready()) {
 			String line = br.readLine().trim();
@@ -181,6 +180,43 @@ public class Plan {
 			}
 		}
 		br.close();
+		file = new File(filename+".routes");
+		if (file.exists()) {
+			br = new BufferedReader(new FileReader(file));
+			while (br.ready()) {
+				String line = br.readLine().trim();
+				String[] parts = line.split("=",2);
+				try {
+					String id = parts[0];
+					JSONObject json = new JSONObject(parts[1]);
+					Route route = new Route();
+					json.getJSONArray(Route.PATH).forEach(entry -> {
+						JSONObject pos = (JSONObject) entry;
+						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"));
+						if (route.path().isEmpty()) {
+							route.start((Block) tile);
+						} else {
+							route.add(tile, null);
+						}
+					});
+					json.getJSONArray(Route.SIGNALS).forEach(entry -> {
+						JSONObject pos = (JSONObject) entry;
+						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"));
+						route.addSignal((Signal) tile);
+					});
+					json.getJSONArray(Route.TURNOUTS).forEach(entry -> {
+						JSONObject pos = (JSONObject) entry;
+						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"));
+						route.addTurnout((Turnout) tile, Turnout.State.valueOf(pos.getString(Turnout.STATE)));
+					});
+					if (json.has(Route.NAME)) route.name(json.getString(Route.NAME));
+					result.registerRoute(route);
+				} catch (Exception e) {
+					LOG.warn("Was not able to load \"{}\":",line,e);
+				}
+			}
+			br.close();
+		} else LOG.debug("{} not found.",file);
 		return result;
 	}
 
@@ -321,6 +357,11 @@ public class Plan {
 		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay();
 		return tile.propMenu();
 	}
+	
+	private void registerRoute(Route route) {
+		for (Tile tile: route.path()) tile.add(route);
+		routes.put(route.id(), route);
+	}
 
 	private String saveTo(String name) throws IOException {
 		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
@@ -338,6 +379,12 @@ public class Plan {
 					br.append("\n");
 				}
 			}
+		}
+		br.close();
+		file = new File(name+".routes");
+		br = new BufferedWriter(new FileWriter(file));
+		for (Route route: routes.values()) {
+			br.append(route.id()+"="+route.json()+"\n");
 		}
 		br.close();
 		return t("Plan saved as \"{}\".",file);

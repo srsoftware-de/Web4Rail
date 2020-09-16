@@ -41,7 +41,7 @@ public class Application {
         server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
         server.start();
         try {
-        	plan = Plan.load("default.plan");
+        	plan = Plan.load("default");
         } catch (FileNotFoundException e) {
         	plan = new Plan();
 		}

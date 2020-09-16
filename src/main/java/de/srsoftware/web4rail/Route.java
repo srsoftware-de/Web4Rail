@@ -2,9 +2,12 @@ package de.srsoftware.web4rail;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +25,11 @@ import de.srsoftware.web4rail.tiles.Turnout.State;
 
 public class Route {
 	private static final Logger LOG = LoggerFactory.getLogger(Route.class);
-	private static final String NAME = "name";
+	static final String NAME = "name";
 	private static final HashMap<String,String> names = new HashMap<String, String>();
+	static final String PATH = "path";
+	static final String SIGNALS = "signals";
+	static final String TURNOUTS = "turnouts";
 	private Vector<Tile> path;
 	private Vector<Signal> signals;
 	private Vector<Contact> contacts;
@@ -36,12 +42,20 @@ public class Route {
 		if (tile instanceof Contact) contacts.add((Contact) tile);
 		if (tile instanceof Signal) {
 			Signal signal = (Signal) tile;
-			if (signal.isAffectedFrom(direrction)) signals.add(signal);			
+			if (signal.isAffectedFrom(direrction)) addSignal(signal);			
 		}
 
 		return tile;
 	}	
 	
+	void addSignal(Signal signal) {
+		signals.add(signal);
+	}
+	
+	void addTurnout(Turnout t, State s) {
+		turnouts.put(t, s);
+	}
+
 	protected Route clone() {
 		Route clone = new Route();
 		clone.contacts = new Vector<Contact>(contacts);
@@ -68,6 +82,29 @@ public class Route {
 		}
 		return id;
 	}
+		
+	public String json() {
+		JSONObject props = new JSONObject();
+		JSONArray path = new JSONArray();
+		for (Tile t : this.path) path.put(new JSONObject(Map.of("x",t.x,"y",t.y)));
+		props.put(PATH, path);
+		
+		JSONArray signals = new JSONArray();
+		for (Tile t : this.signals) signals.put(new JSONObject(Map.of("x",t.x,"y",t.y)));
+		props.put(SIGNALS, signals);
+		
+		JSONArray turnouts = new JSONArray();
+		for (Entry<Turnout, State> entry : this.turnouts.entrySet()) {
+			Turnout t = entry.getKey();
+			turnouts.put(new JSONObject(Map.of("x",t.x,"y",t.y,Turnout.STATE,entry.getValue())));
+		}
+		props.put(TURNOUTS, turnouts);
+		
+		if (names.containsKey(id())) props.put(NAME, names.get(id));
+
+		return props.toString();
+	}
+
 
 	public List<Route> multiply(int size) {
 		Vector<Route> routes = new Vector<Route>();
@@ -80,30 +117,44 @@ public class Route {
 		return name == null ? id() : name;
 	}
 	
+	public void name(String name) {
+		if (name.isEmpty()) {
+			names.remove(id());
+		} else names.put(id(),name);
+	}
+	
 	public Vector<Tile> path() {
-		return new Vector<Tile>(path);
+		Vector<Tile> result = new Vector<Tile>();
+		if (path != null) result.addAll(path);
+		return result;
 	}
 	
 	public Window properties() {	
 		Window win = new Window("route-properties",t("Properties of {}",this));
 
-		new Tag("h4").content(t("Signals")).addTo(win);
-		Tag list = new Tag("ul");
-		for (Signal s : signals) Plan.addLink(s,s.toString(),list);
-		list.addTo(win);
-		
-		new Tag("h4").content(t("Contacts")).addTo(win);
-		list = new Tag("ul");
-		for (Contact c : contacts) Plan.addLink(c,c.toString(),list);
-		list.addTo(win);
-		
-		new Tag("h4").content(t("Turnouts")).addTo(win);
-		list = new Tag("ul");
-		for (Entry<Turnout, State> entry : turnouts.entrySet()) {
-			Turnout turnout = entry.getKey();
-			Plan.addLink(turnout, turnout+": "+entry.getValue(), list);
+		if (!signals.isEmpty()) {
+			new Tag("h4").content(t("Signals")).addTo(win);
+			Tag list = new Tag("ul");
+			for (Signal s : signals) Plan.addLink(s,s.toString(),list);
+			list.addTo(win);
 		}
-		list.addTo(win);
+		
+		if (!contacts.isEmpty()) {
+			new Tag("h4").content(t("Contacts")).addTo(win);
+			Tag list = new Tag("ul");
+			for (Contact c : contacts) Plan.addLink(c,c.toString(),list);
+			list.addTo(win);
+		}
+		
+		if (!turnouts.isEmpty()) {
+			new Tag("h4").content(t("Turnouts")).addTo(win);
+			Tag list = new Tag("ul");
+			for (Entry<Turnout, State> entry : turnouts.entrySet()) {
+				Turnout turnout = entry.getKey();
+				Plan.addLink(turnout, turnout+": "+entry.getValue(), list);
+			}
+			list.addTo(win);
+		}
 		
 		Tag form = propForm();
 		new Tag("button").attr("type", "submit").content(t("save")).addTo(form);
@@ -141,13 +192,7 @@ public class Route {
 	public void setLast(State state) {
 		if (state == null || state == State.UNDEF) return;
 		Tile lastTile = path.lastElement();
-		if (lastTile instanceof Turnout) turnouts.put((Turnout) lastTile,state);
-	}
-	
-	private void setName(String name) {
-		if (name.isEmpty()) {
-			names.remove(id());
-		} else names.put(id(),name);
+		if (lastTile instanceof Turnout) addTurnout((Turnout) lastTile,state);
 	}
 	
 	public Block startBlock() {
@@ -160,6 +205,6 @@ public class Route {
 	
 	public void update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
-		if (params.containsKey(NAME)) setName(params.get(NAME));
+		if (params.containsKey(NAME)) name(params.get(NAME));
 	}
 }
