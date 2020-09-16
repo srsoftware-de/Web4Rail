@@ -100,7 +100,10 @@ public class Plan {
 		for (Block block : blocks) {
 			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().start(block),con));
 		}
-		for (Route r : routes) LOG.debug("found route: {}",r);
+		for (Route route : routes) {
+			route.start().add(route);			
+			LOG.debug("found route: {}",route);
+		}
 		return t("Found {} routes.",routes.size());
 	}
 	
