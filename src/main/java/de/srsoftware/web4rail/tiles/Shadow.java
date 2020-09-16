@@ -15,8 +15,9 @@ public class Shadow extends Tile{
 		return super.connections(from);
 	}
 
-	public Shadow(Tile overlay) {
+	public Shadow(Tile overlay) {		
 		this.overlay = overlay;
+		overlay.addShadow(this);
 	}
 
 	public Tile overlay() {

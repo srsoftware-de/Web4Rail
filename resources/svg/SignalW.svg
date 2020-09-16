@@ -1,0 +1,7 @@
+<svg width="%width%" height="100" viewbox="0 0 100 100">
+	<rect x="0" y="35" width="100" height="30" />
+	<rect class="sig_a" x="75" y="75" height="20" width="20" />
+	<rect class="sig_B" x="55" y="75" height="20" width="20" />
+	<line x1="30" y1="85" x2="55" y2="85" />
+	<line x1="30" y1="80" x2="30" y2="90" />
+</svg>

@@ -1,5 +1,5 @@
 package de.srsoftware.web4rail.tiles;
 
-public class Contact {
+public abstract class Contact extends Tile{
 
 }

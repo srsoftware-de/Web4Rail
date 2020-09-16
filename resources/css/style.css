@@ -30,6 +30,8 @@ body{
 	height: 60px !important;
 }
 
+svg circle,
+svg line,
 svg polygon,
 svg rect{
 	fill:#617de4;
@@ -40,8 +42,13 @@ svg rect{
 svg text{
 	font-size: 50px;
 }
+
 svg .block{
 	fill: #ffffff;
+}
+
+svg circle{
+	fill: gray;
 }
 
 .menu{
@@ -125,4 +132,12 @@ h2{
 
 #Eraser polygon{
 	stroke: red;
+}
+
+.sig_a{
+	fill: red;
+}
+
+.sig_b{
+	fill: black;
 }

@@ -25,6 +25,7 @@ public abstract class Tile {
 	
 	protected int x = -1,y = -1;
 	protected HashSet<String> classes = new HashSet<String>();
+	protected HashSet<Shadow> shadows = new HashSet<Shadow>();
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);
 	
 	public Tile() {
@@ -147,5 +148,9 @@ public abstract class Tile {
 	public Tile update(HashMap<String, String> params) {
 		LOG.debug("{}.update({})",getClass().getSimpleName(),params);
 		return this;
+	}
+
+	public void addShadow(Shadow shadow) {
+		shadows.add(shadow);
 	}
 }
