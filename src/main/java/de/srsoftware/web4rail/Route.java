@@ -4,11 +4,13 @@ import java.util.List;
 import java.util.Vector;
 
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.Tile;
 
 public class Route {
 	
-	private Vector<Tile> path; 
+	private Vector<Tile> path;
+	private Vector<Signal> signals;
 
 	public Tile add(Tile tile) {
 		path.add(tile);

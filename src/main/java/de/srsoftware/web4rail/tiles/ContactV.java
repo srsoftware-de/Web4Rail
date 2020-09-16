@@ -4,18 +4,19 @@ import java.util.List;
 import java.util.Vector;
 
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.Plan;
+import de.srsoftware.web4rail.Plan.Direction;
 
 public class ContactV extends Contact {
 	
 	@Override
-	public List<Connector> connections(String from) {
+	public List<Connector> connections(Direction from) {
 		switch (from) {
-			case Plan.NORTH:
+			case NORTH:
 				return List.of(new Connector(x,y+1,from));
-			case Plan.SOUTH:
+			case SOUTH:
 				return List.of(new Connector(x,y-1,from));
-		}
-		return new Vector<>();
+			default:
+				return new Vector<>();
+		}		
 	}
 }

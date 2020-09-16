@@ -6,6 +6,7 @@ import java.util.Map;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.Plan.Direction;
 
 public class CrossV extends Cross{
 	
@@ -15,7 +16,7 @@ public class CrossV extends Cross{
 	}
 	
 	@Override
-	public List<Connector> offsetConnections(String from) {
+	public List<Connector> offsetConnections(Direction from) {
 		return null;
 	}
 	

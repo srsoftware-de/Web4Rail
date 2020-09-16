@@ -10,7 +10,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.Plan;
+import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 
 public class BlockV extends Block{
@@ -54,7 +54,7 @@ public class BlockV extends Block{
 	
 	@Override
 	public List<Connector> startPoints() {
-		return List.of(new Connector(x,y-1,Plan.SOUTH),new Connector(x,y+height(),Plan.NORTH));
+		return List.of(new Connector(x,y-1,Direction.SOUTH),new Connector(x,y+height(),Direction.NORTH));
 	}
 	
 	@Override

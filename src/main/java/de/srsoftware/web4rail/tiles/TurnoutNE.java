@@ -4,19 +4,20 @@ import java.util.List;
 import java.util.Vector;
 
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.Plan;
+import de.srsoftware.web4rail.Plan.Direction;
 
 public class TurnoutNE extends Turnout{
 
 	@Override
-	public List<Connector> connections(String from) {
+	public List<Connector> connections(Direction from) {
 		switch (from) {
-			case Plan.NORTH:
-				return List.of(new Connector(x,y+1,Plan.NORTH),new Connector(x+1, y, Plan.WEST));
-			case Plan.SOUTH:
-			case Plan.EAST:
-				return List.of(new Connector(x,y-1,Plan.SOUTH));
+			case NORTH:
+				return List.of(new Connector(x,y+1,Direction.NORTH),new Connector(x+1, y, Direction.WEST));
+			case SOUTH:
+			case EAST:
+				return List.of(new Connector(x,y-1,Direction.SOUTH));
+			default:
+				return new Vector<>();
 		}
-		return new Vector<>();
 	}
 }

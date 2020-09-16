@@ -4,19 +4,20 @@ import java.util.List;
 import java.util.Vector;
 
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.Plan;
+import de.srsoftware.web4rail.Plan.Direction;
 
 public class StraightH extends StretchableTile{
 	
 	@Override
-	public List<Connector> connections(String from) {
+	public List<Connector> connections(Direction from) {
 		switch (from) {
-			case Plan.WEST:
-				return List.of(new Connector(x+len(),y,from));
-			case Plan.EAST:
-				return List.of(new Connector(x-1,y,from));
+			case WEST:
+				return List.of(new Connector(x+len(),y,Direction.WEST));
+			case EAST:
+				return List.of(new Connector(x-1,y,Direction.EAST));
+			default:
+				return new Vector<>();
 		}
-		return new Vector<>();
 	}
 	
 	@Override

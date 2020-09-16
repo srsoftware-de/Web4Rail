@@ -7,19 +7,20 @@ import java.util.Vector;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.Plan;
+import de.srsoftware.web4rail.Plan.Direction;
 
 public class CrossH extends Cross{
 	
 	@Override
-	public List<Connector> connections(String from) {
+	public List<Connector> connections(Direction from) {
 		switch (from) {
-			case Plan.NORTH:
-				return List.of(new Connector(x+1,y+1,Plan.NORTH));
-			case Plan.SOUTH:
-				return List.of(new Connector(x+1,y-1,Plan.SOUTH));
+			case NORTH:
+				return List.of(new Connector(x+1,y+1,Direction.NORTH));
+			case SOUTH:
+				return List.of(new Connector(x+1,y-1,Direction.SOUTH));
+			default:
+				return new Vector<>();
 		}
-		return new Vector<>();
 	}
 	
 	@Override
@@ -28,14 +29,16 @@ public class CrossH extends Cross{
 	}
 	
 	@Override
-	public List<Connector> offsetConnections(String from) {
+	public List<Connector> offsetConnections(Direction from) {
 		switch (from) {
-		case Plan.NORTH:
-			return List.of(new Connector(x,y+1,Plan.NORTH));
-		case Plan.SOUTH:
-			return List.of(new Connector(x,y-1,Plan.SOUTH));
+		case NORTH:
+			return List.of(new Connector(x,y+1,Direction.NORTH));
+		case SOUTH:
+			return List.of(new Connector(x,y-1,Direction.SOUTH));
+		default:
+			return new Vector<>();
 	}
-	return new Vector<>();
+	
 }
 	
 	@Override

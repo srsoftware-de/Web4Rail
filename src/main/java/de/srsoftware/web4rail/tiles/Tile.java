@@ -20,6 +20,7 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.Plan.Direction;
 
 public abstract class Tile {
 	
@@ -37,7 +38,7 @@ public abstract class Tile {
 		return new JSONObject();
 	}
 	
-	public List<Connector> connections(String from){
+	public List<Connector> connections(Direction from){
 		return new Vector<>();
 	}
 

@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,6 +55,9 @@ import de.srsoftware.web4rail.tiles.TurnoutWN;
 import de.srsoftware.web4rail.tiles.TurnoutWS;
 
 public class Plan {
+	public enum Direction{		
+		NORTH, SOUTH, EAST, WEST
+	}
 	private static final String ACTION = "action";
 	private static final String ACTION_ADD = "add";
 	private static final String ACTION_ANALYZE = "analyze";
@@ -67,10 +71,6 @@ public class Plan {
 	private static final String Y = "y";
 	private static final String FILE = "file";
 	private static final String DIRECTION = "direction";
-	public static final String EAST = "east";
-	public static final String WEST = "west";
-	public static final String SOUTH = "south";
-	public static final String NORTH = "north";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -101,7 +101,7 @@ public class Plan {
 			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().start(block),con));
 		}
 		for (Route r : routes) LOG.debug("found route: {}",r);
-		return "analyze() not implemented, yet!";
+		return t("Found {} routes.",routes.size());
 	}
 	
 	private Collection<Route> follow(Route route, Connector con) {		
@@ -177,10 +177,20 @@ public class Plan {
 	}
 	
 	private String moveTile(String direction, String x, String y) throws NumberFormatException, IOException {
-		return moveTile(direction,Integer.parseInt(x),Integer.parseInt(y));
+		switch (direction) {
+		case "south":
+			return moveTile(Direction.SOUTH,Integer.parseInt(x),Integer.parseInt(y));
+		case "north":
+			return moveTile(Direction.NORTH,Integer.parseInt(x),Integer.parseInt(y));
+		case "east":
+			return moveTile(Direction.EAST,Integer.parseInt(x),Integer.parseInt(y));
+		case "west":
+			return moveTile(Direction.WEST,Integer.parseInt(x),Integer.parseInt(y));
+		}
+		throw new InvalidParameterException(t("\"{}\" is not a known direction!"));
 	}
 
-	private String moveTile(String direction, int x, int y) throws IOException {
+	private String moveTile(Direction direction, int x, int y) throws IOException {
 		//LOG.debug("moveTile({},{},{})",direction,x,y);
 		Vector<Tile> moved = null;
 		switch (direction) {

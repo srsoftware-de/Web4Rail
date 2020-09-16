@@ -2,17 +2,17 @@ package de.srsoftware.web4rail;
 
 public class Connector {
 
-	private String from;
+	private Plan.Direction from;
 	private int y;
 	private int x;
 
-	public Connector(int x, int y, String from) {
+	public Connector(int x, int y, Plan.Direction from) {
 		this.x = x;
 		this.y = y;
 		this.from = from;
 	}
 	
-	public String from() {
+	public Plan.Direction from() {
 		return from;
 	}
 
