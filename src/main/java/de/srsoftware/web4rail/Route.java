@@ -5,9 +5,13 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
@@ -17,7 +21,8 @@ import de.srsoftware.web4rail.tiles.Turnout;
 import de.srsoftware.web4rail.tiles.Turnout.State;
 
 public class Route {
-	
+	private static final Logger LOG = LoggerFactory.getLogger(Route.class);
+	private static final String NAME = "name";
 	private Vector<Tile> path;
 	private Vector<Signal> signals;
 	private Vector<Contact> contacts;
@@ -99,8 +104,24 @@ public class Route {
 			Plan.addLink(turnout, turnout+": "+entry.getValue(), list);
 		}
 		list.addTo(win);
+		
+		Tag form = propForm();
+		new Tag("button").attr("type", "submit").content(t("save")).addTo(form);
+		form.addTo(win);
 
 		return win;
+	}
+	
+	public Tag propForm() {
+		Form form = new Form();
+		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "update").addTo(form);
+		new Tag("input").attr("type", "hidden").attr("name","route").attr("value", id()).addTo(form);
+		
+		Tag label = new Tag("label").content(t("name:"));
+		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name).addTo(label);		
+		label.addTo(form);
+		
+		return form;
 	}
 
 	public Route start(Block block) {
@@ -129,5 +150,10 @@ public class Route {
 		if (state == null || state == State.UNDEF) return;
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Turnout) turnouts.put((Turnout) lastTile,state);
+	}
+
+	public void update(HashMap<String, String> params) {
+		LOG.debug("update({})",params);
+		if (params.containsKey(NAME)) name = params.get(NAME);
 	}
 }

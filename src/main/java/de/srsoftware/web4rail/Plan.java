@@ -75,6 +75,7 @@ public class Plan {
 	private static final String DIRECTION = "direction";
 	private static final String ACTION_ROUTE = "openRoute";
 	private static final String ID = "id";
+	private static final String ROUTE = "route";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -296,14 +297,18 @@ public class Plan {
 		return route.properties();
 	}
 
-	private Page update(HashMap<String, String> params) throws IOException {
-		return update(Integer.parseInt(params.get("x")),Integer.parseInt(params.get("y")),params);
+	private Object update(HashMap<String, String> params) throws IOException {
+		if (params.containsKey(ROUTE)) {
+			Route route = routes.get(params.get(ROUTE));
+			if (route == null) return t("Unknown route: {}",params.get(ROUTE));
+			route.update(params);
+		} else update(Integer.parseInt(params.get("x")),Integer.parseInt(params.get("y")),params);
+		return this.html();
 	}
 
-	private Page update(int x,int y, HashMap<String, String> params) throws IOException {
+	private void update(int x,int y, HashMap<String, String> params) throws IOException {
 		Tile tile = get(x,y);
 		if (tile != null) set(x,y,tile.update(params));
-		return this.html();
 	}
 
 	private Tag propMenu(String x, String y) {

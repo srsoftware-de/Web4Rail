@@ -75,7 +75,7 @@ public abstract class Tile {
 			new Tag("h4").content(t("Routes using this tile:")).addTo(form);
 			Tag routeList = new Tag("ul");
 			for (Route route : routes) {
-				new Tag("li").clazz("link").attr("onclick","openRoute('"+route.id()+"')").content(route.id()).addTo(routeList);
+				new Tag("li").clazz("link").attr("onclick","openRoute('"+route.id()+"')").content(route.name()).addTo(routeList);
 			}
 			routeList.addTo(form);
 		}
