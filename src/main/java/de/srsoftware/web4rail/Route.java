@@ -23,12 +23,12 @@ import de.srsoftware.web4rail.tiles.Turnout.State;
 public class Route {
 	private static final Logger LOG = LoggerFactory.getLogger(Route.class);
 	private static final String NAME = "name";
+	private static final HashMap<String,String> names = new HashMap<String, String>();
 	private Vector<Tile> path;
 	private Vector<Signal> signals;
 	private Vector<Contact> contacts;
 	private HashMap<Turnout,Turnout.State> turnouts;
 	private String id;
-	private String name;
 
 	public Tile add(Tile tile, Direction direrction) {
 		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay(); 
@@ -76,8 +76,8 @@ public class Route {
 	}
 	
 	public String name() {
-		if (name == null) name = id();
-		return name;
+		String name = names.get(id());
+		return name == null ? id() : name;
 	}
 	
 	public Vector<Tile> path() {
@@ -118,7 +118,7 @@ public class Route {
 		new Tag("input").attr("type", "hidden").attr("name","route").attr("value", id()).addTo(form);
 		
 		Tag label = new Tag("label").content(t("name:"));
-		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name).addTo(label);		
+		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).addTo(label);		
 		label.addTo(form);
 		
 		return form;
@@ -138,22 +138,28 @@ public class Route {
 		return getClass().getSimpleName()+"("+name()+")";
 	}
 
-	public Block startBlock() {
-		return (Block) path.get(0);
-	}
-
-	protected static String t(String txt, Object...fills) {
-		return Translation.get(Application.class, txt, fills);
-	}
-
 	public void setLast(State state) {
 		if (state == null || state == State.UNDEF) return;
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Turnout) turnouts.put((Turnout) lastTile,state);
 	}
-
+	
+	private void setName(String name) {
+		if (name.isEmpty()) {
+			names.remove(id());
+		} else names.put(id(),name);
+	}
+	
+	public Block startBlock() {
+		return (Block) path.get(0);
+	}		
+	
+	protected static String t(String txt, Object...fills) {
+		return Translation.get(Application.class, txt, fills);
+	}
+	
 	public void update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
-		if (params.containsKey(NAME)) name = params.get(NAME);
+		if (params.containsKey(NAME)) setName(params.get(NAME));
 	}
 }
