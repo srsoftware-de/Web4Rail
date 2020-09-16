@@ -1,8 +1,17 @@
 Actions : Aktionen
 Added {} : {} hinzugefügt
 Add tile : Kachel hinzufügen
+Analyze plan : Plan analysieren
+Contacts : Kontakte
+length\: : Länge:
+name\: : Name:
 Plan saved as "{}". : Plan als „{}“ gespeichert.
 Properties : Eigenschaften
+Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
+Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
+save : speichern
 Save plan : Plan speichern
+Signals : Signale
+Turnouts : Weichen
 Unknown action\: {} : Unbekannte Aktion: {}

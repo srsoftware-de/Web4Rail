@@ -15,8 +15,6 @@ function addMessage(txt){
 
 function addTile(x,y){	
 	console.log("addTile:",selected.id,x,y);
-	x = Math.floor(x/SQUARE);
-	y = Math.floor(y/SQUARE);
 	$.ajax({
 		url : PLAN,
 		method: POST,
@@ -33,34 +31,27 @@ function addTile(x,y){
 
 function bodyClick(ev){
 	console.log('bodyClick:',ev);
+	var x = Math.floor(ev.clientX/SQUARE);
+	var y = Math.floor(ev.clientY/SQUARE);
+
 	switch (mode){
 		case undefined:
 		case null:
-			return clickTile(ev.clientX,ev.clientY);
+			return clickTile(x,y);
 		case ADD:
-			return addTile(ev.clientX,ev.clientY);
+			return addTile(x,y);
 		case MOVE:
-			return moveTile(ev.clientX,ev.clientY);
+			return moveTile(x,y);
 	}
 	console.log('unknown action "'+mode+'" @ ('+ev.clientX+','+ev.clientY+')');
 }
 
 function clickTile(x,y){
 	console.log("clickTile:",x,y);
-	x = Math.floor(x/SQUARE);
-	y = Math.floor(y/SQUARE);
-	if ($('#tile-'+x+'-'+y).length > 0){
-		$.ajax({
-			url : PLAN,
-			method : POST,
-			data : {action:'openProps',x:x,y:y},
-			success: function(resp){
-				$('body').append($(resp));
-			}
-		});
-	}
+	if ($('#tile-'+x+'-'+y).length > 0) request({action:'openProps',x:x,y:y});
 	return false;
 }
+
 
 function closeMenu(ev){
 	console.log('closeMenu:',ev);
@@ -107,8 +98,6 @@ function enableMove(ev){
 
 function moveTile(x,y){	
 	console.log("moveTile:",selected.id,x,y);
-	x = Math.floor(x/SQUARE);
-	y = Math.floor(y/SQUARE);
 	$.ajax({
 		url : PLAN,
 		method: POST,
@@ -130,20 +119,26 @@ function moveTile(x,y){
 }
 
 function openRoute(id){
-	closeWindows();
+	request({action:'openRoute',id:id});
+	return false;
+}
+
+function request(data){
 	$.ajax({
 		url : PLAN,
 		method : POST,
-		data : {action:'openRoute',id:id},
+		data : data,
 		success: function(resp){
+			closeWindows();
 			if (resp.startsWith('<')){
 				$('body').append($(resp));
 			} else {
 				addMessage(resp);
 			}
 		}
-	});
+	});	
 }
+
 function runAction(ev){
 	console.log("runAction: ",ev.target.id);
 	$.ajax({

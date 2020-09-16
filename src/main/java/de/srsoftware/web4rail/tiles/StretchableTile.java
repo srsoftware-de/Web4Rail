@@ -6,7 +6,6 @@ import java.util.Map.Entry;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.tags.Form;
 
 public abstract class StretchableTile extends Tile {
 	private static final String LENGTH = "length";
@@ -27,10 +26,7 @@ public abstract class StretchableTile extends Tile {
 	
 	@Override
 	public Tag propForm() {
-		Form form = new Form();
-		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "update").addTo(form);
-		new Tag("input").attr("type", "hidden").attr("name","x").attr("value", x).addTo(form);
-		new Tag("input").attr("type", "hidden").attr("name","y").attr("value", y).addTo(form);
+		Tag form = super.propForm();
 
 		Tag label = new Tag("label").content(t("length:"));
 		new Tag("input").attr("type", "number").attr("name","length").attr("value", length).addTo(label);		

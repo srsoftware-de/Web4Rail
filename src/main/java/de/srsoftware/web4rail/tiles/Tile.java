@@ -5,11 +5,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
-import java.util.Vector;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -19,14 +17,18 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.Route;
+import de.srsoftware.web4rail.Window;
 
 public abstract class Tile {
 	
 	public int x = -1,y = -1;
-	protected HashSet<String> classes = new HashSet<String>();
-	protected HashSet<Shadow> shadows = new HashSet<Shadow>();
+	protected HashSet<String> classes = new HashSet<>();
+	protected HashSet<Shadow> shadows = new HashSet<>();
+	private HashSet<Route> routes = new HashSet<>();
+	
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);
 	
 	public Tile() {
@@ -64,7 +66,21 @@ public abstract class Tile {
 	}
 	
 	public Tag propForm() {
-		return null;
+		Form form = new Form();
+		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "update").addTo(form);
+		new Tag("input").attr("type", "hidden").attr("name","x").attr("value", x).addTo(form);
+		new Tag("input").attr("type", "hidden").attr("name","y").attr("value", y).addTo(form);
+		
+		if (!routes.isEmpty()) {
+			new Tag("h4").content(t("Routes using this tile:")).addTo(form);
+			Tag routeList = new Tag("ul");
+			for (Route route : routes) {
+				new Tag("li").clazz("link").attr("onclick","openRoute('"+route.id()+"')").content(route.id()).addTo(routeList);
+			}
+			routeList.addTo(form);
+		}
+		
+		return form;
 	}
 	
 	public Tag propMenu() {	
@@ -153,5 +169,13 @@ public abstract class Tile {
 	public Tile update(HashMap<String, String> params) {
 		LOG.debug("{}.update({})",getClass().getSimpleName(),params);
 		return this;
+	}
+
+	public HashSet<Route> routes() {
+		return routes;
+	}
+
+	public void add(Route route) {
+		this.routes.add(route);
 	}	
 }

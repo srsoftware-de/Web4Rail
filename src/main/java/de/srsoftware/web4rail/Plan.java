@@ -88,6 +88,10 @@ public class Plan {
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 	
+	public static void addLink(Tile tile,String content,Tag list) {
+		new Tag("li").clazz("link").attr("onclick", "return clickTile("+tile.x+","+tile.y+");").content(content).addTo(list);
+	}
+	
 	private Tile addTile(String clazz, String xs, String ys, String configJson) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		int x = Integer.parseInt(xs);
 		int y = Integer.parseInt(ys);
@@ -103,12 +107,14 @@ public class Plan {
 	private String analyze() {
 		Vector<Route> routes = new Vector<Route>();
 		for (Block block : blocks) {
-			block.routes().clear();
 			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().start(block),con));
 		}
 		this.routes.clear();
+		for (HashMap<Integer, Tile> column: tiles.values()) {
+			for (Tile tile : column.values()) tile.routes().clear();
+		}
 		for (Route route : routes) {
-			route.start().add(route);
+			for (Tile tile: route.path()) tile.add(route);
 			this.routes.put(route.id(), route);
 		}
 		return t("Found {} routes.",routes.size());

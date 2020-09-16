@@ -141,3 +141,7 @@ h2{
 .sig_b{
 	fill: black;
 }
+
+.link{
+	cursor: pointer;
+}

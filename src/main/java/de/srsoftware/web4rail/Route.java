@@ -75,22 +75,29 @@ public class Route {
 		return name;
 	}
 	
+	public Vector<Tile> path() {
+		return new Vector<Tile>(path);
+	}
+	
 	public Window properties() {	
-		Window win = new Window("route-properties",t("Properties of {})",this));
+		Window win = new Window("route-properties",t("Properties of {}",this));
 
 		new Tag("h4").content(t("Signals")).addTo(win);
 		Tag list = new Tag("ul");
-		for (Signal s : signals) new Tag("li").content(s.toString()).addTo(list);
+		for (Signal s : signals) Plan.addLink(s,s.toString(),list);
 		list.addTo(win);
 		
 		new Tag("h4").content(t("Contacts")).addTo(win);
 		list = new Tag("ul");
-		for (Contact c : contacts) new Tag("li").content(c.toString()).addTo(list);
+		for (Contact c : contacts) Plan.addLink(c,c.toString(),list);
 		list.addTo(win);
 		
 		new Tag("h4").content(t("Turnouts")).addTo(win);
 		list = new Tag("ul");
-		for (Entry<Turnout, State> entry : turnouts.entrySet()) new Tag("li").content(entry.getKey()+" : "+entry.getValue()).addTo(list);
+		for (Entry<Turnout, State> entry : turnouts.entrySet()) {
+			Turnout turnout = entry.getKey();
+			Plan.addLink(turnout, turnout+": "+entry.getValue(), list);
+		}
 		list.addTo(win);
 
 		return win;
@@ -110,7 +117,7 @@ public class Route {
 		return getClass().getSimpleName()+"("+name()+")";
 	}
 
-	public Block start() {
+	public Block startBlock() {
 		return (Block) path.get(0);
 	}
 
