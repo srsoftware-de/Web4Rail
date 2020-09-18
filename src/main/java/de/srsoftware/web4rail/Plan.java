@@ -154,6 +154,10 @@ public class Plan {
 		return t("Found {} routes.",routes.size());
 	}
 
+	public Collection<Block> blocks() {
+		return blocks;
+	}
+
 	private Collection<Route> follow(Route route, Connector connector) {
 		Tile tile = get(connector.x,connector.y,false);
 		Vector<Route> results = new Vector<>();
@@ -201,7 +205,8 @@ public class Plan {
 			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
 				int y = row.getKey();
 				Tile tile = row.getValue().position(x, y);
-				if (tile != null) page.append("\t\t"+tile.tag(null)+"\n");
+				if (tile == null) continue;
+				page.append("\t\t"+tile.tag(null)+"\n");
 			}
 		}
 		return page
@@ -213,6 +218,7 @@ public class Plan {
 				.js("js/jquery-3.5.1.min.js")
 				.js("js/plan.js");
 	}
+	
 	public static Plan load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Plan result = new Plan();
 		File file = new File(filename+".plan");
@@ -403,6 +409,7 @@ public class Plan {
 	
 	private void remove(Tile tile) {
 		remove_intern(tile.x,tile.y);
+		if (tile instanceof Block) blocks.remove(tile);
 		for (int i=1; i<tile.len(); i++) remove_intern(tile.x+i, tile.y); // remove shadow tiles
 		for (int i=1; i<tile.height(); i++) remove_intern(tile.x, tile.y+i); // remove shadow tiles
 		if (tile != null) stream("remove tile-"+tile.x+"-"+tile.y);
@@ -442,6 +449,7 @@ public class Plan {
 	
 	public void set(int x,int y,Tile tile) throws IOException {
 		if (tile == null) return;
+		if (tile instanceof Block) blocks.add((Block) tile);
 		for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow(tile));
 		for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
 		set_intern(x,y,tile);

@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.Vector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,9 @@ import com.sun.net.httpserver.HttpServer;
 
 import de.keawe.localconfig.Configuration;
 import de.keawe.tools.translations.Translation;
+import de.srsoftware.web4rail.moving.Locomotive;
+import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tiles.Block;
 
 public class Application {
 	private static Plan plan;
@@ -47,6 +51,9 @@ public class Application {
         } catch (FileNotFoundException e) {
         	plan = new Plan();
 		}
+        Locomotive BR110 = new Locomotive("BR110");
+        Block block = new Vector<>(plan.blocks()).firstElement();
+        if (block != null) block.setTrain(new Train(BR110));
         Desktop.getDesktop().browse(URI.create("http://localhost:"+config.getInt(PORT)+"/plan"));
 	}
 	

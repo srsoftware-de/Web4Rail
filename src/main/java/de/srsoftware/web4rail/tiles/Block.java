@@ -9,10 +9,12 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.moving.Train;
 
 public abstract class Block extends StretchableTile{
 	private static final String NAME = "name";
 	public String name = "Block";
+	private Train train;
 	
 	@Override
 	public JSONObject config() {
@@ -43,7 +45,7 @@ public abstract class Block extends StretchableTile{
 	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {
 		if (replacements == null) replacements = new HashMap<String, Object>();
-		replacements.put("%text%",name);
+		replacements.put("%text%",train == null ? name : train.name());
 		return super.tag(replacements);
 	}
 	
@@ -57,5 +59,9 @@ public abstract class Block extends StretchableTile{
 		super.update(params);
 		if (params.containsKey(NAME)) name=params.get(NAME);
 		return this;
+	}
+
+	public void setTrain(Train train) {
+		this.train = train;
 	}
 }
