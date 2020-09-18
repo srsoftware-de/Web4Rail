@@ -51,6 +51,7 @@ import de.srsoftware.web4rail.tiles.StraightV;
 import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.Turnout;
 import de.srsoftware.web4rail.tiles.Turnout.State;
+import de.srsoftware.web4rail.tiles.Turnout3E;
 import de.srsoftware.web4rail.tiles.TurnoutLE;
 import de.srsoftware.web4rail.tiles.TurnoutLN;
 import de.srsoftware.web4rail.tiles.TurnoutLS;
@@ -276,10 +277,10 @@ public class Plan {
 	private Tag moveMenu() {
 		Tag tileMenu = new Tag("div").clazz("move").title(t("Move tiles")).content(t("↹"));		
 		StringBuffer tiles = new StringBuffer();
-		tiles.append(new Tag("div").id("west").title(t("Move west")).content("🢀"));
-		tiles.append(new Tag("div").id("east").title(t("Move east")).content("🢂"));
-		tiles.append(new Tag("div").id("north").title(t("Move north")).content("🢁"));
-		tiles.append(new Tag("div").id("south").title(t("Move south")).content("🢃"));
+		tiles.append(new Tag("div").id("west").title(t("Move west")).content("↤"));
+		tiles.append(new Tag("div").id("east").title(t("Move east")).content("↦"));
+		tiles.append(new Tag("div").id("north").title(t("Move north")).content("↥"));
+		tiles.append(new Tag("div").id("south").title(t("Move south")).content("↧"));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 	
@@ -510,6 +511,7 @@ public class Plan {
 		tiles.append(new TurnoutLS().tag(null));
 		tiles.append(new TurnoutLW().tag(null));
 		tiles.append(new TurnoutLE().tag(null));
+		tiles.append(new Turnout3E().tag(null));
 		tiles.append(new CrossH().tag(null));
 		tiles.append(new CrossV().tag(null));
 		tiles.append(new Eraser().tag(null));
