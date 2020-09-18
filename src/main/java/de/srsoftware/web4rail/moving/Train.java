@@ -2,6 +2,11 @@ package de.srsoftware.web4rail.moving;
 
 import java.util.Vector;
 
+import de.keawe.tools.translations.Translation;
+import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.Window;
+
 public class Train {
 	private Vector<Locomotive> locos = new Vector<Locomotive>();
 	private Vector<Car> cars = new Vector<Car>();
@@ -27,5 +32,15 @@ public class Train {
 
 	public String name() {
 		return name != null ? name : locos.firstElement().name();
+	}
+
+	public Tag props() {
+		Window window = new Window("train-properties",t("Properties of {}",getClass().getSimpleName()));
+		
+		return window;
+	}
+	
+	private String t(String message, Object...fills) {
+		return Translation.get(Application.class, message, fills);
 	}
 }

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.BlockV;
@@ -98,6 +99,7 @@ public class Plan {
 	private static final String ID = "id";
 	private static final String ROUTE = "route";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
+	private static final String ACTION_SHOW_TRAIN = "showTrain";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -181,6 +183,10 @@ public class Plan {
 		}
 		
 		return results;
+	}
+	
+	private Tile get(String x, String y,boolean resolveShadows) {
+		return get(Integer.parseInt(x),Integer.parseInt(y),resolveShadows);
 	}
 
 	public Tile get(int x, int y,boolean resolveShadows) {
@@ -366,11 +372,13 @@ public class Plan {
 				case ACTION_MOVE:
 					return moveTile(params.get(DIRECTION),params.get(X),params.get(Y));
 				case ACTION_PROPS:
-					return propMenu(params.get(X),params.get(Y));
+					return propMenu(get(params.get(X),params.get(Y),true));
 				case ACTION_ROUTE:
 					return routeProperties(params.get(ID));
 				case ACTION_SAVE:
 					return saveTo(params.get(FILE));
+				case ACTION_SHOW_TRAIN:
+					return showTrain(get(params.get(X),params.get(Y),true));
 				case ACTION_UPDATE:
 					return update(params);
 				default:
@@ -390,12 +398,7 @@ public class Plan {
 		return route.properties();
 	}
 
-	private Tag propMenu(String x, String y) {
-		return propMenu(Integer.parseInt(x),Integer.parseInt(y));
-	}
-
-	private Tag propMenu(int x, int y) {
-		Tile tile = get(x, y,true);
+	private Tag propMenu(Tile tile) {
 		if (tile == null) return null;
 		return tile.propMenu();
 	}
@@ -404,8 +407,6 @@ public class Plan {
 		for (Tile tile: route.path()) tile.add(route);
 		routes.put(route.id(), route);
 	}
-
-
 	
 	private void remove(Tile tile) {
 		remove_intern(tile.x,tile.y);
@@ -465,6 +466,15 @@ public class Plan {
 		column.put(y,tile.position(x, y));
 	}
 
+	private Object showTrain(Tile tile) {
+		if (tile instanceof Block) {
+			Block block = (Block) tile;
+			Train train = block.train();
+			if (train != null) return train.props();
+		}
+		return null;
+	}
+	
 	private synchronized void stream(String data) {
 		data = data.replaceAll("\n", "").replaceAll("\r", "");
 		LOG.debug("streaming: {}",data);

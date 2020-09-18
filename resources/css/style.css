@@ -113,6 +113,7 @@ svg circle{
 	right: 10px;
 	background: yellow;
 	padding: 5px;
+	overflow: scroll;
 }
 
 h2{

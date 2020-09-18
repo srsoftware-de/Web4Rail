@@ -15,12 +15,7 @@ function addMessage(txt){
 
 function addTile(x,y){	
 	console.log("addTile:",selected.id,x,y);
-	$.ajax({
-		url : PLAN,
-		method: POST,
-		data : {action:mode,tile:selected.id,x:x,y:y},
-		success: addMessage
-	});
+	return request({action:mode,tile:selected.id,x:x,y:y});
 }
 
 function bodyClick(ev){
@@ -97,12 +92,7 @@ function heartbeat(data){
 
 function moveTile(x,y){	
 	console.log("moveTile:",selected.id,x,y);
-	$.ajax({
-		url : PLAN,
-		method: POST,
-		data : {action:mode,direction:selected.id,x:x,y:y},
-		success: addMessage
-	});
+	return request({action:mode,direction:selected.id,x:x,y:y});
 }
 
 function openRoute(id){
@@ -135,18 +125,17 @@ function request(data){
 				addMessage(resp);
 			}
 		}
-	});	
+	});
+	return false;	
 }
 
 function runAction(ev){
 	console.log("runAction: ",ev.target.id);
-	$.ajax({
-		url : PLAN,
-		method : POST,
-		data : {action:ev.target.id,file:'default'}, // TODO: ask for name
-		success: function(resp){ addMessage(resp);}
-	});
-	return false;
+	return request({action:ev.target.id,file:'default'}); // TODO: ask for name
+}
+
+function train(x,y,action){
+	return request({action:action+"Train",x:x,y:y});
 }
 
 function stream(ev){

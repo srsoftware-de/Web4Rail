@@ -70,29 +70,29 @@ public abstract class Tile {
 		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "update").addTo(form);
 		new Tag("input").attr("type", "hidden").attr("name","x").attr("value", x).addTo(form);
 		new Tag("input").attr("type", "hidden").attr("name","y").attr("value", y).addTo(form);
-		
-		if (!routes.isEmpty()) {
-			new Tag("h4").content(t("Routes using this tile:")).addTo(form);
-			Tag routeList = new Tag("ul");
-			for (Route route : routes) {
-				new Tag("li").clazz("link").attr("onclick","openRoute('"+route.id()+"')").content(route.name()).addTo(routeList);
-			}
-			routeList.addTo(form);
-		}
-		
 		return form;
 	}
 	
 	public Tag propMenu() {	
-		Window menu = new Window("tile-properties",t("Properties of {} @ ({},{})",getClass().getSimpleName(),x,y));
+		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",getClass().getSimpleName(),x,y));
 		Tag form = propForm();
-		if (form!=null) {
+		if (form!=null && form.children().size()>3) {
 			new Tag("button").attr("type", "submit").content(t("save")).addTo(form);
-			form.addTo(menu);
+			form.addTo(window);
 		} else {
-			menu.content(t("This tile ({}) has no properties",getClass().getSimpleName()));
+			window.content(t("This tile ({}) has no properties",getClass().getSimpleName()));
 		}
-		return menu;
+		
+		if (!routes.isEmpty()) {
+			new Tag("h4").content(t("Routes using this tile:")).addTo(window);
+			Tag routeList = new Tag("ul");
+			for (Route route : routes) {
+				new Tag("li").clazz("link").attr("onclick","openRoute('"+route.id()+"')").content(route.name()).addTo(routeList);
+			}
+			routeList.addTo(window);
+		}
+		
+		return window;
 	}
 
 	public Tag tag(Map<String,Object> replacements) throws IOException {
