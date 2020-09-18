@@ -19,13 +19,7 @@ function addTile(x,y){
 		url : PLAN,
 		method: POST,
 		data : {action:mode,tile:selected.id,x:x,y:y},
-		success: function(resp){
-			var id = 'tile-'+x+'-'+y;
-			$('#'+id).remove();
-			var tile = $(selected).clone().css({left:(30*x)+'px',top:(30*y)+'px','border':''}).attr('id',id);
-			if (selected.id != 'Eraser') $(BODY).append(tile);
-			addMessage(resp);
-		}
+		success: addMessage
 	});
 }
 
@@ -107,24 +101,24 @@ function moveTile(x,y){
 		url : PLAN,
 		method: POST,
 		data : {action:mode,direction:selected.id,x:x,y:y},
-		success: function(resp){
-			if (resp.startsWith('<')){
-				$(resp).each(function(){
-					if (this.id != undefined){
-						$('#'+this.id).remove();
-						$(BODY).append($(this));
-					}
-				});
-				$('#tile-'+x+'-'+y).remove();
-			} else {
-				addMessage(resp);
-			}
-		}
+		success: addMessage
 	});
 }
 
 function openRoute(id){
 	request({action:'openRoute',id:id});
+	return false;
+}
+
+function place(data){
+	var tag = $(data);
+	$('#'+tag.attr('id')).remove();
+	$(BODY).append(tag);
+	return false;
+}
+
+function remove(id){
+	$('#'+id).remove();
 	return false;
 }
 
@@ -158,6 +152,8 @@ function runAction(ev){
 function stream(ev){
 	var data = ev.data;
 	if (data.startsWith("heartbeat")) return heartbeat(data);
+	if (data.startsWith("place ")) return place(data.substring(6));
+	if (data.startsWith("remove")) return remove(data.substring(7));
 	console.log(data);
 	
 }

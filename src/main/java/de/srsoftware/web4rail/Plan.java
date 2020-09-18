@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Stack;
 import java.util.Vector;
 
 import org.json.JSONObject;
@@ -123,16 +124,21 @@ public class Plan {
 		new Tag("li").clazz("link").attr("onclick", "return clickTile("+tile.x+","+tile.y+");").content(content).addTo(list);
 	}
 	
-	private Tile addTile(String clazz, String xs, String ys, String configJson) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	private String addTile(String clazz, String xs, String ys, String configJson) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
 		int x = Integer.parseInt(xs);
 		int y = Integer.parseInt(ys);
 		if (clazz == null) throw new NullPointerException(TILE+" must not be null!");
 		Class<Tile> tc = Tile.class;		
 		clazz = tc.getName().replace(".Tile", "."+clazz);		
 		Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
+		if (tile instanceof Eraser) {
+			Tile erased = get(x,y,true);
+			remove(erased);
+			return erased == null ? null : t("Removed {}.",erased);
+		}
 		if (configJson != null) tile.configure(new JSONObject(configJson));		
-		set(x, y, tile);		
-		return tile;
+		set(x, y, tile);
+		return t("Added {}",tile.getClass().getSimpleName());
 	}
 	
 	private String analyze() {
@@ -149,7 +155,7 @@ public class Plan {
 	}
 
 	private Collection<Route> follow(Route route, Connector connector) {
-		Tile tile = get(connector.x,connector.y);
+		Tile tile = get(connector.x,connector.y,false);
 		Vector<Route> results = new Vector<>();
 		if (tile == null) return results;
 		Tile addedTile = route.add(tile,connector.from);
@@ -173,9 +179,11 @@ public class Plan {
 		return results;
 	}
 
-	public Tile get(int x, int y) {
+	public Tile get(int x, int y,boolean resolveShadows) {
 		HashMap<Integer, Tile> column = tiles.get(x);
-		return column == null ? null : column.get(y);
+		Tile tile = (column == null) ? null : column.get(y);
+		if (resolveShadows && tile instanceof Shadow) tile = ((Shadow)tile).overlay();
+		return tile;
 	}
 	
 	private Tag heartbeat() {
@@ -234,7 +242,7 @@ public class Plan {
 					Route route = new Route();
 					json.getJSONArray(Route.PATH).forEach(entry -> {
 						JSONObject pos = (JSONObject) entry;
-						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"));
+						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"),false);
 						if (route.path().isEmpty()) {
 							route.start((Block) tile);
 						} else {
@@ -243,12 +251,12 @@ public class Plan {
 					});
 					json.getJSONArray(Route.SIGNALS).forEach(entry -> {
 						JSONObject pos = (JSONObject) entry;
-						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"));
+						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"),false);
 						route.addSignal((Signal) tile);
 					});
 					json.getJSONArray(Route.TURNOUTS).forEach(entry -> {
 						JSONObject pos = (JSONObject) entry;
-						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"));
+						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"),false);
 						route.addTurnout((Turnout) tile, Turnout.State.valueOf(pos.getString(Turnout.STATE)));
 					});
 					if (json.has(Route.NAME)) route.name(json.getString(Route.NAME));
@@ -262,10 +270,6 @@ public class Plan {
 		return result;
 	}
 
-	private Tag messages() {
-		return new Tag("div").id("messages").content("");
-	}
-
 	private Tag menu() throws IOException {
 		Tag menu = new Tag("div").clazz("menu");
 		actionMenu().addTo(menu);
@@ -274,6 +278,10 @@ public class Plan {
 		return menu;
 	}
 
+	private Tag messages() {
+		return new Tag("div").id("messages").content("");
+	}
+	
 	private Tag moveMenu() {
 		Tag tileMenu = new Tag("div").clazz("move").title(t("Move tiles")).content(t("↹"));		
 		StringBuffer tiles = new StringBuffer();
@@ -300,7 +308,7 @@ public class Plan {
 
 	private String moveTile(Direction direction, int x, int y) throws IOException {
 		//LOG.debug("moveTile({},{},{})",direction,x,y);
-		Vector<Tile> moved = null;
+		boolean moved = false;
 		switch (direction) {
 			case EAST:
 				moved = moveTile(x,y,+1,0);
@@ -315,26 +323,28 @@ public class Plan {
 				moved = moveTile(x,y,0,+1);
 				break;
 		}
-		if (!moved.isEmpty()) {
-			set(x,y,null);
-			StringBuilder sb = new StringBuilder();
-			for (Tile tile : moved) sb.append(tile.tag(null)+"\n");
-			return sb.toString();
-		}		
-		return null;
+		return t(moved ? "Tile(s) moved.":"No tile(s) moved.");
 	}
 
-	private Vector<Tile> moveTile(int x, int y,int xstep,int ystep) {
-		LOG.debug("moveTile({}+{},{}+{})",x,xstep,y,ystep);
-		if (x+xstep < -1 || y+ystep < -1) {
-			throw new IndexOutOfBoundsException("Can not move tile out of screen!");
+	private boolean moveTile(int x, int y,int xstep,int ystep) throws IOException {
+		LOG.error("moveTile({}+ {},{}+ {}) not implemented",x,xstep,y,ystep);
+		Stack<Tile> stack = new Stack<Tile>();
+		Tile tile = get(x,y,false);
+		while (tile != null) {
+			LOG.debug("scheduling tile for movement: {} @ {},{}",tile,x,y);
+			stack.add(tile);
+			x+=xstep;
+			y+=ystep;
+			tile = get(x,y,false);
 		}
-		Tile tile = this.get(x, y);
-		if (tile == null) return new Vector<Tile>();
-		Vector<Tile> result = moveTile(x+xstep,y+ystep,xstep,ystep);
-		set(x+xstep,y+ystep, tile);
-		result.add(tile);
-		return result;
+		while (!stack.isEmpty()) {
+			tile = stack.pop();
+			if (!(tile instanceof Shadow)) {
+				remove(tile);
+				set(tile.x+xstep,tile.y+ystep,tile);
+			}
+		}
+		return false;
 	}
 	
 	public Object process(HashMap<String, String> params) {
@@ -344,8 +354,7 @@ public class Plan {
 			if (action == null) throw new NullPointerException(ACTION+" should not be null!");
 			switch (action) {
 				case ACTION_ADD:
-					Tile tile = addTile(params.get(TILE),params.get(X),params.get(Y),null);
-					return t("Added {}",tile.getClass().getSimpleName());
+					return addTile(params.get(TILE),params.get(X),params.get(Y),null);
 				case ACTION_ANALYZE:
 					return analyze();
 				case ACTION_MOVE:
@@ -375,28 +384,13 @@ public class Plan {
 		return route.properties();
 	}
 
-	private Object update(HashMap<String, String> params) throws IOException {
-		if (params.containsKey(ROUTE)) {
-			Route route = routes.get(params.get(ROUTE));
-			if (route == null) return t("Unknown route: {}",params.get(ROUTE));
-			route.update(params);
-		} else update(Integer.parseInt(params.get("x")),Integer.parseInt(params.get("y")),params);
-		return this.html();
-	}
-
-	private void update(int x,int y, HashMap<String, String> params) throws IOException {
-		Tile tile = get(x,y);
-		if (tile != null) set(x,y,tile.update(params));
-	}
-
 	private Tag propMenu(String x, String y) {
 		return propMenu(Integer.parseInt(x),Integer.parseInt(y));
 	}
 
 	private Tag propMenu(int x, int y) {
-		Tile tile = get(x, y);
+		Tile tile = get(x, y,true);
 		if (tile == null) return null;
-		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay();
 		return tile.propMenu();
 	}
 	
@@ -405,6 +399,20 @@ public class Plan {
 		routes.put(route.id(), route);
 	}
 
+
+	
+	private void remove(Tile tile) {
+		remove_intern(tile.x,tile.y);
+		for (int i=1; i<tile.len(); i++) remove_intern(tile.x+i, tile.y); // remove shadow tiles
+		for (int i=1; i<tile.height(); i++) remove_intern(tile.x, tile.y+i); // remove shadow tiles
+		if (tile != null) stream("remove tile-"+tile.x+"-"+tile.y);
+	}
+
+	private void remove_intern(int x, int y) {
+		HashMap<Integer, Tile> column = tiles.get(x);
+		if (column != null) column.remove(y);
+	}
+	
 	private String saveTo(String name) throws IOException {
 		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
 		File file = new File(name+".plan");
@@ -431,27 +439,27 @@ public class Plan {
 		br.close();
 		return t("Plan saved as \"{}\".",file);
 	}
-
-	public Tile set(int x,int y,Tile tile) {
-		Tile old = null;
-		HashMap<Integer, Tile> column = tiles.get(x);
-		if (column == null) {
-			column = new HashMap<Integer,Tile>();
-			tiles.put(x, column);
-		}
-		old = column.remove(y);
-		if (old instanceof Block) blocks.remove((Block)old);
-		if (tile != null && !(tile instanceof Eraser)) {
-			column.put(y,tile.position(x, y));
-			for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow(tile));
-			for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
-			if (tile instanceof Block) blocks.add((Block)tile);
-		}
-		return old;
+	
+	public void set(int x,int y,Tile tile) throws IOException {
+		if (tile == null) return;
+		for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow(tile));
+		for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
+		set_intern(x,y,tile);
+		stream("place "+tile.tag(null));		
 	}
 	
-	private void stream(String data) {
-		LOG.debug("streaming {}",data);
+	private void set_intern(int x, int y, Tile tile) {
+		HashMap<Integer, Tile> column = tiles.get(x);
+		if (column == null) {
+			column = new HashMap<Integer, Tile>();
+			tiles.put(x,column);
+		}
+		column.put(y,tile.position(x, y));
+	}
+
+	private synchronized void stream(String data) {
+		data = data.replaceAll("\n", "").replaceAll("\r", "");
+		LOG.debug("streaming: {}",data);
 		Vector<OutputStreamWriter> badClients = null;
 		for (Entry<OutputStreamWriter, Integer> entry : clients.entrySet()) {
 			OutputStreamWriter client = entry.getKey();
@@ -516,5 +524,19 @@ public class Plan {
 		tiles.append(new CrossV().tag(null));
 		tiles.append(new Eraser().tag(null));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
+	}
+	
+	private Object update(HashMap<String, String> params) throws IOException {
+		if (params.containsKey(ROUTE)) {
+			Route route = routes.get(params.get(ROUTE));
+			if (route == null) return t("Unknown route: {}",params.get(ROUTE));
+			route.update(params);
+		} else update(Integer.parseInt(params.get("x")),Integer.parseInt(params.get("y")),params);
+		return this.html();
+	}
+
+	private void update(int x,int y, HashMap<String, String> params) throws IOException {
+		Tile tile = get(x,y,true);
+		if (tile != null) set(x,y,tile.update(params));
 	}
 }
