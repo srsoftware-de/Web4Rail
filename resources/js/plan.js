@@ -9,6 +9,11 @@ const POST = 'POST';
 var selected = null;
 var mode = null;
 
+function addClass(data){
+	parts = data.split(" ");
+	$('#'+parts[0]).addClass(parts[1]);
+}
+
 function addMessage(txt){
 	$('#messages').html(txt).show().delay(1000).fadeOut();
 }
@@ -53,6 +58,11 @@ function closeMenu(ev){
 
 function closeWindows(){
 	$('.window').remove();
+}
+
+function dropClass(data){
+	parts = data.split(" ");
+	$('#'+parts[0]).removeClass(parts[1]);
 }
 
 function enableAdding(ev){
@@ -143,7 +153,9 @@ function stream(ev){
 	if (data.startsWith("heartbeat")) return heartbeat(data);
 	if (data.startsWith("place ")) return place(data.substring(6));
 	if (data.startsWith("remove")) return remove(data.substring(7));
-	console.log(data);
+	if (data.startsWith("addclass")) return addClass(data.substring(9));
+	if (data.startsWith("dropclass")) return dropClass(data.substring(10));
+	console.log("received: ",data);
 	
 }
 

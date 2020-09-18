@@ -52,8 +52,8 @@ public class Application {
         	plan = new Plan();
 		}
         Locomotive BR110 = new Locomotive("BR110");
-        Block block = new Vector<>(plan.blocks()).firstElement();
-        if (block != null) block.setTrain(new Train(BR110));
+        Block block = new Vector<>(plan.blocks()).lastElement();
+        if (block != null) block.train(new Train(BR110));
         Desktop.getDesktop().browse(URI.create("http://localhost:"+config.getInt(PORT)+"/plan"));
 	}
 	

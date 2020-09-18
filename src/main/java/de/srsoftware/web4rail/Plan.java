@@ -100,6 +100,7 @@ public class Plan {
 	private static final String ROUTE = "route";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	private static final String ACTION_SHOW_TRAIN = "showTrain";
+	private static final String ACTION_START_TRAIN = "startTrain";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -378,7 +379,9 @@ public class Plan {
 				case ACTION_SAVE:
 					return saveTo(params.get(FILE));
 				case ACTION_SHOW_TRAIN:
-					return showTrain(get(params.get(X),params.get(Y),true));
+					return show(train(get(params.get(X),params.get(Y),true)));
+				case ACTION_START_TRAIN:
+					return start(train(get(params.get(X),params.get(Y),true)));
 				case ACTION_UPDATE:
 					return update(params);
 				default:
@@ -390,6 +393,14 @@ public class Plan {
 			if (msg == null || msg.isEmpty()) msg = t("An unknown error occured!");
 			return msg;
 		}
+	}
+
+	private Train train(Tile tile) {
+		if (tile instanceof Block) {
+			Block block = (Block) tile;
+			return block.train();
+		}
+		return null;
 	}
 
 	private Object routeProperties(String routeId) {
@@ -463,19 +474,20 @@ public class Plan {
 			column = new HashMap<Integer, Tile>();
 			tiles.put(x,column);
 		}
-		column.put(y,tile.position(x, y));
+		tile.position(x, y).plan(this);
+		column.put(y,tile);
 	}
 
-	private Object showTrain(Tile tile) {
-		if (tile instanceof Block) {
-			Block block = (Block) tile;
-			Train train = block.train();
-			if (train != null) return train.props();
-		}
-		return null;
+	private Tag show(Train train) {
+		return (train == null) ? null : train.props();
 	}
 	
-	private synchronized void stream(String data) {
+	private String start(Train train) {
+		if (train == null) return null;
+		return train.start();
+	}
+	
+	public synchronized void stream(String data) {
 		data = data.replaceAll("\n", "").replaceAll("\r", "");
 		LOG.debug("streaming: {}",data);
 		Vector<OutputStreamWriter> badClients = null;

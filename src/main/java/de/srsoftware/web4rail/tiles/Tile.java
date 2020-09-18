@@ -17,10 +17,12 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.moving.Train;
 
 public abstract class Tile {
 	
@@ -28,12 +30,18 @@ public abstract class Tile {
 	protected HashSet<String> classes = new HashSet<>();
 	protected HashSet<Shadow> shadows = new HashSet<>();
 	private HashSet<Route> routes = new HashSet<>();
+	private Plan plan;
+	private Train lockedBy;
 	
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);
 	
 	public Tile() {
 		classes.add("tile");
 		classes.add(getClass().getSimpleName());
+	}
+
+	public void add(Route route) {
+		this.routes.add(route);
 	}
 
 	public void addShadow(Shadow shadow) {
@@ -59,6 +67,15 @@ public abstract class Tile {
 		return 1;
 	}
 	
+	public void lock(Train train) {
+		lockedBy = train;
+		plan.stream("addclass tile-"+x+"-"+y+" locked");
+	}	
+
+	public void plan(Plan plan) {
+		this.plan = plan;
+	}
+
 	public Tile position(int x, int y) {
 		this.x = x;
 		this.y = y;
@@ -93,6 +110,29 @@ public abstract class Tile {
 		}
 		
 		return window;
+	}
+
+	private static String replace(String line, Entry<String, Object> replacement) {
+		String key = replacement.getKey();
+		Object val = replacement.getValue();
+		int start = line.indexOf(key);
+		int len = key.length();
+		while (start>0) {
+			int end = line.indexOf("\"",start);
+			int end2 = line.indexOf("<",start);
+			if (end2>0 && (end<0 || end2<end)) end=end2;
+			String tag = line.substring(start, end);
+			if (tag.length()>len) {
+				val = Integer.parseInt(tag.substring(len)) + (int) val;
+			}
+			line = line.replace(tag, ""+val);
+			start = line.indexOf(key);
+		}
+		return line;
+	}
+
+	public HashSet<Route> routes() {
+		return routes;
 	}
 
 	public Tag tag(Map<String,Object> replacements) throws IOException {
@@ -138,24 +178,6 @@ public abstract class Tile {
 		return svg;
 	}
 
-	private static String replace(String line, Entry<String, Object> replacement) {
-		String key = replacement.getKey();
-		Object val = replacement.getValue();
-		int start = line.indexOf(key);
-		int len = key.length();
-		while (start>0) {
-			int end = line.indexOf("\"",start);
-			int end2 = line.indexOf("<",start);
-			if (end2>0 && (end<0 || end2<end)) end=end2;
-			String tag = line.substring(start, end);
-			if (tag.length()>len) {
-				val = Integer.parseInt(tag.substring(len)) + (int) val;
-			}
-			line = line.replace(tag, ""+val);
-			start = line.indexOf(key);
-		}
-		return line;
-	}
 
 	protected static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
@@ -166,16 +188,13 @@ public abstract class Tile {
 		return t("{}({},{})",getClass().getSimpleName(),x,y) ;
 	}
 
+	public void unlock() {
+		lockedBy = null;
+		plan.stream("dropclass tile-"+x+"-"+y+" locked");
+	}
+
 	public Tile update(HashMap<String, String> params) {
 		LOG.debug("{}.update({})",getClass().getSimpleName(),params);
 		return this;
 	}
-
-	public HashSet<Route> routes() {
-		return routes;
-	}
-
-	public void add(Route route) {
-		this.routes.add(route);
-	}	
 }

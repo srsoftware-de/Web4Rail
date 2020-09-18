@@ -39,6 +39,11 @@ svg rect{
 	stroke:rgb(0,0,0);
 }
 
+svg.locked polygon,
+svg.locked rect{
+	fill:lime;
+}
+
 svg text{
 	font-size: 50px;
 }

@@ -73,8 +73,9 @@ public abstract class Block extends StretchableTile{
 		return this;
 	}
 
-	public void setTrain(Train train) {
+	public void train(Train train) {
 		this.train = train;
+		train.block(this);
 	}
 
 	public Train train() {

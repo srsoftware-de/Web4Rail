@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -82,6 +83,11 @@ public class Route {
 		}
 		return id;
 	}
+	
+	public boolean inUse() {
+		return false;
+	}
+
 		
 	public String json() {
 		JSONObject props = new JSONObject();
@@ -105,6 +111,10 @@ public class Route {
 		return props.toString();
 	}
 
+	public Route lock(Train train) {
+		for (Tile tile : path) tile.lock(train);
+		return this;
+	}
 
 	public List<Route> multiply(int size) {
 		Vector<Route> routes = new Vector<Route>();
@@ -203,6 +213,10 @@ public class Route {
 		return Translation.get(Application.class, txt, fills);
 	}
 	
+	public void unlock() {
+		for (Tile tile : path) tile.unlock();
+	}
+
 	public void update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
 		if (params.containsKey(NAME)) name(params.get(NAME));
