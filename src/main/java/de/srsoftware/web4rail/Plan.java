@@ -6,9 +6,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.security.InvalidParameterException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +64,21 @@ public class Plan {
 	public enum Direction{		
 		NORTH, SOUTH, EAST, WEST
 	}
+	
+	private class Heartbeat extends Thread {
+		@Override
+		public void run() {			
+			try {
+				while (true) {
+					sleep(10000);
+					heatbeat();
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	private static final String ACTION = "action";
 	private static final String ACTION_ADD = "add";
 	private static final String ACTION_ANALYZE = "analyze";
@@ -78,17 +95,58 @@ public class Plan {
 	private static final String ACTION_ROUTE = "openRoute";
 	private static final String ID = "id";
 	private static final String ROUTE = "route";
+	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	private HashSet<Block> blocks = new HashSet<Block>();
 	private HashMap<String, Route> routes = new HashMap<String, Route>();
 	
+	public Plan() {
+		new Heartbeat().start();
+	}
+	
+	public void heatbeat() {
+		stream("hearbeat @ "+new Date().getTime());
+	}
+
+	private void stream(String data) {
+		LOG.debug("streaming {}",data);
+		Vector<OutputStreamWriter> badClients = null;
+		for (Entry<OutputStreamWriter, Integer> entry : clients.entrySet()) {
+			OutputStreamWriter client = entry.getKey();
+			try {
+				client.write("data: "+data+"\n\n");
+				client.flush();
+				clients.put(client,0);
+			} catch (IOException e) {
+				int errorCount = entry.getValue()+1;
+				LOG.info("Error #{} on client: {}",errorCount,e.getMessage());
+				if (errorCount > 4) {
+					if (badClients == null) badClients = new Vector<OutputStreamWriter>();
+					try {
+						client.close();
+					} catch (IOException e1) {}
+					badClients.add(client);
+				} else clients.put(client,errorCount);
+			}
+		}
+		if (badClients != null) for (OutputStreamWriter client: badClients) {
+			LOG.info("Disconnecting client.");
+			clients.remove(client);			
+		}
+	}
+
 	private Tag actionMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));		
 		StringBuffer tiles = new StringBuffer();
 		tiles.append(new Tag("div").id("save").content(t("Save plan")));
 		tiles.append(new Tag("div").id("analyze").content(t("Analyze plan")));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
+	}
+	
+	public void addClient(OutputStreamWriter client) {
+		LOG.debug("Client connected.");
+		clients.put(client, 0);
 	}
 	
 	public static void addLink(Tile tile,String content,Tag list) {
@@ -187,7 +245,7 @@ public class Plan {
 				String line = br.readLine().trim();
 				String[] parts = line.split("=",2);
 				try {
-					String id = parts[0];
+					//String id = parts[0];
 					JSONObject json = new JSONObject(parts[1]);
 					Route route = new Route();
 					json.getJSONArray(Route.PATH).forEach(entry -> {

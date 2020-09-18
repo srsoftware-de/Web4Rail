@@ -157,5 +157,9 @@ window.onload = function () {
 	$('.menu .addtile .list svg').click(enableAdding);
 	$('.menu .move .list div').click(enableMove);
 	$('.menu .actions .list > div').click(runAction);
-	$(BODY).click(bodyClick);	
+	$(BODY).click(bodyClick);
+	var stream = new EventSource("stream");
+	stream.onmessage = function(ev){
+		console.log(ev);
+	}
 }

@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -38,6 +39,7 @@ public class Application {
 		server.createContext("/plan", client -> sendPlan(client));
 		server.createContext("/css" , client -> sendFile(client));
 		server.createContext("/js" , client -> sendFile(client));
+		server.createContext("/stream", client -> stream(client));
         server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
         server.start();
         try {
@@ -46,6 +48,48 @@ public class Application {
         	plan = new Plan();
 		}
         Desktop.getDesktop().browse(URI.create("http://localhost:"+config.getInt(PORT)+"/plan"));
+	}
+	
+	private static HashMap<String, String> inflate(String data) {
+		LOG.debug("inflate({})",data);
+		HashMap<String, String> params = new HashMap<String, String>();
+		if (data == null || data.trim().isEmpty()) return params;
+		String[] parts = data.split("&");
+		
+		for (String part : parts) {
+			String[] entry = part.split("=", 2);
+			params.put(URLDecoder.decode(entry[0],UTF8),URLDecoder.decode(entry[1], UTF8));
+		}
+		
+		return params;
+	}	
+
+	private static HashMap<String, String> inflate(byte[] data) {
+		return inflate(new String(data,UTF8));
+	}
+	
+	private static void send(HttpExchange client, Object response) throws IOException {
+		byte[] html;
+		if (response instanceof Page) {
+			html = ((Page)response).html().toString().getBytes(UTF8);
+			client.getResponseHeaders().add("content-type", "text/html");
+		} else {
+			html = (response == null ? "" : response.toString()).getBytes(UTF8);	
+			client.getResponseHeaders().add("content-type", "text/plain");	
+		}
+		
+        client.sendResponseHeaders(200, html.length);
+        OutputStream os = client.getResponseBody();
+        os.write(html);
+        os.close();
+	}
+
+	private static void sendError(HttpExchange client, int code, String msg) throws IOException {
+		client.sendResponseHeaders(code, msg.length());
+		LOG.error(msg);
+		OutputStream out = client.getResponseBody();
+		out.write(msg.getBytes(UTF8));
+		out.close();
 	}
 
 	private static void sendFile(HttpExchange client) throws IOException {
@@ -64,48 +108,6 @@ public class Application {
 		}
 		sendError(client,404,t("Could not find \"{}\"",uri));
 	}
-
-	private static void sendError(HttpExchange client, int code, String msg) throws IOException {
-		client.sendResponseHeaders(code, msg.length());
-		LOG.error(msg);
-		OutputStream out = client.getResponseBody();
-		out.write(msg.getBytes(UTF8));
-		out.close();
-	}
-
-	private static HashMap<String, String> inflate(byte[] data) {
-		return inflate(new String(data,UTF8));
-	}
-
-	private static HashMap<String, String> inflate(String data) {
-		LOG.debug("inflate({})",data);
-		HashMap<String, String> params = new HashMap<String, String>();
-		if (data == null || data.trim().isEmpty()) return params;
-		String[] parts = data.split("&");
-		
-		for (String part : parts) {
-			String[] entry = part.split("=", 2);
-			params.put(URLDecoder.decode(entry[0],UTF8),URLDecoder.decode(entry[1], UTF8));
-		}
-		
-		return params;
-	}
-
-	private static void send(HttpExchange client, Object response) throws IOException {
-		byte[] html;
-		if (response instanceof Page) {
-			html = ((Page)response).html().toString().getBytes(UTF8);
-			client.getResponseHeaders().add("content-type", "text/html");
-		} else {
-			html = (response == null ? "" : response.toString()).getBytes(UTF8);	
-			client.getResponseHeaders().add("content-type", "text/plain");	
-		}
-		
-        client.sendResponseHeaders(200, html.length);
-        OutputStream os = client.getResponseBody();
-        os.write(html);
-        os.close();
-	}
 	
 	private static void sendPlan(HttpExchange client) throws IOException {
 		try {
@@ -115,6 +117,13 @@ public class Application {
 			LOG.error("Error during sendPlan(): {}",e);
 			send(client,new Page().append(e.getMessage()));
 		}		
+	}
+	
+	private static void stream(HttpExchange client) throws IOException {
+		client.getResponseHeaders().set("content-type", "text/event-stream");
+		client.sendResponseHeaders(200, 0);
+		OutputStreamWriter sseWriter = new OutputStreamWriter(client.getResponseBody());
+		plan.addClient(sseWriter);
 	}
 	
 	private static String t(String text, Object...fills) {
