@@ -96,6 +96,11 @@ function enableMove(ev){
 	return false; // otherwise body.click would also be triggered
 }
 
+function heartbeat(data){
+	$('#heartbeat').show().fadeOut(2000);
+	return false;
+}
+
 function moveTile(x,y){	
 	console.log("moveTile:",selected.id,x,y);
 	$.ajax({
@@ -150,6 +155,13 @@ function runAction(ev){
 	return false;
 }
 
+function stream(ev){
+	var data = ev.data;
+	if (data.startsWith("heartbeat")) return heartbeat(data);
+	console.log(data);
+	
+}
+
 window.onload = function () {
 	var isDragging = false;
 	console.log($(BODY).each(function(){console.log(this)}));
@@ -158,8 +170,5 @@ window.onload = function () {
 	$('.menu .move .list div').click(enableMove);
 	$('.menu .actions .list > div').click(runAction);
 	$(BODY).click(bodyClick);
-	var stream = new EventSource("stream");
-	stream.onmessage = function(ev){
-		console.log(ev);
-	}
+	(new EventSource("stream")).onmessage = stream;
 }

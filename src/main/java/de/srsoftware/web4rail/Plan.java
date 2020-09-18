@@ -104,37 +104,6 @@ public class Plan {
 	public Plan() {
 		new Heartbeat().start();
 	}
-	
-	public void heatbeat() {
-		stream("hearbeat @ "+new Date().getTime());
-	}
-
-	private void stream(String data) {
-		LOG.debug("streaming {}",data);
-		Vector<OutputStreamWriter> badClients = null;
-		for (Entry<OutputStreamWriter, Integer> entry : clients.entrySet()) {
-			OutputStreamWriter client = entry.getKey();
-			try {
-				client.write("data: "+data+"\n\n");
-				client.flush();
-				clients.put(client,0);
-			} catch (IOException e) {
-				int errorCount = entry.getValue()+1;
-				LOG.info("Error #{} on client: {}",errorCount,e.getMessage());
-				if (errorCount > 4) {
-					if (badClients == null) badClients = new Vector<OutputStreamWriter>();
-					try {
-						client.close();
-					} catch (IOException e1) {}
-					badClients.add(client);
-				} else clients.put(client,errorCount);
-			}
-		}
-		if (badClients != null) for (OutputStreamWriter client: badClients) {
-			LOG.info("Disconnecting client.");
-			clients.remove(client);			
-		}
-	}
 
 	private Tag actionMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));		
@@ -207,7 +176,15 @@ public class Plan {
 		HashMap<Integer, Tile> column = tiles.get(x);
 		return column == null ? null : column.get(y);
 	}
+	
+	private Tag heartbeat() {
+		return new Tag("div").id("heartbeat").content("");
+	}
 
+	public void heatbeat() {
+		stream("heartbeat @ "+new Date().getTime());
+	}
+	
 	public Page html() throws IOException {
 		Page page = new Page().append("<div id=\"plan\">");
 		for (Entry<Integer, HashMap<Integer, Tile>> column : tiles.entrySet()) {
@@ -218,9 +195,15 @@ public class Plan {
 				if (tile != null) page.append("\t\t"+tile.tag(null)+"\n");
 			}
 		}
-		return page.append(menu()).append(messages()).append("</div>").style("css/style.css").js("js/jquery-3.5.1.min.js").js("js/plan.js");
+		return page
+				.append(menu())
+				.append(messages())
+				.append(heartbeat())
+				.append("</div>")
+				.style("css/style.css")
+				.js("js/jquery-3.5.1.min.js")
+				.js("js/plan.js");
 	}
-	
 	public static Plan load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Plan result = new Plan();
 		File file = new File(filename+".plan");
@@ -464,6 +447,33 @@ public class Plan {
 			if (tile instanceof Block) blocks.add((Block)tile);
 		}
 		return old;
+	}
+	
+	private void stream(String data) {
+		LOG.debug("streaming {}",data);
+		Vector<OutputStreamWriter> badClients = null;
+		for (Entry<OutputStreamWriter, Integer> entry : clients.entrySet()) {
+			OutputStreamWriter client = entry.getKey();
+			try {
+				client.write("data: "+data+"\n\n");
+				client.flush();
+				clients.put(client,0);
+			} catch (IOException e) {
+				int errorCount = entry.getValue()+1;
+				LOG.info("Error #{} on client: {}",errorCount,e.getMessage());
+				if (errorCount > 4) {
+					if (badClients == null) badClients = new Vector<OutputStreamWriter>();
+					try {
+						client.close();
+					} catch (IOException e1) {}
+					badClients.add(client);
+				} else clients.put(client,errorCount);
+			}
+		}
+		if (badClients != null) for (OutputStreamWriter client: badClients) {
+			LOG.info("Disconnecting client.");
+			clients.remove(client);			
+		}
 	}
 	
 	private String t(String message, Object...fills) {
