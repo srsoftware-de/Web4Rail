@@ -6,7 +6,7 @@ import java.util.Map;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
 
-public class TurnoutRN extends Turnout{
+public class TurnoutRN extends TurnoutR{
 
 	@Override
 	public Map<Connector, State> connections(Direction from) {

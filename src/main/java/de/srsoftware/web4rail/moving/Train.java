@@ -1,5 +1,6 @@
 package de.srsoftware.web4rail.moving;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Vector;
@@ -55,7 +56,7 @@ public class Train {
 		this.block = block;
 	}
 
-	public String start() {
+	public String start() throws IOException {
 		if (block == null) return t("{] not in a block",this); 
 		HashSet<Route> routes = block.routes();
 		Vector<Route> availableRoutes = new Vector<Route>();

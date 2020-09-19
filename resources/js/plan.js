@@ -24,7 +24,7 @@ function addTile(x,y){
 }
 
 function bodyClick(ev){
-	console.log('bodyClick:',ev);
+	//console.log('bodyClick:',ev);
 	var x = Math.floor(ev.clientX/SQUARE);
 	var y = Math.floor(ev.clientY/SQUARE);
 
@@ -42,7 +42,7 @@ function bodyClick(ev){
 
 function clickTile(x,y){
 	console.log("clickTile:",x,y);
-	if ($('#tile-'+x+'-'+y).length > 0) request({action:'openProps',x:x,y:y});
+	if ($('#tile-'+x+'-'+y).length > 0) request({action:'click',x:x,y:y});
 	return false;
 }
 
@@ -129,8 +129,10 @@ function request(data){
 		data : data,
 		success: function(resp){
 			closeWindows();
-			if (resp.startsWith('<')){
-				$('body').append($(resp));
+			if (resp.startsWith('<svg')){
+				$('#plan').append($(resp));
+			} else if (resp.startsWith('<')) {
+				$(BODY).append($(resp));
 			} else {
 				addMessage(resp);
 			}

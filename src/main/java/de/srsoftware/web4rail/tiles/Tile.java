@@ -19,10 +19,10 @@ import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
-import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Form;
 
 public abstract class Tile {
 	
@@ -30,7 +30,7 @@ public abstract class Tile {
 	protected HashSet<String> classes = new HashSet<>();
 	protected HashSet<Shadow> shadows = new HashSet<>();
 	private HashSet<Route> routes = new HashSet<>();
-	private Plan plan;
+	protected Plan plan;
 	private Train lockedBy;
 	
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);
@@ -46,6 +46,10 @@ public abstract class Tile {
 
 	public void addShadow(Shadow shadow) {
 		shadows.add(shadow);
+	}
+	
+	public Object click() throws IOException {
+		return propMenu();
 	}
 	
 	public JSONObject config() {
@@ -69,6 +73,7 @@ public abstract class Tile {
 	
 	public void lock(Train train) {
 		lockedBy = train;
+		classes.add("locked");
 		plan.stream("addclass tile-"+x+"-"+y+" locked");
 	}	
 
@@ -190,6 +195,7 @@ public abstract class Tile {
 
 	public void unlock() {
 		lockedBy = null;
+		classes.remove("locked");
 		plan.stream("dropclass tile-"+x+"-"+y+" locked");
 	}
 

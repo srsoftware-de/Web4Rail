@@ -86,7 +86,7 @@ public class Plan {
 	private static final String ACTION_ADD = "add";
 	private static final String ACTION_ANALYZE = "analyze";
 	private static final String ACTION_MOVE = "move";
-	private static final String ACTION_PROPS = "openProps";
+	private static final String ACTION_CLICK = "click";
 	private static final String ACTION_SAVE = "save";
 	private static final String ACTION_UPDATE = "update";
 	private static final String TILE = "tile";
@@ -159,6 +159,11 @@ public class Plan {
 
 	public Collection<Block> blocks() {
 		return blocks;
+	}
+	
+	private Object click(Tile tile) throws IOException {
+		if (tile == null) return null;
+		return tile.click();
 	}
 
 	private Collection<Route> follow(Route route, Connector connector) {
@@ -340,7 +345,7 @@ public class Plan {
 	}
 
 	private boolean moveTile(int x, int y,int xstep,int ystep) throws IOException {
-		LOG.error("moveTile({}+ {},{}+ {}) not implemented",x,xstep,y,ystep);
+		LOG.error("moveTile({}+ {},{}+ {})",x,xstep,y,ystep);
 		Stack<Tile> stack = new Stack<Tile>();
 		Tile tile = get(x,y,false);
 		while (tile != null) {
@@ -368,12 +373,12 @@ public class Plan {
 			switch (action) {
 				case ACTION_ADD:
 					return addTile(params.get(TILE),params.get(X),params.get(Y),null);
+				case ACTION_CLICK:
+					return click(get(params.get(X),params.get(Y),true));
 				case ACTION_ANALYZE:
 					return analyze();
 				case ACTION_MOVE:
 					return moveTile(params.get(DIRECTION),params.get(X),params.get(Y));
-				case ACTION_PROPS:
-					return propMenu(get(params.get(X),params.get(Y),true));
 				case ACTION_ROUTE:
 					return routeProperties(params.get(ID));
 				case ACTION_SAVE:
@@ -407,11 +412,6 @@ public class Plan {
 		Route route = routes.get(routeId);
 		if (route == null) return t("Could not find route \"{}\"",routeId);
 		return route.properties();
-	}
-
-	private Tag propMenu(Tile tile) {
-		if (tile == null) return null;
-		return tile.propMenu();
 	}
 	
 	private void registerRoute(Route route) {
@@ -482,7 +482,7 @@ public class Plan {
 		return (train == null) ? null : train.props();
 	}
 	
-	private String start(Train train) {
+	private String start(Train train) throws IOException {
 		if (train == null) return null;
 		return train.start();
 	}

@@ -40,7 +40,7 @@ svg rect{
 }
 
 svg.locked polygon,
-svg.locked rect{
+svg.locked rect:not(.sig_a):not(.sig_b){
 	fill:lime;
 }
 
@@ -160,4 +160,11 @@ h2{
     top: 10px;
     right: 10px;
     display: none;
+}
+
+svg.left rect,
+svg.right rect,
+svg.straight .left,
+svg.straight .right{
+	fill: white !important;
 }

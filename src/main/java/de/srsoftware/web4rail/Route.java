@@ -1,5 +1,6 @@
 package de.srsoftware.web4rail;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +112,10 @@ public class Route {
 		return props.toString();
 	}
 
-	public Route lock(Train train) {
+	public Route lock(Train train) throws IOException {
+		for (Entry<Turnout, State> entry : turnouts.entrySet()) {
+			entry.getKey().state(entry.getValue());
+		}
 		for (Tile tile : path) tile.lock(train);
 		return this;
 	}
