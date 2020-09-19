@@ -31,6 +31,10 @@ public class Train {
 		} else cars.add(car);		
 	}
 	
+	public void block(Block block) {
+		this.block = block;
+	}
+
 	public int length() {
 		int result = 0;		
 		for (Locomotive loco : locos) result += loco.length;
@@ -48,14 +52,6 @@ public class Train {
 		return window;
 	}
 	
-	private String t(String message, Object...fills) {
-		return Translation.get(Application.class, message, fills);
-	}
-
-	public void block(Block block) {
-		this.block = block;
-	}
-
 	public String start() throws IOException {
 		if (block == null) return t("{] not in a block",this); 
 		HashSet<Route> routes = block.routes();
@@ -69,7 +65,16 @@ public class Train {
 		Random rand = new Random();
 		if (route != null) route.unlock();
 		int sel = rand.nextInt(availableRoutes.size());
-		route = availableRoutes.get(sel).lock(this);
+		route = availableRoutes.get(sel).lock(this).setSignals();
 		return t("started {}",this); 
+	}
+	
+	private String t(String message, Object...fills) {
+		return Translation.get(Application.class, message, fills);
+	}
+	
+	@Override
+	public String toString() {
+		return name();
 	}
 }

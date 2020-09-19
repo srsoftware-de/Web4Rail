@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.Vector;
 
 import org.slf4j.Logger;
@@ -52,7 +53,9 @@ public class Application {
         	plan = new Plan();
 		}
         Locomotive BR110 = new Locomotive("BR110");
-        Block block = new Vector<>(plan.blocks()).lastElement();
+        Vector<Block> blocks = new Vector<>(plan.blocks());
+        Random rand = new Random();
+        Block block = blocks.get(rand.nextInt(blocks.size()));
         if (block != null) block.train(new Train(BR110));
         Desktop.getDesktop().browse(URI.create("http://localhost:"+config.getInt(PORT)+"/plan"));
 	}

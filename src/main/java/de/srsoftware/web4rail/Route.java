@@ -209,6 +209,11 @@ public class Route {
 		if (lastTile instanceof Turnout) addTurnout((Turnout) lastTile,state);
 	}
 	
+	public Route setSignals() throws IOException {
+		for (Signal signal : signals) signal.state("go");
+		return this;
+	}
+
 	public Block startBlock() {
 		return (Block) path.get(0);
 	}		

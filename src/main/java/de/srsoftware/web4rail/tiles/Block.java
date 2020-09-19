@@ -58,7 +58,9 @@ public abstract class Block extends StretchableTile{
 	public Tag tag(Map<String, Object> replacements) throws IOException {
 		if (replacements == null) replacements = new HashMap<String, Object>();
 		replacements.put("%text%",train == null ? name : train.name());
-		return super.tag(replacements);
+		Tag tag = super.tag(replacements);
+		if (train != null) tag.clazz(tag.get("class")+" occupied");
+		return tag;
 	}
 	
 	@Override

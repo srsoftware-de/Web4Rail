@@ -31,7 +31,7 @@ public abstract class Tile {
 	protected HashSet<Shadow> shadows = new HashSet<>();
 	private HashSet<Route> routes = new HashSet<>();
 	protected Plan plan;
-	private Train lockedBy;
+	protected Train lockedBy;
 	
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);
 	

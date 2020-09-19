@@ -140,8 +140,11 @@ h2{
 	stroke: red;
 }
 
-.sig_a{
+.signal.stop .sig_a{
 	fill: red;
+}
+.signal.go .sig_a{
+	fill: lime;
 }
 
 .sig_b{
@@ -167,4 +170,8 @@ svg.right rect,
 svg.straight .left,
 svg.straight .right{
 	fill: white !important;
+}
+
+.occupied .block{
+	fill: yellow;
 }
