@@ -175,3 +175,7 @@ svg.straight .right{
 .occupied .block{
 	fill: yellow;
 }
+
+.active circle{
+	fill: #ffcc88;
+}

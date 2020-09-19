@@ -11,6 +11,7 @@ import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.Tile;
 
 public class Train {
@@ -63,9 +64,9 @@ public class Train {
 			availableRoutes.add(route);
 		}
 		Random rand = new Random();
-		if (route != null) route.unlock();
+		if (route != null) route.unlock().setSignals(Signal.STOP);
 		int sel = rand.nextInt(availableRoutes.size());
-		route = availableRoutes.get(sel).lock(this).setSignals();
+		route = availableRoutes.get(sel).lock(this).setSignals(null);
 		return t("started {}",this); 
 	}
 	

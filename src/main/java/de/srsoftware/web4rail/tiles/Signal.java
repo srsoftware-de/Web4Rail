@@ -8,7 +8,7 @@ import de.srsoftware.web4rail.Plan.Direction;
 
 public abstract class Signal extends Tile{
 	
-	private static final String STOP = "stop";
+	public static final String STOP = "stop";
 	private String state = STOP;
 
 	public Signal() {

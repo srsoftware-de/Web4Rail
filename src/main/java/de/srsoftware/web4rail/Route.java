@@ -209,8 +209,8 @@ public class Route {
 		if (lastTile instanceof Turnout) addTurnout((Turnout) lastTile,state);
 	}
 	
-	public Route setSignals() throws IOException {
-		for (Signal signal : signals) signal.state("go");
+	public Route setSignals(String state) throws IOException {
+		for (Signal signal : signals) signal.state(state == null ? "go" : state);
 		return this;
 	}
 
@@ -222,8 +222,9 @@ public class Route {
 		return Translation.get(Application.class, txt, fills);
 	}
 	
-	public void unlock() {
+	public Route unlock() {
 		for (Tile tile : path) tile.unlock();
+		return this;
 	}
 
 	public void update(HashMap<String, String> params) {
