@@ -501,7 +501,7 @@ public class Plan {
 	
 	public synchronized void stream(String data) {
 		data = data.replaceAll("\n", "").replaceAll("\r", "");
-		LOG.debug("streaming: {}",data);
+		//LOG.debug("streaming: {}",data);
 		Vector<OutputStreamWriter> badClients = null;
 		for (Entry<OutputStreamWriter, Integer> entry : clients.entrySet()) {
 			OutputStreamWriter client = entry.getKey();

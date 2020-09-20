@@ -20,6 +20,7 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Signal;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class Train {
 	
@@ -27,18 +28,19 @@ public class Train {
 		@Override
 		public void run() {
 			try {
-				Vector<Contact> contacts = null;
+				Vector<Tile> path = new Vector<Tile>();
 				while (true) {
 					if (route == null) {
+						Thread.sleep(3000);
 						Train.this.start();
-						contacts = route == null ? new Vector<Contact>() : route.contacts();
+						path = route == null ? new Vector<Tile>() : route.path();
 					} else {
-						if (!contacts.isEmpty()) {
-							Contact contact = contacts.remove(0);
-							contact.activate();
+						if (!path.isEmpty()) {
+							Tile t = path.remove(0);
+							if (t instanceof Contact) ((Contact)t).activate();
 						}
 					}
-					Thread.sleep(1000);
+					Thread.sleep(500);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
