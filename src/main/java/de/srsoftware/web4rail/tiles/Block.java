@@ -56,8 +56,8 @@ public abstract class Block extends StretchableTile{
 		
 		if (train != null) {
 			new Tag("h4").content(t("Train:")).addTo(window);
-			new Tag("span").clazz("link").attr("onclick","train("+x+","+y+",'show')").content(train.name()).addTo(window);
-			new Tag("span").clazz("link").attr("onclick","train("+x+","+y+",'start')").content(" - "+t("start")).addTo(window);
+			new Tag("span").clazz("link").attr("onclick","train("+train.id+",'"+Train.MODE_SHOW+"')").content(train.name()).addTo(window);
+			new Tag("span").clazz("link").attr("onclick","train("+train.id+",'"+Train.MODE_START+"')").content(" - "+t("start")).addTo(window);
 		}
 		return window;
 	}

@@ -133,6 +133,11 @@ public class Route {
 		}
 	}
 	
+	public Vector<Contact> contacts() {
+		return new Vector<>(contacts);
+	}
+
+	
 	public void finish() throws IOException {
 		startBlock.train(null);
 		endBlock.train(train.heading(endDirection.inverse()));

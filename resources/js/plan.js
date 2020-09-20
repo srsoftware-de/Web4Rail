@@ -147,8 +147,8 @@ function runAction(ev){
 	return request({action:ev.target.id,file:'default'}); // TODO: ask for name
 }
 
-function train(x,y,action){
-	return request({action:action+"Train",x:x,y:y});
+function train(id,mode){
+	return request({action:"train",id:id,mode:mode});
 }
 
 function stream(ev){

@@ -9,7 +9,7 @@ public abstract class Contact extends Tile{
 	private boolean active = false;
 
 
-	private void activate() throws IOException {
+	public void activate() throws IOException {
 		active = true;
 		stream();
 		new Thread() {

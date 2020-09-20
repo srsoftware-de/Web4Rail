@@ -110,9 +110,7 @@ public class Plan {
 	private static final String ID = "id";
 	private static final String ROUTE = "route";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
-	private static final String ACTION_SHOW_TRAIN = "showTrain";
-	private static final String ACTION_START_TRAIN = "startTrain";
-	private static final String ACTION_UPDATE_TRAIN = "updateTrain";
+	private static final String ACTION_TRAIN = "train";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -411,15 +409,10 @@ public class Plan {
 					return routeProperties(params.get(ID));
 				case ACTION_SAVE:
 					return saveTo(params.get(FILE));
-				case ACTION_SHOW_TRAIN:
-					return show(train(get(params.get(X),params.get(Y),true)));
-				case ACTION_START_TRAIN:
-					return start(train(get(params.get(X),params.get(Y),true)));
+				case ACTION_TRAIN:
+					return trainAction(params);
 				case ACTION_UPDATE:
-					return update(params);
-				case ACTION_UPDATE_TRAIN:
-					return updateTrain(params);
-					
+					return update(params);		
 				default:
 					LOG.warn("Unknown action: {}",action);
 			}
@@ -431,12 +424,9 @@ public class Plan {
 		}
 	}
 
-	private Train train(Tile tile) {
-		if (tile instanceof Block) {
-			Block block = (Block) tile;
-			return block.train();
-		}
-		return null;
+	private Object trainAction(HashMap<String, String> params) throws IOException {
+		Object result = Train.action(params);		
+		return result instanceof Train ? html() : result;
 	}
 
 	private Object routeProperties(String routeId) {
@@ -507,15 +497,6 @@ public class Plan {
 		}
 		tile.position(x, y).plan(this);
 		column.put(y,tile);
-	}
-
-	private Tag show(Train train) {
-		return (train == null) ? null : train.props();
-	}
-	
-	private String start(Train train) throws IOException {
-		if (train == null) return null;
-		return train.start();
 	}
 	
 	public synchronized void stream(String data) {
@@ -599,11 +580,6 @@ public class Plan {
 	private void update(int x,int y, HashMap<String, String> params) throws IOException {
 		Tile tile = get(x,y,true);
 		if (tile != null) set(x,y,tile.update(params));
-	}
-	
-	private Object updateTrain(HashMap<String, String> params) throws IOException {
-		Train.update(params);
-		return this.html();
 	}
 
 	public void warn(Contact contact) {

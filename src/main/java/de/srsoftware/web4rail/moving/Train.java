@@ -18,14 +18,42 @@ import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Signal;
 
 public class Train {
+	
+	private class Autopilot extends Thread{
+		@Override
+		public void run() {
+			try {
+				Vector<Contact> contacts = null;
+				while (true) {
+					if (route == null) {
+						Train.this.start();
+						contacts = route == null ? new Vector<Contact>() : route.contacts();
+					} else {
+						if (!contacts.isEmpty()) {
+							Contact contact = contacts.remove(0);
+							contact.activate();
+						}
+					}
+					Thread.sleep(1000);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}			
+		}
+	}
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 	private static final String PUSH_PULL = "pushPull";
 	private static int count = 0;
 	private static final HashMap<Integer, Train> trains = new HashMap<Integer, Train>();
-	private static final String ID = "id";
+	public static final String ID = "id";
+	public static final String MODE_START = "start";
+	public static final String MODE_SHOW = "show";
+	private static final String MODE_UPDATE = "update";
+	private static final String MODE_AUTO = "auto";
 	private Vector<Locomotive> locos = new Vector<Locomotive>();
 	private Vector<Car> cars = new Vector<Car>();
 	private String name = null;
@@ -34,12 +62,35 @@ public class Train {
 	public int speed = 0;
 	private Direction direction;
 	private boolean pushPull = false;
-	private int id;
+	public int id;
+	private Autopilot autopilot = null;
 	
 	public Train(Locomotive loco) {
 		id = ++count;
 		add(loco);
 		trains.put(id, this);
+	}
+	
+	public static Object action(HashMap<String, String> params) throws IOException {
+		if (!params.containsKey(Train.ID)) return t("No train id passed!");
+		int id = Integer.parseInt(params.get(Train.ID));
+		Train train = trains.get(id);
+		if (train == null) return(t("No train with id {}!",id));
+		if (!params.containsKey("mode")) return t("No mode set for train action!");
+		String mode = params.get("mode");
+		switch (mode) {
+		case MODE_AUTO:
+			return train.automatic();
+		case MODE_SHOW:
+			return train.props();
+		case MODE_START:
+			return train.start();
+		case MODE_UPDATE:
+			return train.update(params);
+		default: return t("Unknown mode {} for {}",mode,train); 
+		}
+		
+		//return null;
 	}
 
 	public void add(Car car) {
@@ -47,6 +98,14 @@ public class Train {
 		if (car instanceof Locomotive) {
 			locos.add((Locomotive) car);
 		} else cars.add(car);		
+	}
+	
+	private String automatic() {
+		if (autopilot == null) {
+			autopilot = new Autopilot();
+			autopilot.start();
+		}
+		return t("{} now in auto-mode",this);
 	}
 	
 	public void block(Block block) {
@@ -83,8 +142,9 @@ public class Train {
 		Window window = new Window("train-properties",t("Properties of {}",getClass().getSimpleName()));
 		
 		Form form = new Form();
-		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "updateTrain").addTo(form);
+		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "train").addTo(form);
 		new Tag("input").attr("type", "hidden").attr("name",ID).attr("value", id).addTo(form);
+		new Tag("input").attr("type", "hidden").attr("name","mode").attr("value", MODE_UPDATE).addTo(form);
 		
 		Checkbox pp = new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull);
 		pp.addTo(form);
@@ -99,7 +159,8 @@ public class Train {
 		new Tag("li").content(t("Current location: {}",block)).addTo(list);
 		new Tag("li").content(t("Direction: heading {}",direction)).addTo(list);
 		
-		new Tag("li").clazz("link").attr("onclick","train("+block.x+","+block.y+",'start')").content(t("start")).addTo(list).addTo(window);
+		new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_START+"')").content(t("start")).addTo(list).addTo(window);
+		new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_AUTO+"')").content(t("auto")).addTo(list).addTo(window);
 		
 		return window;
 	}
@@ -148,16 +209,14 @@ public class Train {
 	}
 	
 	private void turn() throws IOException {
-		direction = direction.inverse();
+		if (direction != null) direction = direction.inverse();
 		if (block != null) block.train(this); 
 	}
 
 
-	public static void update(HashMap<String, String> params) {
+	public Train update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
-		int id = Integer.parseInt(params.get(ID));
-		Train train = trains.get(id);
-		if (train == null) return;
-		train.pushPull = params.containsKey(PUSH_PULL) && params.get(PUSH_PULL).equals("on");
+		pushPull = params.containsKey(PUSH_PULL) && params.get(PUSH_PULL).equals("on");
+		return this;
 	}
 }
