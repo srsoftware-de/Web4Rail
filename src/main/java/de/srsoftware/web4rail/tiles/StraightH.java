@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import de.srsoftware.web4rail.Connector;
@@ -11,6 +12,7 @@ public class StraightH extends StretchableTile{
 	
 	@Override
 	public Map<Connector, State> connections(Direction from) {
+		if (oneWay == from) return new HashMap<>();
 		switch (from) {
 			case WEST:
 				return Map.of(new Connector(x+len(),y,Direction.WEST),State.UNDEF);
@@ -24,5 +26,10 @@ public class StraightH extends StretchableTile{
 	@Override
 	public int len() {
 		return length;
+	}
+	
+	@Override
+	public List<Direction> possibleDirections() {
+		return List.of(Direction.EAST,Direction.WEST);
 	}
 }

@@ -184,3 +184,8 @@ svg.straight .right{
 .active circle{
 	fill: #ffcc88;
 }
+
+polygon.oneway{
+	fill: lime;
+	stroke-width:0;
+}

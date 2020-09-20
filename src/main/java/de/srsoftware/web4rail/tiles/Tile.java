@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.Vector;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -22,6 +24,7 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Radio;
 
 public abstract class Tile {
 	
@@ -31,6 +34,7 @@ public abstract class Tile {
 	private HashSet<Route> routes = new HashSet<>();
 	protected Plan plan;
 	protected Route route;
+	protected Direction oneWay = null;
 	
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);
 	
@@ -97,11 +101,25 @@ public abstract class Tile {
 		return this;
 	}
 	
+	public List<Direction> possibleDirections() {
+		return new Vector<Plan.Direction>();
+	}
+	
 	public Tag propForm() {
 		Form form = new Form();
 		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "update").addTo(form);
 		new Tag("input").attr("type", "hidden").attr("name","x").attr("value", x).addTo(form);
 		new Tag("input").attr("type", "hidden").attr("name","y").attr("value", y).addTo(form);
+		
+		List<Direction> pd = possibleDirections();
+		if (!pd.isEmpty()) {
+			new Tag("h4").content(t("One way:")).addTo(form);
+			new Radio("oneway","none",t("No"),oneWay == null).addTo(form);		
+			for (Direction d:pd) {
+				Radio radio = new Radio("oneway",d.toString(),t(d.toString()),d == oneWay);				
+				radio.addTo(form);
+			}
+		}
 		return form;
 	}
 	
@@ -113,6 +131,10 @@ public abstract class Tile {
 			form.addTo(window);
 		} else {
 			window.content(t("This tile ({}) has no properties",getClass().getSimpleName()));
+		}
+		
+		if (route != null) {
+			new Tag("p").content(t("Locked by {}",route)).addTo(window);
 		}
 		
 		if (!routes.isEmpty()) {
@@ -166,6 +188,7 @@ public abstract class Tile {
 				if (x>-1) style="left: "+(30*x)+"px; top: "+(30*y)+"px;";
 				if (len()>1) style+=" width: "+(30*len())+"px;";
 				if (height()>1) style+=" height: "+(30*height())+"px;";
+		
 		if (!style.isEmpty()) svg.style(style);
 
 		File file = new File(System.getProperty("user.dir")+"/resources/svg/"+getClass().getSimpleName()+".svg");
@@ -182,6 +205,17 @@ public abstract class Tile {
 			}
 			scanner.close();
 			svg.content(sb.toString());
+			
+			if (oneWay != null) {
+				switch (oneWay) {
+			
+				case EAST:
+					new Tag("polygon").clazz("oneway").attr("points", "100,50 75,35 75,65").addTo(svg);
+					break;
+				case WEST:
+					new Tag("polygon").clazz("oneway").attr("points", "0,50 25,35 25,65").addTo(svg);
+				}
+			}
 		} else {
 			new Tag("title").content(t("No display defined for this tile ({})",getClass().getSimpleName())).addTo(svg);
 			new Tag("text")
@@ -212,6 +246,14 @@ public abstract class Tile {
 
 	public Tile update(HashMap<String, String> params) {
 		LOG.debug("{}.update({})",getClass().getSimpleName(),params);
+		String oneWayDir = params.get("oneway");
+		if (oneWayDir != null) {
+			try {
+				oneWay = Direction.valueOf(oneWayDir);
+			} catch (Exception e) {
+				oneWay = null;
+			}
+		}
 		return this;
 	}
 

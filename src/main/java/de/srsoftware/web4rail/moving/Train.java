@@ -82,23 +82,25 @@ public class Train {
 	
 	public void setSpeed(int v) {
 		LOG.debug("Setting speed to {} kmh.",v);
+		for (Locomotive loco : locos) loco.setSpeed(v);
 		this.speed = v;
 	}
 	
 	public String start() throws IOException {
 		if (block == null) return t("{} not in a block",this); 
+		if (route != null) route.unlock().setSignals(Signal.STOP);
 		HashSet<Route> routes = block.routes();
 		Vector<Route> availableRoutes = new Vector<Route>();
-		for (Route route : routes) {
-			if (route.path().firstElement() != block) continue; // route does not start with current location of loco
-			if (direction != null && route.startDirection != direction) continue;
-			if (!route.free()) {
-				LOG.debug("{} is not free!",route);
+		for (Route rt : routes) {
+			if (rt == route) continue; // andere Route als zuvor wählen
+			if (rt.path().firstElement() != block) continue; // keine Route wählen, die nicht vom aktuellen Block des Zuges startet
+			if (direction != null && rt.startDirection != direction) continue; // keine Routen entgegen der Fahrtrichtung wählen
+			if (!rt.free()) { // keine belegten Routen wählen
+				LOG.debug("{} is not free!",rt);
 				continue;
 			}
-			availableRoutes.add(route);
+			availableRoutes.add(rt);
 		}
-		if (route != null) route.unlock().setSignals(Signal.STOP);
 		Random rand = new Random();
 		if (availableRoutes.isEmpty()) return t("No free routes from {}",block);
 		int sel = rand.nextInt(availableRoutes.size());
