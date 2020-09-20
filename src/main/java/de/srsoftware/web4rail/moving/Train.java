@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.moving;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Vector;
@@ -14,11 +15,17 @@ import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Checkbox;
+import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Signal;
 
 public class Train {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
+	private static final String PUSH_PULL = "pushPull";
+	private static int count = 0;
+	private static final HashMap<Integer, Train> trains = new HashMap<Integer, Train>();
+	private static final String ID = "id";
 	private Vector<Locomotive> locos = new Vector<Locomotive>();
 	private Vector<Car> cars = new Vector<Car>();
 	private String name = null;
@@ -26,9 +33,13 @@ public class Train {
 	public Route route;	
 	public int speed = 0;
 	private Direction direction;
+	private boolean pushPull = false;
+	private int id;
 	
 	public Train(Locomotive loco) {
+		id = ++count;
 		add(loco);
+		trains.put(id, this);
 	}
 
 	public void add(Car car) {
@@ -40,6 +51,11 @@ public class Train {
 	
 	public void block(Block block) {
 		this.block = block;
+	}
+	
+	public Train heading(Direction dir) {
+		direction = dir;
+		return this;
 	}
 
 	public int length() {
@@ -65,6 +81,14 @@ public class Train {
 
 	public Tag props() {
 		Window window = new Window("train-properties",t("Properties of {}",getClass().getSimpleName()));
+		
+		Form form = new Form();
+		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "updateTrain").addTo(form);
+		new Tag("input").attr("type", "hidden").attr("name",ID).attr("value", id).addTo(form);
+		
+		Checkbox pp = new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull);
+		pp.addTo(form);
+		new Tag("button").attr("type", "submit").content(t("save")).addTo(form).addTo(window);
 		
 		Tag list = new Tag("ul");
 		Tag locos = new Tag("li").content(t("Locomotives:"));
@@ -94,7 +118,11 @@ public class Train {
 		for (Route rt : routes) {
 			if (rt == route) continue; // andere Route als zuvor wählen
 			if (rt.path().firstElement() != block) continue; // keine Route wählen, die nicht vom aktuellen Block des Zuges startet
-			if (direction != null && rt.startDirection != direction) continue; // keine Routen entgegen der Fahrtrichtung wählen
+			if (direction != null && rt.startDirection != direction) { // Route ist entgegen der Startrichtung des Zuges
+				if (!pushPull || !block.turnAllowed) { // Zug ist kein Wendezug oder Block erlaubt kein Wenden
+					continue;
+				}
+			}
 			if (!rt.free()) { // keine belegten Routen wählen
 				LOG.debug("{} is not free!",rt);
 				continue;
@@ -104,12 +132,13 @@ public class Train {
 		Random rand = new Random();
 		if (availableRoutes.isEmpty()) return t("No free routes from {}",block);
 		int sel = rand.nextInt(availableRoutes.size());
-		this.route = availableRoutes.get(sel).lock(this).setSignals(null);
+		route = availableRoutes.get(sel).lock(this).setSignals(null);
+		if (direction != route.startDirection) turn();
 		setSpeed(100);
 		return t("started {}",this); 
 	}
 	
-	private String t(String message, Object...fills) {
+	private static String t(String message, Object...fills) {
 		return Translation.get(Application.class, message, fills);
 	}
 	
@@ -117,9 +146,18 @@ public class Train {
 	public String toString() {
 		return name();
 	}
+	
+	private void turn() throws IOException {
+		direction = direction.inverse();
+		if (block != null) block.train(this); 
+	}
 
-	public Train heading(Direction dir) {
-		direction = dir;
-		return this;
+
+	public static void update(HashMap<String, String> params) {
+		LOG.debug("update({})",params);
+		int id = Integer.parseInt(params.get(ID));
+		Train train = trains.get(id);
+		if (train == null) return;
+		train.pushPull = params.containsKey(PUSH_PULL) && params.get(PUSH_PULL).equals("on");
 	}
 }

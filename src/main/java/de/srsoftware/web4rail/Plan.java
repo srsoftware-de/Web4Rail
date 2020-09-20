@@ -68,7 +68,7 @@ public class Plan {
 	public enum Direction{		
 		NORTH, SOUTH, EAST, WEST;
 		
-		Direction inverse() {
+		public Direction inverse() {
 			switch (this) {
 			case NORTH: return SOUTH;
 			case SOUTH: return NORTH;
@@ -112,6 +112,7 @@ public class Plan {
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	private static final String ACTION_SHOW_TRAIN = "showTrain";
 	private static final String ACTION_START_TRAIN = "startTrain";
+	private static final String ACTION_UPDATE_TRAIN = "updateTrain";
 	
 	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -416,6 +417,9 @@ public class Plan {
 					return start(train(get(params.get(X),params.get(Y),true)));
 				case ACTION_UPDATE:
 					return update(params);
+				case ACTION_UPDATE_TRAIN:
+					return updateTrain(params);
+					
 				default:
 					LOG.warn("Unknown action: {}",action);
 			}
@@ -595,6 +599,11 @@ public class Plan {
 	private void update(int x,int y, HashMap<String, String> params) throws IOException {
 		Tile tile = get(x,y,true);
 		if (tile != null) set(x,y,tile.update(params));
+	}
+	
+	private Object updateTrain(HashMap<String, String> params) throws IOException {
+		Train.update(params);
+		return this.html();
 	}
 
 	public void warn(Contact contact) {

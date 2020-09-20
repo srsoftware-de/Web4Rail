@@ -10,11 +10,14 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Checkbox;
 
 public abstract class Block extends StretchableTile{
 	private static final String NAME = "name";
+	private static final String ALLOW_TURN = "allowTurn";
 	public String name = "Block";
 	private Train train;
+	public boolean turnAllowed = false;
 	
 	@Override
 	public JSONObject config() {
@@ -39,8 +42,10 @@ public abstract class Block extends StretchableTile{
 		Tag form = super.propForm();
 		
 		Tag label = new Tag("label").content(t("name:"));
-		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name).addTo(label);		
+		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name).addTo(label);
 		label.addTo(form);
+
+		new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed).addTo(form);
 		
 		return form;
 	}
@@ -96,6 +101,7 @@ public abstract class Block extends StretchableTile{
 	public Tile update(HashMap<String, String> params) {
 		super.update(params);
 		if (params.containsKey(NAME)) name=params.get(NAME);
+		turnAllowed = params.containsKey(ALLOW_TURN) && params.get(ALLOW_TURN).equals("on");
 		return this;
 	}	
 }
