@@ -61,7 +61,7 @@ public class Application {
 	}
 	
 	private static HashMap<String, String> inflate(String data) {
-		LOG.debug("inflate({})",data);
+		//LOG.debug("inflate({})",data);
 		HashMap<String, String> params = new HashMap<String, String>();
 		if (data == null || data.trim().isEmpty()) return params;
 		String[] parts = data.split("&");

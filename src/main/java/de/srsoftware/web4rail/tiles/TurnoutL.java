@@ -5,8 +5,8 @@ import java.io.IOException;
 public class TurnoutL extends Turnout {
 	@Override
 	public Object click() throws IOException {
-		if (lockedBy != null) {
-			plan.stream(t("{} is locked by {}!",this,lockedBy)); 
+		if (route != null) {
+			plan.stream(t("{} is locked by {}!",this,route)); 
 		} else {
 			state = (state == State.STRAIGHT) ? State.LEFT : State.STRAIGHT;
 			plan.stream("place "+tag(null));

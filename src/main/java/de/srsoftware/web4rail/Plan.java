@@ -154,7 +154,10 @@ public class Plan {
 		for (HashMap<Integer, Tile> column: tiles.values()) {
 			for (Tile tile : column.values()) tile.routes().clear();
 		}
-		for (Route route : routes) registerRoute(route);
+		for (Route route : routes) {
+			route.complete();
+			registerRoute(route);
+		}
 		return t("Found {} routes.",routes.size());
 	}
 
@@ -582,5 +585,9 @@ public class Plan {
 	private void update(int x,int y, HashMap<String, String> params) throws IOException {
 		Tile tile = get(x,y,true);
 		if (tile != null) set(x,y,tile.update(params));
+	}
+
+	public void warn(Contact contact) {
+		stream(t("Warning: {}",t("Ghost train @ {}",contact)));
 	}
 }

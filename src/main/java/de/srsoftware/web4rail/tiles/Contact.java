@@ -21,6 +21,11 @@ public abstract class Contact extends Tile{
 				} catch (Exception e) {}
 			}
 		}.start();
+		if (route == null) {
+			plan.warn(this);
+		} else {
+			route.contact(this);
+		}
 	}
 
 

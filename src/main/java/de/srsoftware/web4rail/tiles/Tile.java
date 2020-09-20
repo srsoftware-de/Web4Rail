@@ -21,7 +21,6 @@ import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Form;
 
 public abstract class Tile {
@@ -31,7 +30,7 @@ public abstract class Tile {
 	protected HashSet<Shadow> shadows = new HashSet<>();
 	private HashSet<Route> routes = new HashSet<>();
 	protected Plan plan;
-	protected Train lockedBy;
+	protected Route route;
 	
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);
 	
@@ -71,11 +70,18 @@ public abstract class Tile {
 		return 1;
 	}
 	
-	public void lock(Train train) {
-		lockedBy = train;
+	public void lock(Route route) {
+		this.route = route;
 		classes.add("locked");
 		plan.stream("addclass tile-"+x+"-"+y+" locked");
+	}
+	
+	public void occupy(Route route) {
+		this.route = route;		
+		classes.add("occupied");
+		plan.stream("addclass tile-"+x+"-"+y+" occupied");
 	}	
+
 
 	public void plan(Plan plan) {
 		this.plan = plan;
@@ -194,9 +200,10 @@ public abstract class Tile {
 	}
 
 	public void unlock() {
-		lockedBy = null;
+		route = null;
 		classes.remove("locked");
-		plan.stream("dropclass tile-"+x+"-"+y+" locked");
+		classes.remove("occupied");
+		plan.stream("dropclass tile-"+x+"-"+y+" locked occupied");
 	}
 
 	public Tile update(HashMap<String, String> params) {

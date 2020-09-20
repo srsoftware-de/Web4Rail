@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Vector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
@@ -15,11 +18,13 @@ import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.Tile;
 
 public class Train {
+	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 	private Vector<Locomotive> locos = new Vector<Locomotive>();
 	private Vector<Car> cars = new Vector<Car>();
 	private String name = null;
 	private Block block = null;
-	private Route route;
+	private Route route;	
+	public int speed = 0;
 	
 	public Train(Locomotive loco) {
 		add(loco);
@@ -53,6 +58,11 @@ public class Train {
 		return window;
 	}
 	
+	public void setSpeed(int v) {
+		LOG.debug("Setting speed to {} kmh.",v);
+		this.speed = v;
+	}
+	
 	public String start() throws IOException {
 		if (block == null) return t("{] not in a block",this); 
 		HashSet<Route> routes = block.routes();
@@ -67,6 +77,7 @@ public class Train {
 		if (route != null) route.unlock().setSignals(Signal.STOP);
 		int sel = rand.nextInt(availableRoutes.size());
 		route = availableRoutes.get(sel).lock(this).setSignals(null);
+		setSpeed(100);
 		return t("started {}",this); 
 	}
 	

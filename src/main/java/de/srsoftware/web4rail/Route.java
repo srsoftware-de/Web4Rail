@@ -15,6 +15,11 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.actions.Action;
+import de.srsoftware.web4rail.actions.ActivateRoute;
+import de.srsoftware.web4rail.actions.FinishRoute;
+import de.srsoftware.web4rail.actions.SetSignalsToStop;
+import de.srsoftware.web4rail.actions.SpeedReduction;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tiles.Block;
@@ -36,10 +41,22 @@ public class Route {
 	private Vector<Signal> signals;
 	private Vector<Contact> contacts;
 	private HashMap<Turnout,Turnout.State> turnouts;
+	private HashMap<Object,Vector<Action>> triggers = new HashMap<Object, Vector<Action>>();
 	private String id;
-
+	public Train train;
+	private Block startBlock = null,endBlock;
+	
+	/**
+	 * Route wurde von Zug betreten
+	 */
+	public void activate() {
+		LOG.debug("{} aktiviert.",this);
+		for (Tile tile : path) tile.occupy(this);
+	}
+	
 	public Tile add(Tile tile, Direction direrction) {
-		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay(); 
+		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay();
+		if (tile instanceof Block) endBlock = (Block) tile;
 		path.add(tile);
 		if (tile instanceof Contact) contacts.add((Contact) tile);
 		if (tile instanceof Signal) {
@@ -60,11 +77,61 @@ public class Route {
 
 	protected Route clone() {
 		Route clone = new Route();
+		clone.startBlock = startBlock;
+		clone.endBlock = endBlock;
 		clone.contacts = new Vector<Contact>(contacts);
 		clone.signals = new Vector<Signal>(signals);
 		clone.turnouts = new HashMap<>(turnouts);
 		clone.path = new Vector<>(path);
 		return clone;
+	}
+	
+	public void complete() {
+		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
+			addAction(contacts.firstElement(),new ActivateRoute(this));
+			Contact nextToLastContact = contacts.get(contacts.size()-2);
+			addAction(nextToLastContact,new SpeedReduction(this,30));			
+			addAction(nextToLastContact,new SetSignalsToStop(this));
+		}
+		if (!contacts.isEmpty()) {
+			Contact lastContact = contacts.lastElement(); 
+			addAction(lastContact, new SpeedReduction(this, 0)); 
+			addAction(lastContact, new FinishRoute(this));
+		}
+	}
+	
+	private void addAction(Object trigger, Action action) {
+		// TODO Auto-generated method stub
+		Vector<Action> actions = triggers.get(trigger);
+		if (actions == null) {
+			actions = new Vector<Action>();
+			triggers.put(trigger, actions);
+		}
+		actions.add(action);
+	}
+	
+	public void finish() throws IOException {
+		startBlock.train(null);
+		endBlock.train(train);
+		unlock();
+	}
+
+
+	/**
+	 * Kontakt der Route aktivieren
+	 * @param contact
+	 * @param train
+	 */
+	public void contact(Contact contact) {
+		LOG.debug("{} on {} activated {}.",train,this,contact);
+		Vector<Action> actions = triggers.get(contact);
+		for (Action action : actions) {
+			try {
+				action.fire();
+			} catch (IOException e) {
+				LOG.warn("Action did not fire properly: {}",action,e);
+			}
+		}
 	}
 	
 	public String id() {
@@ -113,10 +180,11 @@ public class Route {
 	}
 
 	public Route lock(Train train) throws IOException {
+		this.train = train;
 		for (Entry<Turnout, State> entry : turnouts.entrySet()) {
 			entry.getKey().state(entry.getValue());
 		}
-		for (Tile tile : path) tile.lock(train);
+		for (Tile tile : path) tile.lock(this);
 		return this;
 	}
 
@@ -194,6 +262,7 @@ public class Route {
 		signals = new Vector<Signal>();
 		path = new Vector<Tile>();
 		turnouts = new HashMap<>();
+		startBlock = block;
 		path.add(block);
 		return this;
 	}
@@ -222,7 +291,8 @@ public class Route {
 		return Translation.get(Application.class, txt, fills);
 	}
 	
-	public Route unlock() {
+	public Route unlock() throws IOException {
+		setSignals(Signal.STOP);
 		for (Tile tile : path) tile.unlock();
 		return this;
 	}

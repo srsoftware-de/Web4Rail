@@ -44,6 +44,11 @@ svg.locked rect:not(.sig_a):not(.sig_b){
 	fill:lime;
 }
 
+svg.occupied polygon,
+svg.occupied rect:not(.sig_a):not(.sig_b){
+	fill:yellow;
+}
+
 svg text{
 	font-size: 50px;
 }

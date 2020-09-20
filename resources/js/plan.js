@@ -15,7 +15,7 @@ function addClass(data){
 }
 
 function addMessage(txt){
-	$('#messages').html(txt).show().delay(1000).fadeOut();
+	$('#messages').html(txt).show().delay(5000).fadeOut(5000);
 }
 
 function addTile(x,y){	
@@ -61,8 +61,8 @@ function closeWindows(){
 }
 
 function dropClass(data){
-	parts = data.split(" ");
-	$('#'+parts[0]).removeClass(parts[1]);
+	var parts = data.split(" ");
+	for (var i=1; i<parts.length; i++) $('#'+parts[0]).removeClass(parts[i]);
 }
 
 function enableAdding(ev){
