@@ -62,6 +62,10 @@ public abstract class Tile {
 
 	public void configure(JSONObject config) {}
 	
+	public boolean free() {
+		return route == null;
+	}
+	
 	public int height() {
 		return 1;
 	}
@@ -209,5 +213,9 @@ public abstract class Tile {
 	public Tile update(HashMap<String, String> params) {
 		LOG.debug("{}.update({})",getClass().getSimpleName(),params);
 		return this;
+	}
+
+	public Route route() {
+		return route;
 	}
 }

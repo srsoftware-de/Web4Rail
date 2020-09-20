@@ -11,11 +11,11 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Signal;
-import de.srsoftware.web4rail.tiles.Tile;
 
 public class Train {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
@@ -23,8 +23,9 @@ public class Train {
 	private Vector<Car> cars = new Vector<Car>();
 	private String name = null;
 	private Block block = null;
-	private Route route;	
+	public Route route;	
 	public int speed = 0;
+	private Direction direction;
 	
 	public Train(Locomotive loco) {
 		add(loco);
@@ -49,11 +50,32 @@ public class Train {
 	}
 
 	public String name() {
-		return name != null ? name : locos.firstElement().name();
+		String result = (name != null ? name : locos.firstElement().name());
+		if (direction == null) return result;
+		switch (direction) {
+		case NORTH:
+		case WEST:
+			return '←'+result;
+		case SOUTH:
+		case EAST:
+			return result+'→';
+		}
+		return result;
 	}
 
 	public Tag props() {
 		Window window = new Window("train-properties",t("Properties of {}",getClass().getSimpleName()));
+		
+		Tag list = new Tag("ul");
+		Tag locos = new Tag("li").content(t("Locomotives:"));
+		Tag l2 = new Tag("ul");
+		for (Locomotive loco : this.locos) new Tag("li").content(loco.name()).addTo(l2);
+		l2.addTo(locos).addTo(list);
+		
+		new Tag("li").content(t("Current location: {}",block)).addTo(list);
+		new Tag("li").content(t("Direction: heading {}",direction)).addTo(list);
+		
+		new Tag("li").clazz("link").attr("onclick","train("+block.x+","+block.y+",'start')").content(t("start")).addTo(list).addTo(window);
 		
 		return window;
 	}
@@ -64,19 +86,23 @@ public class Train {
 	}
 	
 	public String start() throws IOException {
-		if (block == null) return t("{] not in a block",this); 
+		if (block == null) return t("{} not in a block",this); 
 		HashSet<Route> routes = block.routes();
 		Vector<Route> availableRoutes = new Vector<Route>();
 		for (Route route : routes) {
-			Vector<Tile> path = route.path();
-			if (path.firstElement() != block) continue;
-			if (route.inUse()) continue;
+			if (route.path().firstElement() != block) continue; // route does not start with current location of loco
+			if (direction != null && route.startDirection != direction) continue;
+			if (!route.free()) {
+				LOG.debug("{} is not free!",route);
+				continue;
+			}
 			availableRoutes.add(route);
 		}
-		Random rand = new Random();
 		if (route != null) route.unlock().setSignals(Signal.STOP);
+		Random rand = new Random();
+		if (availableRoutes.isEmpty()) return t("No free routes from {}",block);
 		int sel = rand.nextInt(availableRoutes.size());
-		route = availableRoutes.get(sel).lock(this).setSignals(null);
+		this.route = availableRoutes.get(sel).lock(this).setSignals(null);
 		setSpeed(100);
 		return t("started {}",this); 
 	}
@@ -88,5 +114,10 @@ public class Train {
 	@Override
 	public String toString() {
 		return name();
+	}
+
+	public Train heading(Direction dir) {
+		direction = dir;
+		return this;
 	}
 }

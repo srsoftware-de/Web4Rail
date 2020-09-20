@@ -28,8 +28,11 @@ public abstract class Block extends StretchableTile{
 		super.configure(config);
 		if (config.has(NAME)) name = config.getString(NAME);
 	}
-
-	public abstract List<Connector> startPoints();
+	
+	@Override
+	public boolean free() {
+		return train == null && super.free();
+	}
 
 	@Override
 	public Tag propForm() {
@@ -54,6 +57,8 @@ public abstract class Block extends StretchableTile{
 		return window;
 	}
 	
+	public abstract List<Connector> startPoints();
+
 	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {
 		if (replacements == null) replacements = new HashMap<String, Object>();
@@ -68,13 +73,6 @@ public abstract class Block extends StretchableTile{
 		return getClass().getSimpleName()+"("+name+") @ ("+x+","+y+")";
 	}
 	
-	@Override
-	public Tile update(HashMap<String, String> params) {
-		super.update(params);
-		if (params.containsKey(NAME)) name=params.get(NAME);
-		return this;
-	}
-
 	public void train(Train train) throws IOException {
 		this.train = train;
 		if (train != null) train.block(this);
@@ -93,4 +91,11 @@ public abstract class Block extends StretchableTile{
 			plan.stream("dropclass tile-"+x+"-"+y+" locked");
 		} else plan.stream("dropclass tile-"+x+"-"+y+" locked occupied");
 	}
+	
+	@Override
+	public Tile update(HashMap<String, String> params) {
+		super.update(params);
+		if (params.containsKey(NAME)) name=params.get(NAME);
+		return this;
+	}	
 }

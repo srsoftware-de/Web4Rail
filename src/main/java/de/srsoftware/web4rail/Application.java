@@ -53,10 +53,16 @@ public class Application {
         	plan = new Plan();
 		}
         Locomotive BR110 = new Locomotive("BR110");
+        Locomotive BR130 = new Locomotive("BR130");
         Vector<Block> blocks = new Vector<>(plan.blocks());
         Random rand = new Random();
-        Block block = blocks.get(rand.nextInt(blocks.size()));
-        if (block != null) block.train(new Train(BR110));
+        Block block1 = blocks.get(rand.nextInt(blocks.size()));
+        if (block1 != null) block1.train(new Train(BR110));
+        Block block2 = null;
+        do {
+        	block2 = blocks.get(rand.nextInt(blocks.size()));
+        } while (block2 == block1);
+        if (block2 != null) block2.train(new Train(BR130));
         Desktop.getDesktop().browse(URI.create("http://localhost:"+config.getInt(PORT)+"/plan"));
 	}
 	

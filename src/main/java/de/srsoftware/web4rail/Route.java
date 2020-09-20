@@ -45,6 +45,8 @@ public class Route {
 	private String id;
 	public Train train;
 	private Block startBlock = null,endBlock;
+	public Direction startDirection;
+	private Direction endDirection;
 	
 	/**
 	 * Route wurde von Zug betreten
@@ -56,7 +58,10 @@ public class Route {
 	
 	public Tile add(Tile tile, Direction direrction) {
 		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay();
-		if (tile instanceof Block) endBlock = (Block) tile;
+		if (tile instanceof Block) {
+			endBlock = (Block) tile;
+			endDirection = direrction;
+		}
 		path.add(tile);
 		if (tile instanceof Contact) contacts.add((Contact) tile);
 		if (tile instanceof Signal) {
@@ -66,6 +71,15 @@ public class Route {
 
 		return tile;
 	}	
+	
+	private void addAction(Object trigger, Action action) {
+		Vector<Action> actions = triggers.get(trigger);
+		if (actions == null) {
+			actions = new Vector<Action>();
+			triggers.put(trigger, actions);
+		}
+		actions.add(action);
+	}
 	
 	void addSignal(Signal signal) {
 		signals.add(signal);
@@ -78,7 +92,9 @@ public class Route {
 	protected Route clone() {
 		Route clone = new Route();
 		clone.startBlock = startBlock;
+		clone.startDirection = startDirection;
 		clone.endBlock = endBlock;
+		clone.endDirection = endDirection;
 		clone.contacts = new Vector<Contact>(contacts);
 		clone.signals = new Vector<Signal>(signals);
 		clone.turnouts = new HashMap<>(turnouts);
@@ -99,23 +115,6 @@ public class Route {
 			addAction(lastContact, new FinishRoute(this));
 		}
 	}
-	
-	private void addAction(Object trigger, Action action) {
-		// TODO Auto-generated method stub
-		Vector<Action> actions = triggers.get(trigger);
-		if (actions == null) {
-			actions = new Vector<Action>();
-			triggers.put(trigger, actions);
-		}
-		actions.add(action);
-	}
-	
-	public void finish() throws IOException {
-		startBlock.train(null);
-		endBlock.train(train);
-		unlock();
-	}
-
 
 	/**
 	 * Kontakt der Route aktivieren
@@ -132,6 +131,13 @@ public class Route {
 				LOG.warn("Action did not fire properly: {}",action,e);
 			}
 		}
+	}
+	
+	public void finish() throws IOException {
+		startBlock.train(null);
+		endBlock.train(train.heading(endDirection.inverse()));
+		train.route = null;
+		unlock();
 	}
 	
 	public String id() {
@@ -152,8 +158,11 @@ public class Route {
 		return id;
 	}
 	
-	public boolean inUse() {
-		return false;
+	public boolean free() {
+		for (int i=1; i<path.size(); i++) { 
+			if (!path.get(i).free()) return false;
+		}
+		return true;
 	}
 
 		
@@ -213,24 +222,31 @@ public class Route {
 	
 	public Window properties() {	
 		Window win = new Window("route-properties",t("Properties of {}",this));
+		
+		new Tag("h4").content(t("Origin and destination")).addTo(win);
+		Tag list = new Tag("ul");
+		Plan.addLink(startBlock, t("Origin: {} to {}",startBlock.name,startDirection), list);
+		Plan.addLink(endBlock, t("Destination: {} from {}",endBlock.name,endDirection), list);
+		list.addTo(win);
+		
 
 		if (!signals.isEmpty()) {
 			new Tag("h4").content(t("Signals")).addTo(win);
-			Tag list = new Tag("ul");
+			list = new Tag("ul");
 			for (Signal s : signals) Plan.addLink(s,s.toString(),list);
 			list.addTo(win);
 		}
 		
 		if (!contacts.isEmpty()) {
 			new Tag("h4").content(t("Contacts")).addTo(win);
-			Tag list = new Tag("ul");
+			list = new Tag("ul");
 			for (Contact c : contacts) Plan.addLink(c,c.toString(),list);
 			list.addTo(win);
 		}
 		
 		if (!turnouts.isEmpty()) {
 			new Tag("h4").content(t("Turnouts")).addTo(win);
-			Tag list = new Tag("ul");
+			list = new Tag("ul");
 			for (Entry<Turnout, State> entry : turnouts.entrySet()) {
 				Turnout turnout = entry.getKey();
 				Plan.addLink(turnout, turnout+": "+entry.getValue(), list);
@@ -257,12 +273,14 @@ public class Route {
 		return form;
 	}
 
-	public Route start(Block block) {
+	public Route start(Block block,Direction from) {
+		// add those fields to clone, too!
 		contacts = new Vector<Contact>();
 		signals = new Vector<Signal>();
 		path = new Vector<Tile>();
 		turnouts = new HashMap<>();
 		startBlock = block;
+		startDirection = from;
 		path.add(block);
 		return this;
 	}

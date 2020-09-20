@@ -174,7 +174,7 @@ svg.left rect,
 svg.right rect,
 svg.straight .left,
 svg.straight .right{
-	fill: white !important;
+	fill: #ddd !important;
 }
 
 .occupied .block{

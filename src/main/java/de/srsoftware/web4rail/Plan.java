@@ -66,7 +66,17 @@ import de.srsoftware.web4rail.tiles.TurnoutRW;
 
 public class Plan {
 	public enum Direction{		
-		NORTH, SOUTH, EAST, WEST
+		NORTH, SOUTH, EAST, WEST;
+		
+		Direction inverse() {
+			switch (this) {
+			case NORTH: return SOUTH;
+			case SOUTH: return NORTH;
+			case EAST: return WEST;
+			case WEST: return EAST;
+			}
+			return null;
+		}
 	}
 	
 	private class Heartbeat extends Thread {
@@ -148,7 +158,7 @@ public class Plan {
 	private String analyze() {
 		Vector<Route> routes = new Vector<Route>();
 		for (Block block : blocks) {
-			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().start(block),con));
+			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().start(block,con.from.inverse()),con));
 		}
 		this.routes.clear();
 		for (HashMap<Integer, Tile> column: tiles.values()) {
@@ -279,7 +289,7 @@ public class Plan {
 						JSONObject pos = (JSONObject) entry;
 						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"),false);
 						if (route.path().isEmpty()) {
-							route.start((Block) tile);
+							route.start((Block) tile,null);
 						} else {
 							route.add(tile, null);
 						}

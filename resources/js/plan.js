@@ -1,10 +1,10 @@
 const ADD = 'add';
 const MOVE = 'move';
 const SQUARE = 30;
-const BODY = '#plan';
+const BODY = 'body';
 const DIV = 'DIV';
 const SVG = 'svg';
-const PLAN = 'plan';
+const PLAN = '#plan';
 const POST = 'POST';
 var selected = null;
 var mode = null;
@@ -21,23 +21,6 @@ function addMessage(txt){
 function addTile(x,y){	
 	console.log("addTile:",selected.id,x,y);
 	return request({action:mode,tile:selected.id,x:x,y:y});
-}
-
-function bodyClick(ev){
-	//console.log('bodyClick:',ev);
-	var x = Math.floor(ev.clientX/SQUARE);
-	var y = Math.floor(ev.clientY/SQUARE);
-
-	switch (mode){
-		case undefined:
-		case null:
-			return clickTile(x,y);
-		case ADD:
-			return addTile(x,y);
-		case MOVE:
-			return moveTile(x,y);
-	}
-	console.log('unknown action "'+mode+'" @ ('+ev.clientX+','+ev.clientY+')');
 }
 
 function clickTile(x,y){
@@ -113,8 +96,25 @@ function openRoute(id){
 function place(data){
 	var tag = $(data);
 	$('#'+tag.attr('id')).remove();
-	$(BODY).append(tag);
+	$(PLAN).append(tag);
 	return false;
+}
+
+function planClick(ev){
+	//console.log('bodyClick:',ev);
+	var x = Math.floor(ev.clientX/SQUARE);
+	var y = Math.floor(ev.clientY/SQUARE);
+
+	switch (mode){
+		case undefined:
+		case null:
+			return clickTile(x,y);
+		case ADD:
+			return addTile(x,y);
+		case MOVE:
+			return moveTile(x,y);
+	}
+	console.log('unknown action "'+mode+'" @ ('+ev.clientX+','+ev.clientY+')');
 }
 
 function remove(id){
@@ -124,14 +124,15 @@ function remove(id){
 
 function request(data){
 	$.ajax({
-		url : PLAN,
+		url : 'plan',
 		method : POST,
 		data : data,
 		success: function(resp){
 			closeWindows();
 			if (resp.startsWith('<svg')){
-				$('#plan').append($(resp));
+				$(PLAN).append($(resp));
 			} else if (resp.startsWith('<')) {
+				console.log("appending to body: "+resp.substring(0,10));
 				$(BODY).append($(resp));
 			} else {
 				addMessage(resp);
@@ -163,11 +164,10 @@ function stream(ev){
 
 window.onload = function () {
 	var isDragging = false;
-	console.log($(BODY).each(function(){console.log(this)}));
 	$('.menu > div').click(closeMenu);
 	$('.menu .addtile .list svg').click(enableAdding);
 	$('.menu .move .list div').click(enableMove);
 	$('.menu .actions .list > div').click(runAction);
-	$(BODY).click(bodyClick);
+	$(PLAN).click(planClick);
 	(new EventSource("stream")).onmessage = stream;
 }
