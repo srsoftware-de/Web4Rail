@@ -29,6 +29,7 @@ import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.BlockV;
+import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.ContactH;
 import de.srsoftware.web4rail.tiles.ContactV;
 import de.srsoftware.web4rail.tiles.CrossH;
@@ -171,7 +172,20 @@ public class Plan {
 		Vector<Route> results = new Vector<>();
 		if (tile == null) return results;
 		Tile addedTile = route.add(tile,connector.from);
-		if (addedTile instanceof Block) return List.of(route);
+		if (addedTile instanceof Block) {
+			Map<Connector, State> cons = addedTile.connections(connector.from);
+			LOG.debug("Found {}, coming from {}.",addedTile,connector.from);
+			for (Connector con : cons.keySet()) { // falls direkt nach dem Block noch ein Kontakt kommt: diesen mit zu Route hinzufügen
+				LOG.debug("This is connected to {}",con);
+				Tile nextTile = get(con.x,con.y,false);
+				if (nextTile instanceof Contact) {
+					LOG.debug("{} is followed by {}",addedTile,nextTile);
+					route.add(nextTile, con.from);
+				}
+				break;
+			}
+			return List.of(route);
+		}
 		Map<Connector, State> connectors = tile.connections(connector.from);
 		List<Route>routes = route.multiply(connectors.size());
 		LOG.debug("{}",tile);

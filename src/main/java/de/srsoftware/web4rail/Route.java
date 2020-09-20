@@ -72,12 +72,12 @@ public class Route {
 			StringBuilder sb = new StringBuilder();
 			for (int i=0; i<path.size();i++) {
 				Tile tile = path.get(i);
-				if (i==0) {
+				if (i>0) sb.append(" – ");
+				if (tile instanceof Block) {
 					sb.append(((Block)tile).name);
-				} else if (i==path.size()-1){
-					sb.append("-"+((Block)tile).name);
+					if (i>0) break; // Kontakt nach dem Ziel-Block nicht mitnehmen
 				} else {
-					sb.append("-"+tile.x+":"+tile.y);
+					sb.append(tile.x+":"+tile.y);
 				}
 			}
 			id = sb.toString();
