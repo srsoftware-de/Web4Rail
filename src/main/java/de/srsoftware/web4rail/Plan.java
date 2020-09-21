@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.moving.Car;
+import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Div;
 import de.srsoftware.web4rail.tiles.Block;
@@ -105,6 +106,8 @@ public class Plan {
 	private static final String ROUTE = "route";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	private static final String ACTION_TRAIN = "train";
+	private static final String ACTION_LOCOS = "locos";
+	private static final String ACTION_TRAINS = "trains";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -351,6 +354,8 @@ public class Plan {
 					return click(get(params.get(Tile.ID),true));
 				case ACTION_ANALYZE:
 					return analyze();
+				case ACTION_LOCOS:
+					return Locomotive.manager();
 				case ACTION_MOVE:
 					return moveTile(params.get(DIRECTION),params.get(Tile.ID));
 				case ACTION_ROUTE:
@@ -359,6 +364,8 @@ public class Plan {
 					return saveTo(params.get(FILE));
 				case ACTION_TRAIN:
 					return trainAction(params);
+				case ACTION_TRAINS:
+					return Train.manager();
 				case ACTION_UPDATE:
 					return update(params);		
 				default:
@@ -499,9 +506,10 @@ public class Plan {
 	}
 	
 	private Tag trainMenu() throws IOException {
-		Tag tileMenu = new Tag("div").clazz("trains").title(t("Manage trains")).content(t("Trains"));
-		
+		Tag tileMenu = new Tag("div").clazz("trains").content(t("Trains"));		
 		StringBuffer tiles = new StringBuffer();
+		tiles.append(new Div("trains").content(t("Manage trains")));
+		tiles.append(new Div("locos").content(t("Manage locos")));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 

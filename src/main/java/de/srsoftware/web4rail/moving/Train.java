@@ -107,24 +107,6 @@ public class Train {
 		trains.put(id, this);
 	}
 
-	
-	private JSONObject json() {
-		JSONObject json = new JSONObject();
-		json.put(ID, id);
-		json.put(NAME,name);
-		if (route != null) json.put(ROUTE, route.id());
-		if (direction != null) json.put(DIRECTION, direction);
-		json.put(PUSH_PULL, pushPull);
-		Vector<String> locoIds = new Vector<String>();
-		for (Locomotive loco : locos) locoIds.add(loco.id());
-		json.put(LOCOS, locoIds);
-		Vector<String> carIds = new Vector<String>();
-		for (Car car : cars) carIds.add(car.id());
-		json.put(CARS,carIds);
-		return json;
-	}
-
-	
 	public static Object action(HashMap<String, String> params) throws IOException {
 		if (!params.containsKey(Train.ID)) return t("No train id passed!");
 		long id = Long.parseLong(params.get(Train.ID));
@@ -176,6 +158,22 @@ public class Train {
 	public Train heading(Direction dir) {
 		direction = dir;
 		return this;
+	}	
+	
+	private JSONObject json() {
+		JSONObject json = new JSONObject();
+		json.put(ID, id);
+		json.put(NAME,name);
+		if (route != null) json.put(ROUTE, route.id());
+		if (direction != null) json.put(DIRECTION, direction);
+		json.put(PUSH_PULL, pushPull);
+		Vector<String> locoIds = new Vector<String>();
+		for (Locomotive loco : locos) locoIds.add(loco.id());
+		json.put(LOCOS, locoIds);
+		Vector<String> carIds = new Vector<String>();
+		for (Car car : cars) carIds.add(car.id());
+		json.put(CARS,carIds);
+		return json;
 	}
 		
 	public int length() {
@@ -183,6 +181,10 @@ public class Train {
 		for (Locomotive loco : locos) result += loco.length;
 		for (Car car : cars) result += car.length;
 		return result;
+	}
+	
+	public Tag link(String tagClass) {
+		return new Tag(tagClass).clazz("link").attr("onclick","train("+id+",'"+Train.MODE_SHOW+"')").content(name());
 	}
 	
 	public static void loadAll(String filename) throws IOException {
@@ -205,6 +207,17 @@ public class Train {
 		pushPull = json.getBoolean(PUSH_PULL);
 		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get((String)id));
 		for (Object id : json.getJSONArray(CARS)) add(Car.get((String)id));
+	}
+	
+	public static Object manager() {
+		Window win = new Window("train-manager", t("Train manager"));
+		new Tag("h4").content(t("known trains")).addTo(win);
+		Tag list = new Tag("ul");
+		for (Train train : trains.values()) {
+			train.link("li").addTo(list);
+		}
+		list.addTo(win);
+		return win;
 	}
 
 	public String name() {
@@ -242,13 +255,14 @@ public class Train {
 		new Tag("li").content(t("Current location: {}",block)).addTo(list);
 		new Tag("li").content(t("Direction: heading {}",direction)).addTo(list);
 		
-		new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_START+"')").content(t("start")).addTo(list).addTo(window);
+		new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_START+"')").content(t("start")).addTo(list);
 		if (autopilot == null) {
-			new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_AUTO+"')").content(t("auto")).addTo(list).addTo(window);
+			new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_AUTO+"')").content(t("auto")).addTo(list);
 		} else {
-			new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_STOP+"')").content(t("stop")).addTo(list).addTo(window);
+			new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_STOP+"')").content(t("stop")).addTo(list);
 		}
 		
+		list.addTo(window);
 		return window;
 	}
 	

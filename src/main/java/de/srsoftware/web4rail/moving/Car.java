@@ -11,10 +11,15 @@ import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
+import de.keawe.tools.translations.Translation;
+import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Application;
+
 public class Car {
 	private static final String ID = "id";
 	private static final String NAME = "name";
 	private static final String LENGTH = "length";
+	private static final String SHOW = "show";
 	static HashMap<String,Car> cars = new HashMap<String, Car>();
 	public int length;
 	private String name;
@@ -37,9 +42,8 @@ public class Car {
 	}
 	
 	public static Car get(String nameOrId) {
-		HashMap<String, Car> cs = cars;
-		Car car = cars.get(nameOrId);
-		if (car == null) {
+		Car car = cars.get(nameOrId); // try to get by id
+		if (car == null) { // try to get by name
 			for (Car c : cars.values()) {
 				if (c.name.equals(nameOrId)) car = c;
 			}
@@ -58,6 +62,10 @@ public class Car {
 		json.put(NAME, name);
 		json.put(LENGTH, length);
 		return json;
+	}
+	
+	public Tag link(String tagClass) {
+		return new Tag(tagClass).clazz("link").attr("onclick","car("+id+",'"+Car.SHOW+"')").content(name());
 	}
 
 	String name(){
@@ -92,5 +100,9 @@ public class Car {
 			file.write(c.json()+"\n");
 		}
 		file.close();
+	}
+	
+	protected static String t(String txt, Object...fills) {
+		return Translation.get(Application.class, txt, fills);
 	}
 }

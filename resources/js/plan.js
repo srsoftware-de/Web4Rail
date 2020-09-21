@@ -23,6 +23,10 @@ function addTile(x,y){
 	return request({action:mode,tile:selected.id,x:x,y:y});
 }
 
+function car(id,mode){
+	return request({action:"car",id:id,mode:mode});
+}
+
 function clickTile(x,y){
 	var id = x+"-"+y;
 	console.log("clickTile:",id);	
@@ -171,6 +175,7 @@ window.onload = function () {
 	$('.menu .addtile .list svg').click(enableAdding);
 	$('.menu .move .list div').click(enableMove);
 	$('.menu .actions .list > div').click(runAction);
+	$('.menu .trains .list > div').click(runAction);
 	$(PLAN).click(planClick);
 	(new EventSource("stream")).onmessage = stream;
 }
