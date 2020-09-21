@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,12 +45,17 @@ public class Route {
 	private Vector<Signal> signals;
 	private Vector<Contact> contacts;
 	private HashMap<Turnout,Turnout.State> turnouts;
-	private HashMap<Object,Vector<Action>> triggers = new HashMap<Object, Vector<Action>>();
-	private String id;
-	private String name;
+	private HashMap<String,Vector<Action>> triggers = new HashMap<String, Vector<Action>>();
+	private int id;
+	private static HashMap<Integer, String> names = new HashMap<Integer, String>(); // maps id to name. needed to keep names during plan.analyze()
 	public Train train;
 	private Block startBlock = null,endBlock;
+	private static final String START_DIRECTION = "direction_start";
 	public Direction startDirection;
+	private static final String END_DIRECTION = "direction_end";
+	private static final String TRIGGER = "trigger";
+	private static final String ACTIONS = "actions";
+	private static final String ID = "id";
 	private Direction endDirection;
 	
 	/**
@@ -77,7 +83,7 @@ public class Route {
 		return tile;
 	}	
 	
-	private void addAction(Object trigger, Action action) {
+	private void addAction(String trigger, Action action) {
 		Vector<Action> actions = triggers.get(trigger);
 		if (actions == null) {
 			actions = new Vector<Action>();
@@ -109,15 +115,15 @@ public class Route {
 	
 	public void complete() {
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
-			addAction(contacts.firstElement(),new ActivateRoute(this));
-			Contact nextToLastContact = contacts.get(contacts.size()-2);
-			addAction(nextToLastContact,new SpeedReduction(this,30));			
-			addAction(nextToLastContact,new SetSignalsToStop(this));
+			addAction(contacts.firstElement().trigger(),new ActivateRoute(this));
+			Contact nextToLastContact = contacts.get(contacts.size()-2);			
+			addAction(nextToLastContact.trigger(),new SpeedReduction(this,30));			
+			addAction(nextToLastContact.trigger(),new SetSignalsToStop(this));
 		}
 		if (!contacts.isEmpty()) {
 			Contact lastContact = contacts.lastElement(); 
-			addAction(lastContact, new SpeedReduction(this, 0)); 
-			addAction(lastContact, new FinishRoute(this));
+			addAction(lastContact.trigger(), new SpeedReduction(this, 0)); 
+			addAction(lastContact.trigger(), new FinishRoute(this));
 		}
 	}
 
@@ -128,7 +134,7 @@ public class Route {
 	 */
 	public void contact(Contact contact) {
 		LOG.debug("{} on {} activated {}.",train,this,contact);
-		Vector<Action> actions = triggers.get(contact);
+		Vector<Action> actions = triggers.get(contact.trigger());
 		for (Action action : actions) {
 			try {
 				action.fire();
@@ -150,33 +156,37 @@ public class Route {
 		endBlock.train(train.heading(endDirection.inverse()));
 	}
 	
-	public String id() {
-		if (id == null) {
-			StringBuilder sb = new StringBuilder();
-			for (int i=0; i<path.size();i++) {
-				Tile tile = path.get(i);
-				if (i>0) sb.append("-");
-				if (tile instanceof Block) {
-					sb.append(((Block)tile).name);
-					if (i>0) break; // Kontakt nach dem Ziel-Block nicht mitnehmen
-				} else {
-					sb.append(tile.id());
-				}
-			}
-			id = sb.toString();
-		}
-		return id;
-	}
-	
 	public boolean free() {
 		for (int i=1; i<path.size(); i++) { 
 			if (!path.get(i).free()) return false;
 		}
 		return true;
 	}
+	
+	private String generateName() {
+		StringBuilder sb = new StringBuilder();
+		for (int i=0; i<path.size();i++) {
+			Tile tile = path.get(i);
+			if (i>0) sb.append("-");
+			if (tile instanceof Block) {
+				sb.append(((Block)tile).name);
+				if (i>0) break; // Kontakt nach dem Ziel-Block nicht mitnehmen
+			} else {
+				sb.append(tile.id());
+			}
+		}
+		return sb.toString();
+	}
+	
+	public int id() {
+		if (id == 0) id = generateName().hashCode();
+		return id;
+	}
 		
 	public String json() {
 		JSONObject props = new JSONObject();
+		
+		props.put(ID, id());
 		Vector<String> tileIds = new Vector<String>();
 		for (Tile t : this.path) tileIds.add(t.id());
 		props.put(PATH, tileIds);
@@ -191,18 +201,44 @@ public class Route {
 			turnouts.put(new JSONObject(Map.of(Turnout.ID,t.id(),Turnout.STATE,entry.getValue())));
 		}
 		props.put(TURNOUTS, turnouts);
+		props.put(START_DIRECTION, startDirection);
+		props.put(END_DIRECTION, startDirection);
 		
+		JSONArray jTriggers = new JSONArray();
+		for (Entry<String, Vector<Action>> entry : triggers.entrySet()) {
+			JSONObject trigger = new JSONObject();
+			trigger.put(TRIGGER, entry.getKey());
+			
+			JSONArray jActions = new JSONArray();
+			for (Action action : entry.getValue()) {
+				jActions.put(action.json());
+			}
+			trigger.put(ACTIONS, jActions);
+			
+			jTriggers.put(trigger);
+
+		}
+		if (!jTriggers.isEmpty()) props.put(ACTIONS, jTriggers);
+		
+		String name = name();		
 		if (name != null) props.put(NAME, name);
 
 		return props.toString();
 	}
 	
 	private Route load(JSONObject json,Plan plan) {
+		if (json.has(ID)) id = json.getInt(ID);
 		JSONArray pathIds = json.getJSONArray(PATH);
+		startDirection = Direction.valueOf(json.getString(START_DIRECTION));
+		endDirection = Direction.valueOf(json.getString(END_DIRECTION));
 		for (Object tileId : pathIds) {
-			plan.get((String) tileId,false);
+			Tile tile = plan.get((String) tileId,false);
+			if (startBlock == null) {
+				start((Block) tile, startDirection);
+			} else add(tile, endDirection);
 		}
-		return this;
+		if (json.has(NAME)) name(json.getString(NAME));
+		return plan.registerRoute(this);
 	}
 	
 	public static void loadAll(String filename, Plan plan) throws IOException {
@@ -233,11 +269,16 @@ public class Route {
 	}
 	
 	public String name() {
-		return name == null ? id() : name;
+		String name = names.get(id());
+		if (name == null) {			
+			name = generateName();
+			name(name);
+		}
+		return name;
 	}
-	
+
 	public void name(String name) {
-		this.name = name;
+		names.put(id(),name);
 	}
 	
 	public Vector<Tile> path() {
@@ -290,7 +331,7 @@ public class Route {
 	public Tag propForm() {
 		Form form = new Form();
 		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "update").addTo(form);
-		new Tag("input").attr("type", "hidden").attr("name","route").attr("value", id()).addTo(form);
+		new Tag("input").attr("type", "hidden").attr("name","route").attr("value", ""+id()).addTo(form);
 		
 		Tag label = new Tag("label").content(t("name:"));
 		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).addTo(label);		
@@ -299,12 +340,9 @@ public class Route {
 		return form;
 	}
 	
-	public static void saveAll(HashMap<String, Route> routes, String filename) throws IOException {
+	public static void saveAll(Collection<Route> routes, String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Entry<String, Route> entry : routes.entrySet()) {
-			Route route = entry.getValue();
-			file.write(route.json()+"\n");
-		}
+		for (Route route : routes) file.write(route.json()+"\n");
 		file.close();
 	}
 

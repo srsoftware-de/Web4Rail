@@ -4,12 +4,11 @@ import java.io.IOException;
 
 import de.srsoftware.web4rail.Route;
 
-public class ActivateRoute extends Action {
+public class ActivateRoute extends RouteAction {
 
-	private Route route;
 
 	public ActivateRoute(Route route) {
-		this.route = route;
+		super(route);
 	}
 
 	@Override

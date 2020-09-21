@@ -108,7 +108,7 @@ public class Plan {
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
-	private HashMap<String, Route> routes = new HashMap<String, Route>();
+	private HashMap<Integer, Route> routes = new HashMap<Integer, Route>();
 	
 	public Plan() {
 		new Heartbeat().start();
@@ -239,11 +239,21 @@ public class Plan {
 	public static Plan load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		try {
 			Car.loadAll(filename+".cars");
+		} catch (Exception e) {
+			LOG.debug("Was not able to load cars!",e);
+		}
+		try {
 			Train.loadAll(filename+".trains");
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			LOG.debug("Was not able to load trains!",e);
+		}
 		Plan plan = new Plan();
 		Tile.loadAll(filename+".plan",plan);
-		Route.loadAll(filename+".routes",plan);
+		try {
+			Route.loadAll(filename+".routes",plan);
+		} catch (Exception e) {
+			LOG.debug("Was not able to load routes!",e);
+		}
 		return plan;
 	}
 
@@ -343,7 +353,7 @@ public class Plan {
 				case ACTION_MOVE:
 					return moveTile(params.get(DIRECTION),params.get(Tile.ID));
 				case ACTION_ROUTE:
-					return routeProperties(params.get(ID));
+					return routeProperties(Integer.parseInt(params.get(ID)));
 				case ACTION_SAVE:
 					return saveTo(params.get(FILE));
 				case ACTION_TRAIN:
@@ -367,15 +377,16 @@ public class Plan {
 		return result instanceof Train ? html() : result;
 	}
 
-	private Object routeProperties(String routeId) {
-		Route route = routes.get(routeId);
-		if (route == null) return t("Could not find route \"{}\"",routeId);
+	private Object routeProperties(int id) {
+		Route route = routes.get(id);
+		if (route == null) return t("Could not find route \"{}\"",id);
 		return route.properties();
 	}
 	
-	private void registerRoute(Route route) {
+	Route registerRoute(Route route) {
 		for (Tile tile: route.path()) tile.add(route);
 		routes.put(route.id(), route);
+		return route;
 	}
 	
 	private void remove(Tile tile) {
@@ -395,7 +406,7 @@ public class Plan {
 		Car.saveAll(name+".cars");
 		Tile.saveAll(tiles,name+".plan");
 		Train.saveAll(name+".trains"); // refers to cars, blocks
-		Route.saveAll(routes,name+".routes"); // refers to tiles
+		Route.saveAll(routes.values(),name+".routes"); // refers to tiles
 		return t("Plan saved as \"{}\".",name);
 	}
 	
@@ -484,7 +495,7 @@ public class Plan {
 	
 	private Object update(HashMap<String, String> params) throws IOException {
 		if (params.containsKey(ROUTE)) {
-			Route route = routes.get(params.get(ROUTE));
+			Route route = routes.get(Integer.parseInt(params.get(ROUTE)));
 			if (route == null) return t("Unknown route: {}",params.get(ROUTE));
 			route.update(params);
 		} else update(Integer.parseInt(params.get("x")),Integer.parseInt(params.get("y")),params);

@@ -5,17 +5,15 @@ import java.io.IOException;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.tiles.Signal;
 
-public class SetSignalsToStop extends Action {
+public class SetSignalsToStop extends RouteAction {
 
-	private Route route;
 
 	public SetSignalsToStop(Route route) {
-		this.route = route;
+		super(route);
 	}
 
 	@Override
 	public void fire() throws IOException {
 		route.setSignals(Signal.STOP);
 	}
-
 }

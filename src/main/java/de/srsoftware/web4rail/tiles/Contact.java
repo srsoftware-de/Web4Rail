@@ -7,7 +7,7 @@ import de.srsoftware.tools.Tag;
 public abstract class Contact extends Tile{
 	
 	private boolean active = false;
-
+	private String trigger = null;
 
 	public void activate() throws IOException {
 		active = true;
@@ -39,6 +39,12 @@ public abstract class Contact extends Tile{
 		Tag tag = super.tag(null);
 		if (active) tag.clazz(tag.get("class")+" active");
 		plan.stream("place "+tag);
+	}
+
+
+	public String trigger() {
+		if (trigger == null) trigger = getClass().getSimpleName()+"-"+id();
+		return trigger;
 	}
 
 }
