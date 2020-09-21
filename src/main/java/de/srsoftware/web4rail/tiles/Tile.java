@@ -147,12 +147,17 @@ public abstract class Tile {
 		JSONObject pos = json.getJSONObject(POS);
 		x = pos.getInt(X);
 		y = pos.getInt(Y);
+		if (json.has(ONEW_WAY)) oneWay = Direction.valueOf(json.getString(ONEW_WAY));
 		return this;
 	}
 	
 	public void lock(Route route) throws IOException {
 		this.route = route;
 		plan.place(this);
+	}
+	
+	public Plan plan() {
+		return plan;
 	}
 	
 	public Tile plan(Plan plan) {
@@ -173,8 +178,7 @@ public abstract class Tile {
 	public Tag propForm() {
 		Form form = new Form();
 		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "update").addTo(form);
-		new Tag("input").attr("type", "hidden").attr("name","x").attr("value", x).addTo(form);
-		new Tag("input").attr("type", "hidden").attr("name","y").attr("value", y).addTo(form);
+		new Tag("input").attr("type", "hidden").attr("name",ID).attr("value", id()).addTo(form);
 		
 		List<Direction> pd = possibleDirections();
 		if (!pd.isEmpty()) {

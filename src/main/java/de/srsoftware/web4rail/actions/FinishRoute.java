@@ -6,12 +6,12 @@ import de.srsoftware.web4rail.Route;
 
 public class FinishRoute extends RouteAction {
 
-	public FinishRoute(Route route) {
-		super(route);
+	public FinishRoute(int routeId) {
+		super(routeId);
 	}
 
 	@Override
-	public void fire() throws IOException {
+	public void fire(Route route) throws IOException {
 		route.finish();
 	}
 }

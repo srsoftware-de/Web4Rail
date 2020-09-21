@@ -8,12 +8,12 @@ import de.srsoftware.web4rail.tiles.Signal;
 public class SetSignalsToStop extends RouteAction {
 
 
-	public SetSignalsToStop(Route route) {
-		super(route);
+	public SetSignalsToStop(int routeId) {
+		super(routeId);
 	}
 
 	@Override
-	public void fire() throws IOException {
+	public void fire(Route route) throws IOException {
 		route.setSignals(Signal.STOP);
 	}
 }

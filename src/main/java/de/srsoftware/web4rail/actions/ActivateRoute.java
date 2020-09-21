@@ -7,12 +7,12 @@ import de.srsoftware.web4rail.Route;
 public class ActivateRoute extends RouteAction {
 
 
-	public ActivateRoute(Route route) {
-		super(route);
+	public ActivateRoute(int routeId) {
+		super(routeId);
 	}
 
 	@Override
-	public void fire() throws IOException {
+	public void fire(Route route) throws IOException {
 		route.activate();
 	}
 }

@@ -7,16 +7,16 @@ import de.srsoftware.web4rail.moving.Train;
 
 public class SpeedReduction extends RouteAction {
 
-	private static final String MAX_SPEED = "max_speed";
+	static final String MAX_SPEED = "max_speed";
 	private int maxSpeed;
 
-	public SpeedReduction(Route route, int kmh) {
-		super(route);
+	public SpeedReduction(int routeId, int kmh) {
+		super(routeId);
 		maxSpeed = kmh;
 	}
 
 	@Override
-	public void fire() {
+	public void fire(Route route) {
 		Train train = route.train;
 		if (train != null && train.speed > maxSpeed) train.setSpeed(maxSpeed);
 	}

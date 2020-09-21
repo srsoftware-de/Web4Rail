@@ -262,6 +262,7 @@ public class Plan {
 		actionMenu().addTo(menu);
 		moveMenu().addTo(menu);		
 		tileMenu().addTo(menu);
+		trainMenu().addTo(menu);
 		return menu;
 	}
 
@@ -376,9 +377,13 @@ public class Plan {
 		Object result = Train.action(params);		
 		return result instanceof Train ? html() : result;
 	}
+	
+	public Route route(int routeId) {
+		return routes.get(routeId);
+	}
 
 	private Object routeProperties(int id) {
-		Route route = routes.get(id);
+		Route route = route(id);
 		if (route == null) return t("Could not find route \"{}\"",id);
 		return route.properties();
 	}
@@ -493,18 +498,24 @@ public class Plan {
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 	
+	private Tag trainMenu() throws IOException {
+		Tag tileMenu = new Tag("div").clazz("trains").title(t("Manage trains")).content(t("Trains"));
+		
+		StringBuffer tiles = new StringBuffer();
+		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
+	}
+
 	private Object update(HashMap<String, String> params) throws IOException {
 		if (params.containsKey(ROUTE)) {
 			Route route = routes.get(Integer.parseInt(params.get(ROUTE)));
 			if (route == null) return t("Unknown route: {}",params.get(ROUTE));
 			route.update(params);
-		} else update(Integer.parseInt(params.get("x")),Integer.parseInt(params.get("y")),params);
+		} else update(get(params.get(Tile.ID),true),params);
 		return this.html();
 	}
 
-	private void update(int x,int y, HashMap<String, String> params) throws IOException {
-		Tile tile = get(Tile.id(x, y),true);
-		if (tile != null) set(x,y,tile.update(params));
+	private void update(Tile tile, HashMap<String, String> params) throws IOException {
+		if (tile != null) place(tile.update(params));
 	}
 
 	public void warn(Contact contact) {

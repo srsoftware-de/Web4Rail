@@ -59,13 +59,17 @@ public class Train {
 	private Block block = null;
 		
 	private class Autopilot extends Thread{
+		boolean stop = false;
+		
 		@Override
 		public void run() {
 			try {
+				stop = false;
 				Vector<Tile> path = new Vector<Tile>();
 				while (true) {
 					if (route == null) {
-						Thread.sleep(3000);
+						Thread.sleep(2000);
+						if (stop) return;
 						Train.this.start();
 						path = route == null ? new Vector<Tile>() : route.path();
 					} else {
@@ -74,7 +78,7 @@ public class Train {
 							if (t instanceof Contact) ((Contact)t).activate();
 						}
 					}
-					Thread.sleep(500);
+					Thread.sleep(250);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -86,6 +90,8 @@ public class Train {
 	public static final String MODE_SHOW = "show";
 	private static final String MODE_UPDATE = "update";
 	private static final String MODE_AUTO = "auto";
+
+	private static final String MODE_STOP = "stop";
 
 	public int speed = 0;
 	private Autopilot autopilot = null;
@@ -133,6 +139,8 @@ public class Train {
 			return train.props();
 		case MODE_START:
 			return train.start();
+		case MODE_STOP:
+			return train.stop();
 		case MODE_UPDATE:
 			return train.update(params);
 		default: return t("Unknown mode {} for {}",mode,train); 
@@ -235,7 +243,11 @@ public class Train {
 		new Tag("li").content(t("Direction: heading {}",direction)).addTo(list);
 		
 		new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_START+"')").content(t("start")).addTo(list).addTo(window);
-		new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_AUTO+"')").content(t("auto")).addTo(list).addTo(window);
+		if (autopilot == null) {
+			new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_AUTO+"')").content(t("auto")).addTo(list).addTo(window);
+		} else {
+			new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_STOP+"')").content(t("stop")).addTo(list).addTo(window);
+		}
 		
 		return window;
 	}
@@ -281,6 +293,12 @@ public class Train {
 		if (direction != route.startDirection) turn();
 		setSpeed(100);
 		return t("started {}",this); 
+	}
+	
+	private Object stop() {
+		autopilot.stop = true;
+		autopilot = null;
+		return t("{} stopping at next block {}");
 	}
 	
 	private static String t(String message, Object...fills) {

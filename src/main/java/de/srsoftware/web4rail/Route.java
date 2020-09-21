@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Vector;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,15 +117,15 @@ public class Route {
 	
 	public void complete() {
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
-			addAction(contacts.firstElement().trigger(),new ActivateRoute(this));
+			addAction(contacts.firstElement().trigger(),new ActivateRoute(id()));
 			Contact nextToLastContact = contacts.get(contacts.size()-2);			
-			addAction(nextToLastContact.trigger(),new SpeedReduction(this,30));			
-			addAction(nextToLastContact.trigger(),new SetSignalsToStop(this));
+			addAction(nextToLastContact.trigger(),new SpeedReduction(id(),30));			
+			addAction(nextToLastContact.trigger(),new SetSignalsToStop(id()));
 		}
 		if (!contacts.isEmpty()) {
 			Contact lastContact = contacts.lastElement(); 
-			addAction(lastContact.trigger(), new SpeedReduction(this, 0)); 
-			addAction(lastContact.trigger(), new FinishRoute(this));
+			addAction(lastContact.trigger(), new SpeedReduction(id(), 0)); 
+			addAction(lastContact.trigger(), new FinishRoute(id()));
 		}
 	}
 
@@ -137,7 +139,7 @@ public class Route {
 		Vector<Action> actions = triggers.get(contact.trigger());
 		for (Action action : actions) {
 			try {
-				action.fire();
+				action.fire(contact.plan());
 			} catch (IOException e) {
 				LOG.warn("Action did not fire properly: {}",action,e);
 			}
@@ -184,25 +186,25 @@ public class Route {
 	}
 		
 	public String json() {
-		JSONObject props = new JSONObject();
+		JSONObject json = new JSONObject();
 		
-		props.put(ID, id());
+		json.put(ID, id());
 		Vector<String> tileIds = new Vector<String>();
 		for (Tile t : this.path) tileIds.add(t.id());
-		props.put(PATH, tileIds);
+		json.put(PATH, tileIds);
 		
 		Vector<String> signalIds = new Vector<String>(); // list all signals affecting this route 
 		for (Tile t : this.signals) signalIds.add(t.id());
-		props.put(SIGNALS, signalIds);
+		json.put(SIGNALS, signalIds);
 		
 		JSONArray turnouts = new JSONArray();
 		for (Entry<Turnout, State> entry : this.turnouts.entrySet()) {
 			Turnout t = entry.getKey();
 			turnouts.put(new JSONObject(Map.of(Turnout.ID,t.id(),Turnout.STATE,entry.getValue())));
 		}
-		props.put(TURNOUTS, turnouts);
-		props.put(START_DIRECTION, startDirection);
-		props.put(END_DIRECTION, startDirection);
+		json.put(TURNOUTS, turnouts);
+		json.put(START_DIRECTION, startDirection);
+		json.put(END_DIRECTION, endDirection);
 		
 		JSONArray jTriggers = new JSONArray();
 		for (Entry<String, Vector<Action>> entry : triggers.entrySet()) {
@@ -218,12 +220,12 @@ public class Route {
 			jTriggers.put(trigger);
 
 		}
-		if (!jTriggers.isEmpty()) props.put(ACTIONS, jTriggers);
+		if (!jTriggers.isEmpty()) json.put(ACTIONS, jTriggers);
 		
 		String name = name();		
-		if (name != null) props.put(NAME, name);
+		if (name != null) json.put(NAME, name);
 
-		return props.toString();
+		return json.toString();
 	}
 	
 	private Route load(JSONObject json,Plan plan) {
@@ -235,12 +237,46 @@ public class Route {
 			Tile tile = plan.get((String) tileId,false);
 			if (startBlock == null) {
 				start((Block) tile, startDirection);
-			} else add(tile, endDirection);
+			} else if (tile instanceof Block) { // make sure, endDirection is set on last block
+				add(tile,endDirection);
+			} else {
+				add(tile, null);
+			}
 		}
 		if (json.has(NAME)) name(json.getString(NAME));
+		if (json.has(TURNOUTS)) {
+			JSONArray turnouts = json.getJSONArray(TURNOUTS);
+			for (int i=0; i<turnouts.length();i++) {
+				JSONObject jTurnout = turnouts.getJSONObject(i);
+				Turnout turnout = (Turnout) plan.get(jTurnout.getString(Turnout.ID), false);
+				addTurnout(turnout, Turnout.State.valueOf(jTurnout.getString(Turnout.STATE)));
+			}
+		}
+		if (json.has(SIGNALS)) {
+			for (Object signalId : json.getJSONArray(SIGNALS)) addSignal((Signal) plan.get((String) signalId, false));
+		}
+		if (json.has(ACTIONS)) loadActions(json.getJSONArray(ACTIONS));
 		return plan.registerRoute(this);
 	}
 	
+	private void loadActions(JSONArray arr) {
+		for (int i=0; i<arr.length(); i++) {
+			JSONObject json = arr.getJSONObject(i);
+			String trigger = json.getString(TRIGGER);
+			JSONArray actions = json.getJSONArray(ACTIONS);
+			for (int k=0; k<actions.length(); k++) {
+				try {
+					Action action = Action.load(actions.getJSONObject(k));
+					LOG.debug("Loaded {}",action);
+					addAction(trigger, action);					
+				} catch (InstantiationException | IllegalAccessException | IllegalArgumentException| InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException | JSONException e) {
+					LOG.warn("Was not able to load action: ",e);
+				}
+				
+			}			
+		}
+	}
+
 	public static void loadAll(String filename, Plan plan) throws IOException {
 		BufferedReader file = new BufferedReader(new FileReader(filename));
 		String line = file.readLine();
