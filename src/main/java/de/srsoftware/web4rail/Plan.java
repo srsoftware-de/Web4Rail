@@ -106,7 +106,7 @@ public class Plan {
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	private static final String ACTION_TRAIN = "train";
 	
-	public HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
+	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
 	private HashMap<String, Route> routes = new HashMap<String, Route>();
 	
@@ -139,7 +139,7 @@ public class Plan {
 		clazz = tc.getName().replace(".Tile", "."+clazz);		
 		Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
 		if (tile instanceof Eraser) {
-			Tile erased = get(x,y,true);
+			Tile erased = get(Tile.id(x,y),true);
 			remove(erased);
 			return erased == null ? null : t("Removed {}.",erased);
 		}
@@ -154,9 +154,7 @@ public class Plan {
 			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().start(block,con.from.inverse()),con));
 		}
 		this.routes.clear();
-		for (HashMap<Integer, Tile> column: tiles.values()) {
-			for (Tile tile : column.values()) tile.routes().clear();
-		}
+		for (Tile tile : tiles.values()) tile.routes().clear();
 		for (Route route : routes) {
 			route.complete();
 			registerRoute(route);
@@ -174,7 +172,7 @@ public class Plan {
 	}
 
 	private Collection<Route> follow(Route route, Connector connector) {
-		Tile tile = get(connector.x,connector.y,false);
+		Tile tile = get(Tile.id(connector.x,connector.y),false);
 		Vector<Route> results = new Vector<>();
 		if (tile == null) return results;
 		Tile addedTile = route.add(tile,connector.from);
@@ -183,7 +181,7 @@ public class Plan {
 			LOG.debug("Found {}, coming from {}.",addedTile,connector.from);
 			for (Connector con : cons.keySet()) { // falls direkt nach dem Block noch ein Kontakt kommt: diesen mit zu Route hinzufügen
 				LOG.debug("This is connected to {}",con);
-				Tile nextTile = get(con.x,con.y,false);
+				Tile nextTile = get(Tile.id(con.x,con.y),false);
 				if (nextTile instanceof Contact) {
 					LOG.debug("{} is followed by {}",addedTile,nextTile);
 					route.add(nextTile, con.from);
@@ -208,13 +206,8 @@ public class Plan {
 		return results;
 	}
 	
-	private Tile get(String x, String y,boolean resolveShadows) {
-		return get(Integer.parseInt(x),Integer.parseInt(y),resolveShadows);
-	}
-
-	public Tile get(int x, int y,boolean resolveShadows) {
-		HashMap<Integer, Tile> column = tiles.get(x);
-		Tile tile = (column == null) ? null : column.get(y);
+	public Tile get(String tileId,boolean resolveShadows) {
+		Tile tile = tiles.get(tileId);
 		if (resolveShadows && tile instanceof Shadow) tile = ((Shadow)tile).overlay();
 		return tile;
 	}
@@ -229,14 +222,9 @@ public class Plan {
 	
 	public Page html() throws IOException {
 		Page page = new Page().append("<div id=\"plan\">");
-		for (Entry<Integer, HashMap<Integer, Tile>> column : tiles.entrySet()) {
-			int x = column.getKey();
-			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
-				int y = row.getKey();
-				Tile tile = row.getValue().position(x, y);
-				if (tile == null) continue;
-				page.append("\t\t"+tile.tag(null)+"\n");
-			}
+		for (Tile tile: tiles.values()) {
+			if (tile == null) continue;
+			page.append("\t\t"+tile.tag(null)+"\n");
 		}
 		return page
 				.append(menu())
@@ -281,54 +269,54 @@ public class Plan {
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 	
-	private String moveTile(String direction, String x, String y) throws NumberFormatException, IOException {
+	private String moveTile(String direction, String tileId) throws NumberFormatException, IOException {
 		switch (direction) {
 		case "south":
-			return moveTile(Direction.SOUTH,Integer.parseInt(x),Integer.parseInt(y));
+			return moveTile(get(tileId,false),Direction.SOUTH);
 		case "north":
-			return moveTile(Direction.NORTH,Integer.parseInt(x),Integer.parseInt(y));
+			return moveTile(get(tileId,false),Direction.NORTH);
 		case "east":
-			return moveTile(Direction.EAST,Integer.parseInt(x),Integer.parseInt(y));
+			return moveTile(get(tileId,false),Direction.EAST);
 		case "west":
-			return moveTile(Direction.WEST,Integer.parseInt(x),Integer.parseInt(y));
+			return moveTile(get(tileId,false),Direction.WEST);
 		}
 		throw new InvalidParameterException(t("\"{}\" is not a known direction!"));
 	}
 
-	private String moveTile(Direction direction, int x, int y) throws IOException {
-		//LOG.debug("moveTile({},{},{})",direction,x,y);
+	private String moveTile(Tile tile, Direction direction) throws IOException {
 		boolean moved = false;
-		switch (direction) {
-			case EAST:
-				moved = moveTile(x,y,+1,0);
-				break;
-			case WEST:
-				moved = moveTile(x,y,-1,0);
-				break;
-			case NORTH:
-				moved = moveTile(x,y,0,-1);
-				break;
-			case SOUTH:
-				moved = moveTile(x,y,0,+1);
-				break;
+		if (tile != null) {
+			LOG.debug("moveTile({},{},{})",direction,tile.x,tile.y);
+			switch (direction) {		
+				case EAST:
+					moved = moveTile(tile,+1,0);
+					break;
+				case WEST:
+					moved = moveTile(tile,-1,0);
+					break;
+				case NORTH:
+					moved = moveTile(tile,0,-1);
+					break;
+				case SOUTH:
+					moved = moveTile(tile,0,+1);
+					break;
+			}
 		}
 		return t(moved ? "Tile(s) moved.":"No tile(s) moved.");
 	}
 
-	private boolean moveTile(int x, int y,int xstep,int ystep) throws IOException {
-		LOG.error("moveTile({}+ {},{}+ {})",x,xstep,y,ystep);
+	private boolean moveTile(Tile tile,int xstep,int ystep) throws IOException {
+		LOG.error("moveTile({}  +{}/+{})",tile,xstep,ystep);
 		Stack<Tile> stack = new Stack<Tile>();
-		Tile tile = get(x,y,false);
 		while (tile != null) {
-			LOG.debug("scheduling tile for movement: {} @ {},{}",tile,x,y);
+			LOG.debug("scheduling tile for movement: {}",tile);
 			stack.add(tile);
-			x+=xstep;
-			y+=ystep;
-			tile = get(x,y,false);
+			tile = get(Tile.id(tile.x+xstep, tile.y+ystep),false);
 		}
 		while (!stack.isEmpty()) {
 			tile = stack.pop();
 			if (!(tile instanceof Shadow)) {
+				LOG.debug("altering position of {}",tile);
 				remove(tile);
 				set(tile.x+xstep,tile.y+ystep,tile);
 			}
@@ -349,11 +337,11 @@ public class Plan {
 				case ACTION_ADD:
 					return addTile(params.get(TILE),params.get(X),params.get(Y),null);
 				case ACTION_CLICK:
-					return click(get(params.get(X),params.get(Y),true));
+					return click(get(params.get(Tile.ID),true));
 				case ACTION_ANALYZE:
 					return analyze();
 				case ACTION_MOVE:
-					return moveTile(params.get(DIRECTION),params.get(X),params.get(Y));
+					return moveTile(params.get(DIRECTION),params.get(Tile.ID));
 				case ACTION_ROUTE:
 					return routeProperties(params.get(ID));
 				case ACTION_SAVE:
@@ -395,12 +383,11 @@ public class Plan {
 		if (tile instanceof Block) blocks.remove(tile);
 		for (int i=1; i<tile.len(); i++) remove_intern(tile.x+i, tile.y); // remove shadow tiles
 		for (int i=1; i<tile.height(); i++) remove_intern(tile.x, tile.y+i); // remove shadow tiles
-		if (tile != null) stream("remove tile-"+tile.x+"-"+tile.y);
+		if (tile != null) stream("remove "+tile.id());
 	}
 
 	private void remove_intern(int x, int y) {
-		HashMap<Integer, Tile> column = tiles.get(x);
-		if (column != null) column.remove(y);
+		LOG.debug("removed {} from tile list",tiles.remove(Tile.id(x, y)));
 	}
 	
 	private String saveTo(String name) throws IOException {
@@ -422,13 +409,8 @@ public class Plan {
 	}
 	
 	private void set_intern(int x, int y, Tile tile) {
-		HashMap<Integer, Tile> column = tiles.get(x);
-		if (column == null) {
-			column = new HashMap<Integer, Tile>();
-			tiles.put(x,column);
-		}
 		tile.position(x, y).plan(this);
-		column.put(y,tile);
+		tiles.put(tile.id(),tile);
 	}
 	
 	public synchronized void stream(String data) {
@@ -510,7 +492,7 @@ public class Plan {
 	}
 
 	private void update(int x,int y, HashMap<String, String> params) throws IOException {
-		Tile tile = get(x,y,true);
+		Tile tile = get(Tile.id(x, y),true);
 		if (tile != null) set(x,y,tile.update(params));
 	}
 

@@ -1,6 +1,8 @@
 package de.srsoftware.web4rail;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,7 +37,6 @@ import de.srsoftware.web4rail.tiles.Turnout.State;
 public class Route {
 	private static final Logger LOG = LoggerFactory.getLogger(Route.class);
 	static final String NAME = "name";
-	private static final HashMap<String,String> names = new HashMap<String, String>();
 	static final String PATH = "path";
 	static final String SIGNALS = "signals";
 	static final String TURNOUTS = "turnouts";
@@ -45,6 +46,7 @@ public class Route {
 	private HashMap<Turnout,Turnout.State> turnouts;
 	private HashMap<Object,Vector<Action>> triggers = new HashMap<Object, Vector<Action>>();
 	private String id;
+	private String name;
 	public Train train;
 	private Block startBlock = null,endBlock;
 	public Direction startDirection;
@@ -190,16 +192,31 @@ public class Route {
 		}
 		props.put(TURNOUTS, turnouts);
 		
-		if (names.containsKey(id())) props.put(NAME, names.get(id));
+		if (name != null) props.put(NAME, name);
 
 		return props.toString();
 	}
 	
-	public static void loadAll(String string, Plan plan) {
-		// TODO Auto-generated method stub
-		
+	private Route load(JSONObject json,Plan plan) {
+		JSONArray pathIds = json.getJSONArray(PATH);
+		for (Object tileId : pathIds) {
+			plan.get((String) tileId,false);
+		}
+		return this;
 	}
-
+	
+	public static void loadAll(String filename, Plan plan) throws IOException {
+		BufferedReader file = new BufferedReader(new FileReader(filename));
+		String line = file.readLine();
+		while (line != null) {
+			JSONObject json = new JSONObject(line);
+			new Route().load(json,plan);
+			
+			line = file.readLine();
+		}
+		file.close();
+	}
+	
 	public Route lock(Train train) throws IOException {
 		this.train = train;
 		for (Entry<Turnout, State> entry : turnouts.entrySet()) {
@@ -216,14 +233,11 @@ public class Route {
 	}
 	
 	public String name() {
-		String name = names.get(id());
 		return name == null ? id() : name;
 	}
 	
 	public void name(String name) {
-		if (name.isEmpty()) {
-			names.remove(id());
-		} else names.put(id(),name);
+		this.name = name;
 	}
 	
 	public Vector<Tile> path() {

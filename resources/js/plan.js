@@ -24,8 +24,9 @@ function addTile(x,y){
 }
 
 function clickTile(x,y){
-	console.log("clickTile:",x,y);
-	if ($('#tile-'+x+'-'+y).length > 0) request({action:'click',x:x,y:y});
+	var id = x+"-"+y;
+	console.log("clickTile:",id);	
+	if ($('#'+id).length > 0) request({action:'click',id:id});
 	return false;
 }
 
@@ -84,8 +85,9 @@ function heartbeat(data){
 }
 
 function moveTile(x,y){	
-	console.log("moveTile:",selected.id,x,y);
-	return request({action:mode,direction:selected.id,x:x,y:y});
+	var id = x+"-"+y;
+	console.log("moveTile:",selected.id,id);
+	return request({action:mode,direction:selected.id,id:id});
 }
 
 function openRoute(id){
@@ -153,6 +155,7 @@ function train(id,mode){
 
 function stream(ev){
 	var data = ev.data;
+	console.log("received: ",data);
 	if (data.startsWith("heartbeat")) return heartbeat(data);
 	if (data.startsWith("place ")) return place(data.substring(6));
 	if (data.startsWith("remove")) return remove(data.substring(7));

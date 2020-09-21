@@ -96,7 +96,11 @@ public abstract class Tile {
 	}
 	
 	public String id() {
-		return x+":"+y;
+		return Tile.id(x, y);
+	}
+	
+	public static String id(int x, int y) {
+		return x+"-"+y;
 	}
 	
 	private static void inflate(String clazz, JSONObject json, Plan plan) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, IOException {
@@ -237,14 +241,11 @@ public abstract class Tile {
 		return routes;
 	}
 	
-	public static void saveAll(HashMap<Integer, HashMap<Integer, Tile>> tiles ,String filename) throws IOException {
+	public static void saveAll(HashMap<String, Tile> tiles ,String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Entry<Integer, HashMap<Integer, Tile>> column : tiles.entrySet()) {
-			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
-				Tile tile = row.getValue();
-				if (tile == null || tile instanceof Shadow) continue;
-				file.append(tile.json()+"\n");
-			}
+		for (Tile tile : tiles.values()) {
+			if (tile == null || tile instanceof Shadow) continue;
+			file.append(tile.json()+"\n");
 		}
 		file.close();
 	}
@@ -261,7 +262,7 @@ public abstract class Tile {
 		replacements.put("%height%",height);
 		String style = "";
 		Tag svg = new Tag("svg")
-				.id((x!=-1 && y!=-1)?("tile-"+x+"-"+y):(getClass().getSimpleName()))
+				.id((x!=-1 && y!=-1)?(id()):(getClass().getSimpleName()))
 				.clazz(classes())
 				.size(100,100)
 				.attr("name", getClass().getSimpleName())
