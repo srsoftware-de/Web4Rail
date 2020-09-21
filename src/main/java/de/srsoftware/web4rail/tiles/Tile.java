@@ -1,6 +1,8 @@
 package de.srsoftware.web4rail.tiles;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -23,24 +25,54 @@ import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Radio;
 
 public abstract class Tile {
 	
+	private static final String ID = "id";
+	private static final String TYPE = "type";
+	private static final String LOCKED = "locked";
+	
+	private static final String POS = "pos";
+	private static final String X = "x";
+	private static final Object Y = "y";
 	public int x = -1,y = -1;
-	protected HashSet<String> classes = new HashSet<>();
+	
+	private static final String ROUTE = "route";
+	protected Route route;
+	
+	private static final String OCCUPIED = "occupied";
+	private Train train;
+	
+	private static final String ONEW_WAY = "one_way";
+	protected Direction oneWay = null;
+
 	protected HashSet<Shadow> shadows = new HashSet<>();
 	private HashSet<Route> routes = new HashSet<>();
 	protected Plan plan;
-	protected Route route;
-	protected Direction oneWay = null;
 	
-	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);
+	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);	
 	
-	public Tile() {
+	protected Vector<String> classes(){
+		Vector<String> classes = new Vector<String>();
 		classes.add("tile");
 		classes.add(getClass().getSimpleName());
+		if (route != null) classes.add(LOCKED);
+		if (train != null) classes.add(OCCUPIED);
+		return classes;
+	}
+	
+	public JSONObject json() {
+		JSONObject json = new JSONObject();
+		json.put(ID, id());
+		json.put(TYPE, getClass().getSimpleName());
+		JSONObject pos = new JSONObject(Map.of(X,x,Y,y));
+		json.put(POS, pos);
+		if (route != null) json.put(ROUTE, route.id());
+		if (oneWay != null) json.put(ONEW_WAY, oneWay);
+		return json;
 	}
 
 	public void add(Route route) {
@@ -74,23 +106,19 @@ public abstract class Tile {
 		return 1;
 	}
 	
+	public String id() {
+		return "tile-"+x+"-"+y;
+	}
+	
 	public int len() {
 		return 1;
 	}
 	
-	public void lock(Route route) {
+	public void lock(Route route) throws IOException {
 		this.route = route;
-		classes.add("locked");
-		plan.stream("addclass tile-"+x+"-"+y+" locked");
+		plan.place(this);
 	}
 	
-	public void occupy(Route route) {
-		this.route = route;		
-		classes.add("occupied");
-		plan.stream("addclass tile-"+x+"-"+y+" occupied");
-	}	
-
-
 	public void plan(Plan plan) {
 		this.plan = plan;
 	}
@@ -168,8 +196,28 @@ public abstract class Tile {
 		return line;
 	}
 
+	public Route route() {
+		return route;
+	}
+	
 	public HashSet<Route> routes() {
 		return routes;
+	}
+	
+	public static void saveAll(HashMap<Integer, HashMap<Integer, Tile>> tiles ,String filename) throws IOException {
+		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
+		for (Entry<Integer, HashMap<Integer, Tile>> column : tiles.entrySet()) {
+			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
+				Tile tile = row.getValue();
+				if (tile == null || tile instanceof Shadow) continue;
+				file.append(tile.json()+"\n");
+			}
+		}
+		file.close();
+	}
+
+	protected static String t(String txt, Object...fills) {
+		return Translation.get(Application.class, txt, fills);
 	}
 
 	public Tag tag(Map<String,Object> replacements) throws IOException {
@@ -181,7 +229,7 @@ public abstract class Tile {
 		String style = "";
 		Tag svg = new Tag("svg")
 				.id((x!=-1 && y!=-1)?("tile-"+x+"-"+y):(getClass().getSimpleName()))
-				.clazz(classes)
+				.clazz(classes())
 				.size(100,100)
 				.attr("name", getClass().getSimpleName())
 				.attr("viewbox", "0 0 "+width+" "+height);
@@ -214,6 +262,8 @@ public abstract class Tile {
 					break;
 				case WEST:
 					new Tag("polygon").clazz("oneway").attr("points", "0,50 25,35 25,65").addTo(svg);
+					break;
+				default:
 				}
 			}
 		} else {
@@ -226,22 +276,25 @@ public abstract class Tile {
 		
 		return svg;
 	}
-
-
-	protected static String t(String txt, Object...fills) {
-		return Translation.get(Application.class, txt, fills);
-	}	
 	
 	@Override
 	public String toString() {
 		return t("{}({},{})",getClass().getSimpleName(),x,y) ;
 	}
+	
+	public Train train() {
+		return train;
+	}
+	
+	public void train(Train train) throws IOException {
+		this.train = train;		
+		plan.place(this);
+	}	
 
-	public void unlock() {
+	public void unlock() throws IOException {
 		route = null;
-		classes.remove("locked");
-		classes.remove("occupied");
-		plan.stream("dropclass tile-"+x+"-"+y+" locked occupied");
+		train = null;
+		plan.place(this);
 	}
 
 	public Tile update(HashMap<String, String> params) {
@@ -255,9 +308,5 @@ public abstract class Tile {
 			}
 		}
 		return this;
-	}
-
-	public Route route() {
-		return route;
 	}
 }

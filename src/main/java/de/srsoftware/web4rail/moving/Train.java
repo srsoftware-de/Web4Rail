@@ -1,11 +1,16 @@
 package de.srsoftware.web4rail.moving;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Vector;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +28,35 @@ import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.Tile;
 
 public class Train {
+	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 	
+	private static final HashMap<Long, Train> trains = new HashMap<>();
+	
+	public static final String ID = "id";
+	public long id;
+
+	private static final String NAME = "name";
+	private String name = null;
+	
+	private static final String BLOCK = "block";
+	private Block block = null;
+	
+	private static final String ROUTE = "route";
+	public Route route;	
+		
+	private static final String DIRECTION = "direction";
+	private Direction direction;
+	
+	private static final String PUSH_PULL = "pushPull";
+	private boolean pushPull = false;
+	
+	private static final String CARS = "cars";
+	private Vector<Car> cars = new Vector<Car>();
+
+	private static final String LOCOS = "locomotives";	
+	private Vector<Locomotive> locos = new Vector<Locomotive>();
+
+
 	private class Autopilot extends Thread{
 		@Override
 		public void run() {
@@ -47,35 +80,42 @@ public class Train {
 			}			
 		}
 	}
-	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
-	private static final String PUSH_PULL = "pushPull";
-	private static int count = 0;
-	private static final HashMap<Integer, Train> trains = new HashMap<Integer, Train>();
-	public static final String ID = "id";
+
 	public static final String MODE_START = "start";
 	public static final String MODE_SHOW = "show";
 	private static final String MODE_UPDATE = "update";
 	private static final String MODE_AUTO = "auto";
-	private Vector<Locomotive> locos = new Vector<Locomotive>();
-	private Vector<Car> cars = new Vector<Car>();
-	private String name = null;
-	private Block block = null;
-	public Route route;	
+
 	public int speed = 0;
-	private Direction direction;
-	private boolean pushPull = false;
-	public int id;
 	private Autopilot autopilot = null;
 	
 	public Train(Locomotive loco) {
-		id = ++count;
+		id = new Date().getTime();
 		add(loco);
 		trains.put(id, this);
 	}
 	
+	private JSONObject json() {
+		JSONObject json = new JSONObject();
+		json.put(ID, id);
+		json.put(NAME,name);
+		if (block != null) json.put(BLOCK, block.id());
+		if (route != null) json.put(ROUTE, route.id());
+		if (direction != null) json.put(DIRECTION, direction);
+		json.put(PUSH_PULL, pushPull);
+		Vector<String> locoIds = new Vector<String>();
+		for (Locomotive loco : locos) locoIds.add(loco.id());
+		json.put(LOCOS, locoIds);
+		Vector<String> carIds = new Vector<String>();
+		for (Car car : cars) carIds.add(car.id());
+		json.put(CARS,carIds);
+		return json;
+	}
+
+	
 	public static Object action(HashMap<String, String> params) throws IOException {
 		if (!params.containsKey(Train.ID)) return t("No train id passed!");
-		int id = Integer.parseInt(params.get(Train.ID));
+		long id = Long.parseLong(params.get(Train.ID));
 		Train train = trains.get(id);
 		if (train == null) return(t("No train with id {}!",id));
 		if (!params.containsKey("mode")) return t("No mode set for train action!");
@@ -118,7 +158,7 @@ public class Train {
 		direction = dir;
 		return this;
 	}
-
+		
 	public int length() {
 		int result = 0;		
 		for (Locomotive loco : locos) result += loco.length;
@@ -145,7 +185,7 @@ public class Train {
 		
 		Form form = new Form();
 		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "train").addTo(form);
-		new Tag("input").attr("type", "hidden").attr("name",ID).attr("value", id).addTo(form);
+		new Tag("input").attr("type", "hidden").attr("name",ID).attr("value", ""+id).addTo(form);
 		new Tag("input").attr("type", "hidden").attr("name","mode").attr("value", MODE_UPDATE).addTo(form);
 		
 		Checkbox pp = new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull);
@@ -167,6 +207,15 @@ public class Train {
 		return window;
 	}
 	
+	public static void saveAll(String filename) throws IOException {
+		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
+		for (Entry<Long, Train> entry:trains.entrySet()) {
+			Train train = entry.getValue();
+			file.write(train.json()+"\n");
+		}
+		file.close();
+	}
+
 	public void setSpeed(int v) {
 		LOG.debug("Setting speed to {} kmh.",v);
 		for (Locomotive loco : locos) loco.setSpeed(v);

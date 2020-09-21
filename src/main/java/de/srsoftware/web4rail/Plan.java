@@ -25,7 +25,9 @@ import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Div;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.BlockV;
@@ -112,7 +114,7 @@ public class Plan {
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	private static final String ACTION_TRAIN = "train";
 	
-	private HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
+	public HashMap<Integer,HashMap<Integer,Tile>> tiles = new HashMap<Integer,HashMap<Integer,Tile>>();
 	private HashSet<Block> blocks = new HashSet<Block>();
 	private HashMap<String, Route> routes = new HashMap<String, Route>();
 	
@@ -123,8 +125,8 @@ public class Plan {
 	private Tag actionMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));		
 		StringBuffer tiles = new StringBuffer();
-		tiles.append(new Tag("div").id("save").content(t("Save plan")));
-		tiles.append(new Tag("div").id("analyze").content(t("Analyze plan")));
+		tiles.append(new Div("save").content(t("Save plan")));
+		tiles.append(new Div("analyze").content(t("Analyze plan")));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 	
@@ -206,11 +208,8 @@ public class Plan {
 		for (Entry<Connector, State> entry: connectors.entrySet()) {
 			route = routes.remove(0);
 			connector = entry.getKey();
-			State state = entry.getValue();
-			route.setLast(state);
-			if (connectors.size()>1) {
-				LOG.debug("RESUMING from {}",tile);
-			}
+			route.setLast(entry.getValue());
+			if (connectors.size()>1) LOG.debug("RESUMING from {}",tile);
 			results.addAll(follow(route,connector));
 		}
 		
@@ -229,7 +228,7 @@ public class Plan {
 	}
 	
 	private Tag heartbeat() {
-		return new Tag("div").id("heartbeat").content("");
+		return new Div("heartbeat").content("");
 	}
 
 	public void heatbeat() {
@@ -323,16 +322,16 @@ public class Plan {
 	}
 
 	private Tag messages() {
-		return new Tag("div").id("messages").content("");
+		return new Div("messages").content("");
 	}
 	
 	private Tag moveMenu() {
 		Tag tileMenu = new Tag("div").clazz("move").title(t("Move tiles")).content(t("↹"));		
 		StringBuffer tiles = new StringBuffer();
-		tiles.append(new Tag("div").id("west").title(t("Move west")).content("↤"));
-		tiles.append(new Tag("div").id("east").title(t("Move east")).content("↦"));
-		tiles.append(new Tag("div").id("north").title(t("Move north")).content("↥"));
-		tiles.append(new Tag("div").id("south").title(t("Move south")).content("↧"));
+		tiles.append(new Div("west").title(t("Move west")).content("↤"));
+		tiles.append(new Div("east").title(t("Move east")).content("↦"));
+		tiles.append(new Div("north").title(t("Move north")).content("↥"));
+		tiles.append(new Div("south").title(t("Move south")).content("↧"));
 		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
 	}
 	
@@ -391,6 +390,10 @@ public class Plan {
 		return false;
 	}
 	
+	public void place(Tile tile) throws IOException {
+		stream("place "+tile.tag(null));
+	}
+	
 	public Object process(HashMap<String, String> params) {
 		try {
 			String action = params.get(ACTION);
@@ -420,6 +423,7 @@ public class Plan {
 		} catch (Exception e) {
 			String msg = e.getMessage();
 			if (msg == null || msg.isEmpty()) msg = t("An unknown error occured!");
+			LOG.debug(msg,e);
 			return msg;
 		}
 	}
@@ -455,24 +459,12 @@ public class Plan {
 	
 	private String saveTo(String name) throws IOException {
 		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
-		File file = new File(name+".plan");
+		Car.saveAll(name+".cars");
+		Tile.saveAll(this.tiles,name+".tiles");
+		Train.saveAll(name+".trains"); // refers to cars, blocks
+
+		File file = new File(name+".routes");
 		BufferedWriter br = new BufferedWriter(new FileWriter(file));
-		for (Entry<Integer, HashMap<Integer, Tile>> column : tiles.entrySet()) {
-			int x = column.getKey();
-			for (Entry<Integer, Tile> row : column.getValue().entrySet()) {
-				int y = row.getKey();
-				Tile tile = row.getValue().position(x, y);
-				if (tile != null && !(tile instanceof Shadow)) {
-					br.append(x+":"+y+":"+tile.getClass().getSimpleName());
-					JSONObject config = tile.config();
-					if (!config.isEmpty()) br.append(":"+config);
-					br.append("\n");
-				}
-			}
-		}
-		br.close();
-		file = new File(name+".routes");
-		br = new BufferedWriter(new FileWriter(file));
 		for (Route route: routes.values()) {
 			br.append(route.id()+"="+route.json()+"\n");
 		}
@@ -486,7 +478,7 @@ public class Plan {
 		for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow(tile));
 		for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
 		set_intern(x,y,tile);
-		stream("place "+tile.tag(null));		
+		place(tile);		
 	}
 	
 	private void set_intern(int x, int y, Tile tile) {

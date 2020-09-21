@@ -50,10 +50,11 @@ public class Route {
 	
 	/**
 	 * Route wurde von Zug betreten
+	 * @throws IOException 
 	 */
-	public void activate() {
+	public void activate() throws IOException {
 		LOG.debug("{} aktiviert.",this);
-		for (Tile tile : path) tile.occupy(this);
+		for (Tile tile : path) tile.train(train);
 	}
 	
 	public Tile add(Tile tile, Direction direrction) {

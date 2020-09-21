@@ -79,22 +79,8 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	public void train(Train train) throws IOException {
-		this.train = train;
 		if (train != null) train.block(this);
-		plan.stream("place "+tag(null));
-	}
-
-	public Train train() {
-		return train;
-	}
-	
-	public void unlock() {
-		route = null;
-		classes.remove("locked");
-		if (train != null) {
-			classes.remove("occupied");
-			plan.stream("dropclass tile-"+x+"-"+y+" locked");
-		} else plan.stream("dropclass tile-"+x+"-"+y+" locked occupied");
+		super.train(train);
 	}
 	
 	@Override
