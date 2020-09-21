@@ -14,10 +14,12 @@ import de.srsoftware.web4rail.tags.Checkbox;
 
 public abstract class Block extends StretchableTile{
 	private static final String NAME = "name";
-	private static final String ALLOW_TURN = "allowTurn";
 	public String name = "Block";
-	private Train train;
+	
+	private static final String ALLOW_TURN = "allowTurn";
 	public boolean turnAllowed = false;
+	
+	private static final String TRAIN = "train";
 	
 	@Override
 	public JSONObject config() {
@@ -27,16 +29,31 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
-	public void configure(JSONObject config) {
-		super.configure(config);
-		if (config.has(NAME)) name = config.getString(NAME);
-	}
-	
-	@Override
 	public boolean free() {
 		return train == null && super.free();
 	}
-
+	
+	@Override
+	public JSONObject json() {
+		JSONObject json = super.json();
+		json.put(NAME, name);
+		json.put(ALLOW_TURN, turnAllowed);
+		if (train != null) json.put(TRAIN, train.id);
+		return json;
+	}
+	
+	@Override
+	protected Tile load(JSONObject json) throws IOException {
+		super.load(json);
+		name = json.has(NAME) ? json.getString(NAME) : "Block";
+		turnAllowed = json.has(ALLOW_TURN) && json.getBoolean(ALLOW_TURN);
+		if (json.has(TRAIN)) {
+			Train tr = Train.get(json.getLong(TRAIN)); 
+			train(tr);
+		}
+		return this;
+	}
+	
 	@Override
 	public Tag propForm() {
 		Tag form = super.propForm();

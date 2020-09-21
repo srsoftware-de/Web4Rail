@@ -1,5 +1,6 @@
 package de.srsoftware.web4rail.tiles;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -19,9 +20,17 @@ public abstract class StretchableTile extends Tile {
 	}
 	
 	@Override
-	public void configure(JSONObject config) {
-		super.configure(config);
-		if (config.has(LENGTH)) setLength(config.getInt(LENGTH));
+	public JSONObject json() {
+		JSONObject json = super.json();
+		if (length > 1) json.put(LENGTH, length);
+		return json;
+	}
+	
+	@Override
+	protected Tile load(JSONObject json) throws IOException {
+		super.load(json);
+		if (json.has(LENGTH)) length = json.getInt(LENGTH);
+		return this;
 	}
 	
 	@Override

@@ -1,5 +1,7 @@
 package de.srsoftware.web4rail;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -140,10 +142,10 @@ public class Route {
 
 	
 	public void finish() throws IOException {
-		startBlock.train(null);
-		endBlock.train(train.heading(endDirection.inverse()));
+		startBlock.train(null);		
 		train.route = null;
 		unlock();
+		endBlock.train(train.heading(endDirection.inverse()));
 	}
 	
 	public String id() {
@@ -151,12 +153,12 @@ public class Route {
 			StringBuilder sb = new StringBuilder();
 			for (int i=0; i<path.size();i++) {
 				Tile tile = path.get(i);
-				if (i>0) sb.append(" – ");
+				if (i>0) sb.append("-");
 				if (tile instanceof Block) {
 					sb.append(((Block)tile).name);
 					if (i>0) break; // Kontakt nach dem Ziel-Block nicht mitnehmen
 				} else {
-					sb.append(tile.x+":"+tile.y);
+					sb.append(tile.id());
 				}
 			}
 			id = sb.toString();
@@ -170,28 +172,32 @@ public class Route {
 		}
 		return true;
 	}
-
 		
 	public String json() {
 		JSONObject props = new JSONObject();
-		JSONArray path = new JSONArray();
-		for (Tile t : this.path) path.put(new JSONObject(Map.of("x",t.x,"y",t.y)));
-		props.put(PATH, path);
+		Vector<String> tileIds = new Vector<String>();
+		for (Tile t : this.path) tileIds.add(t.id());
+		props.put(PATH, tileIds);
 		
-		JSONArray signals = new JSONArray();
-		for (Tile t : this.signals) signals.put(new JSONObject(Map.of("x",t.x,"y",t.y)));
-		props.put(SIGNALS, signals);
+		Vector<String> signalIds = new Vector<String>(); // list all signals affecting this route 
+		for (Tile t : this.signals) signalIds.add(t.id());
+		props.put(SIGNALS, signalIds);
 		
 		JSONArray turnouts = new JSONArray();
 		for (Entry<Turnout, State> entry : this.turnouts.entrySet()) {
 			Turnout t = entry.getKey();
-			turnouts.put(new JSONObject(Map.of("x",t.x,"y",t.y,Turnout.STATE,entry.getValue())));
+			turnouts.put(new JSONObject(Map.of(Turnout.ID,t.id(),Turnout.STATE,entry.getValue())));
 		}
 		props.put(TURNOUTS, turnouts);
 		
 		if (names.containsKey(id())) props.put(NAME, names.get(id));
 
 		return props.toString();
+	}
+	
+	public static void loadAll(String string, Plan plan) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	public Route lock(Train train) throws IOException {
@@ -278,22 +284,14 @@ public class Route {
 		
 		return form;
 	}
-
-	public Route start(Block block,Direction from) {
-		// add those fields to clone, too!
-		contacts = new Vector<Contact>();
-		signals = new Vector<Signal>();
-		path = new Vector<Tile>();
-		turnouts = new HashMap<>();
-		startBlock = block;
-		startDirection = from;
-		path.add(block);
-		return this;
-	}
-
-	@Override
-	public String toString() {
-		return getClass().getSimpleName()+"("+name()+")";
+	
+	public static void saveAll(HashMap<String, Route> routes, String filename) throws IOException {
+		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
+		for (Entry<String, Route> entry : routes.entrySet()) {
+			Route route = entry.getValue();
+			file.write(route.json()+"\n");
+		}
+		file.close();
 	}
 
 	public void setLast(State state) {
@@ -306,6 +304,18 @@ public class Route {
 		for (Signal signal : signals) signal.state(state == null ? "go" : state);
 		return this;
 	}
+	
+	public Route start(Block block,Direction from) {
+		// add those fields to clone, too!
+		contacts = new Vector<Contact>();
+		signals = new Vector<Signal>();
+		path = new Vector<Tile>();
+		turnouts = new HashMap<>();
+		startBlock = block;
+		startDirection = from;
+		path.add(block);
+		return this;
+	}
 
 	public Block startBlock() {
 		return (Block) path.get(0);
@@ -313,6 +323,11 @@ public class Route {
 	
 	protected static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName()+"("+name()+")";
 	}
 	
 	public Route unlock() throws IOException {

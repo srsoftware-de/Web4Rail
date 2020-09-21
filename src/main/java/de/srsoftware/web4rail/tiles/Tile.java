@@ -1,9 +1,12 @@
 package de.srsoftware.web4rail.tiles;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,20 +34,20 @@ import de.srsoftware.web4rail.tags.Radio;
 
 public abstract class Tile {
 	
-	private static final String ID = "id";
+	public static final String ID = "id";
 	private static final String TYPE = "type";
 	private static final String LOCKED = "locked";
 	
 	private static final String POS = "pos";
 	private static final String X = "x";
-	private static final Object Y = "y";
+	private static final String Y = "y";
 	public int x = -1,y = -1;
 	
 	private static final String ROUTE = "route";
 	protected Route route;
 	
 	private static final String OCCUPIED = "occupied";
-	private Train train;
+	protected Train train;
 	
 	private static final String ONEW_WAY = "one_way";
 	protected Direction oneWay = null;
@@ -62,17 +65,6 @@ public abstract class Tile {
 		if (route != null) classes.add(LOCKED);
 		if (train != null) classes.add(OCCUPIED);
 		return classes;
-	}
-	
-	public JSONObject json() {
-		JSONObject json = new JSONObject();
-		json.put(ID, id());
-		json.put(TYPE, getClass().getSimpleName());
-		JSONObject pos = new JSONObject(Map.of(X,x,Y,y));
-		json.put(POS, pos);
-		if (route != null) json.put(ROUTE, route.id());
-		if (oneWay != null) json.put(ONEW_WAY, oneWay);
-		return json;
 	}
 
 	public void add(Route route) {
@@ -95,9 +87,6 @@ public abstract class Tile {
 		return new HashMap<>();
 	}
 
-
-	public void configure(JSONObject config) {}
-	
 	public boolean free() {
 		return route == null;
 	}
@@ -107,11 +96,54 @@ public abstract class Tile {
 	}
 	
 	public String id() {
-		return "tile-"+x+"-"+y;
+		return x+":"+y;
+	}
+	
+	private static void inflate(String clazz, JSONObject json, Plan plan) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, IOException {
+		clazz = Tile.class.getName().replace(".Tile", "."+clazz);
+		Tile tile = (Tile) Tile.class.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
+		tile.plan(plan);
+		tile.load(json);
+		plan.set(tile.x, tile.y, tile);
+	}
+	
+	public JSONObject json() {
+		JSONObject json = new JSONObject();
+		json.put(TYPE, getClass().getSimpleName());
+		JSONObject pos = new JSONObject(Map.of(X,x,Y,y));
+		json.put(POS, pos);
+		if (route != null) json.put(ROUTE, route.id());
+		if (oneWay != null) json.put(ONEW_WAY, oneWay);
+		return json;
 	}
 	
 	public int len() {
 		return 1;
+	}
+	
+	public static void loadAll(String filename, Plan plan) throws IOException {		
+		BufferedReader file = new BufferedReader(new FileReader(filename));
+		String line = file.readLine();
+		while (line != null) {
+			JSONObject json = new JSONObject(line);
+			String clazz = json.getString(TYPE);
+			
+			try {
+				Tile.inflate(clazz,json,plan);
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+				e.printStackTrace();
+			}			
+			
+			line = file.readLine();
+		}
+		file.close();
+	}
+
+	protected Tile load(JSONObject json) throws IOException {
+		JSONObject pos = json.getJSONObject(POS);
+		x = pos.getInt(X);
+		y = pos.getInt(Y);
+		return this;
 	}
 	
 	public void lock(Route route) throws IOException {
@@ -119,8 +151,9 @@ public abstract class Tile {
 		plan.place(this);
 	}
 	
-	public void plan(Plan plan) {
+	public Tile plan(Plan plan) {
 		this.plan = plan;
+		return this;
 	}
 
 	public Tile position(int x, int y) {
@@ -309,4 +342,19 @@ public abstract class Tile {
 		}
 		return this;
 	}
+	
+	/*
+	if (clazz == null) throw new NullPointerException(TILE+" must not be null!");
+	Class<Tile> tc = Tile.class;		
+	clazz = tc.getName().replace(".Tile", "."+clazz);		
+	Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
+	if (tile instanceof Eraser) {
+		Tile erased = get(x,y,true);
+		remove(erased);
+		return erased == null ? null : t("Removed {}.",erased);
+	}
+	if (configJson != null) tile.configure(new JSONObject(configJson));		
+	set(x, y, tile);
+	return t("Added {}",tile.getClass().getSimpleName());
+}*/
 }

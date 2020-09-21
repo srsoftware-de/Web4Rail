@@ -1,10 +1,5 @@
 package de.srsoftware.web4rail;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -19,7 +14,6 @@ import java.util.Map.Entry;
 import java.util.Stack;
 import java.util.Vector;
 
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +40,6 @@ import de.srsoftware.web4rail.tiles.EndS;
 import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.Eraser;
 import de.srsoftware.web4rail.tiles.Shadow;
-import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.SignalE;
 import de.srsoftware.web4rail.tiles.SignalN;
 import de.srsoftware.web4rail.tiles.SignalS;
@@ -54,7 +47,6 @@ import de.srsoftware.web4rail.tiles.SignalW;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
 import de.srsoftware.web4rail.tiles.Tile;
-import de.srsoftware.web4rail.tiles.Turnout;
 import de.srsoftware.web4rail.tiles.Turnout.State;
 import de.srsoftware.web4rail.tiles.Turnout3E;
 import de.srsoftware.web4rail.tiles.TurnoutLE;
@@ -151,7 +143,7 @@ public class Plan {
 			remove(erased);
 			return erased == null ? null : t("Removed {}.",erased);
 		}
-		if (configJson != null) tile.configure(new JSONObject(configJson));		
+		//if (configJson != null) tile.configure(new JSONObject(configJson));		
 		set(x, y, tile);
 		return t("Added {}",tile.getClass().getSimpleName());
 	}
@@ -257,60 +249,14 @@ public class Plan {
 	}
 	
 	public static Plan load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		Plan result = new Plan();
-		File file = new File(filename+".plan");
-		BufferedReader br = new BufferedReader(new FileReader(file));
-		while (br.ready()) {
-			String line = br.readLine().trim();
-			String[] parts = line.split(":",4);
-			try {
-				String x = parts[0];
-				String y = parts[1];
-				String clazz = parts[2];
-				result.addTile(clazz, x, y, parts.length>3 ? parts[3] : null);
-			} catch (Exception e) {
-				LOG.warn("Was not able to load \"{}\":",line,e);
-			}
-		}
-		br.close();
-		file = new File(filename+".routes");
-		if (file.exists()) {
-			br = new BufferedReader(new FileReader(file));
-			while (br.ready()) {
-				String line = br.readLine().trim();
-				String[] parts = line.split("=",2);
-				try {
-					//String id = parts[0];
-					JSONObject json = new JSONObject(parts[1]);
-					Route route = new Route();
-					json.getJSONArray(Route.PATH).forEach(entry -> {
-						JSONObject pos = (JSONObject) entry;
-						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"),false);
-						if (route.path().isEmpty()) {
-							route.start((Block) tile,null);
-						} else {
-							route.add(tile, null);
-						}
-					});
-					json.getJSONArray(Route.SIGNALS).forEach(entry -> {
-						JSONObject pos = (JSONObject) entry;
-						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"),false);
-						route.addSignal((Signal) tile);
-					});
-					json.getJSONArray(Route.TURNOUTS).forEach(entry -> {
-						JSONObject pos = (JSONObject) entry;
-						Tile tile = result.get(pos.getInt("x"),pos.getInt("y"),false);
-						route.addTurnout((Turnout) tile, Turnout.State.valueOf(pos.getString(Turnout.STATE)));
-					});
-					if (json.has(Route.NAME)) route.name(json.getString(Route.NAME));
-					result.registerRoute(route);
-				} catch (Exception e) {
-					LOG.warn("Was not able to load \"{}\":",line,e);
-				}
-			}
-			br.close();
-		} else LOG.debug("{} not found.",file);
-		return result;
+		try {
+			Car.loadAll(filename+".cars");
+			Train.loadAll(filename+".trains");
+		} catch (Exception e) {}
+		Plan plan = new Plan();
+		Tile.loadAll(filename+".plan",plan);
+		Route.loadAll(filename+".routes",plan);
+		return plan;
 	}
 
 	private Tag menu() throws IOException {
@@ -460,16 +406,10 @@ public class Plan {
 	private String saveTo(String name) throws IOException {
 		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
 		Car.saveAll(name+".cars");
-		Tile.saveAll(this.tiles,name+".tiles");
+		Tile.saveAll(tiles,name+".plan");
 		Train.saveAll(name+".trains"); // refers to cars, blocks
-
-		File file = new File(name+".routes");
-		BufferedWriter br = new BufferedWriter(new FileWriter(file));
-		for (Route route: routes.values()) {
-			br.append(route.id()+"="+route.json()+"\n");
-		}
-		br.close();
-		return t("Plan saved as \"{}\".",file);
+		Route.saveAll(routes,name+".routes"); // refers to tiles
+		return t("Plan saved as \"{}\".",name);
 	}
 	
 	public void set(int x,int y,Tile tile) throws IOException {

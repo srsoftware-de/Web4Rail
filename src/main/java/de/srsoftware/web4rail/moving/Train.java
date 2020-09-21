@@ -1,6 +1,8 @@
 package de.srsoftware.web4rail.moving;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
@@ -38,8 +40,6 @@ public class Train {
 	private static final String NAME = "name";
 	private String name = null;
 	
-	private static final String BLOCK = "block";
-	private Block block = null;
 	
 	private static final String ROUTE = "route";
 	public Route route;	
@@ -56,7 +56,8 @@ public class Train {
 	private static final String LOCOS = "locomotives";	
 	private Vector<Locomotive> locos = new Vector<Locomotive>();
 
-
+	private Block block = null;
+		
 	private class Autopilot extends Thread{
 		@Override
 		public void run() {
@@ -90,16 +91,21 @@ public class Train {
 	private Autopilot autopilot = null;
 	
 	public Train(Locomotive loco) {
-		id = new Date().getTime();
+		this(loco,null);
+	}
+	
+	public Train(Locomotive loco, Long id) {
+		if (id == null) id = new Date().getTime();
+		this.id = id;
 		add(loco);
 		trains.put(id, this);
 	}
+
 	
 	private JSONObject json() {
 		JSONObject json = new JSONObject();
 		json.put(ID, id);
 		json.put(NAME,name);
-		if (block != null) json.put(BLOCK, block.id());
 		if (route != null) json.put(ROUTE, route.id());
 		if (direction != null) json.put(DIRECTION, direction);
 		json.put(PUSH_PULL, pushPull);
@@ -154,6 +160,11 @@ public class Train {
 		this.block = block;
 	}
 	
+	public static Train get(long id) {
+		return trains.get(id);
+	}
+
+	
 	public Train heading(Direction dir) {
 		direction = dir;
 		return this;
@@ -164,6 +175,28 @@ public class Train {
 		for (Locomotive loco : locos) result += loco.length;
 		for (Car car : cars) result += car.length;
 		return result;
+	}
+	
+	public static void loadAll(String filename) throws IOException {
+		BufferedReader file = new BufferedReader(new FileReader(filename));
+		String line = file.readLine();
+		while (line != null) {
+			JSONObject json = new JSONObject(line);
+			
+			long id = json.getLong(ID);
+			
+			Train train = new Train(null,id);
+			train.load(json);			
+			
+			line = file.readLine();
+		}
+		file.close();
+	}
+
+	private void load(JSONObject json) {
+		pushPull = json.getBoolean(PUSH_PULL);
+		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get((String)id));
+		for (Object id : json.getJSONArray(CARS)) add(Car.get((String)id));
 	}
 
 	public String name() {

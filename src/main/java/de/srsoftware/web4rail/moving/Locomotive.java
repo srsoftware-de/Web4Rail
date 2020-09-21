@@ -5,13 +5,17 @@ import org.json.JSONObject;
 public class Locomotive extends Car {
 	
 	private static final String REVERSE = "reverse";
-	private static final String LOCOMOTIVE = "locomotive";
+	public static final String LOCOMOTIVE = "locomotive";
 	private boolean reverse = false;
 
 	public Locomotive(String name) {
 		super(name);
 	}
 	
+	public Locomotive(String name, String id) {
+		super(name,id);
+	}
+
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
@@ -20,7 +24,12 @@ public class Locomotive extends Car {
 		json.put(LOCOMOTIVE, loco);
 		return json;
 	}
-
+	
+	@Override
+	protected void load(JSONObject json) {
+		super.load(json);
+		if (json.has(REVERSE)) reverse = json.getBoolean(REVERSE);
+	}
 	public void setSpeed(int v) {
 		// TODO Auto-generated method stub
 		
