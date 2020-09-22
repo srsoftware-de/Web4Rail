@@ -252,15 +252,20 @@ public class Train {
 		for (Locomotive loco : this.locos) new Tag("li").content(loco.name()).addTo(l2);
 		l2.addTo(locos).addTo(list);
 		
-		new Tag("li").content(t("Current location: {}",block)).addTo(list);
-		new Tag("li").content(t("Direction: heading {}",direction)).addTo(list);
-		
-		new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_START+"')").content(t("start")).addTo(list);
-		if (autopilot == null) {
-			new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_AUTO+"')").content(t("auto")).addTo(list);
-		} else {
-			new Tag("li").clazz("link").attr("onclick","train("+id+",'"+MODE_STOP+"')").content(t("stop")).addTo(list);
+		if (block != null) {
+			new Tag("li").content(t("Current location: {}",block)).addTo(list);
+			Tag actions = new Tag("li").clazz().content(t("Actions: "));
+			new Tag("span").clazz("link").attr("onclick","train("+id+",'"+MODE_START+"')").content(" "+t("start")+" ").addTo(actions);
+			if (autopilot == null) {
+				new Tag("span").attr("onclick","train("+id+",'"+MODE_AUTO+"')").content(" "+t("auto")+" ").addTo(actions);
+			} else {
+				new Tag("span").clazz("link").attr("onclick","train("+id+",'"+MODE_STOP+"')").content(" "+t("stop")+" ").addTo(actions);
+			}
+			actions.addTo(list);
+
 		}
+		if (direction != null) new Tag("li").content(t("Direction: heading {}",direction)).addTo(list);
+		
 		
 		list.addTo(window);
 		return window;
