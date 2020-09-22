@@ -11,6 +11,8 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
+import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
 
 public abstract class Block extends StretchableTile{
 	private static final String NAME = "name";
@@ -58,11 +60,18 @@ public abstract class Block extends StretchableTile{
 	public Tag propForm() {
 		Tag form = super.propForm();
 		
-		Tag label = new Tag("label").content(t("name:"));
-		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name).addTo(label);
-		label.addTo(form);
+		new Input(NAME, name).addTo(new Label(t("name:")+" ")).addTo(new Tag("p")).addTo(form);
+		
+		new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed).addTo(new Tag("p")).addTo(form);
 
-		new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed).addTo(form);
+		Tag select = new Tag("select").attr("name", TRAIN);
+		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
+		for (Train train : Train.list()) {
+			Tag opt = new Tag("option").attr("value", ""+train.id);
+			if (this.train == train) opt.attr("selected", "selected");
+			opt.content(train.toString()).addTo(select);
+		}
+		select.addTo(new Label(t("Trains:")+" ")).addTo(new Tag("p")).addTo(form);
 		
 		return form;
 	}
@@ -95,15 +104,21 @@ public abstract class Block extends StretchableTile{
 		return getClass().getSimpleName()+"("+name+") @ ("+x+","+y+")";
 	}
 	
-	public void train(Train train) throws IOException {
-		if (train != null) train.block(this);
-		super.train(train);
+	public void train(Train newTrain) throws IOException {
+		if (train == newTrain) return;
+		if (train != null) train.block(null); // vorherigen Zug rauswerfen
+		if (newTrain != null) newTrain.block(this);
+		super.train(newTrain);
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) {
+	public Tile update(HashMap<String, String> params) throws IOException {
 		super.update(params);
 		if (params.containsKey(NAME)) name=params.get(NAME);
+		if (params.containsKey(TRAIN)) {
+			long trainId = Long.parseLong(params.get(TRAIN));
+			train(trainId == 0 ? null : Train.get(trainId));
+		}
 		turnAllowed = params.containsKey(ALLOW_TURN) && params.get(ALLOW_TURN).equals("on");
 		return this;
 	}	

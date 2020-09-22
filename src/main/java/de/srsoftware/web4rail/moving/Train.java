@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,11 +20,17 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Signal;
@@ -93,6 +100,8 @@ public class Train {
 
 	private static final String MODE_STOP = "stop";
 
+	public static final String LOCO_ID = "locoId";
+
 	public int speed = 0;
 	private Autopilot autopilot = null;
 	
@@ -135,7 +144,8 @@ public class Train {
 		if (car == null) return;
 		if (car instanceof Locomotive) {
 			locos.add((Locomotive) car);
-		} else cars.add(car);		
+		} else cars.add(car);
+		car.train(this);
 	}
 	
 	private String automatic() {
@@ -146,7 +156,7 @@ public class Train {
 		return t("{} now in auto-mode",this);
 	}
 	
-	public void block(Block block) {
+	public void block(Block block) throws IOException {
 		this.block = block;
 	}
 	
@@ -187,6 +197,10 @@ public class Train {
 		return new Tag(tagClass).clazz("link").attr("onclick","train("+id+",'"+Train.MODE_SHOW+"')").content(name());
 	}
 	
+	public static Collection<Train> list() {
+		return trains.values();
+	}
+
 	public static void loadAll(String filename) throws IOException {
 		BufferedReader file = new BufferedReader(new FileReader(filename));
 		String line = file.readLine();
@@ -217,6 +231,20 @@ public class Train {
 			train.link("li").addTo(list);
 		}
 		list.addTo(win);
+		
+		Form form = new Form();
+		new Input(Plan.ACTION, Plan.ACTION_ADD_TRAIN).hideIn(form);
+		Fieldset fieldset = new Fieldset(t("add new train"));
+		new Input(Train.NAME, t("new train")).addTo(new Label(t("Name:")+" ")).addTo(fieldset);
+
+		Select select = new Select(LOCO_ID);
+		for (Locomotive loco : Locomotive.list()) select.addOption(loco.id(),loco.name());
+		select.addTo(new Label(t("Locomotive:")+" ")).addTo(fieldset);
+
+		new Button(t("save")).addTo(fieldset);
+		fieldset.addTo(form).addTo(win);
+
+
 		return win;
 	}
 
@@ -238,19 +266,20 @@ public class Train {
 		Window window = new Window("train-properties",t("Properties of {}",getClass().getSimpleName()));
 		
 		Form form = new Form();
-		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "train").addTo(form);
-		new Tag("input").attr("type", "hidden").attr("name",ID).attr("value", ""+id).addTo(form);
-		new Tag("input").attr("type", "hidden").attr("name","mode").attr("value", MODE_UPDATE).addTo(form);
+		new Input("action","train").hideIn(form);
+		new Input(ID,id).hideIn(form);
+		new Input("mode",MODE_UPDATE).hideIn(form);
 		
-		Checkbox pp = new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull);
-		pp.addTo(form);
-		new Tag("button").attr("type", "submit").content(t("save")).addTo(form).addTo(window);
+		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(form);
+		new Button(t("save")).addTo(form).addTo(window);
 		
 		Tag list = new Tag("ul");
-		Tag locos = new Tag("li").content(t("Locomotives:"));
-		Tag l2 = new Tag("ul");
-		for (Locomotive loco : this.locos) new Tag("li").content(loco.name()).addTo(l2);
-		l2.addTo(locos).addTo(list);
+		if (!locos.isEmpty()) {
+			Tag locos = new Tag("li").content(t("Locomotives:"));
+			Tag l2 = new Tag("ul");
+			for (Locomotive loco : this.locos) loco.link("li").addTo(l2);
+			l2.addTo(locos).addTo(list);
+		}
 		
 		if (block != null) {
 			new Tag("li").content(t("Current location: {}",block)).addTo(list);
@@ -317,7 +346,7 @@ public class Train {
 	private Object stop() {
 		autopilot.stop = true;
 		autopilot = null;
-		return t("{} stopping at next block {}");
+		return t("{} stopping at next block.",this);
 	}
 	
 	private static String t(String message, Object...fills) {

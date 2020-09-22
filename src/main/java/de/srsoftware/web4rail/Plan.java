@@ -88,7 +88,7 @@ public class Plan {
 		}
 	}
 	
-	private static final String ACTION = "action";
+	public static final String ACTION = "action";
 	private static final String ACTION_ADD = "add";
 	private static final String ACTION_ANALYZE = "analyze";
 	private static final String ACTION_MOVE = "move";
@@ -108,6 +108,9 @@ public class Plan {
 	private static final String ACTION_TRAIN = "train";
 	private static final String ACTION_LOCOS = "locos";
 	private static final String ACTION_TRAINS = "trains";
+	private static final String ACTION_CAR = "car";
+	public static final String ACTION_ADD_LOCO = "addLoco";
+	public static final String ACTION_ADD_TRAIN = "addTrain";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -167,6 +170,12 @@ public class Plan {
 
 	public Collection<Block> blocks() {
 		return blocks;
+	}
+	
+	private Object carAction(HashMap<String, String> params) {
+		Car car = Car.get(params.get(Car.ID));
+		if (car == null) return t("No car with id {} found!",params.get(Car.ID));
+		return car.properties();
 	}
 	
 	private Object click(Tile tile) throws IOException {
@@ -260,6 +269,16 @@ public class Plan {
 		return plan;
 	}
 
+	private Object locoAction(HashMap<String, String> params) throws IOException {
+		switch (params.get(ACTION)) {
+			case ACTION_ADD_LOCO:
+				new Locomotive(params.get(Locomotive.NAME));
+				break;
+		}
+		
+		return html();
+	}
+	
 	private Tag menu() throws IOException {
 		Tag menu = new Tag("div").clazz("menu");
 		actionMenu().addTo(menu);
@@ -350,6 +369,13 @@ public class Plan {
 			switch (action) {
 				case ACTION_ADD:
 					return addTile(params.get(TILE),params.get(X),params.get(Y),null);
+				case ACTION_ADD_LOCO:
+					return locoAction(params);
+				case ACTION_ADD_TRAIN:
+				case ACTION_TRAIN:
+					return trainAction(params);
+				case ACTION_CAR:
+					return carAction(params);
 				case ACTION_CLICK:
 					return click(get(params.get(Tile.ID),true));
 				case ACTION_ANALYZE:
@@ -362,8 +388,6 @@ public class Plan {
 					return routeProperties(Integer.parseInt(params.get(ID)));
 				case ACTION_SAVE:
 					return saveTo(params.get(FILE));
-				case ACTION_TRAIN:
-					return trainAction(params);
 				case ACTION_TRAINS:
 					return Train.manager();
 				case ACTION_UPDATE:
@@ -381,8 +405,19 @@ public class Plan {
 	}
 
 	private Object trainAction(HashMap<String, String> params) throws IOException {
-		Object result = Train.action(params);		
-		return result instanceof Train ? html() : result;
+		LOG.debug("Params: {}",params);
+		switch (params.get(ACTION)) {
+			case ACTION_ADD_TRAIN:
+				Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
+				if (loco == null) return t("unknown locomotive: {}",params.get(Locomotive.ID));
+				new Train(loco);
+				break;
+			case ACTION_TRAIN:
+				Object result = Train.action(params);
+				if (!(result instanceof Train)) return result;
+				break;
+		}
+		return html();
 	}
 	
 	public Route route(int routeId) {

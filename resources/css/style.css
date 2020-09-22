@@ -189,3 +189,9 @@ polygon.oneway{
 	fill: lime;
 	stroke-width:0;
 }
+
+fieldset{
+	float: left;
+	border: 1px solid black;
+	border-radius: 5px;
+}

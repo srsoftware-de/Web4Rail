@@ -14,16 +14,18 @@ import org.json.JSONObject;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.Window;
 
 public class Car {
-	private static final String ID = "id";
-	private static final String NAME = "name";
+	public static final String ID = "id";
+	public static final String NAME = "name";
 	private static final String LENGTH = "length";
 	private static final String SHOW = "show";
 	static HashMap<String,Car> cars = new HashMap<String, Car>();
 	public int length;
 	private String name;
 	private String id;
+	private Train train;
 	
 	public Car(String name) {
 		this(name,null);
@@ -67,11 +69,7 @@ public class Car {
 	public Tag link(String tagClass) {
 		return new Tag(tagClass).clazz("link").attr("onclick","car("+id+",'"+Car.SHOW+"')").content(name());
 	}
-
-	String name(){
-		return name;
-	}
-
+	
 	public static void loadAll(String filename) throws IOException {
 		cars.clear();
 		BufferedReader file = new BufferedReader(new FileReader(filename));
@@ -93,6 +91,20 @@ public class Car {
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
 	}
 	
+	String name(){
+		return name;
+	}
+	
+	public Object properties() {
+		Window win = new Window("car-props", t("Properties of {}",this));
+		Tag list = new Tag("ul");
+		if (train != null) {
+			train.link("span").addTo(new Tag("li").content(t("Train:")+" ")).addTo(list);
+		}
+		list.addTo(win);
+		return win;
+	}
+	
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		for (Entry<String, Car> entry: cars.entrySet()) {
@@ -104,5 +116,14 @@ public class Car {
 	
 	protected static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName()+"("+name()+")";
+	}
+
+	public void train(Train train) {
+		this.train = train;
 	}
 }

@@ -1,9 +1,17 @@
 package de.srsoftware.web4rail.moving;
 
+import java.util.Vector;
+
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
 
 public class Locomotive extends Car {
 	
@@ -28,6 +36,14 @@ public class Locomotive extends Car {
 		return json;
 	}
 	
+	static Vector<Locomotive> list() {
+		Vector<Locomotive> locos = new Vector<Locomotive>();
+		for (Car car : Car.cars.values()) {
+			if (car instanceof Locomotive) locos.add((Locomotive) car);
+		}
+		return locos;
+	}
+
 	@Override
 	protected void load(JSONObject json) {
 		super.load(json);
@@ -50,6 +66,14 @@ public class Locomotive extends Car {
 			}			
 		}
 		list.addTo(win);
+		
+		Form form = new Form();
+		new Input(Plan.ACTION, Plan.ACTION_ADD_LOCO).hideIn(form);
+		Fieldset fieldset = new Fieldset(t("add new locomotive"));
+		new Input(Locomotive.NAME, t("new locomotive")).addTo(new Label(t("Name:")+" ")).addTo(fieldset);
+		new Button(t("save")).addTo(fieldset);
+		fieldset.addTo(form).addTo(win);
 		return win;
 	}
+
 }

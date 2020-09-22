@@ -29,7 +29,9 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
 
 public abstract class Tile {
@@ -177,16 +179,15 @@ public abstract class Tile {
 	
 	public Tag propForm() {
 		Form form = new Form();
-		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "update").addTo(form);
-		new Tag("input").attr("type", "hidden").attr("name",ID).attr("value", id()).addTo(form);
+		new Input("action", "update").hideIn(form);
+		new Input(ID,id()).hideIn(form);
 		
 		List<Direction> pd = possibleDirections();
 		if (!pd.isEmpty()) {
 			new Tag("h4").content(t("One way:")).addTo(form);
 			new Radio("oneway","none",t("No"),oneWay == null).addTo(form);		
 			for (Direction d:pd) {
-				Radio radio = new Radio("oneway",d.toString(),t(d.toString()),d == oneWay);				
-				radio.addTo(form);
+				new Radio("oneway",d.toString(),t(d.toString()),d == oneWay).addTo(form);
 			}
 		}
 		return form;
@@ -196,7 +197,7 @@ public abstract class Tile {
 		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",getClass().getSimpleName(),x,y));
 		Tag form = propForm();
 		if (form!=null && form.children().size()>3) {
-			new Tag("button").attr("type", "submit").content(t("save")).addTo(form);
+			new Button(t("save")).addTo(form);
 			form.addTo(window);
 		} else {
 			window.content(t("This tile ({}) has no properties",getClass().getSimpleName()));
@@ -335,7 +336,7 @@ public abstract class Tile {
 		plan.place(this);
 	}
 
-	public Tile update(HashMap<String, String> params) {
+	public Tile update(HashMap<String, String> params) throws IOException {
 		LOG.debug("{}.update({})",getClass().getSimpleName(),params);
 		String oneWayDir = params.get("oneway");
 		if (oneWayDir != null) {

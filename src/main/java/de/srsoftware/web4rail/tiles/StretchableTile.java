@@ -39,7 +39,7 @@ public abstract class StretchableTile extends Tile {
 
 		Tag label = new Tag("label").content(t("length:"));
 		new Tag("input").attr("type", "number").attr("name","length").attr("value", length).addTo(label);		
-		label.addTo(form);
+		label.addTo(new Tag("p")).addTo(form);
 		
 		return form;
 	}
@@ -57,7 +57,7 @@ public abstract class StretchableTile extends Tile {
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) {
+	public Tile update(HashMap<String, String> params) throws IOException {
 		super.update(params);
 		for (Entry<String, String> entry : params.entrySet()) {
 			switch (entry.getKey()) {
