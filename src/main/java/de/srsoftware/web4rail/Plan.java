@@ -112,6 +112,7 @@ public class Plan {
 	public static final String ACTION_ADD_LOCO = "addLoco";
 	public static final String ACTION_ADD_TRAIN = "addTrain";
 	public static final String ACTION_UPDATE_CAR = "updateCar";
+	private static final String ACTION_CONTROL_UNIT = "controlProps";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -123,10 +124,10 @@ public class Plan {
 
 	private Tag actionMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));		
-		StringBuffer tiles = new StringBuffer();
-		tiles.append(new Div("save").content(t("Save plan")));
-		tiles.append(new Div("analyze").content(t("Analyze plan")));
-		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
+		Tag tiles = new Tag("div").clazz("list").content("");
+		new Div("save").content(t("Save plan")).addTo(tiles);
+		new Div("analyze").content(t("Analyze plan")).addTo(tiles);
+		return tiles.addTo(tileMenu);
 	}
 	
 	public void addClient(OutputStreamWriter client) {
@@ -234,6 +235,14 @@ public class Plan {
 		return tile;
 	}
 	
+	
+	private Tag hardwareMenu() throws IOException {
+		Tag tileMenu = new Tag("div").clazz("hardware").content(t("Hardware"));
+		Tag list = new Tag("div").clazz("list").content("");
+		new Div(ACTION_CONTROL_UNIT).content(t("Control unit")).addTo(list);
+		return list.addTo(tileMenu);
+	}
+	
 	private Tag heartbeat() {
 		return new Div("heartbeat").content("");
 	}
@@ -295,6 +304,7 @@ public class Plan {
 		moveMenu().addTo(menu);		
 		tileMenu().addTo(menu);
 		trainMenu().addTo(menu);
+		hardwareMenu().addTo(menu);
 		return menu;
 	}
 
@@ -304,12 +314,12 @@ public class Plan {
 	
 	private Tag moveMenu() {
 		Tag tileMenu = new Tag("div").clazz("move").title(t("Move tiles")).content(t("↹"));		
-		StringBuffer tiles = new StringBuffer();
-		tiles.append(new Div("west").title(t("Move west")).content("↤"));
-		tiles.append(new Div("east").title(t("Move east")).content("↦"));
-		tiles.append(new Div("north").title(t("Move north")).content("↥"));
-		tiles.append(new Div("south").title(t("Move south")).content("↧"));
-		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
+		Tag tiles = new Tag("div").clazz("list").content("");
+		new Div("west").title(t("Move west")).content("↤").addTo(tiles);
+		new Div("east").title(t("Move east")).content("↦").addTo(tiles);
+		new Div("north").title(t("Move north")).content("↥").addTo(tiles);
+		new Div("south").title(t("Move south")).content("↧").addTo(tiles);
+		return tiles.addTo(tileMenu);
 	}
 	
 	private String moveTile(String direction, String tileId) throws NumberFormatException, IOException {
@@ -517,46 +527,46 @@ public class Plan {
 	private Tag tileMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("addtile").title(t("Add tile")).content("◫");
 		
-		StringBuffer tiles = new StringBuffer();
-		tiles.append(new StraightH().tag(null));
-		tiles.append(new StraightV().tag(null));
-		tiles.append(new ContactH().tag(null));
-		tiles.append(new ContactV().tag(null));
-		tiles.append(new SignalW().tag(null));
-		tiles.append(new SignalE().tag(null));
-		tiles.append(new SignalS().tag(null));
-		tiles.append(new SignalN().tag(null));
-		tiles.append(new BlockH().tag(null));
-		tiles.append(new BlockV().tag(null));
-		tiles.append(new DiagES().tag(null));
-		tiles.append(new DiagSW().tag(null));
-		tiles.append(new DiagNE().tag(null));
-		tiles.append(new DiagWN().tag(null));
-		tiles.append(new EndE().tag(null));
-		tiles.append(new EndW().tag(null));
-		tiles.append(new EndN().tag(null));
-		tiles.append(new EndS().tag(null));
-		tiles.append(new TurnoutRS().tag(null));
-		tiles.append(new TurnoutRN().tag(null));
-		tiles.append(new TurnoutRW().tag(null));
-		tiles.append(new TurnoutRE().tag(null));
-		tiles.append(new TurnoutLN().tag(null));
-		tiles.append(new TurnoutLS().tag(null));
-		tiles.append(new TurnoutLW().tag(null));
-		tiles.append(new TurnoutLE().tag(null));
-		tiles.append(new Turnout3E().tag(null));
-		tiles.append(new CrossH().tag(null));
-		tiles.append(new CrossV().tag(null));
-		tiles.append(new Eraser().tag(null));
-		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
+		Tag tiles = new Tag("div").clazz("list").content("");
+		new StraightH().tag(null).addTo(tiles);
+		new StraightV().tag(null).addTo(tiles);
+		new ContactH().tag(null).addTo(tiles);
+		new ContactV().tag(null).addTo(tiles);
+		new SignalW().tag(null).addTo(tiles);
+		new SignalE().tag(null).addTo(tiles);
+		new SignalS().tag(null).addTo(tiles);
+		new SignalN().tag(null).addTo(tiles);
+		new BlockH().tag(null).addTo(tiles);
+		new BlockV().tag(null).addTo(tiles);
+		new DiagES().tag(null).addTo(tiles);
+		new DiagSW().tag(null).addTo(tiles);
+		new DiagNE().tag(null).addTo(tiles);
+		new DiagWN().tag(null).addTo(tiles);
+		new EndE().tag(null).addTo(tiles);
+		new EndW().tag(null).addTo(tiles);
+		new EndN().tag(null).addTo(tiles);
+		new EndS().tag(null).addTo(tiles);
+		new TurnoutRS().tag(null).addTo(tiles);
+		new TurnoutRN().tag(null).addTo(tiles);
+		new TurnoutRW().tag(null).addTo(tiles);
+		new TurnoutRE().tag(null).addTo(tiles);
+		new TurnoutLN().tag(null).addTo(tiles);
+		new TurnoutLS().tag(null).addTo(tiles);
+		new TurnoutLW().tag(null).addTo(tiles);
+		new TurnoutLE().tag(null).addTo(tiles);
+		new Turnout3E().tag(null).addTo(tiles);
+		new CrossH().tag(null).addTo(tiles);
+		new CrossV().tag(null).addTo(tiles);
+		new Eraser().tag(null).addTo(tiles);
+		return tiles.addTo(tileMenu);
 	}
 	
 	private Tag trainMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("trains").content(t("Trains"));		
-		StringBuffer tiles = new StringBuffer();
-		tiles.append(new Div("trains").content(t("Manage trains")));
-		tiles.append(new Div("locos").content(t("Manage locos")));
-		return new Tag("div").clazz("list").content(tiles.toString()).addTo(tileMenu);
+		Tag tiles = new Tag("div").clazz("list").content("");
+		new Div(ACTION_TRAINS).content(t("Manage trains")).addTo(tiles);
+		new Div(ACTION_LOCOS).content(t("Manage locos")).addTo(tiles);
+		return tiles.addTo(tileMenu);
 	}
 
 	private Object update(HashMap<String, String> params) throws IOException {

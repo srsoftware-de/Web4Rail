@@ -104,8 +104,7 @@ public class Locomotive extends Car {
 	}
 
 	public void setSpeed(int v) {
-		// TODO Auto-generated method stub
-		
+		LOG.debug("{}.setSpeed({})",this,v);
 	}
 	
 	@Override

@@ -176,6 +176,7 @@ window.onload = function () {
 	$('.menu .move .list div').click(enableMove);
 	$('.menu .actions .list > div').click(runAction);
 	$('.menu .trains .list > div').click(runAction);
+	$('.menu .hardware .list > div').click(runAction);
 	$(PLAN).click(planClick);
 	(new EventSource("stream")).onmessage = stream;
 }
