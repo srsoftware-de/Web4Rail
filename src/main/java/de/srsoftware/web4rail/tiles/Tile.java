@@ -200,7 +200,7 @@ public abstract class Tile {
 			new Button(t("save")).addTo(form);
 			form.addTo(window);
 		} else {
-			window.content(t("This tile ({}) has no properties",getClass().getSimpleName()));
+			window.content(t("This tile ({}) has no editable properties",getClass().getSimpleName()));
 		}
 		
 		if (route != null) {

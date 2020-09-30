@@ -10,21 +10,34 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
 
 public class Car {
+	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
+	static HashMap<String,Car> cars = new HashMap<String, Car>();
+	
 	public static final String ID = "id";
 	public static final String NAME = "name";
 	private static final String LENGTH = "length";
 	private static final String SHOW = "show";
-	static HashMap<String,Car> cars = new HashMap<String, Car>();
-	public int length;
-	private String name;
+	private static final String STOCK_ID = "stock-id";
+	
 	private String id;
+	private String name;
+	public int length;
+	private String stockId = "";
 	private Train train;
 	
 	public Car(String name) {
@@ -63,6 +76,7 @@ public class Car {
 		json.put(ID,id);
 		json.put(NAME, name);
 		json.put(LENGTH, length);
+		json.put(STOCK_ID, stockId);
 		return json;
 	}
 	
@@ -89,14 +103,36 @@ public class Car {
 	protected void load(JSONObject json) {
 		if (json.has(ID)) id = json.getString(ID);
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
+		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
 	}
 	
 	String name(){
 		return name;
 	}
 	
+	public Tag propertyForm() {
+		Form form = new Form();
+		new Input("action", Plan.ACTION_UPDATE_CAR).hideIn(form);
+		new Input(ID,id()).hideIn(form);
+		Fieldset fieldset = new Fieldset("Basic properties");
+		new Input(NAME,name).addTo(new Label(t("Name"))).addTo(fieldset);
+		new Input(STOCK_ID,stockId).addTo(new Label(t("Stock ID"))).addTo(fieldset);
+		new Input(LENGTH,length).attr("type", "number").addTo(new Label(t("Length"))).addTo(fieldset);
+		fieldset.addTo(form);
+		return form;
+	}
+	
 	public Object properties() {
 		Window win = new Window("car-props", t("Properties of {}",this));
+		
+		Tag form = propertyForm();
+		if (form!=null && form.children().size()>2) {
+			new Button(t("save")).addTo(form);
+			form.addTo(win);
+		} else {
+			win.content(t("This tile ({}) has no editable properties",getClass().getSimpleName()));
+		}
+		
 		Tag list = new Tag("ul");
 		if (train != null) {
 			train.link("span").addTo(new Tag("li").content(t("Train:")+" ")).addTo(list);
@@ -125,5 +161,12 @@ public class Car {
 
 	public void train(Train train) {
 		this.train = train;
+	}
+
+	public Object update(HashMap<String, String> params) {
+		if (params.containsKey(NAME)) name = params.get(NAME);
+		if (params.containsKey(STOCK_ID)) stockId  = params.get(STOCK_ID);
+		if (params.containsKey(LENGTH)) length = Integer.parseInt(params.get(LENGTH));
+		return null;
 	}
 }

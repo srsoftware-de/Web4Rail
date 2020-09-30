@@ -30,6 +30,10 @@ body{
 	height: 60px !important;
 }
 
+label{
+	display: flex;
+}
+
 svg circle,
 svg line,
 svg polygon,

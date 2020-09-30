@@ -111,6 +111,7 @@ public class Plan {
 	private static final String ACTION_CAR = "car";
 	public static final String ACTION_ADD_LOCO = "addLoco";
 	public static final String ACTION_ADD_TRAIN = "addTrain";
+	public static final String ACTION_UPDATE_CAR = "updateCar";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -172,10 +173,19 @@ public class Plan {
 		return blocks;
 	}
 	
-	private Object carAction(HashMap<String, String> params) {
+	private Object carAction(HashMap<String, String> params) throws IOException {
+		
 		Car car = Car.get(params.get(Car.ID));
 		if (car == null) return t("No car with id {} found!",params.get(Car.ID));
-		return car.properties();
+	
+		switch (params.get(ACTION)) {
+		case ACTION_CAR:
+			return car.properties();
+		case ACTION_UPDATE_CAR:
+			car.update(params);
+			break;
+		}
+		return html();
 	}
 	
 	private Object click(Tile tile) throws IOException {
@@ -375,6 +385,7 @@ public class Plan {
 				case ACTION_TRAIN:
 					return trainAction(params);
 				case ACTION_CAR:
+				case ACTION_UPDATE_CAR:
 					return carAction(params);
 				case ACTION_CLICK:
 					return click(get(params.get(Tile.ID),true));
