@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
@@ -83,7 +84,7 @@ public abstract class Block extends StretchableTile{
 		if (train != null) {
 			new Tag("h4").content(t("Train:")).addTo(window);
 			train.link("span").addTo(window);
-			new Tag("span").clazz("link").attr("onclick","train("+train.id+",'"+Train.MODE_START+"')").content(" - "+t("start")).addTo(window);
+			new Button(t("start"),"train("+train.id+",'"+Train.MODE_START+"')").addTo(window);
 		}
 		return window;
 	}

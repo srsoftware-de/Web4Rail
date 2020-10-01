@@ -11,5 +11,10 @@ public class Button extends Tag {
 		attr("type", "submit");
 		content(text);
 	}
+	
+	public Button(String text,String action) {
+		super("button");
+		attr("onclick",action).content(text);
+	}
 
 }

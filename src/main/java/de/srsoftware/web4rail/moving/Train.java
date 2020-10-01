@@ -284,11 +284,11 @@ public class Train {
 		if (block != null) {
 			new Tag("li").content(t("Current location: {}",block)).addTo(list);
 			Tag actions = new Tag("li").clazz().content(t("Actions: "));
-			new Tag("span").clazz("link").attr("onclick","train("+id+",'"+MODE_START+"')").content(" "+t("start")+" ").addTo(actions);
+			new Button(t("start"),"train("+id+",'"+MODE_START+"')").addTo(actions);
 			if (autopilot == null) {
-				new Tag("span").attr("onclick","train("+id+",'"+MODE_AUTO+"')").content(" "+t("auto")+" ").addTo(actions);
+				new Button(t("auto"),"train("+id+",'"+MODE_AUTO+"')").addTo(actions);
 			} else {
-				new Tag("span").clazz("link").attr("onclick","train("+id+",'"+MODE_STOP+"')").content(" "+t("stop")+" ").addTo(actions);
+				new Button(t("stop"),"train("+id+",'"+MODE_STOP+"')").addTo(actions);
 			}
 			actions.addTo(list);
 

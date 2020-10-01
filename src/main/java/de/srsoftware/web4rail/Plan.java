@@ -118,6 +118,7 @@ public class Plan {
 	public static final String REALM_ROUTE = "route";
 	public static final String REALM_TILE = "tile";
 	public static final String REALM_CAR = "car";
+	private static final String ACTION_CONNECT = "connect";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -191,6 +192,15 @@ public class Plan {
 	private Object click(Tile tile) throws IOException {
 		if (tile == null) return null;
 		return tile.click();
+	}
+	
+	private Object connect(HashMap<String, String> params) throws IOException {
+		if (params.containsKey(REALM)) switch (params.get(REALM)) {
+			case REALM_CU:
+				controlUnit.restart();
+				break;
+		}
+		return html();
 	}
 	
 	private Object cuProps(HashMap<String, String> params) {
@@ -271,22 +281,28 @@ public class Plan {
 	}
 	
 	public static Plan load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		Plan plan = new Plan();
 		try {
-			Car.loadAll(filename+".cars");
+			Car.loadAll(filename+".cars",plan);
 		} catch (Exception e) {
-			LOG.debug("Was not able to load cars!",e);
+			LOG.warn("Was not able to load cars!",e);
 		}
 		try {
 			Train.loadAll(filename+".trains");
 		} catch (Exception e) {
-			LOG.debug("Was not able to load trains!",e);
+			LOG.warn("Was not able to load trains!",e);
 		}
-		Plan plan = new Plan();
 		Tile.loadAll(filename+".plan",plan);
 		try {
 			Route.loadAll(filename+".routes",plan);
 		} catch (Exception e) {
-			LOG.debug("Was not able to load routes!",e);
+			LOG.warn("Was not able to load routes!",e);
+		}
+		try {
+			plan.controlUnit.load(filename+".cu");
+			plan.controlUnit.start();
+		} catch (Exception e) {
+			LOG.warn("Was not able to load control unit settings!",e);
 		}
 		return plan;
 	}
@@ -401,6 +417,8 @@ public class Plan {
 					return carAction(params);
 				case ACTION_CLICK:
 					return click(get(params.get(Tile.ID),true));
+				case ACTION_CONNECT:
+					return connect(params);
 				case ACTION_CU_PROPS:
 					return cuProps(params);
 				case ACTION_ANALYZE:
@@ -479,6 +497,7 @@ public class Plan {
 		Tile.saveAll(tiles,name+".plan");
 		Train.saveAll(name+".trains"); // refers to cars, blocks
 		Route.saveAll(routes.values(),name+".routes"); // refers to tiles
+		controlUnit.save(name+".cu");
 		return t("Plan saved as \"{}\".",name);
 	}
 	
@@ -605,5 +624,9 @@ public class Plan {
 
 	public void warn(Contact contact) {
 		stream(t("Warning: {}",t("Ghost train @ {}",contact)));
+	}
+
+	public void queue(String command) {
+		controlUnit.queue(command);		
 	}
 }

@@ -39,6 +39,7 @@ public class Car {
 	public int length;
 	private String stockId = "";
 	private Train train;
+	protected Plan plan;
 	
 	public Car(String name) {
 		this(name,null);
@@ -84,7 +85,7 @@ public class Car {
 		return new Tag(tagClass).clazz("link").attr("onclick","car("+id+",'"+Car.SHOW+"')").content(name());
 	}
 	
-	public static void loadAll(String filename) throws IOException {
+	public static void loadAll(String filename, Plan plan) throws IOException {
 		cars.clear();
 		BufferedReader file = new BufferedReader(new FileReader(filename));
 		String line = file.readLine();
@@ -93,21 +94,27 @@ public class Car {
 			String name = json.getString(Car.NAME);
 			String id = json.getString(Car.ID);
 			Car car = json.has(Locomotive.LOCOMOTIVE) ? new Locomotive(name, id) : new Car(name,id);
-			car.load(json);
+			car.load(json).plan(plan);
 			
 			line = file.readLine();
 		}
 		file.close();
 	}
 	
-	protected void load(JSONObject json) {
+	protected Car load(JSONObject json) {
 		if (json.has(ID)) id = json.getString(ID);
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
 		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
+		return this;
 	}
 	
 	String name(){
 		return name;
+	}
+	
+	public Car plan(Plan plan) {
+		this.plan = plan;
+		return this;
 	}
 	
 	public Tag propertyForm() {

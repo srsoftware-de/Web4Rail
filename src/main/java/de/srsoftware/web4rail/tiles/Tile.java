@@ -303,6 +303,12 @@ public abstract class Tile {
 				case WEST:
 					new Tag("polygon").clazz("oneway").attr("points", "0,50 25,35 25,65").addTo(svg);
 					break;
+				case SOUTH:
+					new Tag("polygon").clazz("oneway").attr("points", "50,100 35,75 65,75").addTo(svg);
+					break;
+				case NORTH:
+					new Tag("polygon").clazz("oneway").attr("points", "50,0 35,25 65,25").addTo(svg);
+					break;
 				default:
 				}
 			}

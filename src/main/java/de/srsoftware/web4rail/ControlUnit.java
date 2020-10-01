@@ -1,5 +1,9 @@
 package de.srsoftware.web4rail;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -7,6 +11,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Scanner;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +31,7 @@ public class ControlUnit extends Thread{
 	private static final int OK = 200;
 	private static final String HOST = "host";
 	private static final String PORT = "port";
+	private static final String BUS = "bus";
 	
 	private class Reply{
 		private long secs;
@@ -89,7 +95,14 @@ public class ControlUnit extends Thread{
 		writeln("GO"); // switch mode
 		reply = new Reply(scanner);
 		if (reply.code != OK) throw new IOException("Handshake failed: "+reply);
-		
+	}
+	
+	private JSONObject json() {
+		JSONObject json = new JSONObject();
+		json.put(HOST, host);
+		json.put(PORT, port);
+		json.put(BUS, bus);
+		return json;
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
@@ -109,7 +122,12 @@ public class ControlUnit extends Thread{
 		Fieldset fieldset = new Fieldset(t("Server connection"));
 		new Input(HOST,host).addTo(new Label(t("Hostname"))).addTo(fieldset);
 		new Input(PORT,port).attr("type", "numeric").addTo(new Label(t("Port"))).addTo(fieldset);
-		return new Button(t("Save")).addTo(fieldset).addTo(form).addTo(win);
+		new Input(BUS,bus).attr("type", "numeric").addTo(new Label(t("Bus"))).addTo(fieldset);
+		new Button(t("Save")).addTo(fieldset).addTo(form).addTo(win);
+		
+		fieldset = new Fieldset("Actions");
+		new Button(t("Connect"),"connectCu();").addTo(fieldset).addTo(win);
+		return win;
 	}
 
 	public void queue(String command) {
@@ -120,7 +138,7 @@ public class ControlUnit extends Thread{
 	 * Should close the server connection and establish new server connection
 	 * @return 
 	 */
-	private ControlUnit restart() {
+	public ControlUnit restart() {
 		end();
 		start();
 		return this;
@@ -142,6 +160,12 @@ public class ControlUnit extends Thread{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void save(String filename) throws IOException {
+		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
+		file.write(json()+"\n");
+		file.close();
 	}
 	
 	/**
@@ -191,7 +215,17 @@ public class ControlUnit extends Thread{
 	}
 
 	public void update(HashMap<String, String> params) {
-		// TODO Auto-generated method stub
-		
+		if (params.containsKey(HOST)) host = params.get(HOST);
+		if (params.containsKey(PORT)) port = Integer.parseInt(params.get(PORT));
+		if (params.containsKey(BUS)) bus = Integer.parseInt(params.get(BUS));
+	}
+
+	public void load(String filename) throws IOException {
+		BufferedReader file = new BufferedReader(new FileReader(filename));
+		JSONObject json = new JSONObject(file.readLine());
+		file.close();
+		if (json.has(PORT)) port = json.getInt(PORT);
+		if (json.has(BUS)) bus = json.getInt(BUS);
+		if (json.has(HOST)) host = json.getString(HOST);
 	}
 }

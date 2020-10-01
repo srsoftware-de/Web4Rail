@@ -6,6 +6,7 @@ const DIV = 'DIV';
 const SVG = 'svg';
 const PLAN = '#plan';
 const POST = 'POST';
+const CU = 'cu';
 var selected = null;
 var mode = null;
 
@@ -46,6 +47,11 @@ function closeMenu(ev){
 
 function closeWindows(){
 	$('.window').remove();
+}
+
+function connectCu(){
+	console.log("connectCU");
+	return request({realm:CU,action:"connect"});
 }
 
 function dropClass(data){

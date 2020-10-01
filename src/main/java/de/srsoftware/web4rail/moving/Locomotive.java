@@ -18,7 +18,7 @@ import de.srsoftware.web4rail.tags.Radio;
 public class Locomotive extends Car {
 	
 	public enum Protocol{
-		DCC14,DCC27,DCC28,DCC128,MOTO;
+		DCC14,DCC27,DCC28,DCC128,MOTO,FLEISCH,SELECTRIX,ZIMO;
 	}
 	
 	private static final String REVERSE = "reverse";
@@ -28,6 +28,7 @@ public class Locomotive extends Car {
 	private boolean reverse = false;
 	private Protocol proto = Protocol.DCC128;
 	private int address = 3;
+	private boolean init = false;
 
 	public Locomotive(String name) {
 		super(name);
@@ -36,6 +37,32 @@ public class Locomotive extends Car {
 	public Locomotive(String name, String id) {
 		super(name,id);
 	}
+	
+	private void init() {
+		if (init) return;
+		String proto = null;
+		switch (this.proto) {
+		case FLEISCH:
+			proto = "F"; break;
+		case MOTO:
+			proto = "M 2 100 0"; break; // TODO: make configurable
+		case DCC14:
+			proto = "N 1 14 5"; break; // TODO: make configurable
+		case DCC27:
+			proto = "N 1 27 5"; break; // TODO: make configurable
+		case DCC28:
+			proto = "N 1 28 5"; break; // TODO: make configurable
+		case DCC128:
+			proto = "N 1 128 5"; break; // TODO: make configurable
+		case SELECTRIX:
+			proto = "S"; break;
+		case ZIMO:
+			proto = "Z"; break;
+		}
+		plan.queue("INIT {} GL "+address+" "+proto);
+		init = true;
+	}
+
 
 	@Override
 	public JSONObject json() {
@@ -58,7 +85,7 @@ public class Locomotive extends Car {
 	}
 
 	@Override
-	protected void load(JSONObject json) {
+	protected Car load(JSONObject json) {
 		super.load(json);
 		if (json.has(LOCOMOTIVE)) {
 			JSONObject loco = json.getJSONObject(LOCOMOTIVE);
@@ -66,6 +93,7 @@ public class Locomotive extends Car {
 			if (loco.has(PROTOCOL)) proto = Protocol.valueOf(loco.getString(PROTOCOL));
 			if (loco.has(ADDRESS)) address = loco.getInt(ADDRESS);
 		}
+		return this;
 	}	
 
 	public static Object manager() {
@@ -104,6 +132,8 @@ public class Locomotive extends Car {
 	}
 
 	public void setSpeed(int v) {
+		init();
+		plan.queue("SET {} GL "+address+" "+(reverse?1:0)+" "+v+" 128 0 0 0 0 0");
 		LOG.debug("{}.setSpeed({})",this,v);
 	}
 	
