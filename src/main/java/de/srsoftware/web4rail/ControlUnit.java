@@ -15,6 +15,7 @@ public class ControlUnit extends Thread{
 	private static final int DEFAULT_PORT = 4303;
 	private static final int OK_PROTO = 201;
 	private static final int OK_MODE = 202;
+	private static final int OK = 200;
 	
 	private class Reply{
 		private long secs;
@@ -41,6 +42,7 @@ public class ControlUnit extends Thread{
 	
 	private String host = DEFAULT_HOST;
 	private int port = DEFAULT_PORT;
+	private int bus = 0;
 	private boolean stopped = true;
 	private LinkedList<String> queue = new LinkedList<String>();
 	private Socket socket;
@@ -56,13 +58,20 @@ public class ControlUnit extends Thread{
 
 	
 	public static void main(String[] args) throws InterruptedException {
-		ControlUnit cu = new ControlUnit().setEndpoint("Modellbahn", DEFAULT_PORT).restart();
+		ControlUnit cu = new ControlUnit().setEndpoint("Modellbahn", DEFAULT_PORT).setBus(1).restart();
 		Thread.sleep(1000);
-		cu.queue("SET 0 GL 1 0 10");
+		cu.queue("SET {} POWER ON");
+		cu.queue("SET {} GL 1 0 10 128");
 		Thread.sleep(1000);
 		cu.end();
 	}
 	
+	private ControlUnit setBus(int bus) {
+		this.bus = bus;
+		return this;
+	}
+
+
 	public void queue(String command) {
 		queue.add(command);
 	}
@@ -98,12 +107,13 @@ public class ControlUnit extends Thread{
 	/**
 	 * send command to Server
 	 * @param command
+	 * @return 
 	 * @throws IOException 
 	 */
-	private void send(String command) throws IOException {
-		if (command == null) return;
+	private Reply send(String command) throws IOException {
+		if (command == null) return null;
 		writeln(command);
-		Reply reply = new Reply(scanner);
+		return new Reply(scanner);
 	}
 	
 	public ControlUnit setEndpoint(String newHost, int newPort){
@@ -143,12 +153,17 @@ public class ControlUnit extends Thread{
 		Reply reply = new Reply(scanner);
 		if (reply.code != OK_PROTO) throw new IOException("Handshake failed: "+reply);
 		
-		writeln("SET CONNECTIONMODE SRCP COMMAND");
+		writeln("SET CONNECTIONMODE SRCP COMMAND"); // preset following mode: COMMAND MODE
 		reply = new Reply(scanner);
 		if (reply.code != OK_MODE) throw new IOException("Handshake failed: "+reply);
+		writeln("GO"); // switch mode
+		reply = new Reply(scanner);
+		if (reply.code != OK) throw new IOException("Handshake failed: "+reply);
+		
 	}
 
 	private void writeln(String data) throws IOException {
+		data = data.replace("{}", ""+bus);
 		socket.getOutputStream().write((data+"\n").getBytes(StandardCharsets.US_ASCII));
 		LOG.debug("sent {}.",data);
 	}
