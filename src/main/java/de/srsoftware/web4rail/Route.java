@@ -29,6 +29,7 @@ import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.actions.SpeedReduction;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
@@ -366,8 +367,9 @@ public class Route {
 	
 	public Tag propForm() {
 		Form form = new Form();
-		new Tag("input").attr("type", "hidden").attr("name","action").attr("value", "update").addTo(form);
-		new Tag("input").attr("type", "hidden").attr("name","route").attr("value", ""+id()).addTo(form);
+		new Input(Plan.ACTION, Plan.ACTION_UPDATE).hideIn(form);
+		new Input(Plan.REALM,Plan.REALM_ROUTE).hideIn(form);
+		new Input(Plan.ID,id()).hideIn(form);
 		
 		Tag label = new Tag("label").content(t("name:"));
 		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).addTo(label);		

@@ -179,8 +179,9 @@ public abstract class Tile {
 	
 	public Tag propForm() {
 		Form form = new Form();
-		new Input("action", "update").hideIn(form);
-		new Input(ID,id()).hideIn(form);
+		new Input(Plan.ACTION, Plan.ACTION_UPDATE).hideIn(form);
+		new Input(Plan.REALM, Plan.REALM_TILE).hideIn(form);
+		new Input(Plan.ID,id()).hideIn(form);
 		
 		List<Direction> pd = possibleDirections();
 		if (!pd.isEmpty()) {

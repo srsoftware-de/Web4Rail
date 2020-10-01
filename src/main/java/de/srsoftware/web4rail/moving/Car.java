@@ -112,8 +112,9 @@ public class Car {
 	
 	public Tag propertyForm() {
 		Form form = new Form();
-		new Input("action", Plan.ACTION_UPDATE_CAR).hideIn(form);
-		new Input(ID,id()).hideIn(form);
+		new Input(Plan.ACTION, Plan.ACTION_UPDATE).hideIn(form);
+		new Input(Plan.REALM,Plan.REALM_CAR).hideIn(form);
+		new Input(Plan.ID,id()).hideIn(form);
 		Fieldset fieldset = new Fieldset("Basic properties");
 		new Input(NAME,name).addTo(new Label(t("Name"))).addTo(fieldset);
 		new Input(STOCK_ID,stockId).addTo(new Label(t("Stock ID"))).addTo(fieldset);

@@ -47,7 +47,6 @@ public class Application {
         } catch (FileNotFoundException e) {
         	plan = new Plan();
 		}
-                  
         Desktop.getDesktop().browse(URI.create("http://localhost:"+config.getInt(PORT)+"/plan"));
 	}
 	

@@ -3,11 +3,19 @@ package de.srsoftware.web4rail;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Scanner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.keawe.tools.translations.Translation;
+import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
 
 public class ControlUnit extends Thread{	
 	private static final Logger LOG = LoggerFactory.getLogger(ControlUnit.class);
@@ -16,6 +24,8 @@ public class ControlUnit extends Thread{
 	private static final int OK_PROTO = 201;
 	private static final int OK_MODE = 202;
 	private static final int OK = 200;
+	private static final String HOST = "host";
+	private static final String PORT = "port";
 	
 	private class Reply{
 		private long secs;
@@ -56,6 +66,31 @@ public class ControlUnit extends Thread{
 		return this;
 	}
 
+	private void handshake() throws IOException {
+		String proto = null;
+		if (scanner.hasNext()) {
+			String line = scanner.nextLine();
+			LOG.debug("recv: "+line);
+			for (String part : line.split(";")) {
+				part = part.trim();
+				if (part.startsWith("SRCP ")) proto = part.substring(5); 
+			}
+			if (proto == null) throw new IOException("Handshake failed: "+line);
+			if (!proto.startsWith("0.8.")) throw new IOException("Unsupported protocol: "+proto);
+			writeln("SET PROTOCOL SRCP "+proto);			
+		} else throw new IOException("Handshake expected.");
+		
+		Reply reply = new Reply(scanner);
+		if (reply.code != OK_PROTO) throw new IOException("Handshake failed: "+reply);
+		
+		writeln("SET CONNECTIONMODE SRCP COMMAND"); // preset following mode: COMMAND MODE
+		reply = new Reply(scanner);
+		if (reply.code != OK_MODE) throw new IOException("Handshake failed: "+reply);
+		writeln("GO"); // switch mode
+		reply = new Reply(scanner);
+		if (reply.code != OK) throw new IOException("Handshake failed: "+reply);
+		
+	}
 	
 	public static void main(String[] args) throws InterruptedException {
 		ControlUnit cu = new ControlUnit().setEndpoint("Modellbahn", DEFAULT_PORT).setBus(1).restart();
@@ -66,16 +101,21 @@ public class ControlUnit extends Thread{
 		cu.end();
 	}
 	
-	private ControlUnit setBus(int bus) {
-		this.bus = bus;
-		return this;
+	public Object properties() {
+		Window win = new Window("cu-props", t("Properties of the control unit"));
+		Form form = new Form();
+		new Input(Plan.ACTION,Plan.ACTION_UPDATE).hideIn(form);
+		new Input(Plan.REALM,Plan.REALM_CU).hideIn(form);
+		Fieldset fieldset = new Fieldset(t("Server connection"));
+		new Input(HOST,host).addTo(new Label(t("Hostname"))).addTo(fieldset);
+		new Input(PORT,port).attr("type", "numeric").addTo(new Label(t("Port"))).addTo(fieldset);
+		return new Button(t("Save")).addTo(fieldset).addTo(form).addTo(win);
 	}
-
 
 	public void queue(String command) {
 		queue.add(command);
 	}
-
+	
 	/**
 	 * Should close the server connection and establish new server connection
 	 * @return 
@@ -103,7 +143,7 @@ public class ControlUnit extends Thread{
 			e.printStackTrace();
 		}
 	}
-
+	
 	/**
 	 * send command to Server
 	 * @param command
@@ -114,6 +154,11 @@ public class ControlUnit extends Thread{
 		if (command == null) return null;
 		writeln(command);
 		return new Reply(scanner);
+	}
+	
+	private ControlUnit setBus(int bus) {
+		this.bus = bus;
+		return this;
 	}
 	
 	public ControlUnit setEndpoint(String newHost, int newPort){
@@ -134,37 +179,19 @@ public class ControlUnit extends Thread{
 		}
 		super.start();
 	}
-
-
-	private void handshake() throws IOException {
-		String proto = null;
-		if (scanner.hasNext()) {
-			String line = scanner.nextLine();
-			LOG.debug("recv: "+line);
-			for (String part : line.split(";")) {
-				part = part.trim();
-				if (part.startsWith("SRCP ")) proto = part.substring(5); 
-			}
-			if (proto == null) throw new IOException("Handshake failed: "+line);
-			if (!proto.startsWith("0.8.")) throw new IOException("Unsupported protocol: "+proto);
-			writeln("SET PROTOCOL SRCP "+proto);			
-		} else throw new IOException("Handshake expected.");
-		
-		Reply reply = new Reply(scanner);
-		if (reply.code != OK_PROTO) throw new IOException("Handshake failed: "+reply);
-		
-		writeln("SET CONNECTIONMODE SRCP COMMAND"); // preset following mode: COMMAND MODE
-		reply = new Reply(scanner);
-		if (reply.code != OK_MODE) throw new IOException("Handshake failed: "+reply);
-		writeln("GO"); // switch mode
-		reply = new Reply(scanner);
-		if (reply.code != OK) throw new IOException("Handshake failed: "+reply);
-		
+	
+	private String t(String text,Object...fills) {
+		return Translation.get(Application.class, text, fills);
 	}
 
 	private void writeln(String data) throws IOException {
 		data = data.replace("{}", ""+bus);
 		socket.getOutputStream().write((data+"\n").getBytes(StandardCharsets.US_ASCII));
 		LOG.debug("sent {}.",data);
+	}
+
+	public void update(HashMap<String, String> params) {
+		// TODO Auto-generated method stub
+		
 	}
 }

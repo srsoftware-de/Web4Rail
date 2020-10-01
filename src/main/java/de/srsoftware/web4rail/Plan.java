@@ -94,7 +94,7 @@ public class Plan {
 	private static final String ACTION_MOVE = "move";
 	private static final String ACTION_CLICK = "click";
 	private static final String ACTION_SAVE = "save";
-	private static final String ACTION_UPDATE = "update";
+	public static final String ACTION_UPDATE = "update";
 	private static final String TILE = "tile";
 	private static final Logger LOG = LoggerFactory.getLogger(Plan.class);
 	private static final String X = "x";
@@ -102,7 +102,7 @@ public class Plan {
 	private static final String FILE = "file";
 	private static final String DIRECTION = "direction";
 	private static final String ACTION_ROUTE = "openRoute";
-	private static final String ID = "id";
+	public static final String ID = "id";
 	private static final String ROUTE = "route";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	private static final String ACTION_TRAIN = "train";
@@ -111,12 +111,18 @@ public class Plan {
 	private static final String ACTION_CAR = "car";
 	public static final String ACTION_ADD_LOCO = "addLoco";
 	public static final String ACTION_ADD_TRAIN = "addTrain";
-	public static final String ACTION_UPDATE_CAR = "updateCar";
-	private static final String ACTION_CONTROL_UNIT = "controlProps";
+	public static final String ACTION_CU_PROPS = "cuProps";
+	public static final String ACTION_UPDATE_CU = "update-cu";
+	public static final String REALM = "realm";
+	public static final String REALM_CU = "cu";
+	public static final String REALM_ROUTE = "route";
+	public static final String REALM_TILE = "tile";
+	public static final String REALM_CAR = "car";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
 	private HashMap<Integer, Route> routes = new HashMap<Integer, Route>();
+	private ControlUnit controlUnit = new ControlUnit();
 	
 	public Plan() {
 		new Heartbeat().start();
@@ -179,19 +185,16 @@ public class Plan {
 		Car car = Car.get(params.get(Car.ID));
 		if (car == null) return t("No car with id {} found!",params.get(Car.ID));
 	
-		switch (params.get(ACTION)) {
-		case ACTION_CAR:
-			return car.properties();
-		case ACTION_UPDATE_CAR:
-			car.update(params);
-			break;
-		}
-		return html();
+		return car.properties();
 	}
 	
 	private Object click(Tile tile) throws IOException {
 		if (tile == null) return null;
 		return tile.click();
+	}
+	
+	private Object cuProps(HashMap<String, String> params) {
+		return controlUnit.properties();
 	}
 
 	private Collection<Route> follow(Route route, Connector connector) {
@@ -239,7 +242,7 @@ public class Plan {
 	private Tag hardwareMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("hardware").content(t("Hardware"));
 		Tag list = new Tag("div").clazz("list").content("");
-		new Div(ACTION_CONTROL_UNIT).content(t("Control unit")).addTo(list);
+		new Div(ACTION_CU_PROPS).content(t("Control unit")).addTo(list);
 		return list.addTo(tileMenu);
 	}
 	
@@ -395,10 +398,11 @@ public class Plan {
 				case ACTION_TRAIN:
 					return trainAction(params);
 				case ACTION_CAR:
-				case ACTION_UPDATE_CAR:
 					return carAction(params);
 				case ACTION_CLICK:
 					return click(get(params.get(Tile.ID),true));
+				case ACTION_CU_PROPS:
+					return cuProps(params);
 				case ACTION_ANALYZE:
 					return analyze();
 				case ACTION_LOCOS:
@@ -412,7 +416,7 @@ public class Plan {
 				case ACTION_TRAINS:
 					return Train.manager();
 				case ACTION_UPDATE:
-					return update(params);		
+					return update(params);
 				default:
 					LOG.warn("Unknown action: {}",action);
 			}
@@ -570,12 +574,29 @@ public class Plan {
 	}
 
 	private Object update(HashMap<String, String> params) throws IOException {
-		if (params.containsKey(ROUTE)) {
-			Route route = routes.get(Integer.parseInt(params.get(ROUTE)));
-			if (route == null) return t("Unknown route: {}",params.get(ROUTE));
-			route.update(params);
-		} else update(get(params.get(Tile.ID),true),params);
-		return this.html();
+		if (params.containsKey(REALM)) {
+			switch (params.get(REALM)) {
+				case REALM_CAR:
+					Car car = Car.get(params.get(Car.ID));
+					if (car == null) return t("No car with id {} found!",params.get(Car.ID));
+					car.update(params);
+					break;
+				case REALM_CU:
+					controlUnit.update(params);
+					break;
+				case REALM_ROUTE:
+					Route route = routes.get(Integer.parseInt(params.get(ID)));
+					if (route == null) return t("Unknown route: {}",params.get(ROUTE));
+					route.update(params);
+					break;
+				case REALM_TILE:
+					update(get(params.get(Tile.ID),true),params);
+					break;
+				default:
+					return t("Unknown realm \"{}\"",params.get(REALM));
+			}
+		}
+		return html();
 	}
 
 	private void update(Tile tile, HashMap<String, String> params) throws IOException {
