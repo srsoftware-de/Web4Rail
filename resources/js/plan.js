@@ -20,7 +20,6 @@ function addMessage(txt){
 }
 
 function addTile(x,y){	
-	console.log("addTile:",selected.id,x,y);
 	return request({action:mode,tile:selected.id,x:x,y:y});
 }
 
@@ -30,14 +29,12 @@ function car(id,mode){
 
 function clickTile(x,y){
 	var id = x+"-"+y;
-	console.log("clickTile:",id);	
 	if ($('#'+id).length > 0) request({action:'click',id:id});
 	return false;
 }
 
 
 function closeMenu(ev){
-	console.log('closeMenu:',ev);
 	if (selected != null) $(selected).css('border','');
 	$('.menu .list').css('display','')
 	mode = null;
@@ -50,7 +47,6 @@ function closeWindows(){
 }
 
 function connectCu(){
-	console.log("connectCU");
 	return request({realm:CU,action:"connect"});
 }
 
@@ -75,7 +71,7 @@ function enableAdding(ev){
 }
 
 function enableMove(ev){
-	console.log('enableMove:',ev);
+//	console.log('enableMove:',ev);
 	if (selected != null) $(selected).css('border','');
 	selected = ev.target;
 	while (selected != null && selected.nodeName != DIV) selected = selected.parentNode;
@@ -96,7 +92,6 @@ function heartbeat(data){
 
 function moveTile(x,y){	
 	var id = x+"-"+y;
-	console.log("moveTile:",selected.id,id);
 	return request({action:mode,direction:selected.id,id:id});
 }
 
@@ -144,7 +139,7 @@ function request(data){
 			if (resp.startsWith('<svg')){
 				$(PLAN).append($(resp));
 			} else if (resp.startsWith('<')) {
-				console.log("appending to body: "+resp.substring(0,10));
+//				console.log("appending to body: "+resp.substring(0,10));
 				$(BODY).append($(resp));
 			} else {
 				addMessage(resp);
@@ -155,7 +150,7 @@ function request(data){
 }
 
 function runAction(ev){
-	console.log("runAction: ",ev.target.id);
+//	console.log("runAction: ",ev.target.id);
 	return request({action:ev.target.id,file:'default'}); // TODO: ask for name
 }
 
@@ -165,14 +160,12 @@ function train(id,mode){
 
 function stream(ev){
 	var data = ev.data;
-	console.log("received: ",data);
+	//console.log("received: ",data);
 	if (data.startsWith("heartbeat")) return heartbeat(data);
 	if (data.startsWith("place ")) return place(data.substring(6));
 	if (data.startsWith("remove")) return remove(data.substring(7));
 	if (data.startsWith("addclass")) return addClass(data.substring(9));
 	if (data.startsWith("dropclass")) return dropClass(data.substring(10));
-	console.log("received: ",data);
-	
 }
 
 window.onload = function () {
