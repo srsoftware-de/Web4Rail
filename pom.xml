@@ -6,6 +6,7 @@
 	<artifactId>web4rail</artifactId>
 	<version>0.5.5</version>
 	<name>Web4Rail</name>
+	<packaging>jar</packaging>
 	<description>Java Model Railway Control</description>
 	<url>https://github.com/StephanRichter/Web4Rail</url>
 	<organization>
@@ -49,10 +50,10 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.json</groupId>
-		    <artifactId>json</artifactId>
-		    <version>20200518</version>
-		</dependency>		
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20200518</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -64,6 +65,32 @@
 					<release>11</release>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>
+										de.srsoftware.web4rail.Application
+									</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>
