@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.srsoftware</groupId>
 	<artifactId>web4rail</artifactId>
-	<version>0.5.4</version>
+	<version>0.5.5</version>
 	<name>Web4Rail</name>
 	<description>Java Model Railway Control</description>
 	<url>https://github.com/StephanRichter/Web4Rail</url>
@@ -33,7 +33,7 @@
 		<dependency>
 			<groupId>de.srsoftware</groupId>
 			<artifactId>tools</artifactId>
-			<version>1.1.8</version>
+			<version>1.1.9</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>

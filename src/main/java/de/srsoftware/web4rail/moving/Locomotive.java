@@ -6,7 +6,9 @@ import java.util.Vector;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Plan;
+import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -15,16 +17,10 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
 
-public class Locomotive extends Car {
-	
-	public enum Protocol{
-		DCC14,DCC27,DCC28,DCC128,MOTO,FLEISCH,SELECTRIX,ZIMO;
-	}
+public class Locomotive extends Car implements Device{
 	
 	private static final String REVERSE = "reverse";
 	public static final String LOCOMOTIVE = "locomotive";
-	private static final String PROTOCOL = "protocol";
-	private static final String ADDRESS = "address";
 	private boolean reverse = false;
 	private Protocol proto = Protocol.DCC128;
 	private int address = 3;

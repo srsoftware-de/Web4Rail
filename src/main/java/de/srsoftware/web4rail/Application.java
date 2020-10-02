@@ -10,6 +10,8 @@ import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -30,7 +32,7 @@ public class Application {
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 	private static final String PORT = "port";
 	private static final Charset UTF8 = StandardCharsets.UTF_8;
-
+	
 	public static void main(String[] args) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Configuration config = new Configuration(Configuration.dir("Web4Rail")+"/app.config");
 		LOG.debug("Config: {}",config);

@@ -18,5 +18,10 @@ public class Input extends Tag{
 
 	public Tag hideIn(Tag form) {
 		return this.attr("type", "hidden").addTo(form);
-	}	
+	}
+	
+	public Input numeric() {
+		attr("type","numeric");
+		return this;
+	}
 }

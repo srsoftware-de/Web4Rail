@@ -78,6 +78,7 @@ public abstract class Tile {
 	}
 	
 	public Object click() throws IOException {
+		LOG.debug("Tile.click()");
 		return propMenu();
 	}
 	

@@ -1,5 +1,6 @@
 package de.srsoftware.web4rail.tiles;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,5 +26,11 @@ public class Turnout3E extends Turnout{
 			default:
 				return new HashMap<>();
 		}
+	}
+
+	@Override
+	public void state(State newState) throws IOException {
+		// TODO Auto-generated method stub
+		LOG.warn("Turnout3E.state({}) not implemented, yet!",newState);
 	}
 }

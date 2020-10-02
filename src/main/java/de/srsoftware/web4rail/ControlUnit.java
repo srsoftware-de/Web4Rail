@@ -45,7 +45,7 @@ public class ControlUnit extends Thread{
 			milis = Integer.parseInt(word.substring(word.length()-3));
 			code = scanner.nextInt();
 			message = scanner.nextLine().trim();
-			LOG.debug("recv {}.{} {} {}.",secs,milis,code,message);
+			LOG.info("recv {}.{} {} {}.",secs,milis,code,message);
 		}
 
 		@Override
@@ -211,7 +211,7 @@ public class ControlUnit extends Thread{
 	private void writeln(String data) throws IOException {
 		data = data.replace("{}", ""+bus);
 		socket.getOutputStream().write((data+"\n").getBytes(StandardCharsets.US_ASCII));
-		LOG.debug("sent {}.",data);
+		LOG.info("sent {}.",data);
 	}
 
 	public void update(HashMap<String, String> params) {

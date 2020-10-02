@@ -299,10 +299,14 @@ public class Plan {
 			LOG.warn("Was not able to load routes!",e);
 		}
 		try {
-			plan.controlUnit.load(filename+".cu");
-			plan.controlUnit.start();
+			plan.controlUnit.load(filename+".cu");			
 		} catch (Exception e) {
 			LOG.warn("Was not able to load control unit settings!",e);
+		}
+		try {
+			plan.controlUnit.start();
+		} catch (Exception e) {
+			LOG.warn("Was not able to establish connection to control unit!");
 		}
 		return plan;
 	}
