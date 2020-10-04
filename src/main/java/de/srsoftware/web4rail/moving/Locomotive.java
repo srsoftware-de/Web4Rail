@@ -24,6 +24,7 @@ public class Locomotive extends Car implements Device{
 	private boolean reverse = false;
 	private Protocol proto = Protocol.DCC128;
 	private int address = 3;
+	private int speed = 0;
 	private boolean init = false;
 
 	public Locomotive(String name) {
@@ -32,6 +33,26 @@ public class Locomotive extends Car implements Device{
 	
 	public Locomotive(String name, String id) {
 		super(name,id);
+	}
+	
+	protected Tag cockpit(String realm) {
+		Fieldset fieldset = new Fieldset(t("Control"));
+		String request = "return request({realm:'"+realm+"',id:"+id()+",action:'{}'})";
+		new Button(t("Turn"), request.replace("{}", Plan.ACTION_TURN)) .addTo(fieldset);
+		new Button(t("Faster (10 steps)"), request.replace("{}", Plan.ACTION_FASTER10)).addTo(fieldset);
+		new Button(t("Slower (10 steps)"), request.replace("{}", Plan.ACTION_SLOWER10)).addTo(fieldset);
+		new Button(t("Stop"), request.replace("{}", Plan.ACTION_STOP)).addTo(fieldset);
+		return fieldset;
+	}
+	
+	public Object faster(int steps) {
+		return setSpeed(speed + steps);
+	}
+	
+	public static Locomotive get(String nameOrId) {		
+		Car car = Car.get(nameOrId);
+		if (car instanceof Locomotive) return (Locomotive) car;
+		return null;
 	}
 	
 	private void init() {
@@ -127,10 +148,25 @@ public class Locomotive extends Car implements Device{
 		return form;
 	}
 
-	public void setSpeed(int v) {
+	public String setSpeed(int newSpeed) {
 		init();
-		plan.queue("SET {} GL "+address+" "+(reverse?1:0)+" "+v+" 128 0 0 0 0 0");
-		LOG.debug("{}.setSpeed({})",this,v);
+		speed = newSpeed;
+		if (speed > 128) speed = 128;
+		if (speed < 0) speed = 0;
+		
+		plan.queue("SET {} GL "+address+" "+(reverse?1:0)+" "+speed+" 128 0 0 0 0 0");
+		return t("Speed of {} set to {}.",this,speed);
+	}
+	
+	public Object stop() {
+		setSpeed(0);
+		return t("Stopped {}",this);
+	}
+	
+	public Object turn() {
+		reverse = !reverse;
+		stop();
+		return t("Stopped and reversed {}.",this);
 	}
 	
 	@Override

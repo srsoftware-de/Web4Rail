@@ -57,6 +57,10 @@ public class Car {
 		cars.put(id, this);
 	}
 	
+	protected Tag cockpit(String realm) {
+		return null;
+	}
+	
 	public static Car get(String nameOrId) {
 		Car car = cars.get(nameOrId); // try to get by id
 		if (car == null) { // try to get by name
@@ -133,6 +137,9 @@ public class Car {
 	public Object properties() {
 		Window win = new Window("car-props", t("Properties of {}",this));
 		
+		Tag cockpit = cockpit("car");
+		if (cockpit != null) cockpit.addTo(win);
+		
 		Tag form = propertyForm();
 		if (form!=null && form.children().size()>2) {
 			new Button(t("save")).addTo(form);
@@ -148,7 +155,7 @@ public class Car {
 		list.addTo(win);
 		return win;
 	}
-	
+
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		for (Entry<String, Car> entry: cars.entrySet()) {

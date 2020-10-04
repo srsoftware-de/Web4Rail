@@ -119,22 +119,30 @@ public class Plan {
 	public static final String REALM_TILE = "tile";
 	public static final String REALM_CAR = "car";
 	private static final String ACTION_CONNECT = "connect";
+	private static final String ACTION_POWER = "power";
+	private static final String ACTION_EMERGENCY = "emergency";
+	public static final String ACTION_FASTER10 = "faster10";
+	public static final String ACTION_SLOWER10 = "slower10";
+	public static final String ACTION_STOP = "stop";
+	public static final String ACTION_TURN = "turn";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
 	private HashMap<Integer, Route> routes = new HashMap<Integer, Route>();
 	private ControlUnit controlUnit = new ControlUnit();
+	private boolean power = false;
 	
 	public Plan() {
 		new Heartbeat().start();
 	}
 
 	private Tag actionMenu() throws IOException {
-		Tag tileMenu = new Tag("div").clazz("actions").content(t("Actions"));		
-		Tag tiles = new Tag("div").clazz("list").content("");
-		new Div("save").content(t("Save plan")).addTo(tiles);
-		new Div("analyze").content(t("Analyze plan")).addTo(tiles);
-		return tiles.addTo(tileMenu);
+		Tag actionMenu = new Tag("div").clazz("actions").content(t("Actions"));		
+		Tag actions = new Tag("div").clazz("list").content("");
+		new Div("power").content(t("Toggle power")).addTo(actions);
+		new Div("save").content(t("Save plan")).addTo(actions);
+		new Div("analyze").content(t("Analyze plan")).addTo(actions);
+		return actions.addTo(actionMenu);
 	}
 	
 	public void addClient(OutputStreamWriter client) {
@@ -312,10 +320,19 @@ public class Plan {
 	}
 
 	private Object locoAction(HashMap<String, String> params) throws IOException {
+		
 		switch (params.get(ACTION)) {
 			case ACTION_ADD_LOCO:
 				new Locomotive(params.get(Locomotive.NAME));
 				break;
+			case ACTION_FASTER10:
+				return Locomotive.get(params.get(ID)).faster(10);
+			case ACTION_SLOWER10:
+				return Locomotive.get(params.get(ID)).faster(-10);
+			case ACTION_STOP:
+				return Locomotive.get(params.get(ID)).stop();
+			case ACTION_TURN:
+				return Locomotive.get(params.get(ID)).turn();
 		}
 		
 		return html();
@@ -413,10 +430,16 @@ public class Plan {
 				case ACTION_ADD:
 					return addTile(params.get(TILE),params.get(X),params.get(Y),null);
 				case ACTION_ADD_LOCO:
+				case ACTION_FASTER10:
+				case ACTION_STOP:
+				case ACTION_SLOWER10:
+				case ACTION_TURN:
 					return locoAction(params);
 				case ACTION_ADD_TRAIN:
 				case ACTION_TRAIN:
 					return trainAction(params);
+				case ACTION_ANALYZE:
+					return analyze();
 				case ACTION_CAR:
 					return carAction(params);
 				case ACTION_CLICK:
@@ -424,13 +447,16 @@ public class Plan {
 				case ACTION_CONNECT:
 					return connect(params);
 				case ACTION_CU_PROPS:
-					return cuProps(params);
-				case ACTION_ANALYZE:
-					return analyze();
+					return cuProps(params);					
 				case ACTION_LOCOS:
 					return Locomotive.manager();
+				case ACTION_EMERGENCY:
+					power = true;
+					return togglePower();
 				case ACTION_MOVE:
 					return moveTile(params.get(DIRECTION),params.get(Tile.ID));
+				case ACTION_POWER:
+					return togglePower();
 				case ACTION_ROUTE:
 					return routeProperties(Integer.parseInt(params.get(ID)));
 				case ACTION_SAVE:
@@ -449,6 +475,13 @@ public class Plan {
 			LOG.debug(msg,e);
 			return msg;
 		}
+	}
+
+	private Object togglePower() throws IOException {
+		power = !power;
+		String PW = power?"ON":"OFF";
+		queue("SET {} POWER "+PW);
+		return t("Turned power {}.",PW);
 	}
 
 	private Object trainAction(HashMap<String, String> params) throws IOException {

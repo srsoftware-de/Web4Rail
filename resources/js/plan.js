@@ -16,7 +16,7 @@ function addClass(data){
 }
 
 function addMessage(txt){
-	$('#messages').html(txt).show().delay(5000).fadeOut(5000);
+	$('#messages').html(txt).show().delay(2000).fadeOut(1);
 }
 
 function addTile(x,y){	
@@ -90,6 +90,10 @@ function heartbeat(data){
 	return false;
 }
 
+function keypress(ev){
+	if (ev.key === "Escape") request({realm:"cu",action:"emergency"})
+}
+
 function moveTile(x,y){	
 	var id = x+"-"+y;
 	return request({action:mode,direction:selected.id,id:id});
@@ -135,7 +139,7 @@ function request(data){
 		method : POST,
 		data : data,
 		success: function(resp){
-			closeWindows();
+			if (data.realm != 'car') closeWindows();
 			if (resp.startsWith('<svg')){
 				$(PLAN).append($(resp));
 			} else if (resp.startsWith('<')) {
@@ -154,10 +158,6 @@ function runAction(ev){
 	return request({action:ev.target.id,file:'default'}); // TODO: ask for name
 }
 
-function train(id,mode){
-	return request({action:"train",id:id,mode:mode});
-}
-
 function stream(ev){
 	var data = ev.data;
 	//console.log("received: ",data);
@@ -166,6 +166,10 @@ function stream(ev){
 	if (data.startsWith("remove")) return remove(data.substring(7));
 	if (data.startsWith("addclass")) return addClass(data.substring(9));
 	if (data.startsWith("dropclass")) return dropClass(data.substring(10));
+}
+
+function train(id,mode){
+	return request({action:"train",id:id,mode:mode});
 }
 
 window.onload = function () {
@@ -177,5 +181,6 @@ window.onload = function () {
 	$('.menu .trains .list > div').click(runAction);
 	$('.menu .hardware .list > div').click(runAction);
 	$(PLAN).click(planClick);
+	$(document).keyup(keypress);
 	(new EventSource("stream")).onmessage = stream;
 }
