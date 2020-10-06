@@ -7,8 +7,11 @@ const SVG = 'svg';
 const PLAN = '#plan';
 const POST = 'POST';
 const CU = 'cu';
+const OPAC = 100;
 var selected = null;
 var mode = null;
+var messageTimer = null;
+var messageOpacity = 0;
 
 function addClass(data){
 	parts = data.split(" ");
@@ -16,7 +19,18 @@ function addClass(data){
 }
 
 function addMessage(txt){
-	$('#messages').html(txt).show().delay(2000).fadeOut(1);
+	$('#messages').html(txt);
+	if (messageTimer != null) window.clearInterval(messageTimer);
+	messageOpacity = 300;
+	messageTimer = setInterval(fadeMessage,100);		
+}
+
+function fadeMessage(){
+	messageOpacity -= 10;
+	if (messageOpacity < 1) window.clearInterval(messageTimer);
+	var o = messageOpacity;
+	if (o>OPAC) o=OPAC;	
+	$('#messages').css('opacity',o/OPAC);
 }
 
 function addTile(x,y){	

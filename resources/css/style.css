@@ -110,7 +110,6 @@ svg circle{
 }
 
 #messages{
-	display: none;
 	position: fixed;
 	bottom: 5px;
 	right: 5px;

@@ -1,5 +1,6 @@
 /Debug/
 *.pyc
+*.log
 /bin/
 /target/
 /default.*
