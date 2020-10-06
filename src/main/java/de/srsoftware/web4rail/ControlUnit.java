@@ -63,6 +63,7 @@ public class ControlUnit extends Thread implements Constants{
 	private LinkedList<String> queue = new LinkedList<String>();
 	private Socket socket;
 	private Scanner scanner;
+	private boolean power = false;
 
 	/**
 	 * @return stops the loop at the next interval
@@ -105,6 +106,15 @@ public class ControlUnit extends Thread implements Constants{
 		return json;
 	}
 	
+	public void load(String filename) throws IOException {
+		BufferedReader file = new BufferedReader(new FileReader(filename));
+		JSONObject json = new JSONObject(file.readLine());
+		file.close();
+		if (json.has(PORT)) port = json.getInt(PORT);
+		if (json.has(BUS)) bus = json.getInt(BUS);
+		if (json.has(HOST)) host = json.getString(HOST);
+	}
+	
 	public static void main(String[] args) throws InterruptedException {
 		ControlUnit cu = new ControlUnit().setEndpoint("Modellbahn", DEFAULT_PORT).setBus(1).restart();
 		Thread.sleep(1000);
@@ -114,6 +124,22 @@ public class ControlUnit extends Thread implements Constants{
 		cu.end();
 	}
 	
+	public Object process(HashMap<String, String> params) {
+		switch (params.get(ACTION)) {
+		case ACTION_CONNECT:
+			restart();
+			return t("Control unit (re)started.");
+		case ACTION_POWER:
+			return togglePower();
+		case ACTION_PROPS:
+			return properties();
+		case ACTION_UPDATE:
+			return update(params);
+		}
+		
+		return t("Unknown action: {}",params.get(ACTION));
+	}
+	
 	public Object properties() {
 		Window win = new Window("cu-props", t("Properties of the control unit"));
 		Form form = new Form();
@@ -121,8 +147,8 @@ public class ControlUnit extends Thread implements Constants{
 		new Input(REALM,REALM_CU).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("Server connection"));
 		new Input(HOST,host).addTo(new Label(t("Hostname"))).addTo(fieldset);
-		new Input(PORT,port).attr("type", "numeric").addTo(new Label(t("Port"))).addTo(fieldset);
-		new Input(BUS,bus).attr("type", "numeric").addTo(new Label(t("Bus"))).addTo(fieldset);
+		new Input(PORT,port).numeric().addTo(new Label(t("Port"))).addTo(fieldset);
+		new Input(BUS,bus).numeric().addTo(new Label(t("Bus"))).addTo(fieldset);
 		new Button(t("Save")).addTo(fieldset).addTo(form).addTo(win);
 		
 		fieldset = new Fieldset("Actions");
@@ -204,35 +230,28 @@ public class ControlUnit extends Thread implements Constants{
 		super.start();
 	}
 	
-	private String t(String text,Object...fills) {
+	private static String t(String text,Object...fills) {
 		return Translation.get(Application.class, text, fills);
+	}
+	
+	private Object togglePower() {
+		power = !power;
+		String PW = power?"ON":"OFF";
+		queue("SET {} POWER "+PW);
+		return t("Turned power {}.",PW);
+	}
+
+	
+	public String update(HashMap<String, String> params) {
+		if (params.containsKey(HOST)) host = params.get(HOST);
+		if (params.containsKey(PORT)) port = Integer.parseInt(params.get(PORT));
+		if (params.containsKey(BUS)) bus = Integer.parseInt(params.get(BUS));
+		return t("Updated control unit settings");
 	}
 
 	private void writeln(String data) throws IOException {
 		data = data.replace("{}", ""+bus);
 		socket.getOutputStream().write((data+"\n").getBytes(StandardCharsets.US_ASCII));
 		LOG.info("sent {}.",data);
-	}
-
-	public void update(HashMap<String, String> params) {
-		if (params.containsKey(HOST)) host = params.get(HOST);
-		if (params.containsKey(PORT)) port = Integer.parseInt(params.get(PORT));
-		if (params.containsKey(BUS)) bus = Integer.parseInt(params.get(BUS));
-	}
-
-	public void load(String filename) throws IOException {
-		BufferedReader file = new BufferedReader(new FileReader(filename));
-		JSONObject json = new JSONObject(file.readLine());
-		file.close();
-		if (json.has(PORT)) port = json.getInt(PORT);
-		if (json.has(BUS)) bus = json.getInt(BUS);
-		if (json.has(HOST)) host = json.getString(HOST);
-	}
-
-	public Object process(HashMap<String, String> params) {
-		String action = params.get(ACTION);
-		if (action == null) throw new NullPointerException(ACTION+" should not be null!");
-
-		return null;
 	}
 }

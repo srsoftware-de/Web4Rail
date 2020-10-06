@@ -84,7 +84,7 @@ public abstract class Block extends StretchableTile{
 		if (train != null) {
 			new Tag("h4").content(t("Train:")).addTo(window);
 			train.link("span").addTo(window);
-			new Button(t("start"),"train("+train.id+",'"+Train.MODE_START+"')").addTo(window);
+			new Button(t("start"),"train("+train.id+",'"+ACTION_START+"')").addTo(window);
 		}
 		return window;
 	}

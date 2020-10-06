@@ -6,8 +6,8 @@ import java.util.Vector;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Device;
-import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
@@ -17,7 +17,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
 
-public class Locomotive extends Car implements Device{
+public class Locomotive extends Car implements Constants,Device{
 	
 	private static final String REVERSE = "reverse";
 	public static final String LOCOMOTIVE = "locomotive";
@@ -38,10 +38,10 @@ public class Locomotive extends Car implements Device{
 	protected Tag cockpit(String realm) {
 		Fieldset fieldset = new Fieldset(t("Control"));
 		String request = "return request({realm:'"+realm+"',id:"+id()+",action:'{}'})";
-		new Button(t("Turn"), request.replace("{}", Plan.ACTION_TURN)) .addTo(fieldset);
-		new Button(t("Faster (10 steps)"), request.replace("{}", Plan.ACTION_FASTER10)).addTo(fieldset);
-		new Button(t("Slower (10 steps)"), request.replace("{}", Plan.ACTION_SLOWER10)).addTo(fieldset);
-		new Button(t("Stop"), request.replace("{}", Plan.ACTION_STOP)).addTo(fieldset);
+		new Button(t("Turn"), request.replace("{}", ACTION_TURN)) .addTo(fieldset);
+		new Button(t("Faster (10 steps)"), request.replace("{}", ACTION_FASTER10)).addTo(fieldset);
+		new Button(t("Slower (10 steps)"), request.replace("{}", ACTION_SLOWER10)).addTo(fieldset);
+		new Button(t("Stop"), request.replace("{}", ACTION_STOP)).addTo(fieldset);
 		return fieldset;
 	}
 	
@@ -126,7 +126,8 @@ public class Locomotive extends Car implements Device{
 		list.addTo(win);
 		
 		Form form = new Form();
-		new Input(Plan.ACTION, Plan.ACTION_ADD_LOCO).hideIn(form);
+		new Input(ACTION, ACTION_ADD).hideIn(form);
+		new Input(REALM,REALM_LOCO).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("add new locomotive"));
 		new Input(Locomotive.NAME, t("new locomotive")).addTo(new Label(t("Name:")+" ")).addTo(fieldset);
 		new Button(t("save")).addTo(fieldset);

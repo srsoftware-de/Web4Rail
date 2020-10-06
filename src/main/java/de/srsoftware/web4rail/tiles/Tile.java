@@ -24,6 +24,7 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
@@ -34,7 +35,7 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
 
-public abstract class Tile {
+public abstract class Tile implements Constants{
 	
 	public static final String ID = "id";
 	private static final String TYPE = "type";
@@ -180,9 +181,9 @@ public abstract class Tile {
 	
 	public Tag propForm() {
 		Form form = new Form();
-		new Input(Plan.ACTION, Plan.ACTION_UPDATE).hideIn(form);
-		new Input(Plan.REALM, Plan.REALM_TILE).hideIn(form);
-		new Input(Plan.ID,id()).hideIn(form);
+		new Input(ACTION, ACTION_UPDATE).hideIn(form);
+		new Input(REALM, REALM_PLAN).hideIn(form);
+		new Input(ID,id()).hideIn(form);
 		
 		List<Direction> pd = possibleDirections();
 		if (!pd.isEmpty()) {

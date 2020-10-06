@@ -21,7 +21,7 @@ public class Input extends Tag{
 	}
 	
 	public Input numeric() {
-		attr("type","numeric");
+		attr("type","number");
 		return this;
 	}
 }

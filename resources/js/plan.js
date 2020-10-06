@@ -6,6 +6,7 @@ const DIV = 'DIV';
 const SVG = 'svg';
 const PLAN = '#plan';
 const POST = 'POST';
+const PROPS = 'props';
 const CU = 'cu';
 const OPAC = 100;
 var selected = null;
@@ -26,16 +27,16 @@ function addMessage(txt){
 }
 
 function addTile(x,y){	
-	return request({action:mode,tile:selected.id,x:x,y:y});
+	return request({realm:'plan',action:mode,tile:selected.id,x:x,y:y});
 }
 
-function car(id,mode){
-	return request({action:"car",id:id,mode:mode});
+function car(id,action){
+	return request({realm:"car",action:action,id:id});
 }
 
 function clickTile(x,y){
 	var id = x+"-"+y;
-	if ($('#'+id).length > 0) request({action:'click',id:id});
+	if ($('#'+id).length > 0) request({realm:'plan',action:'click',id:id});
 	return false;
 }
 
@@ -110,11 +111,11 @@ function keypress(ev){
 
 function moveTile(x,y){	
 	var id = x+"-"+y;
-	return request({action:mode,direction:selected.id,id:id});
+	return request({realm:'plan',action:mode,direction:selected.id,id:id});
 }
 
 function openRoute(id){
-	request({action:'openRoute',id:id});
+	request({realm:'route',action:PROPS,id:id});
 	return false;
 }
 
@@ -184,8 +185,8 @@ function stream(ev){
 	if (data.startsWith("dropclass")) return dropClass(data.substring(10));
 }
 
-function train(id,mode){
-	return request({action:"train",id:id,mode:mode});
+function train(id,action){
+	return request({realm:'train',action:action,id:id});
 }
 
 window.onload = function () {

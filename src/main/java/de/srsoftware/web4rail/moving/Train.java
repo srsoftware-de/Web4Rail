@@ -93,13 +93,6 @@ public class Train implements Constants {
 		}
 	}
 
-	public static final String MODE_START = "start";
-	public static final String MODE_SHOW = "show";
-	private static final String MODE_UPDATE = "update";
-	private static final String MODE_AUTO = "auto";
-
-	private static final String MODE_STOP = "stop";
-
 	public static final String LOCO_ID = "locoId";
 
 	public int speed = 0;
@@ -117,27 +110,35 @@ public class Train implements Constants {
 	}
 
 	public static Object action(HashMap<String, String> params) throws IOException {
-		if (!params.containsKey(Train.ID)) return t("No train id passed!");
+		String action = params.get(ACTION);
+		if (action == null) return t("No action passed to Train.action!");
+		if (!params.containsKey(Train.ID)) {
+			switch (action) {
+				case ACTION_PROPS:
+					return manager();
+				case ACTION_ADD:
+					Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
+					if (loco == null) return t("unknown locomotive: {}",params.get(ID));
+					return new Train(loco);
+			}
+			return t("No train id passed!");
+		}
 		long id = Long.parseLong(params.get(Train.ID));
 		Train train = trains.get(id);
 		if (train == null) return(t("No train with id {}!",id));
-		if (!params.containsKey("mode")) return t("No mode set for train action!");
-		String mode = params.get("mode");
-		switch (mode) {
-		case MODE_AUTO:
-			return train.automatic();
-		case MODE_SHOW:
-			return train.props();
-		case MODE_START:
-			return train.start();
-		case MODE_STOP:
-			return train.stop();
-		case MODE_UPDATE:
-			return train.update(params);
-		default: return t("Unknown mode {} for {}",mode,train); 
+		switch (action) {
+			case ACTION_PROPS:
+				return train.props();
+			case ACTION_AUTO:
+				return train.automatic();
+			case ACTION_START:
+				return train.start();
+			case ACTION_STOP:
+				return train.stop();
+			case ACTION_UPDATE:
+				return train.update(params);		 
 		}
-		
-		//return null;
+		return t("Unknown action: {}",params.get(ACTION));
 	}
 
 	public void add(Car car) {
@@ -194,7 +195,7 @@ public class Train implements Constants {
 	}
 	
 	public Tag link(String tagClass) {
-		return new Tag(tagClass).clazz("link").attr("onclick","train("+id+",'"+Train.MODE_SHOW+"')").content(name());
+		return new Tag(tagClass).clazz("link").attr("onclick","train("+id+",'"+ACTION_PROPS+"')").content(name());
 	}
 	
 	public static Collection<Train> list() {
@@ -267,9 +268,9 @@ public class Train implements Constants {
 		Window window = new Window("train-properties",t("Properties of {}",getClass().getSimpleName()));
 		
 		Form form = new Form();
-		new Input("action","train").hideIn(form);
+		new Input(ACTION,ACTION_UPDATE).hideIn(form);
+		new Input(REALM,REALM_TRAIN).hideIn(form);
 		new Input(ID,id).hideIn(form);
-		new Input("mode",MODE_UPDATE).hideIn(form);
 		
 		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(form);
 		new Button(t("save")).addTo(form).addTo(window);
@@ -285,11 +286,11 @@ public class Train implements Constants {
 		if (block != null) {
 			new Tag("li").content(t("Current location: {}",block)).addTo(list);
 			Tag actions = new Tag("li").clazz().content(t("Actions: "));
-			new Button(t("start"),"train("+id+",'"+MODE_START+"')").addTo(actions);
+			new Button(t("start"),"train("+id+",'"+ACTION_START+"')").addTo(actions);
 			if (autopilot == null) {
-				new Button(t("auto"),"train("+id+",'"+MODE_AUTO+"')").addTo(actions);
+				new Button(t("auto"),"train("+id+",'"+ACTION_AUTO+"')").addTo(actions);
 			} else {
-				new Button(t("stop"),"train("+id+",'"+MODE_STOP+"')").addTo(actions);
+				new Button(t("stop"),"train("+id+",'"+ACTION_STOP+"')").addTo(actions);
 			}
 			actions.addTo(list);
 

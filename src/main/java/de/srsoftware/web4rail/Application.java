@@ -112,7 +112,7 @@ public class Application {
 	private static void sendPlan(HttpExchange client) throws IOException {
 		try {
 			HashMap<String, String> params = inflate(client.getRequestBody().readAllBytes());
-			send(client,params.isEmpty() ? plan.html() : plan.process(params));
+			send(client,params.isEmpty() ? plan.html() : plan.action(params));
 		} catch (Exception e) {
 			LOG.error("Error during sendPlan(): {}",e);
 			send(client,new Page().append(e.getMessage()));

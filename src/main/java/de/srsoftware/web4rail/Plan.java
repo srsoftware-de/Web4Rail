@@ -93,7 +93,6 @@ public class Plan implements Constants{
 	private static final Logger LOG = LoggerFactory.getLogger(Plan.class);
 	private static final String X = "x";
 	private static final String Y = "y";
-	private static final String FILE = "file";
 	private static final String DIRECTION = "direction";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	
@@ -101,18 +100,62 @@ public class Plan implements Constants{
 	private HashSet<Block> blocks = new HashSet<Block>();
 	private HashMap<Integer, Route> routes = new HashMap<Integer, Route>();
 	private ControlUnit controlUnit = new ControlUnit();
-	private boolean power = false;
 	
 	public Plan() {
 		new Heartbeat().start();
+	}
+	
+	public Object action(HashMap<String, String> params) {
+		try {
+			LOG.debug("Plan.action: {}",params);
+			String realm = params.get(REALM);
+			if (realm == null) throw new NullPointerException(REALM+" should not be null!");
+			String action = params.get(ACTION);
+			if (action == null) throw new NullPointerException(ACTION+" should not be null!");
+			switch (realm) {
+				case REALM_CAR:
+					return carAction(params);
+				case REALM_CU:
+					return controlUnit.process(params);
+				case REALM_LOCO:
+					return locoAction(params);
+				case REALM_PLAN:
+					return planAction(params);
+				case REALM_ROUTE:
+					return routeAction(params);
+				case REALM_TRAIN:
+					Object result = Train.action(params);
+					if (result instanceof Train) return html();
+					return result;
+			}
+			return t("Unknown realm: {}",realm);
+		} catch (Exception e) {
+			String msg = e.getMessage();
+			if (msg == null || msg.isEmpty()) msg = t("An unknown error occured!");
+			LOG.debug(msg,e);
+			return msg;
+		}
+	}
+
+	private Object routeAction(HashMap<String, String> params) throws IOException {
+		Route route = route(Integer.parseInt(params.get(ID)));
+		if (route == null) return t("Unknown route: {}",params.get(ID));
+		switch (params.get(ACTION)) {
+			case ACTION_PROPS:
+				return route.properties();
+			case ACTION_UPDATE:
+				route.update(params);
+				return html();
+		}
+		return t("Unknown action: {}",params.get(ACTION));
 	}
 
 	private Tag actionMenu() throws IOException {
 		Tag actionMenu = new Tag("div").clazz("actions").content(t("Actions"));		
 		Tag actions = new Tag("div").clazz("list").content("");
 		new Div("power").clazz(REALM_CU).content(t("Toggle power")).addTo(actions);
-		new Div("save").content(t("Save plan")).addTo(actions);
-		new Div("analyze").content(t("Analyze plan")).addTo(actions);
+		new Div("save").clazz(REALM_PLAN).content(t("Save plan")).addTo(actions);
+		new Div("analyze").clazz(REALM_PLAN).content(t("Analyze plan")).addTo(actions);
 		return actions.addTo(actionMenu);
 	}
 	
@@ -161,29 +204,21 @@ public class Plan implements Constants{
 	}
 	
 	private Object carAction(HashMap<String, String> params) throws IOException {
-		
 		Car car = Car.get(params.get(Car.ID));
 		if (car == null) return t("No car with id {} found!",params.get(Car.ID));
-	
-		return car.properties();
+		switch (params.get(ACTION)) {
+			case ACTION_UPDATE:
+				car.update(params);
+				return html();
+			case ACTION_PROPS:
+				return car.properties();
+		}		
+		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
 	private Object click(Tile tile) throws IOException {
 		if (tile == null) return null;
 		return tile.click();
-	}
-	
-	private Object connect(HashMap<String, String> params) throws IOException {
-		if (params.containsKey(REALM)) switch (params.get(REALM)) {
-			case REALM_CU:
-				controlUnit.restart();
-				break;
-		}
-		return html();
-	}
-	
-	private Object cuProps(HashMap<String, String> params) {
-		return controlUnit.properties();
 	}
 
 	private Collection<Route> follow(Route route, Connector connector) {
@@ -231,7 +266,7 @@ public class Plan implements Constants{
 	private Tag hardwareMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("hardware").content(t("Hardware"));
 		Tag list = new Tag("div").clazz("list").content("");
-		new Div(ACTION_PROPS).content(t("Control unit")).addTo(list);
+		new Div(ACTION_PROPS).clazz(REALM_CU).content(t("Control unit")).addTo(list);
 		return list.addTo(tileMenu);
 	}
 	
@@ -294,9 +329,13 @@ public class Plan implements Constants{
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
 				new Locomotive(params.get(Locomotive.NAME));
-				break;
+				return html();
 			case ACTION_FASTER10:
 				return Locomotive.get(params.get(ID)).faster(10);
+			case ACTION_PROPS:
+				String id = params.get(ID);
+				if (id == null) return Locomotive.manager();
+				return Locomotive.get(params.get(ID)).properties();
 			case ACTION_SLOWER10:
 				return Locomotive.get(params.get(ID)).faster(-10);
 			case ACTION_STOP:
@@ -305,7 +344,7 @@ public class Plan implements Constants{
 				return Locomotive.get(params.get(ID)).turn();
 		}
 		
-		return html();
+		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
 	private Tag menu() throws IOException {
@@ -390,75 +429,30 @@ public class Plan implements Constants{
 	public void place(Tile tile) throws IOException {
 		stream("place "+tile.tag(null));
 	}
-	
-	public Object process(HashMap<String, String> params) {
-		try {
-			String realm = params.get(REALM);
-			if (realm == null) throw new NullPointerException(REALM+" should not be null!");
-			String action = params.get(ACTION);
-			if (action == null) throw new NullPointerException(ACTION+" should not be null!");
-			switch (realm) {
-				case REALM_CAR:
-					return carAction(params);
-				case REALM_CU:
-					return controlUnit.process(params);
-				case REALM_LOCO:
-					return locoAction(params);
-				case REALM_TILE:
-					return tileAction(params);
-				case REALM_TRAIN:
-					return trainAction(params);
-			}
-			return t("Unknown realm: {}",realm);
-		} catch (Exception e) {
-			String msg = e.getMessage();
-			if (msg == null || msg.isEmpty()) msg = t("An unknown error occured!");
-			LOG.debug(msg,e);
-			return msg;
-		}
-	}
 
-	private Object tileAction(HashMap<String, String> params) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
-		switch (params.get(Plan.ACTION)) {
+	private Object planAction(HashMap<String, String> params) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
+		switch (params.get(ACTION)) {
 		case ACTION_ADD:
 			return addTile(params.get(TILE),params.get(X),params.get(Y),null);
+		case ACTION_ANALYZE:
+			return analyze();
+		case ACTION_CLICK:
+			return click(get(params.get(Tile.ID),true));
+		case ACTION_MOVE:
+			return moveTile(params.get(DIRECTION),params.get(Tile.ID));
+		case ACTION_SAVE:
+			return saveTo("default");
+		case ACTION_UPDATE:
+			update(get(params.get(Tile.ID),true),params);
+			return html();
 		}
-		return null;
+		return t("Unknown action: {}",params.get(ACTION));
 	}
 
-	private Object togglePower() throws IOException {
-		power = !power;
-		String PW = power?"ON":"OFF";
-		queue("SET {} POWER "+PW);
-		return t("Turned power {}.",PW);
-	}
-
-	private Object trainAction(HashMap<String, String> params) throws IOException {
-		LOG.debug("Params: {}",params);
-		switch (params.get(ACTION)) {
-			case ACTION_ADD:
-				Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
-				if (loco == null) return t("unknown locomotive: {}",params.get(Locomotive.ID));
-				new Train(loco);
-				break;
-			case ACTION_PROPS:
-				Object result = Train.action(params);
-				if (!(result instanceof Train)) return result;
-				break;
-		}
-		return html();
-	}
-	
 	public Route route(int routeId) {
 		return routes.get(routeId);
 	}
 
-	private Object routeProperties(int id) {
-		Route route = route(id);
-		if (route == null) return t("Could not find route \"{}\"",id);
-		return route.properties();
-	}
-	
 	Route registerRoute(Route route) {
 		for (Tile tile: route.path()) tile.add(route);
 		routes.put(route.id(), route);
@@ -576,32 +570,6 @@ public class Plan implements Constants{
 		new Div(ACTION_PROPS).clazz(REALM_TRAIN).content(t("Manage trains")).addTo(tiles);
 		new Div(ACTION_PROPS).clazz(REALM_LOCO).content(t("Manage locos")).addTo(tiles);
 		return tiles.addTo(tileMenu);
-	}
-
-	private Object update(HashMap<String, String> params) throws IOException {
-		if (params.containsKey(REALM)) {
-			switch (params.get(REALM)) {
-				case REALM_CAR:
-					Car car = Car.get(params.get(Car.ID));
-					if (car == null) return t("No car with id {} found!",params.get(Car.ID));
-					car.update(params);
-					break;
-				case REALM_CU:
-					controlUnit.update(params);
-					break;
-				case REALM_ROUTE:
-					Route route = routes.get(Integer.parseInt(params.get(ID)));
-					if (route == null) return t("Unknown route: {}",params.get(ID));
-					route.update(params);
-					break;
-				case REALM_TILE:
-					update(get(params.get(Tile.ID),true),params);
-					break;
-				default:
-					return t("Unknown realm \"{}\"",params.get(REALM));
-			}
-		}
-		return html();
 	}
 
 	private void update(Tile tile, HashMap<String, String> params) throws IOException {

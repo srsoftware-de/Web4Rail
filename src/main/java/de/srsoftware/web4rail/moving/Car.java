@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
@@ -24,14 +25,12 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
-public class Car {
+public class Car implements Constants {
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
 	static HashMap<String,Car> cars = new HashMap<String, Car>();
 	
-	public static final String ID = "id";
 	public static final String NAME = "name";
 	private static final String LENGTH = "length";
-	private static final String SHOW = "show";
 	private static final String STOCK_ID = "stock-id";
 	
 	private String id;
@@ -86,7 +85,7 @@ public class Car {
 	}
 	
 	public Tag link(String tagClass) {
-		return new Tag(tagClass).clazz("link").attr("onclick","car("+id+",'"+Car.SHOW+"')").content(name());
+		return new Tag(tagClass).clazz("link").attr("onclick","car("+id+",'"+ACTION_PROPS+"')").content(name());
 	}
 	
 	public static void loadAll(String filename, Plan plan) throws IOException {
@@ -96,7 +95,7 @@ public class Car {
 		while (line != null) {
 			JSONObject json = new JSONObject(line);
 			String name = json.getString(Car.NAME);
-			String id = json.getString(Car.ID);
+			String id = json.getString(ID);
 			Car car = json.has(Locomotive.LOCOMOTIVE) ? new Locomotive(name, id) : new Car(name,id);
 			car.load(json).plan(plan);
 			
@@ -123,9 +122,9 @@ public class Car {
 	
 	public Tag propertyForm() {
 		Form form = new Form();
-		new Input(Plan.ACTION, Plan.ACTION_UPDATE).hideIn(form);
-		new Input(Plan.REALM,Plan.REALM_CAR).hideIn(form);
-		new Input(Plan.ID,id()).hideIn(form);
+		new Input(ACTION, ACTION_UPDATE).hideIn(form);
+		new Input(REALM,REALM_CAR).hideIn(form);
+		new Input(ID,id()).hideIn(form);
 		Fieldset fieldset = new Fieldset("Basic properties");
 		new Input(NAME,name).addTo(new Label(t("Name"))).addTo(fieldset);
 		new Input(STOCK_ID,stockId).addTo(new Label(t("Stock ID"))).addTo(fieldset);
