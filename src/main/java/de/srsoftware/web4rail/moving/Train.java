@@ -117,9 +117,7 @@ public class Train implements Constants {
 				case ACTION_PROPS:
 					return manager();
 				case ACTION_ADD:
-					Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
-					if (loco == null) return t("unknown locomotive: {}",params.get(ID));
-					return new Train(loco);
+					return create(params);
 			}
 			return t("No train id passed!");
 		}
@@ -139,6 +137,19 @@ public class Train implements Constants {
 				return train.update(params);		 
 		}
 		return t("Unknown action: {}",params.get(ACTION));
+	}
+
+	private static Object create(HashMap<String, String> params) {
+		Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
+		if (loco == null) return t("unknown locomotive: {}",params.get(ID));
+		Train train = new Train(loco);
+		if (params.containsKey(NAME)) train.name(params.get(NAME));
+		return train;
+	}
+
+	private Train name(String newName) {
+		this.name = newName;
+		return this;
 	}
 
 	public void add(Car car) {
@@ -178,6 +189,7 @@ public class Train implements Constants {
 		if (route != null) json.put(ROUTE, route.id());
 		if (direction != null) json.put(DIRECTION, direction);
 		json.put(PUSH_PULL, pushPull);
+		if (name != null)json.put(NAME, name);
 		Vector<String> locoIds = new Vector<String>();
 		for (Locomotive loco : locos) locoIds.add(loco.id());
 		json.put(LOCOS, locoIds);
@@ -220,8 +232,9 @@ public class Train implements Constants {
 
 	private void load(JSONObject json) {
 		pushPull = json.getBoolean(PUSH_PULL);
-		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get((String)id));
+		if (json.has(NAME)) name = json.getString(NAME);
 		for (Object id : json.getJSONArray(CARS)) add(Car.get((String)id));
+		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get((String)id));
 	}
 	
 	public static Object manager() {
@@ -268,12 +281,13 @@ public class Train implements Constants {
 		Window window = new Window("train-properties",t("Properties of {}",getClass().getSimpleName()));
 		
 		Form form = new Form();
+		Fieldset fieldset = new Fieldset(t("Train properties"));
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(REALM,REALM_TRAIN).hideIn(form);
 		new Input(ID,id).hideIn(form);
-		
-		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(form);
-		new Button(t("save")).addTo(form).addTo(window);
+		new Input(NAME,name()).addTo(fieldset);
+		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(fieldset);
+		new Button(t("save")).addTo(fieldset).addTo(form).addTo(window);
 		
 		Tag list = new Tag("ul");
 		if (!locos.isEmpty()) {
@@ -369,6 +383,7 @@ public class Train implements Constants {
 	public Train update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
 		pushPull = params.containsKey(PUSH_PULL) && params.get(PUSH_PULL).equals("on");
+		if (params.containsKey(NAME)) name = params.get(NAME);
 		return this;
 	}
 }
