@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Vector;
+import java.util.concurrent.CompletableFuture;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -331,8 +332,8 @@ public class Train implements Constants {
 		this.speed = v;
 	}
 	
-	public String start() throws IOException {
-		if (block == null) return t("{} not in a block",this); 
+	public CompletableFuture<String> start() throws IOException {
+		if (block == null) return CompletableFuture.failedFuture(new RuntimeException(t("{} not in a block",this)));
 		if (route != null) route.unlock().setSignals(Signal.STOP);
 		HashSet<Route> routes = block.routes();
 		Vector<Route> availableRoutes = new Vector<Route>();
@@ -351,12 +352,18 @@ public class Train implements Constants {
 			availableRoutes.add(rt);
 		}
 		Random rand = new Random();
-		if (availableRoutes.isEmpty()) return t("No free routes from {}",block);
-		int sel = rand.nextInt(availableRoutes.size());
-		route = availableRoutes.get(sel).lock(this).setSignals(null);
-		if (direction != route.startDirection) turn();
-		setSpeed(100);
-		return t("started {}",this); 
+		if (availableRoutes.isEmpty()) return CompletableFuture.failedFuture(new RuntimeException(t("No free routes from {}",block)));
+		route = availableRoutes.get(rand.nextInt(availableRoutes.size()));
+		return route.lock(this).thenApply(reply -> {
+			try {
+				route.setSignals(null);
+				if (direction != route.startDirection) turn();
+				setSpeed(100);
+				return t("started {}",this);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 	
 	private Object stop() {
@@ -375,7 +382,11 @@ public class Train implements Constants {
 	}
 	
 	private void turn() throws IOException {
-		if (direction != null) direction = direction.inverse();
+		LOG.debug("train.turn()");
+		if (direction != null) {
+			direction = direction.inverse();
+			for (Locomotive loco : locos) loco.turn(); 
+		}
 		if (block != null) block.train(this); 
 	}
 

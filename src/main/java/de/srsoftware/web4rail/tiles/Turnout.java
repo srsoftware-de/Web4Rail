@@ -3,10 +3,12 @@ package de.srsoftware.web4rail.tiles;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.ControlUnit.Reply;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -35,29 +37,8 @@ public abstract class Turnout extends Tile implements Device{
 	@Override
 	public Object click() throws IOException {
 		LOG.debug("Turnout.click()");
-		Object o = super.click();
-		if (address != 0 && !initialized) {
-			String p = null;
-			switch (protocol) {
-			case DCC14:
-			case DCC27:
-			case DCC28:
-			case DCC128:
-				p = "N";
-				break;
-			case MOTO:
-				p = "M";
-				break;
-			case SELECTRIX:
-				p = "S";
-				break;
-			default:
-				p = "P";
-			}
-			plan.queue("INIT {} GA "+address+" "+p);
-			initialized = true;
-		}
-		return o;
+		init();
+		return super.click();
 	}
 	
 	protected void init() {
@@ -119,7 +100,7 @@ public abstract class Turnout extends Tile implements Device{
 		return state;
 	}
 	
-	public abstract void state(State newState) throws IOException;
+	public abstract CompletableFuture<Reply> state(State newState) throws IOException;
 
 	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {

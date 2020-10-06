@@ -33,7 +33,7 @@ public class ControlUnit extends Thread implements Constants{
 	private static final String PORT = "port";
 	private static final String BUS = "bus";
 	
-	private class Reply{
+	public class Reply{
 		private long secs;
 		private int milis;
 		private int code;
@@ -47,10 +47,18 @@ public class ControlUnit extends Thread implements Constants{
 			message = scanner.nextLine().trim();
 			LOG.info("recv {}.{} {} {}.",secs,milis,code,message);
 		}
+		
+		public String message() {
+			return message;
+		}
 
 		@Override
 		public String toString() {
 			return "Reply("+secs+"."+milis+" / "+code+" / "+message+")";
+		}
+
+		public boolean is(int code) {
+			return code == this.code;
 		}
 	}
 	
@@ -60,7 +68,7 @@ public class ControlUnit extends Thread implements Constants{
 	private int port = DEFAULT_PORT;
 	private int bus = 0;
 	private boolean stopped = true;
-	private LinkedList<String> queue = new LinkedList<String>();
+	private LinkedList<Command> queue = new LinkedList<Command>();
 	private Socket socket;
 	private Scanner scanner;
 	private boolean power = false;
@@ -156,8 +164,10 @@ public class ControlUnit extends Thread implements Constants{
 		return win;
 	}
 
-	public void queue(String command) {
-		queue.add(command);
+	public Command queue(String command) {
+		Command promise = new Command(command);
+		queue.add(promise);
+		return promise;
 	}
 	
 	/**
@@ -176,7 +186,10 @@ public class ControlUnit extends Thread implements Constants{
 			try {	
 				if (queue.isEmpty()) {
 					Thread.sleep(10);
-				} else send(queue.poll());
+				} else {
+					Command command = queue.pop();
+					command.complete(send(command));
+				}
 			} catch (InterruptedException | IOException e) {
 				e.printStackTrace();
 			}
@@ -200,9 +213,9 @@ public class ControlUnit extends Thread implements Constants{
 	 * @return 
 	 * @throws IOException 
 	 */
-	private Reply send(String command) throws IOException {
+	private Reply send(Command command) throws IOException {
 		if (command == null) return null;
-		writeln(command);
+		writeln(command.toString());
 		return new Reply(scanner);
 	}
 	

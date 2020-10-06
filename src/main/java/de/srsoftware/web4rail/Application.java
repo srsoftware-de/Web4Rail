@@ -15,6 +15,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +74,23 @@ public class Application {
 		if (response instanceof Page) {
 			html = ((Page)response).html().toString().getBytes(UTF8);
 			client.getResponseHeaders().add("content-type", "text/html");
+		} else if (response instanceof CompletableFuture) {
+			CompletableFuture<?> promise = (CompletableFuture<?>) response;
+			promise.thenAccept(object -> {
+				try {
+					send(client,object);
+				} catch (IOException e) {
+					LOG.warn("Was not able to send {}!",object);
+				}
+			}).exceptionally(ex -> {
+				try {
+					send(client,ex.getMessage());
+				} catch (IOException e) {
+					LOG.warn("Was not able to send {}!",ex);
+				}
+				throw new RuntimeException(ex);
+			});
+			return;
 		} else {
 			html = (response == null ? "" : response.toString()).getBytes(UTF8);	
 			client.getResponseHeaders().add("content-type", "text/plain");	

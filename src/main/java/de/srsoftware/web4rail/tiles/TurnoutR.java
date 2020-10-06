@@ -2,8 +2,10 @@ package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.ControlUnit.Reply;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
@@ -45,21 +47,24 @@ public class TurnoutR extends Turnout {
 	}
 	
 	@Override
-	public void state(State newState) throws IOException {
+	public CompletableFuture<Reply> state(State newState) throws IOException {
 		init();
 		LOG.debug("Setting {} to {}",this,newState);
-		int p = 0;
+		CompletableFuture<Reply> result;
 		switch (newState) {
 		case RIGHT:
-			p = portB;
+			result = plan.queue("SET {} GA "+address+" "+portB+" 1 "+delay);
 			break;
 		case STRAIGHT:
-			p = portA;
+			result = plan.queue("SET {} GA "+address+" "+portA+" 1 "+delay);
 			break;
 		default:
+			throw new IllegalStateException();
 		}
-		if (p != 0) plan.queue("SET {} GA "+address+" "+p+" 1 "+delay);
-		state = newState;
-		plan.stream("place "+tag(null));
+		return result.thenApply(reply -> {
+			LOG.debug("{} received {}",reply);
+			if (reply.is(200)) state = newState;
+			return reply;
+		});
 	}
 }

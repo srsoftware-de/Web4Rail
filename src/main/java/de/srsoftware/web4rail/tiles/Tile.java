@@ -155,9 +155,10 @@ public abstract class Tile implements Constants{
 		return this;
 	}
 	
-	public void lock(Route route) throws IOException {
-		this.route = route;
-		plan.place(this);
+	public Tile lock(Route lockingRoute) throws IOException {
+		if (route != null && route != lockingRoute) throw new IllegalStateException(this.toString());
+		route = lockingRoute;
+		return plan.place(this);
 	}
 	
 	public Plan plan() {

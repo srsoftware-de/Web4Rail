@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
+import java.util.concurrent.CompletableFuture;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.ControlUnit.Reply;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActivateRoute;
@@ -290,15 +292,35 @@ public class Route implements Constants{
 		file.close();
 	}
 	
-	public Route lock(Train train) throws IOException {
-		this.train = train;
-		for (Entry<Turnout, State> entry : turnouts.entrySet()) {
-			entry.getKey().state(entry.getValue());
+	public CompletableFuture<Reply> lock(Train train) throws IOException {
+		Vector<Tile> locked = new Vector<Tile>();
+		try {
+			for (Tile tile : path) locked.add(tile.lock(this)); // try to lock all tiles along the path
+		} catch (Exception e) { // if something fails: unlock all tiles locked so far
+			for (Tile tile : locked) try {
+				tile.unlock();
+			} catch (IOException ex) {
+				LOG.warn("Problem while unlocking {}",ex);
+			}
+			throw e;
 		}
-		for (Tile tile : path) tile.lock(this);
-		return this;
+		CompletableFuture<Reply> promise = null;
+		for (Entry<Turnout, State> entry : turnouts.entrySet()) {// try to switch all turnouts of this route
+			CompletableFuture<Reply> reply = entry.getKey().state(entry.getValue());  // switching a turnout is an asynchronous process, so it returns a CompletableFuture here
+			promise = promise == null ? reply : promise.thenCombine(reply, (a,b) -> a);				
+		}
+		promise.exceptionally(ex -> {
+				for (Tile tile : locked) try {
+					tile.unlock();
+				} catch (IOException e) {
+					LOG.warn("Problem while unlocking {}",e);
+				}
+				throw new RuntimeException(ex);
+			}).thenRun(() -> this.train = train);
+		
+		return promise;		
 	}
-
+	
 	public List<Route> multiply(int size) {
 		Vector<Route> routes = new Vector<Route>();
 		for (int i=0; i<size; i++) routes.add(i==0 ? this : this.clone());

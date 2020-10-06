@@ -2,8 +2,10 @@ package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.ControlUnit.Reply;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
@@ -18,7 +20,13 @@ public class TurnoutL extends Turnout {
 		Object o = super.click();
 		if (route != null) {
 			plan.stream(t("{} is locked by {}!",this,route)); 
-		} else state(state == State.STRAIGHT ? State.LEFT : State.STRAIGHT);
+		} else {
+			CompletableFuture<Reply> promise = state(state == State.STRAIGHT ? State.LEFT : State.STRAIGHT);
+			promise.exceptionally(ex -> {
+				LOG.warn("Failed to toggle turnout: ",ex);
+				throw new RuntimeException(ex);
+			}).thenAccept(reply -> LOG.debug("Success: {}",reply));
+		}
 		return o;
 	}
 	
@@ -45,21 +53,25 @@ public class TurnoutL extends Turnout {
 	}
 	
 	@Override
-	public void state(State newState) throws IOException {
+	public CompletableFuture<Reply> state(State newState) throws IOException {
 		init();
-		LOG.debug("Setting {} to {}",this,newState);
-		int p = 0;
+		LOG.debug("Requesting to set {} to {}",this,newState);
+		CompletableFuture<Reply> result;
 		switch (newState) {
 		case LEFT:
-			p = portB;
+			result = plan.queue("SET {} GA "+address+" "+portB+" 1 "+delay);
 			break;
 		case STRAIGHT:
-			p = portA;
+			result = plan.queue("SET {} GA "+address+" "+portA+" 1 "+delay);
 			break;
 		default:
+			throw new IllegalStateException();
 		}
-		if (p != 0) plan.queue("SET {} GA "+address+" "+p+" 1 "+delay);
-		state = newState;
-		plan.stream("place "+tag(null));
+		return result.thenApply(reply -> {
+			LOG.debug("{} received {}",TurnoutL.this,reply);
+			if (!reply.is(200)) throw new RuntimeException(reply.message()); 
+			state = newState;
+			return reply;
+		});
 	}
 }

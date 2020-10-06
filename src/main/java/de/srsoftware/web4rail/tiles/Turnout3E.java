@@ -3,8 +3,10 @@ package de.srsoftware.web4rail.tiles;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.ControlUnit.Reply;
 import de.srsoftware.web4rail.Plan.Direction;
 
 public class Turnout3E extends Turnout{
@@ -29,8 +31,9 @@ public class Turnout3E extends Turnout{
 	}
 
 	@Override
-	public void state(State newState) throws IOException {
+	public CompletableFuture<Reply> state(State newState) throws IOException {
 		// TODO Auto-generated method stub
 		LOG.warn("Turnout3E.state({}) not implemented, yet!",newState);
+		return null;
 	}
 }

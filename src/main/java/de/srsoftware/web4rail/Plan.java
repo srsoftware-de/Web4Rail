@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 import java.util.Vector;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -426,8 +427,9 @@ public class Plan implements Constants{
 		return false;
 	}
 	
-	public void place(Tile tile) throws IOException {
+	public Tile place(Tile tile) throws IOException {
 		stream("place "+tile.tag(null));
+		return tile;
 	}
 
 	private Object planAction(HashMap<String, String> params) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
@@ -580,7 +582,7 @@ public class Plan implements Constants{
 		stream(t("Warning: {}",t("Ghost train @ {}",contact)));
 	}
 
-	public void queue(String command) {
-		controlUnit.queue(command);		
+	public CompletableFuture<ControlUnit.Reply> queue(String command) {
+		return controlUnit.queue(command);		
 	}
 }
