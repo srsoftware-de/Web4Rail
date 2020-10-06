@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
-import de.srsoftware.web4rail.Plan;
+import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
@@ -36,7 +36,7 @@ import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.Tile;
 
-public class Train {
+public class Train implements Constants {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 	
 	private static final HashMap<Long, Train> trains = new HashMap<>();
@@ -233,7 +233,8 @@ public class Train {
 		list.addTo(win);
 		
 		Form form = new Form();
-		new Input(Plan.ACTION, Plan.ACTION_ADD_TRAIN).hideIn(form);
+		new Input(ACTION, ACTION_ADD).hideIn(form);
+		new Input(REALM,REALM_TRAIN).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("add new train"));
 		new Input(Train.NAME, t("new train")).addTo(new Label(t("Name:")+" ")).addTo(fieldset);
 

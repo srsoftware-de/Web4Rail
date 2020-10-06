@@ -59,7 +59,7 @@ import de.srsoftware.web4rail.tiles.TurnoutRN;
 import de.srsoftware.web4rail.tiles.TurnoutRS;
 import de.srsoftware.web4rail.tiles.TurnoutRW;
 
-public class Plan {
+public class Plan implements Constants{
 	public enum Direction{		
 		NORTH, SOUTH, EAST, WEST;
 		
@@ -88,43 +88,14 @@ public class Plan {
 		}
 	}
 	
-	public static final String ACTION = "action";
-	private static final String ACTION_ADD = "add";
-	private static final String ACTION_ANALYZE = "analyze";
-	private static final String ACTION_MOVE = "move";
-	private static final String ACTION_CLICK = "click";
-	private static final String ACTION_SAVE = "save";
-	public static final String ACTION_UPDATE = "update";
+
 	private static final String TILE = "tile";
 	private static final Logger LOG = LoggerFactory.getLogger(Plan.class);
 	private static final String X = "x";
 	private static final String Y = "y";
 	private static final String FILE = "file";
 	private static final String DIRECTION = "direction";
-	private static final String ACTION_ROUTE = "openRoute";
-	public static final String ID = "id";
-	private static final String ROUTE = "route";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
-	private static final String ACTION_TRAIN = "train";
-	private static final String ACTION_LOCOS = "locos";
-	private static final String ACTION_TRAINS = "trains";
-	private static final String ACTION_CAR = "car";
-	public static final String ACTION_ADD_LOCO = "addLoco";
-	public static final String ACTION_ADD_TRAIN = "addTrain";
-	public static final String ACTION_CU_PROPS = "cuProps";
-	public static final String ACTION_UPDATE_CU = "update-cu";
-	public static final String REALM = "realm";
-	public static final String REALM_CU = "cu";
-	public static final String REALM_ROUTE = "route";
-	public static final String REALM_TILE = "tile";
-	public static final String REALM_CAR = "car";
-	private static final String ACTION_CONNECT = "connect";
-	private static final String ACTION_POWER = "power";
-	private static final String ACTION_EMERGENCY = "emergency";
-	public static final String ACTION_FASTER10 = "faster10";
-	public static final String ACTION_SLOWER10 = "slower10";
-	public static final String ACTION_STOP = "stop";
-	public static final String ACTION_TURN = "turn";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -139,7 +110,7 @@ public class Plan {
 	private Tag actionMenu() throws IOException {
 		Tag actionMenu = new Tag("div").clazz("actions").content(t("Actions"));		
 		Tag actions = new Tag("div").clazz("list").content("");
-		new Div("power").content(t("Toggle power")).addTo(actions);
+		new Div("power").clazz(REALM_CU).content(t("Toggle power")).addTo(actions);
 		new Div("save").content(t("Save plan")).addTo(actions);
 		new Div("analyze").content(t("Analyze plan")).addTo(actions);
 		return actions.addTo(actionMenu);
@@ -260,7 +231,7 @@ public class Plan {
 	private Tag hardwareMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("hardware").content(t("Hardware"));
 		Tag list = new Tag("div").clazz("list").content("");
-		new Div(ACTION_CU_PROPS).content(t("Control unit")).addTo(list);
+		new Div(ACTION_PROPS).content(t("Control unit")).addTo(list);
 		return list.addTo(tileMenu);
 	}
 	
@@ -319,10 +290,9 @@ public class Plan {
 		return plan;
 	}
 
-	private Object locoAction(HashMap<String, String> params) throws IOException {
-		
+	private Object locoAction(HashMap<String, String> params) throws IOException {		
 		switch (params.get(ACTION)) {
-			case ACTION_ADD_LOCO:
+			case ACTION_ADD:
 				new Locomotive(params.get(Locomotive.NAME));
 				break;
 			case ACTION_FASTER10:
@@ -423,58 +393,37 @@ public class Plan {
 	
 	public Object process(HashMap<String, String> params) {
 		try {
+			String realm = params.get(REALM);
+			if (realm == null) throw new NullPointerException(REALM+" should not be null!");
 			String action = params.get(ACTION);
-			
 			if (action == null) throw new NullPointerException(ACTION+" should not be null!");
-			switch (action) {
-				case ACTION_ADD:
-					return addTile(params.get(TILE),params.get(X),params.get(Y),null);
-				case ACTION_ADD_LOCO:
-				case ACTION_FASTER10:
-				case ACTION_STOP:
-				case ACTION_SLOWER10:
-				case ACTION_TURN:
-					return locoAction(params);
-				case ACTION_ADD_TRAIN:
-				case ACTION_TRAIN:
-					return trainAction(params);
-				case ACTION_ANALYZE:
-					return analyze();
-				case ACTION_CAR:
+			switch (realm) {
+				case REALM_CAR:
 					return carAction(params);
-				case ACTION_CLICK:
-					return click(get(params.get(Tile.ID),true));
-				case ACTION_CONNECT:
-					return connect(params);
-				case ACTION_CU_PROPS:
-					return cuProps(params);					
-				case ACTION_LOCOS:
-					return Locomotive.manager();
-				case ACTION_EMERGENCY:
-					power = true;
-					return togglePower();
-				case ACTION_MOVE:
-					return moveTile(params.get(DIRECTION),params.get(Tile.ID));
-				case ACTION_POWER:
-					return togglePower();
-				case ACTION_ROUTE:
-					return routeProperties(Integer.parseInt(params.get(ID)));
-				case ACTION_SAVE:
-					return saveTo(params.get(FILE));
-				case ACTION_TRAINS:
-					return Train.manager();
-				case ACTION_UPDATE:
-					return update(params);
-				default:
-					LOG.warn("Unknown action: {}",action);
+				case REALM_CU:
+					return controlUnit.process(params);
+				case REALM_LOCO:
+					return locoAction(params);
+				case REALM_TILE:
+					return tileAction(params);
+				case REALM_TRAIN:
+					return trainAction(params);
 			}
-			return t("Unknown action: {}",action);
+			return t("Unknown realm: {}",realm);
 		} catch (Exception e) {
 			String msg = e.getMessage();
 			if (msg == null || msg.isEmpty()) msg = t("An unknown error occured!");
 			LOG.debug(msg,e);
 			return msg;
 		}
+	}
+
+	private Object tileAction(HashMap<String, String> params) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
+		switch (params.get(Plan.ACTION)) {
+		case ACTION_ADD:
+			return addTile(params.get(TILE),params.get(X),params.get(Y),null);
+		}
+		return null;
 	}
 
 	private Object togglePower() throws IOException {
@@ -487,12 +436,12 @@ public class Plan {
 	private Object trainAction(HashMap<String, String> params) throws IOException {
 		LOG.debug("Params: {}",params);
 		switch (params.get(ACTION)) {
-			case ACTION_ADD_TRAIN:
+			case ACTION_ADD:
 				Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
 				if (loco == null) return t("unknown locomotive: {}",params.get(Locomotive.ID));
 				new Train(loco);
 				break;
-			case ACTION_TRAIN:
+			case ACTION_PROPS:
 				Object result = Train.action(params);
 				if (!(result instanceof Train)) return result;
 				break;
@@ -624,8 +573,8 @@ public class Plan {
 	private Tag trainMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("trains").content(t("Trains"));		
 		Tag tiles = new Tag("div").clazz("list").content("");
-		new Div(ACTION_TRAINS).content(t("Manage trains")).addTo(tiles);
-		new Div(ACTION_LOCOS).content(t("Manage locos")).addTo(tiles);
+		new Div(ACTION_PROPS).clazz(REALM_TRAIN).content(t("Manage trains")).addTo(tiles);
+		new Div(ACTION_PROPS).clazz(REALM_LOCO).content(t("Manage locos")).addTo(tiles);
 		return tiles.addTo(tileMenu);
 	}
 
@@ -642,7 +591,7 @@ public class Plan {
 					break;
 				case REALM_ROUTE:
 					Route route = routes.get(Integer.parseInt(params.get(ID)));
-					if (route == null) return t("Unknown route: {}",params.get(ROUTE));
+					if (route == null) return t("Unknown route: {}",params.get(ID));
 					route.update(params);
 					break;
 				case REALM_TILE:

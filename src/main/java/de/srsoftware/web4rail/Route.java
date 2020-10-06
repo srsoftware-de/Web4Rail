@@ -38,7 +38,7 @@ import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.Turnout;
 import de.srsoftware.web4rail.tiles.Turnout.State;
 
-public class Route {
+public class Route implements Constants{
 	private static final Logger LOG = LoggerFactory.getLogger(Route.class);
 	static final String NAME = "name";
 	static final String PATH = "path";
@@ -367,9 +367,9 @@ public class Route {
 	
 	public Tag propForm() {
 		Form form = new Form();
-		new Input(Plan.ACTION, Plan.ACTION_UPDATE).hideIn(form);
-		new Input(Plan.REALM,Plan.REALM_ROUTE).hideIn(form);
-		new Input(Plan.ID,id()).hideIn(form);
+		new Input(ACTION, ACTION_UPDATE).hideIn(form);
+		new Input(REALM,REALM_ROUTE).hideIn(form);
+		new Input(ID,id()).hideIn(form);
 		
 		Tag label = new Tag("label").content(t("name:"));
 		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).addTo(label);		

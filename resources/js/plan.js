@@ -25,14 +25,6 @@ function addMessage(txt){
 	messageTimer = setInterval(fadeMessage,100);		
 }
 
-function fadeMessage(){
-	messageOpacity -= 10;
-	if (messageOpacity < 1) window.clearInterval(messageTimer);
-	var o = messageOpacity;
-	if (o>OPAC) o=OPAC;	
-	$('#messages').css('opacity',o/OPAC);
-}
-
 function addTile(x,y){	
 	return request({action:mode,tile:selected.id,x:x,y:y});
 }
@@ -97,6 +89,14 @@ function enableMove(ev){
 		mode = MOVE;
 	}
 	return false; // otherwise body.click would also be triggered
+}
+
+function fadeMessage(){
+	messageOpacity -= 10;
+	if (messageOpacity < 1) window.clearInterval(messageTimer);
+	var o = messageOpacity;
+	if (o>OPAC) o=OPAC;	
+	$('#messages').css('opacity',o/OPAC);
 }
 
 function heartbeat(data){
@@ -168,8 +168,10 @@ function request(data){
 }
 
 function runAction(ev){
-//	console.log("runAction: ",ev.target.id);
-	return request({action:ev.target.id,file:'default'}); // TODO: ask for name
+	var clicked = ev.target;
+	var realm = clicked.hasAttribute('class') ? clicked.getAttribute('class') : null;
+	//console.log("runAction: ",{action: clicked.id, realm:realm});
+	return request({action:ev.target.id,realm:realm}); // TODO: ask for name
 }
 
 function stream(ev){

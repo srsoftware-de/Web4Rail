@@ -22,7 +22,7 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
-public class ControlUnit extends Thread{	
+public class ControlUnit extends Thread implements Constants{	
 	private static final Logger LOG = LoggerFactory.getLogger(ControlUnit.class);
 	private static final String DEFAULT_HOST = "localhost";
 	private static final int DEFAULT_PORT = 4303;
@@ -117,8 +117,8 @@ public class ControlUnit extends Thread{
 	public Object properties() {
 		Window win = new Window("cu-props", t("Properties of the control unit"));
 		Form form = new Form();
-		new Input(Plan.ACTION,Plan.ACTION_UPDATE).hideIn(form);
-		new Input(Plan.REALM,Plan.REALM_CU).hideIn(form);
+		new Input(ACTION,ACTION_UPDATE).hideIn(form);
+		new Input(REALM,REALM_CU).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("Server connection"));
 		new Input(HOST,host).addTo(new Label(t("Hostname"))).addTo(fieldset);
 		new Input(PORT,port).attr("type", "numeric").addTo(new Label(t("Port"))).addTo(fieldset);
@@ -227,5 +227,12 @@ public class ControlUnit extends Thread{
 		if (json.has(PORT)) port = json.getInt(PORT);
 		if (json.has(BUS)) bus = json.getInt(BUS);
 		if (json.has(HOST)) host = json.getString(HOST);
+	}
+
+	public Object process(HashMap<String, String> params) {
+		String action = params.get(ACTION);
+		if (action == null) throw new NullPointerException(ACTION+" should not be null!");
+
+		return null;
 	}
 }
