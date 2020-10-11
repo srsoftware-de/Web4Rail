@@ -95,6 +95,7 @@ public class Plan implements Constants{
 	private static final String Y = "y";
 	private static final String DIRECTION = "direction";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
+	private static final String ACTION_QR = "qrcode";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
@@ -112,9 +113,10 @@ public class Plan implements Constants{
 	private Tag actionMenu() throws IOException {
 		Tag actionMenu = new Tag("div").clazz("actions").content(t("Actions"));		
 		Tag actions = new Tag("div").clazz("list").content("");
-		new Div("power").clazz(REALM_CU).content(t("Toggle power")).addTo(actions);
-		new Div("save").clazz(REALM_PLAN).content(t("Save plan")).addTo(actions);
-		new Div("analyze").clazz(REALM_PLAN).content(t("Analyze plan")).addTo(actions);
+		new Div(ACTION_POWER).clazz(REALM_CU).content(t("Toggle power")).addTo(actions);
+		new Div(ACTION_SAVE).clazz(REALM_PLAN).content(t("Save plan")).addTo(actions);
+		new Div(ACTION_ANALYZE).clazz(REALM_PLAN).content(t("Analyze plan")).addTo(actions);
+		new Div(ACTION_QR).clazz(REALM_PLAN).content(t("QR-Code")).addTo(actions);
 		return actions.addTo(actionMenu);
 	}
 	

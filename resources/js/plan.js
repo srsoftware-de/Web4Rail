@@ -178,8 +178,11 @@ function request(data){
 function runAction(ev){
 	var clicked = ev.target;
 	var realm = clicked.hasAttribute('class') ? clicked.getAttribute('class') : null;
-	//console.log("runAction: ",{action: clicked.id, realm:realm});
-	return request({action:ev.target.id,realm:realm}); // TODO: ask for name
+	console.log("runAction: ",{action: clicked.id, realm:realm});
+	if (clicked.id == 'qrcode'){
+		window.open("https://api.qrserver.com/v1/create-qr-code/?data="+window.location.href,'_blank');
+		return false;
+	} else return request({action:ev.target.id,realm:realm}); // TODO: ask for name
 }
 
 function stream(ev){

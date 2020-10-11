@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
@@ -48,7 +49,7 @@ public class Application implements Constants{
         } catch (FileNotFoundException e) {
         	plan = new Plan();
 		}
-        Desktop.getDesktop().browse(URI.create("http://localhost:"+config.getInt(PORT)+"/plan"));
+        Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)+"/plan"));
 	}
 	
 	private static Object handle(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
