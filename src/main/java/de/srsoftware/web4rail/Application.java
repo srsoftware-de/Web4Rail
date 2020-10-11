@@ -11,8 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
@@ -25,16 +23,18 @@ import com.sun.net.httpserver.HttpServer;
 
 import de.keawe.localconfig.Configuration;
 import de.keawe.tools.translations.Translation;
+import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.moving.Car;
+import de.srsoftware.web4rail.moving.Locomotive;
+import de.srsoftware.web4rail.moving.Train;
 
-public class Application {
+public class Application implements Constants{
 	private static Plan plan;
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
-	private static final String PORT = "port";
-	private static final Charset UTF8 = StandardCharsets.UTF_8;
 	
 	public static void main(String[] args) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Configuration config = new Configuration(Configuration.dir("Web4Rail")+"/app.config");
-		LOG.debug("Config: {}",config);
+		LOG.debug("config: {}",config);
 		InetSocketAddress addr = new InetSocketAddress(config.getOrAdd(PORT, 8080));
 		HttpServer server = HttpServer.create(addr, 0);
 		server.createContext("/plan", client -> sendPlan(client));
@@ -49,6 +49,32 @@ public class Application {
         	plan = new Plan();
 		}
         Desktop.getDesktop().browse(URI.create("http://localhost:"+config.getInt(PORT)+"/plan"));
+	}
+	
+	private static Object handle(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		
+		String realm = params.get(REALM);
+		if (realm == null) throw new NullPointerException(REALM+" should not be null!");
+		
+		String action = params.get(ACTION);
+		if (action == null) throw new NullPointerException(ACTION+" should not be null!");
+
+		switch (realm) {
+			case REALM_CAR:
+				return Car.action(params);
+			case REALM_CU:
+				return plan.controlUnit().process(params);
+			case REALM_LOCO:
+				return Locomotive.action(params);
+			case REALM_PLAN:
+				return plan.action(params);
+			case REALM_ROUTE:
+				return plan.routeAction(params);
+			case REALM_TRAIN:
+				return Train.action(params);
+		}
+
+		return t("Unknown realm: {}",params.get(REALM));
 	}
 	
 	private static HashMap<String, String> inflate(String data) {
@@ -130,13 +156,22 @@ public class Application {
 	private static void sendPlan(HttpExchange client) throws IOException {
 		try {
 			HashMap<String, String> params = inflate(client.getRequestBody().readAllBytes());
-			send(client,params.isEmpty() ? plan.html() : plan.action(params));
+			LOG.debug("sendPlan({})",params);
+
+			if (params.isEmpty()) {
+				send(client,plan.html());
+				return;
+			}
+			
+			Object response = handle(params);
+			LOG.debug("response ({}): {}",response.getClass().getSimpleName(),response);
+			send(client,response instanceof String || response instanceof Tag ? response : plan.html());
+			
 		} catch (Exception e) {
 			LOG.error("Error during sendPlan(): {}",e);
 			send(client,new Page().append(e.getMessage()));
 		}		
 	}
-	
 	private static void stream(HttpExchange client) throws IOException {
 		client.getResponseHeaders().set("content-type", "text/event-stream");
 		client.sendResponseHeaders(200, 0);

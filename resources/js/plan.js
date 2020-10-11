@@ -51,6 +51,7 @@ function closeMenu(ev){
 
 function closeWindows(){
 	$('.window').remove();
+	$('#plan').css('height','').css('width','');
 }
 
 function connectCu(){
@@ -158,8 +159,13 @@ function request(data){
 			if (resp.startsWith('<svg')){
 				$(PLAN).append($(resp));
 			} else if (resp.startsWith('<')) {
-//				console.log("appending to body: "+resp.substring(0,10));
+				var isWindow = $(resp).attr('class') == 'window';
+				if (isWindow){
+					$('.window').remove();
+					$('#plan').css('height','50%');					
+				}
 				$(BODY).append($(resp));
+				$('.window').css('height','50%');
 			} else {
 				addMessage(resp);
 			}
@@ -183,6 +189,18 @@ function stream(ev){
 	if (data.startsWith("remove")) return remove(data.substring(7));
 	if (data.startsWith("addclass")) return addClass(data.substring(9));
 	if (data.startsWith("dropclass")) return dropClass(data.substring(10));
+}
+
+function swapTiling(ev){
+	if ($('.swapbtn').text() == '◧'){
+		$('.swapbtn').text('⬒');
+		$('.window').css('height','').css('width','50%');
+		$(PLAN).css('height','').css('width','50%');
+	} else {
+		$('.swapbtn').text('◧');
+		$('.window').css('height','50%').css('width','');
+		$(PLAN).css('height','50%').css('width','');		
+	}
 }
 
 function train(id,action){

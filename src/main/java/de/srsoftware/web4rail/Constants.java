@@ -1,5 +1,11 @@
 package de.srsoftware.web4rail;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public interface Constants {
 	public static final String ACTION = "action";
 	public static final String ACTION_ADD = "add";
@@ -30,4 +36,7 @@ public interface Constants {
 	public static final String REALM_TRAIN = "train";
 	
 	public static final String ID = "id";
+	public static final String PORT = "port";
+	public static final Charset UTF8 = StandardCharsets.UTF_8;
+
 }

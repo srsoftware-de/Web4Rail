@@ -14,7 +14,11 @@ public class Window extends Tag{
 			.content(title).addTo(this);
 		new Tag("div")
 			.clazz("closebtn")
-			.attr("onclick", "$('#"+id+"').remove(); return false")
+			.attr("onclick", "return closeWindows();")
 			.content("&times;").addTo(this);		
+		new Tag("div")
+		.clazz("swapbtn")
+		.attr("onclick", "return swapTiling();")
+		.content("◧").addTo(this);		
 	}
 }

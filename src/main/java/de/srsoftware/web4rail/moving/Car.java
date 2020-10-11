@@ -54,6 +54,18 @@ public class Car implements Constants {
 		}
 		this.id = id;
 		cars.put(id, this);
+	}	
+	
+	public static Object action(HashMap<String, String> params) throws IOException {
+		Car car = Car.get(params.get(Car.ID));
+		if (car == null) return t("No car with id {} found!",params.get(Car.ID));
+		switch (params.get(ACTION)) {
+			case ACTION_UPDATE:
+				return car.update(params); 
+			case ACTION_PROPS:
+				return car.properties();
+		}		
+		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
 	protected Tag cockpit(String realm) {
@@ -177,10 +189,10 @@ public class Car implements Constants {
 		this.train = train;
 	}
 
-	public Object update(HashMap<String, String> params) {
+	public Car update(HashMap<String, String> params) {
 		if (params.containsKey(NAME)) name = params.get(NAME);
 		if (params.containsKey(STOCK_ID)) stockId  = params.get(STOCK_ID);
 		if (params.containsKey(LENGTH)) length = Integer.parseInt(params.get(LENGTH));
-		return null;
+		return this;
 	}
 }

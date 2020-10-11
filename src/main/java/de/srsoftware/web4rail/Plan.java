@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.moving.Car;
-import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Div;
 import de.srsoftware.web4rail.tiles.Block;
@@ -106,49 +105,8 @@ public class Plan implements Constants{
 		new Heartbeat().start();
 	}
 	
-	public Object action(HashMap<String, String> params) {
-		try {
-			LOG.debug("Plan.action: {}",params);
-			String realm = params.get(REALM);
-			if (realm == null) throw new NullPointerException(REALM+" should not be null!");
-			String action = params.get(ACTION);
-			if (action == null) throw new NullPointerException(ACTION+" should not be null!");
-			switch (realm) {
-				case REALM_CAR:
-					return carAction(params);
-				case REALM_CU:
-					return controlUnit.process(params);
-				case REALM_LOCO:
-					return locoAction(params);
-				case REALM_PLAN:
-					return planAction(params);
-				case REALM_ROUTE:
-					return routeAction(params);
-				case REALM_TRAIN:
-					Object result = Train.action(params);
-					if (result instanceof Train) return html();
-					return result;
-			}
-			return t("Unknown realm: {}",realm);
-		} catch (Exception e) {
-			String msg = e.getMessage();
-			if (msg == null || msg.isEmpty()) msg = t("An unknown error occured!");
-			LOG.debug(msg,e);
-			return msg;
-		}
-	}
-
-	private Object routeAction(HashMap<String, String> params) throws IOException {
-		Route route = route(Integer.parseInt(params.get(ID)));
-		if (route == null) return t("Unknown route: {}",params.get(ID));
-		switch (params.get(ACTION)) {
-			case ACTION_PROPS:
-				return route.properties();
-			case ACTION_UPDATE:
-				route.update(params);
-				return html();
-		}
-		return t("Unknown action: {}",params.get(ACTION));
+	public ControlUnit controlUnit() {
+		return controlUnit;
 	}
 
 	private Tag actionMenu() throws IOException {
@@ -202,19 +160,6 @@ public class Plan implements Constants{
 
 	public Collection<Block> blocks() {
 		return blocks;
-	}
-	
-	private Object carAction(HashMap<String, String> params) throws IOException {
-		Car car = Car.get(params.get(Car.ID));
-		if (car == null) return t("No car with id {} found!",params.get(Car.ID));
-		switch (params.get(ACTION)) {
-			case ACTION_UPDATE:
-				car.update(params);
-				return html();
-			case ACTION_PROPS:
-				return car.properties();
-		}		
-		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
 	private Object click(Tile tile) throws IOException {
@@ -325,28 +270,6 @@ public class Plan implements Constants{
 		}
 		return plan;
 	}
-
-	private Object locoAction(HashMap<String, String> params) throws IOException {		
-		switch (params.get(ACTION)) {
-			case ACTION_ADD:
-				new Locomotive(params.get(Locomotive.NAME));
-				return html();
-			case ACTION_FASTER10:
-				return Locomotive.get(params.get(ID)).faster(10);
-			case ACTION_PROPS:
-				String id = params.get(ID);
-				if (id == null) return Locomotive.manager();
-				return Locomotive.get(params.get(ID)).properties();
-			case ACTION_SLOWER10:
-				return Locomotive.get(params.get(ID)).faster(-10);
-			case ACTION_STOP:
-				return Locomotive.get(params.get(ID)).stop();
-			case ACTION_TURN:
-				return Locomotive.get(params.get(ID)).turn();
-		}
-		
-		return t("Unknown action: {}",params.get(ACTION));
-	}
 	
 	private Tag menu() throws IOException {
 		Tag menu = new Tag("div").clazz("menu");
@@ -432,7 +355,7 @@ public class Plan implements Constants{
 		return tile;
 	}
 
-	private Object planAction(HashMap<String, String> params) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
+	public Object action(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		switch (params.get(ACTION)) {
 		case ACTION_ADD:
 			return addTile(params.get(TILE),params.get(X),params.get(Y),null);
@@ -471,6 +394,19 @@ public class Plan implements Constants{
 
 	private void remove_intern(int x, int y) {
 		LOG.debug("removed {} from tile list",tiles.remove(Tile.id(x, y)));
+	}
+	
+	Object routeAction(HashMap<String, String> params) throws IOException {
+		Route route = route(Integer.parseInt(params.get(ID)));
+		if (route == null) return t("Unknown route: {}",params.get(ID));
+		switch (params.get(ACTION)) {
+			case ACTION_PROPS:
+				return route.properties();
+			case ACTION_UPDATE:
+				route.update(params);
+				return html();
+		}
+		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
 	private String saveTo(String name) throws IOException {

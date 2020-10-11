@@ -1,5 +1,6 @@
 package de.srsoftware.web4rail.moving;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -33,6 +34,27 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	public Locomotive(String name, String id) {
 		super(name,id);
+	}
+	
+	public static Object action(HashMap<String, String> params) throws IOException {
+		String id = params.get(ID);
+		Locomotive loco = id == null ? null : Locomotive.get(id);
+		switch (params.get(ACTION)) {
+			case ACTION_ADD:
+				return new Locomotive(params.get(Locomotive.NAME));
+			case ACTION_FASTER10:
+				return loco.faster(10);
+			case ACTION_PROPS:
+				return loco == null ? Locomotive.manager() : loco.properties();
+			case ACTION_SLOWER10:
+				return loco.faster(-10);
+			case ACTION_STOP:
+				return loco.stop();
+			case ACTION_TURN:
+				return loco.turn();
+		}
+		
+		return Car.action(params);
 	}
 	
 	protected Tag cockpit(String realm) {
@@ -171,10 +193,10 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	@Override
-	public Object update(HashMap<String, String> params) {
+	public Car update(HashMap<String, String> params) {
 		super.update(params);
 		if (params.containsKey(PROTOCOL)) proto = Protocol.valueOf(params.get(PROTOCOL));
 		if (params.containsKey(ADDRESS)) address = Integer.parseInt(params.get(ADDRESS));
-		return t("Updated locomotive.");
+		return this;
 	}
 }
