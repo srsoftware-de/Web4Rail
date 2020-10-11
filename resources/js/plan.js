@@ -128,9 +128,10 @@ function place(data){
 }
 
 function planClick(ev){
-	//console.log('bodyClick:',ev);
-	var x = Math.floor(ev.clientX/SQUARE);
-	var y = Math.floor(ev.clientY/SQUARE);
+	//console.log('planClick:',ev);
+	var plan=$(PLAN).get(0);
+	var x = Math.floor((plan.scrollLeft+ev.clientX)/SQUARE);
+	var y = Math.floor((plan.scrollTop+ev.clientY)/SQUARE);
 
 	switch (mode){
 		case undefined:
