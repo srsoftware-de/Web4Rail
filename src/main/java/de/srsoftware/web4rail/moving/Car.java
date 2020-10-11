@@ -58,13 +58,14 @@ public class Car implements Constants {
 	
 	public static Object action(HashMap<String, String> params) throws IOException {
 		Car car = Car.get(params.get(Car.ID));
-		if (car == null) return t("No car with id {} found!",params.get(Car.ID));
+		if (car == null) return t("No car with id {} found!",params.get(Car.ID));		
 		switch (params.get(ACTION)) {
-			case ACTION_UPDATE:
-				return car.update(params); 
 			case ACTION_PROPS:
 				return car.properties();
-		}		
+			case ACTION_UPDATE:
+				return car.update(params); 
+		}
+		if (car instanceof Locomotive) return Locomotive.action(params);
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	

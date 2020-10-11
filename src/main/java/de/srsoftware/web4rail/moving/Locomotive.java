@@ -54,7 +54,7 @@ public class Locomotive extends Car implements Constants,Device{
 				return loco.turn();
 		}
 		
-		return Car.action(params);
+		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
 	protected Tag cockpit(String realm) {
