@@ -24,9 +24,10 @@ public abstract class Turnout extends Tile implements Device{
 
 	private Protocol protocol = Protocol.DCC128;
 	protected int address = 0;
-	protected int portA = 0, portB = 0;
+	protected int portA = 0, portB = 1;
 	protected int delay = 400;
-	protected boolean initialized;
+	protected boolean initialized = false;
+	protected boolean error = false;
 	
 	public enum State{
 		LEFT,STRAIGHT,RIGHT,UNDEF;
@@ -36,9 +37,19 @@ public abstract class Turnout extends Tile implements Device{
 	
 	@Override
 	public Object click() throws IOException {
-		LOG.debug("Turnout.click()");
+		LOG.debug(getClass().getSimpleName()+".click()");
 		init();
 		return super.click();
+	}
+	
+	public void error(Reply reply) {
+		this.error = true;
+		try {
+			plan.stream(tag(null).toString());
+		} catch (IOException e) {
+			LOG.error("Was not able to stream: ",e);
+		}
+		throw new RuntimeException(reply.message()); 
 	}
 	
 	protected void init() {
@@ -52,7 +63,7 @@ public abstract class Turnout extends Tile implements Device{
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (portA != 0) json.put(PORT_A, portA);
-		if (portB != 0) json.put(PORT_B, portB);
+		if (portB != 1) json.put(PORT_B, portB);
 		if (address != 0) json.put(ADDRESS, address);
 		json.put(PROTOCOL, protocol);
 		return json;
@@ -101,12 +112,26 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	public abstract CompletableFuture<Reply> state(State newState) throws IOException;
+	
+	public void success() {
+		this.error = false;
+		try {
+			plan.stream(tag(null).toString());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {
 		Tag tag = super.tag(replacements);
-		tag.clazz(tag.get("class")+(" "+state).toLowerCase());
+		tag.clazz(tag.get("class")+(" "+state).toLowerCase()+(error?" error":""));
 		return tag;
+	}
+	
+	@Override
+	public String title() {
+		return getClass().getSimpleName()+t("(Address: {}, Ports {} and {})",address,portA,portB);
 	}
 	
 	public void toggle() {

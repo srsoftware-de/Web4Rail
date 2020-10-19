@@ -71,8 +71,8 @@ public class Application implements Constants{
 				return plan.action(params);
 			case REALM_ROUTE:
 				return plan.routeAction(params);
-			case REALM_TRAIN:
-				return Train.action(params);
+			case REALM_TRAIN:				
+				return Train.action(params,plan);
 		}
 
 		return t("Unknown realm: {}",params.get(REALM));

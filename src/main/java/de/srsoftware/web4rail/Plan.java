@@ -250,7 +250,7 @@ public class Plan implements Constants{
 			LOG.warn("Was not able to load cars!",e);
 		}
 		try {
-			Train.loadAll(filename+".trains");
+			Train.loadAll(filename+".trains",plan);
 		} catch (Exception e) {
 			LOG.warn("Was not able to load trains!",e);
 		}
@@ -437,7 +437,7 @@ public class Plan implements Constants{
 	
 	public synchronized void stream(String data) {
 		data = data.replaceAll("\n", "").replaceAll("\r", "");
-		//LOG.debug("streaming: {}",data);
+		//if (!data.startsWith("heartbeat")) LOG.debug("streaming: {}",data);
 		Vector<OutputStreamWriter> badClients = null;
 		for (Entry<OutputStreamWriter, Integer> entry : clients.entrySet()) {
 			OutputStreamWriter client = entry.getKey();

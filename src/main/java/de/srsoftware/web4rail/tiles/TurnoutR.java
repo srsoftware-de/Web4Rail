@@ -16,7 +16,6 @@ public class TurnoutR extends Turnout {
 
 	@Override
 	public Object click() throws IOException {
-		LOG.debug("Turnoutr.click()");
 		Object o = super.click();
 		if (route != null) {
 			plan.stream(t("{} is locked by {}!",this,route)); 
@@ -34,8 +33,8 @@ public class TurnoutR extends Turnout {
 				break;
 			}
 		}
-		new Input(STRAIGHT, portA).addTo(new Label(t("Straight port"))).addTo(fieldset);
-		new Input(RIGHT, portB).addTo(new Label(t("Right port"))).addTo(fieldset);
+		new Input(STRAIGHT, portA).numeric().addTo(new Label(t("Straight port"))).addTo(fieldset);
+		new Input(RIGHT, portB).numeric().addTo(new Label(t("Right port"))).addTo(fieldset);
 		return form;
 	}
 	
@@ -62,8 +61,10 @@ public class TurnoutR extends Turnout {
 			throw new IllegalStateException();
 		}
 		return result.thenApply(reply -> {
-			LOG.debug("{} received {}",reply);
-			if (reply.is(200)) state = newState;
+			LOG.debug("{} received {}",getClass().getSimpleName(),reply);
+			if (!reply.is(200)) error(reply);
+			state = newState;
+			success();
 			return reply;
 		});
 	}

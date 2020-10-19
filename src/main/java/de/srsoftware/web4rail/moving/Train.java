@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Vector;
-import java.util.concurrent.CompletableFuture;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -22,6 +21,7 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Constants;
+import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
@@ -98,6 +98,8 @@ public class Train implements Constants {
 
 	public int speed = 0;
 	private Autopilot autopilot = null;
+
+	private Plan plan;
 	
 	public Train(Locomotive loco) {
 		this(loco,null);
@@ -110,15 +112,15 @@ public class Train implements Constants {
 		trains.put(id, this);
 	}
 
-	public static Object action(HashMap<String, String> params) throws IOException {
+	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
 		if (action == null) return t("No action passed to Train.action!");
 		if (!params.containsKey(Train.ID)) {
 			switch (action) {
 				case ACTION_PROPS:
 					return manager();
-				case ACTION_ADD:
-					return create(params);
+				case ACTION_ADD:					
+					return create(params,plan);
 			}
 			return t("No train id passed!");
 		}
@@ -140,10 +142,10 @@ public class Train implements Constants {
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 
-	private static Object create(HashMap<String, String> params) {
+	private static Object create(HashMap<String, String> params, Plan plan) {
 		Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
 		if (loco == null) return t("unknown locomotive: {}",params.get(ID));
-		Train train = new Train(loco);
+		Train train = new Train(loco).plan(plan);
 		if (params.containsKey(NAME)) train.name(params.get(NAME));
 		return train;
 	}
@@ -215,7 +217,7 @@ public class Train implements Constants {
 		return trains.values();
 	}
 
-	public static void loadAll(String filename) throws IOException {
+	public static void loadAll(String filename, Plan plan) throws IOException {
 		BufferedReader file = new BufferedReader(new FileReader(filename));
 		String line = file.readLine();
 		while (line != null) {
@@ -224,18 +226,19 @@ public class Train implements Constants {
 			long id = json.getLong(ID);
 			
 			Train train = new Train(null,id);
-			train.load(json);			
+			train.load(json).plan(plan);			
 			
 			line = file.readLine();
 		}
 		file.close();
 	}
 
-	private void load(JSONObject json) {
+	private Train load(JSONObject json) {
 		pushPull = json.getBoolean(PUSH_PULL);
 		if (json.has(NAME)) name = json.getString(NAME);
 		for (Object id : json.getJSONArray(CARS)) add(Car.get((String)id));
 		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get((String)id));
+		return this;
 	}
 	
 	public static Object manager() {
@@ -277,7 +280,12 @@ public class Train implements Constants {
 		}
 		return result;
 	}
-
+	
+	private Train plan(Plan plan) {
+		this.plan = plan;
+		return this;
+	}
+	
 	public Tag props() {
 		Window window = new Window("train-properties",t("Properties of {}",getClass().getSimpleName()));
 		
@@ -310,6 +318,9 @@ public class Train implements Constants {
 			actions.addTo(list);
 
 		}
+		if (route != null) {
+			new Tag("li").content(t("Current route: {}",route)).addTo(list);
+		}
 		if (direction != null) new Tag("li").content(t("Direction: heading {}",direction)).addTo(list);
 		
 		
@@ -332,8 +343,8 @@ public class Train implements Constants {
 		this.speed = v;
 	}
 	
-	public CompletableFuture<String> start() throws IOException {
-		if (block == null) return CompletableFuture.failedFuture(new RuntimeException(t("{} not in a block",this)));
+	public String start() throws IOException {
+		if (block == null) return t("{} not in a block",this);
 		if (route != null) route.unlock().setSignals(Signal.STOP);
 		HashSet<Route> routes = block.routes();
 		Vector<Route> availableRoutes = new Vector<Route>();
@@ -352,9 +363,10 @@ public class Train implements Constants {
 			availableRoutes.add(rt);
 		}
 		Random rand = new Random();
-		if (availableRoutes.isEmpty()) return CompletableFuture.failedFuture(new RuntimeException(t("No free routes from {}",block)));
+		if (availableRoutes.isEmpty()) return t("No free routes from {}",block);
 		route = availableRoutes.get(rand.nextInt(availableRoutes.size()));
-		return route.lock(this).thenApply(reply -> {
+		
+		route.lock(this).thenApply(reply -> {
 			try {
 				route.setSignals(null);
 				if (direction != route.startDirection) turn();
@@ -363,7 +375,13 @@ public class Train implements Constants {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-		});
+		}).thenAccept(message -> plan.stream(message))
+		.exceptionally(ex -> {
+			plan.stream(ex.getMessage());
+			throw new RuntimeException(ex);
+		});		
+		
+		return t("Trying to start {}",this);
 	}
 	
 	private Object stop() {

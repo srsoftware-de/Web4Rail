@@ -274,7 +274,7 @@ public abstract class Tile implements Constants{
 				.id((x!=-1 && y!=-1)?(id()):(getClass().getSimpleName()))
 				.clazz(classes())
 				.size(100,100)
-				.attr("name", getClass().getSimpleName())
+				.attr("name", getClass().getSimpleName())				
 				.attr("viewbox", "0 0 "+width+" "+height);
 				if (x>-1) style="left: "+(30*x)+"px; top: "+(30*y)+"px;";
 				if (len()>1) style+=" width: "+(30*len())+"px;";
@@ -322,8 +322,14 @@ public abstract class Tile implements Constants{
 				.content("?")
 				.addTo(svg);
 		}
-		
+		String title = title();
+		if (title!=null) new Tag("title").content(title()).addTo(svg);
+
 		return svg;
+	}
+	
+	public String title() {
+		return null;
 	}
 	
 	@Override

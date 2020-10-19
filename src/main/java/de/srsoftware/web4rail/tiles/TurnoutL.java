@@ -16,7 +16,6 @@ public class TurnoutL extends Turnout {
 
 	@Override
 	public Object click() throws IOException {
-		LOG.debug("TurnoutL.click()");
 		Object o = super.click();
 		if (route != null) {
 			plan.stream(t("{} is locked by {}!",this,route)); 
@@ -46,13 +45,6 @@ public class TurnoutL extends Turnout {
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) throws IOException {
-		if (params.containsKey(STRAIGHT)) portA = Integer.parseInt(params.get(STRAIGHT));
-		if (params.containsKey(LEFT)) portB = Integer.parseInt(params.get(LEFT));
-		return super.update(params);
-	}
-	
-	@Override
 	public CompletableFuture<Reply> state(State newState) throws IOException {
 		init();
 		LOG.debug("Requesting to set {} to {}",this,newState);
@@ -68,10 +60,18 @@ public class TurnoutL extends Turnout {
 			throw new IllegalStateException();
 		}
 		return result.thenApply(reply -> {
-			LOG.debug("{} received {}",TurnoutL.this,reply);
-			if (!reply.is(200)) throw new RuntimeException(reply.message()); 
+			LOG.debug("{} received {}",getClass().getSimpleName(),reply);
+			if (!reply.is(200)) error(reply);
 			state = newState;
+			success();
 			return reply;
 		});
+	}
+	
+	@Override
+	public Tile update(HashMap<String, String> params) throws IOException {
+		if (params.containsKey(STRAIGHT)) portA = Integer.parseInt(params.get(STRAIGHT));
+		if (params.containsKey(LEFT)) portB = Integer.parseInt(params.get(LEFT));
+		return super.update(params);
 	}
 }

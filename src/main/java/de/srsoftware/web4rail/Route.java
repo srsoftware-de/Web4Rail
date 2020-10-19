@@ -308,7 +308,8 @@ public class Route implements Constants{
 		for (Entry<Turnout, State> entry : turnouts.entrySet()) {// try to switch all turnouts of this route
 			CompletableFuture<Reply> reply = entry.getKey().state(entry.getValue());  // switching a turnout is an asynchronous process, so it returns a CompletableFuture here
 			promise = promise == null ? reply : promise.thenCombine(reply, (a,b) -> a);				
-		}
+		}		
+		if (promise == null) promise = CompletableFuture.completedFuture(null);
 		promise.exceptionally(ex -> {
 				for (Tile tile : locked) try {
 					tile.unlock();

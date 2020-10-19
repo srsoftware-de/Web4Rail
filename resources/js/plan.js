@@ -1,14 +1,14 @@
 const ADD = 'add';
-const MOVE = 'move';
-const SQUARE = 30;
 const BODY = 'body';
+const CU = 'cu';
 const DIV = 'DIV';
-const SVG = 'svg';
+const MOVE = 'move';
+const OPAC = 100;
 const PLAN = '#plan';
 const POST = 'POST';
 const PROPS = 'props';
-const CU = 'cu';
-const OPAC = 100;
+const SQUARE = 30;
+const SVG = 'svg';
 var selected = null;
 var mode = null;
 var messageTimer = null;
@@ -157,6 +157,7 @@ function request(data){
 		data : data,
 		success: function(resp){
 			if (data.realm != 'car' && data.realm != 'loco') closeWindows();
+			if (resp.startsWith('<html')) return;
 			if (resp.startsWith('<svg')){
 				$(PLAN).append($(resp));
 			} else if (resp.startsWith('<')) {
@@ -187,12 +188,17 @@ function runAction(ev){
 
 function stream(ev){
 	var data = ev.data;
-	//console.log("received: ",data);
+	console.log("received: ",data);
+	if (data.startsWith('<svg')) {
+		$(PLAN).append($(data));
+		return false;
+	}
 	if (data.startsWith("heartbeat")) return heartbeat(data);
 	if (data.startsWith("place ")) return place(data.substring(6));
 	if (data.startsWith("remove")) return remove(data.substring(7));
 	if (data.startsWith("addclass")) return addClass(data.substring(9));
 	if (data.startsWith("dropclass")) return dropClass(data.substring(10));
+	addMessage(data);
 }
 
 function swapTiling(ev){

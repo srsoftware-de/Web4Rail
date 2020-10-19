@@ -175,9 +175,9 @@ h2{
     width: 15px;
     height: 15px;
     background: lime;
-    position: absolute;
+    position: fixed;
     top: 10px;
-    right: 10px;
+    left: 10px;
     display: none;
 }
 
@@ -206,3 +206,7 @@ fieldset{
 	border: 1px solid black;
 	border-radius: 5px;
 }
+.error{
+	background: red;
+}
+
