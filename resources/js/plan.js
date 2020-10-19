@@ -156,7 +156,7 @@ function request(data){
 		method : POST,
 		data : data,
 		success: function(resp){
-			if (data.realm != 'car') closeWindows();
+			if (data.realm != 'car' && data.realm != 'loco') closeWindows();
 			if (resp.startsWith('<svg')){
 				$(PLAN).append($(resp));
 			} else if (resp.startsWith('<')) {

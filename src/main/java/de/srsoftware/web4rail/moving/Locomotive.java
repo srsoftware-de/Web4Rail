@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Device;
+import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
@@ -22,10 +23,12 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	private static final String REVERSE = "reverse";
 	public static final String LOCOMOTIVE = "locomotive";
+	private static final int VMAX = 128;
 	private boolean reverse = false;
 	private Protocol proto = Protocol.DCC128;
 	private int address = 3;
 	private int speed = 0;
+	private boolean f1,f2,f3,f4;
 	private boolean init = false;
 
 	public Locomotive(String name) {
@@ -36,12 +39,12 @@ public class Locomotive extends Car implements Constants,Device{
 		super(name,id);
 	}
 	
-	public static Object action(HashMap<String, String> params) throws IOException {
+	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String id = params.get(ID);
 		Locomotive loco = id == null ? null : Locomotive.get(id);
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
-				return new Locomotive(params.get(Locomotive.NAME));
+				return new Locomotive(params.get(Locomotive.NAME)).plan(plan);
 			case ACTION_FASTER10:
 				return loco.faster(10);
 			case ACTION_PROPS:
@@ -50,6 +53,14 @@ public class Locomotive extends Car implements Constants,Device{
 				return loco.faster(-10);
 			case ACTION_STOP:
 				return loco.stop();
+			case ACTION_TOGGLE_F1:
+				return loco.toggleFunction(1);
+			case ACTION_TOGGLE_F2:
+				return loco.toggleFunction(2);
+			case ACTION_TOGGLE_F3:
+				return loco.toggleFunction(3);
+			case ACTION_TOGGLE_F4:
+				return loco.toggleFunction(4);
 			case ACTION_TURN:
 				return loco.turn();
 		}
@@ -57,15 +68,52 @@ public class Locomotive extends Car implements Constants,Device{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
-	protected Tag cockpit(String realm) {
+	private Object toggleFunction(int f) {
+		boolean active; 
+		switch (f) {
+		case 1:
+			f1 =! f1;	
+			active = f1;
+			break;
+		case 2:
+			f2 =! f2;	
+			active = f2;
+			break;
+		case 3:
+			f3 =! f3;	
+			active = f3;
+			break;
+		case 4:
+			f4 =! f4;	
+			active = f4;
+			break;
+		default:
+			return t("Unknown function: {}",f);
+		}
+		queue();
+		return t("{} F{}",t(active?"Activated":"Deavtivated"),f);
+	}
+
+	protected Tag cockpit() {
 		Fieldset fieldset = new Fieldset(t("Control"));
-		String request = "return request({realm:'"+realm+"',id:"+id()+",action:'{}'})";
-		new Button(t("Turn"), request.replace("{}", ACTION_TURN)) .addTo(fieldset);
+		String request = "return request({realm:'"+REALM_LOCO+"',id:"+id()+",action:'{}'})";
+		new Button(t("Turn"), request.replace("{}", ACTION_TURN)).addTo(fieldset);
 		new Button(t("Faster (10 steps)"), request.replace("{}", ACTION_FASTER10)).addTo(fieldset);
 		new Button(t("Slower (10 steps)"), request.replace("{}", ACTION_SLOWER10)).addTo(fieldset);
 		new Button(t("Stop"), request.replace("{}", ACTION_STOP)).addTo(fieldset);
+		Tag span = new Tag("p");
+		new Button(t("F1"),request.replace("{}", ACTION_TOGGLE_F1)).addTo(span);
+		new Button(t("F2"),request.replace("{}", ACTION_TOGGLE_F2)).addTo(span);
+		new Button(t("F3"),request.replace("{}", ACTION_TOGGLE_F3)).addTo(span);
+		new Button(t("F4"),request.replace("{}", ACTION_TOGGLE_F4)).addTo(span);
+		span.addTo(fieldset);
 		return fieldset;
 	}
+	
+	private String detail() {
+		return getClass().getSimpleName()+"("+name()+", "+proto+", "+address+")";
+	}
+
 	
 	public Object faster(int steps) {
 		return setSpeed(speed + steps);
@@ -160,6 +208,12 @@ public class Locomotive extends Car implements Constants,Device{
 	@Override
 	public Tag propertyForm() {
 		Tag form = super.propertyForm();
+		for (Tag tag : form.children()) {
+			if (REALM.equals(tag.get(Input.NAME)) && REALM_CAR.equals(tag.get(Input.VALUE))) {
+				tag.attr(REALM, REALM_LOCO);
+				break;
+			}
+		}
 		Fieldset fieldset = new Fieldset("Decoder settings");
 		Label protocol = new Label(t("Protocol:"));
 		for (Protocol proto : Protocol.values()) {
@@ -170,14 +224,19 @@ public class Locomotive extends Car implements Constants,Device{
 		fieldset.addTo(form);
 		return form;
 	}
+	
+	private void queue() {
+		plan.queue("SET {} GL "+address+" "+(reverse?1:0)+" "+speed+" "+VMAX+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0));
+	}
 
 	public String setSpeed(int newSpeed) {
+		LOG.debug(this.detail()+".setSpeed({})",newSpeed);
 		init();
 		speed = newSpeed;
 		if (speed > 128) speed = 128;
 		if (speed < 0) speed = 0;
 		
-		plan.queue("SET {} GL "+address+" "+(reverse?1:0)+" "+speed+" 128 0 0 0 0 0");
+		queue();
 		return t("Speed of {} set to {}.",this,speed);
 	}
 	

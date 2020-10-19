@@ -66,7 +66,7 @@ public class Application implements Constants{
 			case REALM_CU:
 				return plan.controlUnit().process(params);
 			case REALM_LOCO:
-				return Locomotive.action(params);
+				return Locomotive.action(params,plan);
 			case REALM_PLAN:
 				return plan.action(params);
 			case REALM_ROUTE:

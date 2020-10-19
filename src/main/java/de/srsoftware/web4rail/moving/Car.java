@@ -69,7 +69,7 @@ public class Car implements Constants {
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
-	protected Tag cockpit(String realm) {
+	protected Tag cockpit() {
 		return null;
 	}
 	
@@ -149,7 +149,7 @@ public class Car implements Constants {
 	public Object properties() {
 		Window win = new Window("car-props", t("Properties of {}",this));
 		
-		Tag cockpit = cockpit("car");
+		Tag cockpit = cockpit();
 		if (cockpit != null) cockpit.addTo(win);
 		
 		Tag form = propertyForm();

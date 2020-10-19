@@ -137,6 +137,8 @@ public class ControlUnit extends Thread implements Constants{
 		case ACTION_CONNECT:
 			restart();
 			return t("Control unit (re)started.");
+		case ACTION_EMERGENCY:
+			power = true;
 		case ACTION_POWER:
 			return togglePower();
 		case ACTION_PROPS:

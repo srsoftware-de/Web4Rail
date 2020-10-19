@@ -3,9 +3,6 @@ package de.srsoftware.web4rail;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public interface Constants {
 	public static final String ACTION = "action";
 	public static final String ACTION_ADD = "add";
@@ -22,6 +19,10 @@ public interface Constants {
 	public static final String ACTION_SLOWER10 = "slower10";
 	public static final String ACTION_START = "start";
 	public static final String ACTION_STOP = "stop";
+	public static final String ACTION_TOGGLE_F1 = "f1";
+	public static final String ACTION_TOGGLE_F2 = "f2";
+	public static final String ACTION_TOGGLE_F3 = "f3";
+	public static final String ACTION_TOGGLE_F4 = "f4";
 	public static final String ACTION_TURN = "turn";
 	public static final String ACTION_UPDATE = "update";
 	
