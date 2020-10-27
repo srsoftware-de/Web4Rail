@@ -153,7 +153,7 @@ public abstract class Turnout extends Tile implements Device{
 				@Override
 				protected void onFailure(Reply reply) {
 					super.onFailure(reply);
-					plan.stream(t("Unable to switch {}: {}",this,reply.message()));
+					plan.stream(t("Unable to switch \"{}\": {}",Turnout.this,reply.message()));
 				}
 				
 			}).reply();

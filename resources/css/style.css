@@ -210,3 +210,6 @@ fieldset{
 	background: red;
 }
 
+ul{
+	clear: both;
+}

@@ -105,11 +105,11 @@ public abstract class Block extends StretchableTile{
 		return getClass().getSimpleName()+"("+name+") @ ("+x+","+y+")";
 	}
 	
-	public void train(Train newTrain) throws IOException {
-		if (train == newTrain) return;
+	public Tile train(Train newTrain) throws IOException {
+		if (train == newTrain) return this;
 		if (train != null) train.block(null); // vorherigen Zug rauswerfen
 		if (newTrain != null) newTrain.block(this);
-		super.train(newTrain);
+		return super.train(newTrain);
 	}
 	
 	@Override

@@ -96,6 +96,7 @@ public class Train implements Constants {
 	}
 
 	public static final String LOCO_ID = "locoId";
+	private static final String CAR_ID = "carId";
 
 	public int speed = 0;
 	private Autopilot autopilot = null;
@@ -129,20 +130,36 @@ public class Train implements Constants {
 		Train train = trains.get(id);
 		if (train == null) return(t("No train with id {}!",id));
 		switch (action) {
-			case ACTION_PROPS:
-				return train.props();
+			case ACTION_ADD:
+				return train.addCar(params);
 			case ACTION_AUTO:
 				return train.automatic();
+			case ACTION_PROPS:
+				return train.props();
 			case ACTION_START:
 				return train.start();
 			case ACTION_STOP:
 				return train.stop();
+			case ACTION_TURN:
+				return train.turn();
 			case ACTION_UPDATE:
 				return train.update(params);		 
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 
+
+	private Object addCar(HashMap<String, String> params) {
+		LOG.debug("addCar({})",params);
+		if (!params.containsKey(CAR_ID)) return t("No car id passed to Train.addCar!");
+		Car car = Car.get(params.get(CAR_ID));
+		if (car == null) return t("No car with id \"{}\" known!",params.get(CAR_ID));
+		if (car instanceof Locomotive) {
+			locos.add((Locomotive) car);
+		} else cars.add(car);
+		return this;
+	}
+	
 	private static Object create(HashMap<String, String> params, Plan plan) {
 		Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
 		if (loco == null) return t("unknown locomotive: {}",params.get(ID));
@@ -288,27 +305,39 @@ public class Train implements Constants {
 	}
 	
 	public Tag props() {
-		Window window = new Window("train-properties",t("Properties of {}",getClass().getSimpleName()));
+		Window window = new Window("train-properties",t("Properties of {}",this));
 		
-		Form form = new Form();
 		Fieldset fieldset = new Fieldset(t("Train properties"));
+		Form form = new Form();
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(REALM,REALM_TRAIN).hideIn(form);
 		new Input(ID,id).hideIn(form);
-		new Input(NAME,name()).addTo(fieldset);
+		new Input(NAME,name).addTo(fieldset);
 		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(fieldset);
-		new Button(t("save")).addTo(fieldset).addTo(form).addTo(window);
+		new Button(t("save")).addTo(form).addTo(fieldset);
 		
-		Tag list = new Tag("ul");
-		if (!locos.isEmpty()) {
-			Tag locos = new Tag("li").content(t("Locomotives:"));
-			Tag l2 = new Tag("ul");
-			for (Locomotive loco : this.locos) loco.link("li").addTo(l2);
-			l2.addTo(locos).addTo(list);
+		new Button(t("Turn"), "train("+id+",'"+ACTION_TURN+"')").addTo(fieldset).addTo(window);
+		
+		Tag propList = new Tag("ul");
+		
+		Tag locoProp = new Tag("li").content(t("Locomotives:"));
+		Tag locoList = new Tag("ul");
+
+		for (Locomotive loco : this.locos) loco.link("li").addTo(locoList);
+
+		Tag addLocoForm = new Form().content(t("add locomotive:")+"&nbsp;");
+		new Input(REALM, REALM_TRAIN).hideIn(addLocoForm);
+		new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
+		new Input(ID,id).hideIn(addLocoForm);
+		Select select = new Select(CAR_ID);
+		for (Locomotive loco : Locomotive.list()) {
+			if (!this.locos.contains(loco)) select.addOption(loco.id(), loco);
 		}
+		select.addTo(addLocoForm);
+		new Button(t("add")).addTo(addLocoForm).addTo(new Tag("li")).addTo(locoList).addTo(locoProp).addTo(propList);
 		
 		if (block != null) {
-			new Tag("li").content(t("Current location: {}",block)).addTo(list);
+			new Tag("li").content(t("Current location: {}",block)).addTo(propList);
 			Tag actions = new Tag("li").clazz().content(t("Actions: "));
 			new Button(t("start"),"train("+id+",'"+ACTION_START+"')").addTo(actions);
 			if (autopilot == null) {
@@ -316,16 +345,16 @@ public class Train implements Constants {
 			} else {
 				new Button(t("stop"),"train("+id+",'"+ACTION_STOP+"')").addTo(actions);
 			}
-			actions.addTo(list);
+			actions.addTo(propList);
 
 		}
 		if (route != null) {
-			new Tag("li").content(t("Current route: {}",route)).addTo(list);
+			new Tag("li").content(t("Current route: {}",route)).addTo(propList);
 		}
-		if (direction != null) new Tag("li").content(t("Direction: heading {}",direction)).addTo(list);
+		if (direction != null) new Tag("li").content(t("Direction: heading {}",direction)).addTo(propList);
 		
 		
-		list.addTo(window);
+		propList.addTo(window);
 		return window;
 	}
 	
@@ -378,6 +407,7 @@ public class Train implements Constants {
 		}
 		route.unlock();
 		this.block.train(this); // re-set train on previous block
+		this.route = null;
 		return error;				
 	}
 	
@@ -393,16 +423,17 @@ public class Train implements Constants {
 	
 	@Override
 	public String toString() {
-		return name();
+		return name != null ? name : locos.firstElement().name();
 	}
 	
-	private void turn() throws IOException {
+	private Object turn() throws IOException {
 		LOG.debug("train.turn()");
 		if (direction != null) {
 			direction = direction.inverse();
 			for (Locomotive loco : locos) loco.turn(); 
 		}
-		if (block != null) block.train(this); 
+		if (block != null) plan.place(block.train(this));
+		return t("{} turned.",this);
 	}
 
 

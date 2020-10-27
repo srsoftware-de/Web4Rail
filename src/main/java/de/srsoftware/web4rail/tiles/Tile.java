@@ -341,9 +341,9 @@ public abstract class Tile implements Constants{
 		return train;
 	}
 	
-	public void train(Train train) throws IOException {
+	public Tile train(Train train) throws IOException {
 		this.train = train;		
-		plan.place(this);
+		return plan.place(this);
 	}	
 
 	public void unlock() throws IOException {
