@@ -351,9 +351,17 @@ public class Route implements Constants{
 		}
 		
 		if (!contacts.isEmpty()) {
-			new Tag("h4").content(t("Contacts")).addTo(win);
+			new Tag("h4").content(t("Contacts and actions")).addTo(win);
 			list = new Tag("ul");
-			for (Contact c : contacts) Plan.addLink(c,c.toString(),list);
+			for (Contact c : contacts) {
+				Tag link = Plan.addLink(c,c.toString(),list);
+				Vector<Action> actions = triggers.get(c.trigger());
+				if (actions != null && !actions.isEmpty()) {
+					Tag ul = new Tag("ul");
+					for (Action action : actions) new Tag("li").content(action.toString()).addTo(ul);
+					ul.addTo(link);
+				}
+			}
 			list.addTo(win);
 		}
 		

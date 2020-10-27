@@ -105,10 +105,25 @@ public class Plan implements Constants{
 		new Heartbeat().start();
 	}
 	
-	public ControlUnit controlUnit() {
-		return controlUnit;
+	public Object action(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		switch (params.get(ACTION)) {
+		case ACTION_ADD:
+			return addTile(params.get(TILE),params.get(X),params.get(Y),null);
+		case ACTION_ANALYZE:
+			return analyze();
+		case ACTION_CLICK:
+			return click(get(params.get(Tile.ID),true));
+		case ACTION_MOVE:
+			return moveTile(params.get(DIRECTION),params.get(Tile.ID));
+		case ACTION_SAVE:
+			return saveTo("default");
+		case ACTION_UPDATE:
+			update(get(params.get(Tile.ID),true),params);
+			return html();
+		}
+		return t("Unknown action: {}",params.get(ACTION));
 	}
-
+	
 	private Tag actionMenu() throws IOException {
 		Tag actionMenu = new Tag("div").clazz("actions").content(t("Actions"));		
 		Tag actions = new Tag("div").clazz("list").content("");
@@ -124,8 +139,10 @@ public class Plan implements Constants{
 		clients.put(client, 0);
 	}
 	
-	public static void addLink(Tile tile,String content,Tag list) {
-		new Tag("li").clazz("link").attr("onclick", "return clickTile("+tile.x+","+tile.y+");").content(content).addTo(list);
+	public static Tag addLink(Tile tile,String content,Tag list) {
+		Tag li = new Tag("li");
+		new Tag("span").clazz("link").attr("onclick", "return clickTile("+tile.x+","+tile.y+");").content(content).addTo(li).addTo(list);
+		return li;
 	}
 	
 	private String addTile(String clazz, String xs, String ys, String configJson) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
@@ -166,6 +183,10 @@ public class Plan implements Constants{
 	private Object click(Tile tile) throws IOException {
 		if (tile == null) return null;
 		return tile.click();
+	}
+	
+	public ControlUnit controlUnit() {
+		return controlUnit;
 	}
 
 	private Collection<Route> follow(Route route, Connector connector) {
@@ -356,23 +377,8 @@ public class Plan implements Constants{
 		return tile;
 	}
 
-	public Object action(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		switch (params.get(ACTION)) {
-		case ACTION_ADD:
-			return addTile(params.get(TILE),params.get(X),params.get(Y),null);
-		case ACTION_ANALYZE:
-			return analyze();
-		case ACTION_CLICK:
-			return click(get(params.get(Tile.ID),true));
-		case ACTION_MOVE:
-			return moveTile(params.get(DIRECTION),params.get(Tile.ID));
-		case ACTION_SAVE:
-			return saveTo("default");
-		case ACTION_UPDATE:
-			update(get(params.get(Tile.ID),true),params);
-			return html();
-		}
-		return t("Unknown action: {}",params.get(ACTION));
+	public Command queue(Command command) {
+		return controlUnit.queue(command);		
 	}
 
 	public Route route(int routeId) {
@@ -517,9 +523,5 @@ public class Plan implements Constants{
 
 	public void warn(Contact contact) {
 		stream(t("Warning: {}",t("Ghost train @ {}",contact)));
-	}
-
-	public Command queue(Command command) {
-		return controlUnit.queue(command);		
 	}
 }

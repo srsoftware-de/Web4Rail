@@ -2,13 +2,17 @@ Actions : Aktionen
 Added {} : {} hinzugefügt
 Add tile : Kachel hinzufügen
 Analyze plan : Plan analysieren
-Contacts : Kontakte
+Contacts and actions : Kontakte und Aktionen
+Destination\: {} from {} : Ziel: {} von {}
 length\: : Länge:
 name\: : Name:
+Origin and destination : Start und Ziel
+Origin\: {} to {} : Start: {} nach {}
 Plan saved as "{}". : Plan als „{}“ gespeichert.
 Properties : Eigenschaften
 Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
+Reduce speed to {} km/h : Geschwindigkeit auf {} km/h reduzieren
 Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
 save : speichern
 Save plan : Plan speichern

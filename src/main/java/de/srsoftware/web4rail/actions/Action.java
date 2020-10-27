@@ -5,6 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.json.JSONObject;
 
+import de.keawe.tools.translations.Translation;
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Plan;
 
 public abstract class Action {
@@ -36,5 +38,9 @@ public abstract class Action {
 				return new SpeedReduction(json.getInt(RouteAction.ROUTE), json.getInt(SpeedReduction.MAX_SPEED));
 		}
 		return null;
+	}
+	
+	protected String t(String tex,Object...fills) {
+		return Translation.get(Application.class, tex, fills);
 	}
 }

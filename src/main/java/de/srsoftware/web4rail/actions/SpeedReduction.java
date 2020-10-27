@@ -27,4 +27,9 @@ public class SpeedReduction extends RouteAction {
 		json.put(MAX_SPEED, maxSpeed);
 		return json;
 	}
+	
+	@Override
+	public String toString() {
+		return t("Reduce speed to {} km/h",maxSpeed);
+	}
 }
