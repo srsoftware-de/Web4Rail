@@ -101,6 +101,11 @@ function fadeMessage(){
 	$('#messages').css('opacity',o/OPAC);
 }
 
+function getCookie(key) {
+    var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
+    return keyValue ? keyValue[2] : null;
+}
+
 function heartbeat(data){
 	$('#heartbeat').show().fadeOut(2000);
 	return false;
@@ -162,12 +167,9 @@ function request(data){
 				$(PLAN).append($(resp));
 			} else if (resp.startsWith('<')) {
 				var isWindow = $(resp).attr('class') == 'window';
-				if (isWindow){
-					$('.window').remove();
-					$('#plan').css('height','50%');					
-				}
-				$(BODY).append($(resp));
-				$('.window').css('height','50%');
+				if (isWindow) $('.window').remove();
+				$(BODY).append($(resp));			
+				if (isWindow) tileWindow();
 			} else {
 				addMessage(resp);
 			}
@@ -202,15 +204,18 @@ function stream(ev){
 }
 
 function swapTiling(ev){
-	if ($('.swapbtn').text() == '◧'){
-		$('.swapbtn').text('⬒');
-		$('.window').css('height','').css('width','50%');
-		$(PLAN).css('height','').css('width','50%');
-	} else {
-		$('.swapbtn').text('◧');
-		$('.window').css('height','50%').css('width','');
-		$(PLAN).css('height','50%').css('width','');		
-	}
+	var vertical = getCookie("tiling") == 'v';
+	document.cookie = "tiling="+(vertical?'h':'v');
+	tileWindow();
+}
+
+function tileWindow(){
+	var vertical = getCookie("tiling") == 'v';
+	var width = vertical ? '50%':'';
+	var height = vertical ? '' : '50%';
+	$(PLAN).css('width',width).css('height',height);
+	$('.window').css('width',width).css('height',height);
+	$('.swapbtn').text(vertical ? '⇩' : '⇨');
 }
 
 function train(id,action){
