@@ -155,9 +155,10 @@ public class Route implements Constants{
 	
 	public void finish() throws IOException {
 		startBlock.train(null);		
-		train.route = null;
+		train.route = null;		
 		unlock();
 		endBlock.train(train.heading(endDirection.inverse()));
+		train = null;
 	}
 	
 	public boolean free() {
