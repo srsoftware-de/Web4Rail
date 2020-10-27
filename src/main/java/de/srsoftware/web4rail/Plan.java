@@ -467,7 +467,7 @@ public class Plan implements Constants{
 	}
 	
 	private Tag tileMenu() throws IOException {
-		Tag tileMenu = new Tag("div").clazz("addtile").title(t("Add tile")).content("◫");
+		Tag tileMenu = new Tag("div").clazz("addtile").title(t("Add tile")).content("╦");
 		
 		Tag tiles = new Tag("div").clazz("list").content("");
 		new StraightH().tag(null).addTo(tiles);
