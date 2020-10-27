@@ -3,12 +3,13 @@ package de.srsoftware.web4rail.tiles;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.ControlUnit.Reply;
+import de.srsoftware.web4rail.Command;
+import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -41,6 +42,8 @@ public abstract class Turnout extends Tile implements Device{
 		init();
 		return super.click();
 	}
+
+	protected abstract String commandFor(State newState);
 	
 	public void error(Reply reply) {
 		this.error = true;
@@ -52,11 +55,30 @@ public abstract class Turnout extends Tile implements Device{
 		throw new RuntimeException(reply.message()); 
 	}
 	
-	protected void init() {
+	protected Reply init() {
 		if (!initialized) {
-			plan.queue("INIT {} GA "+address+" "+proto());
-			initialized = true;
+			Command command = new Command("INIT {} GA "+address+" "+proto()) {
+
+				@Override
+				public void onSuccess() {
+					super.onSuccess();
+					initialized = true;
+				}
+
+				@Override
+				public void onFailure(Reply r) {
+					super.onSuccess();
+					initialized = false;					
+				}
+				
+			};			
+			try {
+				return plan.queue(command).reply();
+			} catch (TimeoutException e) {
+				LOG.warn(e.getMessage());
+			}
 		}
+		return new Reply(200, "OK");
 	}
 	
 	@Override
@@ -111,7 +133,37 @@ public abstract class Turnout extends Tile implements Device{
 		return state;
 	}
 	
-	public abstract CompletableFuture<Reply> state(State newState) throws IOException;
+	public Reply state(State newState) throws IOException {
+		Reply reply = init();
+		if (reply != null && !reply.succeeded()) return reply;
+		LOG.debug("Setting {} to {}",this,newState);
+		try {
+			String cmd = commandFor(newState);
+			return plan.queue(new Command(cmd) {
+				
+				@Override
+				public void onSuccess() {
+					super.onSuccess();
+					try {
+						Turnout.this.state = newState;
+						plan.place(Turnout.this);
+					} catch (IOException e) {}
+				}
+
+				@Override
+				protected void onFailure(Reply reply) {
+					super.onFailure(reply);
+					plan.stream(t("Unable to switch {}: {}",this,reply.message()));
+				}
+				
+			}).reply();
+		} catch (TimeoutException e) {
+			LOG.warn(e.getMessage());			
+		}
+		return new Reply(417,t("Timeout while trying to switch {}.",this));
+	
+		
+	}
 	
 	public void success() {
 		this.error = false;

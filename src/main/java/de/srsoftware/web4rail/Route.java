@@ -6,13 +6,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
-import java.util.concurrent.CompletableFuture;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.ControlUnit.Reply;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActivateRoute;
@@ -292,34 +291,20 @@ public class Route implements Constants{
 		file.close();
 	}
 	
-	public CompletableFuture<Reply> lock(Train train) throws IOException {
-		Vector<Tile> locked = new Vector<Tile>();
-		try {
-			for (Tile tile : path) locked.add(tile.lock(this)); // try to lock all tiles along the path
-		} catch (Exception e) { // if something fails: unlock all tiles locked so far
-			for (Tile tile : locked) try {
-				tile.unlock();
-			} catch (IOException ex) {
-				LOG.warn("Problem while unlocking {}",ex);
-			}
-			throw e;
-		}
-		CompletableFuture<Reply> promise = null;
-		for (Entry<Turnout, State> entry : turnouts.entrySet()) {// try to switch all turnouts of this route
-			CompletableFuture<Reply> reply = entry.getKey().state(entry.getValue());  // switching a turnout is an asynchronous process, so it returns a CompletableFuture here
-			promise = promise == null ? reply : promise.thenCombine(reply, (a,b) -> a);				
-		}		
-		if (promise == null) promise = CompletableFuture.completedFuture(null);
-		promise.exceptionally(ex -> {
-				for (Tile tile : locked) try {
-					tile.unlock();
-				} catch (IOException e) {
-					LOG.warn("Problem while unlocking {}",e);
-				}
-				throw new RuntimeException(ex);
-			}).thenRun(() -> this.train = train);
+	public boolean lock() {
 		
-		return promise;		
+		ArrayList<Tile> lockedTiles = new ArrayList<Tile>();
+		try {
+			for (Tile tile : path) lockedTiles.add(tile.lock(this));
+		} catch (IOException e) {
+			for (Tile tile: lockedTiles) try {
+				tile.unlock();
+			} catch (IOException inner) {
+				LOG.warn("Was not able to unlock {}!",tile,inner);
+			}
+			return false;
+		}
+		return true;
 	}
 	
 	public List<Route> multiply(int size) {
@@ -413,9 +398,27 @@ public class Route implements Constants{
 		if (lastTile instanceof Turnout) addTurnout((Turnout) lastTile,state);
 	}
 	
-	public Route setSignals(String state) throws IOException {
-		for (Signal signal : signals) signal.state(state == null ? "go" : state);
-		return this;
+	public boolean setSignals(String state) throws IOException {
+		for (Signal signal : signals) {
+			if (!signal.state(state == null ? Signal.GO : state)) return false;
+		}
+		return true;
+	}
+	
+	public boolean setTurnouts() {
+		Turnout turnout = null;
+		for (Entry<Turnout, State> entry : turnouts.entrySet()) try {
+			turnout = entry.getKey();
+			State targetVal = entry.getValue();
+			if (!turnout.state(targetVal).succeeded()) return false;
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {}
+		} catch (IOException e) {
+			LOG.warn("Was not able to switch turnout {}!",turnout,e);
+			return false;
+		}
+		return true;
 	}
 	
 	public Route start(Block block,Direction from) {
@@ -441,6 +444,12 @@ public class Route implements Constants{
 	@Override
 	public String toString() {
 		return getClass().getSimpleName()+"("+name()+")";
+	}
+	
+	public boolean train(Train train) {
+		if (this.train != null && this.train != train) return false;
+		this.train = train;
+		return true;
 	}
 	
 	public Route unlock() throws IOException {

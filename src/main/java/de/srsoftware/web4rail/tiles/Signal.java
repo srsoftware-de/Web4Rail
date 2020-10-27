@@ -10,6 +10,7 @@ import de.srsoftware.web4rail.Plan.Direction;
 public abstract class Signal extends Tile{
 	
 	public static final String STOP = "stop";
+	public static final String GO = "go";
 	private String state = STOP;
 
 	public Signal() {
@@ -25,9 +26,10 @@ public abstract class Signal extends Tile{
 	
 	public abstract boolean isAffectedFrom(Direction dir);
 
-	public void state(String state) throws IOException {
+	public boolean state(String state) throws IOException {
 		this.state = state;
 		plan.stream("place "+tag(null));
+		return true;
 	}
 	
 	@Override

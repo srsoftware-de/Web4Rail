@@ -23,6 +23,7 @@ import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
@@ -366,22 +367,18 @@ public class Train implements Constants {
 		if (availableRoutes.isEmpty()) return t("No free routes from {}",block);
 		route = availableRoutes.get(rand.nextInt(availableRoutes.size()));
 		
-		route.lock(this).thenApply(reply -> {
-			try {
-				route.setSignals(null);
-				if (direction != route.startDirection) turn();
-				setSpeed(100);
-				return t("started {}",this);
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}).thenAccept(message -> plan.stream(message))
-		.exceptionally(ex -> {
-			plan.stream(ex.getMessage());
-			throw new RuntimeException(ex);
-		});		
-		
-		return t("Trying to start {}",this);
+		if (!route.lock()) return t("Was not able to lock {}",route);
+		String error = null;
+		if (!route.setTurnouts()) error = t("Was not able to set all turnouts!");
+		if (error == null && !route.setSignals(null)) error = t("Was not able to set all signals!");
+		if (error == null && !route.train(this)) error = t("Was not able to assign {} to {}!",this,route);
+		if (error == null) {
+			setSpeed(128);
+			return t("Started {}",this);
+		}
+		route.unlock();
+		this.block.train(this); // re-set train on previous block
+		return error;				
 	}
 	
 	private Object stop() {

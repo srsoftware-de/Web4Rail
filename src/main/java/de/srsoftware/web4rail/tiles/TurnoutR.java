@@ -2,10 +2,8 @@ package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.concurrent.CompletableFuture;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.ControlUnit.Reply;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
@@ -21,6 +19,19 @@ public class TurnoutR extends Turnout {
 			plan.stream(t("{} is locked by {}!",this,route)); 
 		} else state(state == State.STRAIGHT ? State.RIGHT : State.STRAIGHT);
 		return o;
+	}
+	
+	@Override
+	public String commandFor(State newState) {
+
+		switch (newState) {
+		case RIGHT:			
+			return "SET {} GA "+address+" "+portB+" 1 "+delay;
+		case STRAIGHT:
+			return "SET {} GA "+address+" "+portA+" 1 "+delay;
+		default:
+			throw new IllegalStateException();
+		}
 	}
 	
 	@Override
@@ -43,29 +54,5 @@ public class TurnoutR extends Turnout {
 		if (params.containsKey(STRAIGHT)) portA = Integer.parseInt(params.get(STRAIGHT));
 		if (params.containsKey(RIGHT)) portB = Integer.parseInt(params.get(RIGHT));
 		return super.update(params);
-	}
-	
-	@Override
-	public CompletableFuture<Reply> state(State newState) throws IOException {
-		init();
-		LOG.debug("Setting {} to {}",this,newState);
-		CompletableFuture<Reply> result;
-		switch (newState) {
-		case RIGHT:
-			result = plan.queue("SET {} GA "+address+" "+portB+" 1 "+delay);
-			break;
-		case STRAIGHT:
-			result = plan.queue("SET {} GA "+address+" "+portA+" 1 "+delay);
-			break;
-		default:
-			throw new IllegalStateException();
-		}
-		return result.thenApply(reply -> {
-			LOG.debug("{} received {}",getClass().getSimpleName(),reply);
-			if (!reply.is(200)) error(reply);
-			state = newState;
-			success();
-			return reply;
-		});
 	}
 }

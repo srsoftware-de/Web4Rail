@@ -7,6 +7,7 @@ import java.util.Vector;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Plan;
@@ -146,7 +147,20 @@ public class Locomotive extends Car implements Constants,Device{
 		case ZIMO:
 			proto = "Z"; break;
 		}
-		plan.queue("INIT {} GL "+address+" "+proto);
+		plan.queue(new Command("INIT {} GL "+address+" "+proto) {
+			
+			@Override
+			public void onSuccess() {
+				super.onSuccess();
+				plan.stream(t("{} initialized.",this));
+			}
+			
+			@Override
+			public void onFailure(Reply r) {
+				super.onFailure(r);
+				plan.stream(t("Was not able to initialize {}!",this));				
+			}
+		});
 		init = true;
 	}
 
@@ -226,7 +240,14 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	private void queue() {
-		plan.queue("SET {} GL "+address+" "+(reverse?1:0)+" "+speed+" "+VMAX+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0));
+		plan.queue(new Command("SET {} GL "+address+" "+(reverse?1:0)+" "+speed+" "+VMAX+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
+
+			@Override
+			public void onFailure(Reply reply) {
+				super.onFailure(reply);
+				plan.stream(t("Failed to send command to {}: {}",this,reply.message()));
+			}			
+		});
 	}
 
 	public String setSpeed(int newSpeed) {

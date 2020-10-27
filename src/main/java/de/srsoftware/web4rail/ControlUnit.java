@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Scanner;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -26,43 +27,9 @@ public class ControlUnit extends Thread implements Constants{
 	private static final Logger LOG = LoggerFactory.getLogger(ControlUnit.class);
 	private static final String DEFAULT_HOST = "localhost";
 	private static final int DEFAULT_PORT = 4303;
-	private static final int OK_PROTO = 201;
-	private static final int OK_MODE = 202;
-	private static final int OK = 200;
 	private static final String HOST = "host";
 	private static final String PORT = "port";
 	private static final String BUS = "bus";
-	
-	public class Reply{
-		private long secs;
-		private int milis;
-		private int code;
-		private String message;
-		
-		public Reply(Scanner scanner) {
-			String word = scanner.next();
-			secs = Long.parseLong(word.substring(0, word.length()-4));
-			milis = Integer.parseInt(word.substring(word.length()-3));
-			code = scanner.nextInt();
-			message = scanner.nextLine().trim();
-			LOG.info("recv {}.{} {} {}.",secs,milis,code,message);
-		}
-		
-		public String message() {
-			return message;
-		}
-
-		@Override
-		public String toString() {
-			return "Reply("+secs+"."+milis+" / "+code+" / "+message+")";
-		}
-
-		public boolean is(int code) {
-			return code == this.code;
-		}
-	}
-	
-	
 	
 	private String host = DEFAULT_HOST;
 	private int port = DEFAULT_PORT;
@@ -72,6 +39,11 @@ public class ControlUnit extends Thread implements Constants{
 	private Socket socket;
 	private Scanner scanner;
 	private boolean power = false;
+	private Plan plan;
+
+	public ControlUnit(Plan plan) {
+		this.plan = plan;
+	}
 
 	/**
 	 * @return stops the loop at the next interval
@@ -81,7 +53,7 @@ public class ControlUnit extends Thread implements Constants{
 		return this;
 	}
 
-	private void handshake() throws IOException {
+	private void handshake() throws TimeoutException, IOException {
 		String proto = null;
 		if (scanner.hasNext()) {
 			String line = scanner.nextLine();
@@ -92,18 +64,19 @@ public class ControlUnit extends Thread implements Constants{
 			}
 			if (proto == null) throw new IOException("Handshake failed: "+line);
 			if (!proto.startsWith("0.8.")) throw new IOException("Unsupported protocol: "+proto);
-			writeln("SET PROTOCOL SRCP "+proto);			
 		} else throw new IOException("Handshake expected.");
+
+		Command command = new Command("SET PROTOCOL SRCP "+proto); 
+		send(command);
+		if (!command.reply().succeeded()) throw new IOException("Handshake failed: "+command.reply());
 		
-		Reply reply = new Reply(scanner);
-		if (reply.code != OK_PROTO) throw new IOException("Handshake failed: "+reply);
+		command = new Command("SET CONNECTIONMODE SRCP COMMAND"); // preset following mode: COMMAND MODE
+		send(command);
+		if (!command.reply().succeeded()) throw new IOException("Handshake failed: "+command.reply());
 		
-		writeln("SET CONNECTIONMODE SRCP COMMAND"); // preset following mode: COMMAND MODE
-		reply = new Reply(scanner);
-		if (reply.code != OK_MODE) throw new IOException("Handshake failed: "+reply);
-		writeln("GO"); // switch mode
-		reply = new Reply(scanner);
-		if (reply.code != OK) throw new IOException("Handshake failed: "+reply);
+		command = new Command("GO"); // switch mode
+		send(command);
+		if (!command.reply().succeeded()) throw new IOException("Handshake failed: "+command.reply());
 	}
 	
 	private JSONObject json() {
@@ -124,10 +97,21 @@ public class ControlUnit extends Thread implements Constants{
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
-		ControlUnit cu = new ControlUnit().setEndpoint("Modellbahn", DEFAULT_PORT).setBus(1).restart();
+		ControlUnit cu = new ControlUnit(null).setEndpoint("Modellbahn", DEFAULT_PORT).setBus(1).restart();
 		Thread.sleep(1000);
-		cu.queue("SET {} POWER ON");
-		cu.queue("SET {} GL 1 0 10 128");
+		cu.queue(new Command("SET {} POWER ON") {
+
+			@Override
+			public void onSuccess() {
+				LOG.debug("Power on");
+			}
+
+			@Override
+			public void onFailure(Reply reply) {
+				LOG.debug("Was not able to turn power on: {}",reply.message());
+			}
+			
+		});
 		Thread.sleep(1000);
 		cu.end();
 	}
@@ -166,10 +150,9 @@ public class ControlUnit extends Thread implements Constants{
 		return win;
 	}
 
-	public Command queue(String command) {
-		Command promise = new Command(command);
-		queue.add(promise);
-		return promise;
+	public Command queue(Command command) {
+		queue.add(command);
+		return command;
 	}
 	
 	/**
@@ -190,7 +173,7 @@ public class ControlUnit extends Thread implements Constants{
 					Thread.sleep(10);
 				} else {
 					Command command = queue.pop();
-					command.complete(send(command));
+					send(command);
 				}
 			} catch (InterruptedException | IOException e) {
 				e.printStackTrace();
@@ -215,10 +198,12 @@ public class ControlUnit extends Thread implements Constants{
 	 * @return 
 	 * @throws IOException 
 	 */
-	private Reply send(Command command) throws IOException {
-		if (command == null) return null;
-		writeln(command.toString());
-		return new Reply(scanner);
+	private void send(Command command) throws IOException {
+		if (command == null || command.toString() == null) return;
+		String data = command.toString().replace("{}", ""+bus);
+		socket.getOutputStream().write((data+"\n").getBytes(StandardCharsets.US_ASCII));
+		LOG.info("sent {}.",data);
+		command.readReplyFrom(scanner);
 	}
 	
 	private ControlUnit setBus(int bus) {
@@ -239,7 +224,7 @@ public class ControlUnit extends Thread implements Constants{
 			scanner = new Scanner(socket.getInputStream());
 			handshake();			
 			stopped = false;
-		} catch (IOException e) {
+		} catch (IOException | TimeoutException e) {
 			throw new IllegalStateException(e);
 		}
 		super.start();
@@ -249,11 +234,23 @@ public class ControlUnit extends Thread implements Constants{
 		return Translation.get(Application.class, text, fills);
 	}
 	
-	private Object togglePower() {
+	private Command togglePower() {
 		power = !power;
 		String PW = power?"ON":"OFF";
-		queue("SET {} POWER "+PW);
-		return t("Turned power {}.",PW);
+		Command command = new Command("SET {} POWER "+PW) {
+			
+			@Override
+			public void onSuccess() {
+				plan.stream(t("Turned power {}.",PW));				
+			}
+
+			@Override
+			public void onFailure(Reply reply) {
+				plan.stream(t("Was not able to turn power {}!",PW));
+			}
+				
+		};
+		return queue(command);
 	}
 
 	
@@ -262,11 +259,5 @@ public class ControlUnit extends Thread implements Constants{
 		if (params.containsKey(PORT)) port = Integer.parseInt(params.get(PORT));
 		if (params.containsKey(BUS)) bus = Integer.parseInt(params.get(BUS));
 		return t("Updated control unit settings");
-	}
-
-	private void writeln(String data) throws IOException {
-		data = data.replace("{}", ""+bus);
-		socket.getOutputStream().write((data+"\n").getBytes(StandardCharsets.US_ASCII));
-		LOG.info("sent {}.",data);
 	}
 }

@@ -1,16 +1,19 @@
 package de.srsoftware.web4rail.tiles;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.ControlUnit.Reply;
 import de.srsoftware.web4rail.Plan.Direction;
 
 public class Turnout3E extends Turnout{
 	
+	@Override
+	public String commandFor(State newState) {
+		LOG.warn("Turnout3E.state({}) not implemented, yet!",newState);
+		throw new IllegalStateException();
+	}
+
 	@Override
 	public Map<Connector, State> connections(Direction from) {
 		switch (from) {
@@ -28,12 +31,5 @@ public class Turnout3E extends Turnout{
 			default:
 				return new HashMap<>();
 		}
-	}
-
-	@Override
-	public CompletableFuture<Reply> state(State newState) throws IOException {
-		// TODO Auto-generated method stub
-		LOG.warn("Turnout3E.state({}) not implemented, yet!",newState);
-		return null;
 	}
 }

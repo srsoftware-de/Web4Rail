@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 import java.util.Vector;
-import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +99,7 @@ public class Plan implements Constants{
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
 	private HashSet<Block> blocks = new HashSet<Block>();
 	private HashMap<Integer, Route> routes = new HashMap<Integer, Route>();
-	private ControlUnit controlUnit = new ControlUnit();
+	private ControlUnit controlUnit = new ControlUnit(this);
 	
 	public Plan() {
 		new Heartbeat().start();
@@ -520,7 +519,7 @@ public class Plan implements Constants{
 		stream(t("Warning: {}",t("Ghost train @ {}",contact)));
 	}
 
-	public CompletableFuture<ControlUnit.Reply> queue(String command) {
+	public Command queue(Command command) {
 		return controlUnit.queue(command);		
 	}
 }
