@@ -50,7 +50,7 @@ public class SpeedReduction extends RouteAction implements Constants{
 				if (error == null) {
 					route.addAction(contact.trigger(),new SpeedReduction(route.id(), s));
 					contact.plan().stream("Action added!");
-					return null;
+					return route.properties();
 				}
 			} catch (NumberFormatException e) {
 				error = t("Not a valid number!");

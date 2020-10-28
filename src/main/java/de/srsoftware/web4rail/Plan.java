@@ -411,6 +411,8 @@ public class Plan implements Constants{
 				return route.addActionForm(params);
 			case ACTION_DROP:
 				return route.dropAction(params);
+			case ACTION_MOVE:
+				return route.moveAction(params);
 			case ACTION_PROPS:
 				return route.properties();
 			case ACTION_UPDATE:

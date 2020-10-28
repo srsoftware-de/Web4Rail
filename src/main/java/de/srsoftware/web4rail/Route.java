@@ -76,7 +76,7 @@ public class Route implements Constants{
 		new Input(ACTION,ACTION_ADD_ACTION).hideIn(typeForm);
 		new Input(CONTACT,contact.id()).hideIn(typeForm);
 		Select select = new Select(TYPE);
-		List<Class<? extends Action>> classes = List.of(SpeedReduction.class);
+		List<Class<? extends Action>> classes = List.of(SpeedReduction.class,SetSignalsToStop.class,FinishRoute.class);
 		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
 		select.addTo(new Label("Action type:")).addTo(typeForm);
 		return new Button(t("Create action"),"return submitForm('"+formId+"');").addTo(typeForm);
@@ -116,24 +116,6 @@ public class Route implements Constants{
 		actions.add(action);
 	}
 	
-	public Object dropAction(HashMap<String, String> params) {
-		String action_id = params.get(ACTION_ID);
-		if (action_id == null) return t("No action id passed to request!");
-		String contactId = params.get(CONTACT);
-		Tile tag = plan.get(contactId, false);
-		if (!(tag instanceof Contact)) return t("No contact id passed to request!");
-		Contact contact = (Contact) tag;
-		Vector<Action> actions = triggers.get(contact.trigger());
-		
-		for (int i=0; i<actions.size(); i++) {
-			if (actions.elementAt(i).toString().equals(action_id)) {
-				actions.remove(i);
-				return t("removed {} from contact {}.",action_id,contactId);
-			}
-		}
-		return t("No action \"{}\" assigned with {}!",action_id,contact);
-	}
-	
 	public Object addActionForm(HashMap<String, String> params) {
 		String contactId = params.get(CONTACT);
 		Tile tag = plan.get(contactId, false);
@@ -146,8 +128,16 @@ public class Route implements Constants{
 		String type = params.get(TYPE);
 		if (type == null) return (actionTypeForm(contact).addTo(win));
 		switch (type) {
+			case "FinishRoute":
+				addAction(contact.trigger(),new FinishRoute(id()));
+				plan.stream("Action added!");
+				return properties();
 			case "SpeedReduction":
 				return SpeedReduction.propForm(params,this,contact);
+			case "SetSignalsToStop":
+				addAction(contact.trigger(),new SetSignalsToStop(id()));
+				plan.stream("Action added!");
+				return properties();
 		}
 		
 		return win;
@@ -183,14 +173,19 @@ public class Route implements Constants{
 				Vector<Action> actions = triggers.get(c.trigger());
 				if (actions != null && !actions.isEmpty()) {
 					Tag ul = new Tag("ul");
+					boolean first = true;
 					for (Action action : actions) {
-						Tag act = new Tag("li").content(action.toString());
-						new Button("↑").addTo(act);
-						new Button("↓").addTo(act);
-						json.put(ACTION, ACTION_DROP);
 						json.put(ACTION_ID, action.toString());
+
+						Tag act = new Tag("li").content(action.toString());
+						if (!first) {
+							json.put(ACTION, ACTION_MOVE);
+							new Button("↑",json).addTo(act);
+						}
+						json.put(ACTION, ACTION_DROP);
 						new Button("-",json).addTo(act);
 						act.addTo(ul);
+						first = false;
 					}
 					ul.addTo(link);
 				}
@@ -280,6 +275,26 @@ public class Route implements Constants{
 	
 	public Vector<Contact> contacts() {
 		return new Vector<>(contacts);
+	}
+	
+	public Object dropAction(HashMap<String, String> params) {
+		String actionId = params.get(ACTION_ID);
+		if (actionId == null) return t("No action id passed to request!");
+		String contactId = params.get(CONTACT);
+		Tile tag = plan.get(contactId, false);
+		if (!(tag instanceof Contact)) return t("No contact id passed to request!");
+		Contact contact = (Contact) tag;
+		Vector<Action> actions = triggers.get(contact.trigger());
+		
+		for (int i=0; i<actions.size(); i++) {
+			if (actions.elementAt(i).toString().equals(actionId)) {
+				actions.remove(i);
+				plan.stream(t("removed {}.",actionId));
+				return properties();
+			}
+		}
+		plan.stream(t("No action \"{}\" assigned with {}!",actionId,contact));
+		return properties();
 	}
 	
 	public void finish() throws IOException {
@@ -435,6 +450,26 @@ public class Route implements Constants{
 			return false;
 		}
 		return true;
+	}
+	
+	public Object moveAction(HashMap<String, String> params) {
+		String action_id = params.get(ACTION_ID);
+		if (action_id == null) return t("No action id passed to request!");
+		String contactId = params.get(CONTACT);
+		Tile tag = plan.get(contactId, false);
+		if (!(tag instanceof Contact)) return t("No contact id passed to request!");
+		Contact contact = (Contact) tag;
+		Vector<Action> actions = triggers.get(contact.trigger());
+		
+		for (int i=1; i<actions.size(); i++) {
+			if (actions.elementAt(i).toString().equals(action_id)) {
+				Action action = actions.remove(i);
+				actions.insertElementAt(action, i-1);
+				return properties();
+			}
+		}
+		plan.stream(t("No action \"{}\" assigned with {}!",action_id,contact));
+		return properties();
 	}
 	
 	public List<Route> multiply(int size) {
