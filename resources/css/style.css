@@ -68,7 +68,8 @@ svg.occupied rect:not(.sig_a):not(.sig_b){
 }
 
 svg text{
-	font-size: 50px;
+	font-size: 38px;
+	font-family: sans-serif;
 }
 
 svg .block{

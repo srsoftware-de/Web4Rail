@@ -139,6 +139,7 @@ public class Route implements Constants{
 	public void contact(Contact contact) {
 		LOG.debug("{} on {} activated {}.",train,this,contact);
 		Vector<Action> actions = triggers.get(contact.trigger());
+		if (actions == null) return;
 		for (Action action : actions) {
 			try {
 				action.fire(contact.plan());

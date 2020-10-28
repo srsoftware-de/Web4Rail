@@ -312,16 +312,16 @@ public class Train implements Constants {
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(REALM,REALM_TRAIN).hideIn(form);
 		new Input(ID,id).hideIn(form);
-		new Input(NAME,name).addTo(fieldset);
-		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(fieldset);
+		new Input(NAME,name).addTo(form);
+		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(form);
 		new Button(t("save")).addTo(form).addTo(fieldset);
 		
 		new Button(t("Turn"), "train("+id+",'"+ACTION_TURN+"')").addTo(fieldset).addTo(window);
 		
-		Tag propList = new Tag("ul");
+		Tag propList = new Tag("ul").clazz("proplist");
 		
 		Tag locoProp = new Tag("li").content(t("Locomotives:"));
-		Tag locoList = new Tag("ul");
+		Tag locoList = new Tag("ul").clazz("locolist");
 
 		for (Locomotive loco : this.locos) loco.link("li").addTo(locoList);
 
@@ -333,8 +333,12 @@ public class Train implements Constants {
 		for (Locomotive loco : Locomotive.list()) {
 			if (!this.locos.contains(loco)) select.addOption(loco.id(), loco);
 		}
-		select.addTo(addLocoForm);
-		new Button(t("add")).addTo(addLocoForm).addTo(new Tag("li")).addTo(locoList).addTo(locoProp).addTo(propList);
+		if (!select.children().isEmpty()) {
+			select.addTo(addLocoForm);
+			new Button(t("add")).addTo(addLocoForm);
+			addLocoForm.addTo(new Tag("li")).addTo(locoList);
+		}
+		locoList.addTo(locoProp).addTo(propList);
 		
 		if (block != null) {
 			new Tag("li").content(t("Current location: {}",block)).addTo(propList);
