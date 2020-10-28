@@ -32,6 +32,8 @@ import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
@@ -65,6 +67,21 @@ public class Route implements Constants{
 	private static final String TRIGGER = "trigger";
 	private static final String ACTIONS = "actions";
 	private static final String CONTACT = "contact";
+	private static final String TYPE = "type";
+	
+	private Tag actionTypeForm(Contact contact) {
+		String formId ="add-action-to-contact-"+contact.id();
+		Tag typeForm = new Form().id(formId);
+		new Input(REALM, REALM_ROUTE).hideIn(typeForm);
+		new Input(ID,id()).hideIn(typeForm);
+		new Input(ACTION,ACTION_ADD_ACTION).hideIn(typeForm);
+		new Input(CONTACT,contact.id()).hideIn(typeForm);
+		Select select = new Select(TYPE);
+		List<Class<? extends Action>> classes = List.of(SpeedReduction.class);
+		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
+		select.addTo(new Label("Action type:")).addTo(typeForm);
+		return new Button(t("Create action"),"return submitForm('"+formId+"');").addTo(typeForm);
+	}
 	
 	/**
 	 * Route wurde von Zug betreten
@@ -108,9 +125,17 @@ public class Route implements Constants{
 		Window win = new Window("add-action-form", t("Add action to contact on route"));		
 		new Tag("div").content("Route: "+this).addTo(win);
 		new Tag("div").content("Contact: "+contact).addTo(win);
+		
+		String type = params.get(TYPE);
+		if (type == null) return (actionTypeForm(contact).addTo(win));
+		switch (type) {
+			case "SpeedReduction":
+				return SpeedReduction.propForm(params);
+		}
+		
 		return win;
 	}
-	
+
 	private void addBasicPropertiesTo(Window win) {
 		new Tag("h4").content(t("Origin and destination")).addTo(win);
 		Tag list = new Tag("ul");

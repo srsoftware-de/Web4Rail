@@ -9,6 +9,10 @@ public class Select extends Tag {
 		super("select");
 		attr("name",name);
 	}
+	
+	public Tag addOption(Object value) {
+		return addOption(value, value);
+	}
 
 	public Tag addOption(Object value, Object text) {
 		Tag option = new Tag("option").attr("value", value.toString()).content(text.toString());

@@ -2,12 +2,14 @@ package de.srsoftware.web4rail.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 
 import org.json.JSONObject;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Plan;
+import de.srsoftware.web4rail.Window;
 
 public abstract class Action {
 	private static final String TYPE = "type";
@@ -38,6 +40,10 @@ public abstract class Action {
 				return new SpeedReduction(json.getInt(RouteAction.ROUTE), json.getInt(SpeedReduction.MAX_SPEED));
 		}
 		return null;
+	}
+	
+	public static Object propForm(HashMap<String, String> params) {
+		return new Window("action-props", "Action properties");
 	}
 	
 	protected String t(String tex,Object...fills) {

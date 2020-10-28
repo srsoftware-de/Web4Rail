@@ -203,6 +203,10 @@ function stream(ev){
 	addMessage(data);
 }
 
+function submitForm(formId){
+	return request($('#'+formId).serialize());
+}
+
 function swapTiling(ev){
 	var vertical = getCookie("tiling") == 'v';
 	document.cookie = "tiling="+(vertical?'h':'v');
