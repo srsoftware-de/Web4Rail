@@ -66,12 +66,11 @@ public class Route implements Constants{
 
 	private static final String TRIGGER = "trigger";
 	private static final String ACTIONS = "actions";
-	private static final String CONTACT = "contact";
-	private static final String TYPE = "type";
+	private static final String ACTION_ID = "action_id";
 	
 	private Tag actionTypeForm(Contact contact) {
 		String formId ="add-action-to-contact-"+contact.id();
-		Tag typeForm = new Form().id(formId);
+		Tag typeForm = new Form(formId);
 		new Input(REALM, REALM_ROUTE).hideIn(typeForm);
 		new Input(ID,id()).hideIn(typeForm);
 		new Input(ACTION,ACTION_ADD_ACTION).hideIn(typeForm);
@@ -108,13 +107,31 @@ public class Route implements Constants{
 		return tile;
 	}	
 	
-	private void addAction(String trigger, Action action) {
+	public void addAction(String trigger, Action action) {
 		Vector<Action> actions = triggers.get(trigger);
 		if (actions == null) {
 			actions = new Vector<Action>();
 			triggers.put(trigger, actions);
 		}
 		actions.add(action);
+	}
+	
+	public Object dropAction(HashMap<String, String> params) {
+		String action_id = params.get(ACTION_ID);
+		if (action_id == null) return t("No action id passed to request!");
+		String contactId = params.get(CONTACT);
+		Tile tag = plan.get(contactId, false);
+		if (!(tag instanceof Contact)) return t("No contact id passed to request!");
+		Contact contact = (Contact) tag;
+		Vector<Action> actions = triggers.get(contact.trigger());
+		
+		for (int i=0; i<actions.size(); i++) {
+			if (actions.elementAt(i).toString().equals(action_id)) {
+				actions.remove(i);
+				return t("removed {} from contact {}.",action_id,contactId);
+			}
+		}
+		return t("No action \"{}\" assigned with {}!",action_id,contact);
 	}
 	
 	public Object addActionForm(HashMap<String, String> params) {
@@ -130,7 +147,7 @@ public class Route implements Constants{
 		if (type == null) return (actionTypeForm(contact).addTo(win));
 		switch (type) {
 			case "SpeedReduction":
-				return SpeedReduction.propForm(params);
+				return SpeedReduction.propForm(params,this,contact);
 		}
 		
 		return win;
@@ -170,7 +187,9 @@ public class Route implements Constants{
 						Tag act = new Tag("li").content(action.toString());
 						new Button("↑").addTo(act);
 						new Button("↓").addTo(act);
-						new Button("-").addTo(act);
+						json.put(ACTION, ACTION_DROP);
+						json.put(ACTION_ID, action.toString());
+						new Button("-",json).addTo(act);
 						act.addTo(ul);
 					}
 					ul.addTo(link);
@@ -262,7 +281,6 @@ public class Route implements Constants{
 	public Vector<Contact> contacts() {
 		return new Vector<>(contacts);
 	}
-
 	
 	public void finish() throws IOException {
 		startBlock.train(null);		
@@ -404,8 +422,7 @@ public class Route implements Constants{
 		file.close();
 	}
 	
-	public boolean lock() {
-		
+	public boolean lock() {		
 		ArrayList<Tile> lockedTiles = new ArrayList<Tile>();
 		try {
 			for (Tile tile : path) lockedTiles.add(tile.lock(this));

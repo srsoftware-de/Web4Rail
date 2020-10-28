@@ -42,11 +42,11 @@ public abstract class Action {
 		return null;
 	}
 	
-	public static Object propForm(HashMap<String, String> params) {
+	public static Window propForm(HashMap<String, String> params) {
 		return new Window("action-props", "Action properties");
 	}
 	
-	protected String t(String tex,Object...fills) {
+	protected static String t(String tex,Object...fills) {
 		return Translation.get(Application.class, tex, fills);
 	}
 }

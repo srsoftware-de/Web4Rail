@@ -11,6 +11,7 @@ public interface Constants {
 	public static final String ACTION_AUTO = "auto";
 	public static final String ACTION_CLICK = "click";
 	public static final String ACTION_CONNECT = "connect";
+	public static final String ACTION_DROP = "drop";
 	public static final String ACTION_EMERGENCY = "emergency";
 	public static final String ACTION_FASTER10 = "faster10";
 	public static final String ACTION_MOVE = "move";
@@ -40,5 +41,7 @@ public interface Constants {
 	public static final String ID = "id";
 	public static final String PORT = "port";
 	public static final Charset UTF8 = StandardCharsets.UTF_8;
+	public static final String CONTACT = "contact";
+	public static final String TYPE = "type";
 
 }
