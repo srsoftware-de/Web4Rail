@@ -407,6 +407,8 @@ public class Plan implements Constants{
 		Route route = route(Integer.parseInt(params.get(ID)));
 		if (route == null) return t("Unknown route: {}",params.get(ID));
 		switch (params.get(ACTION)) {
+			case ACTION_ADD_ACTION:
+				return route.addActionForm(params);
 			case ACTION_PROPS:
 				return route.properties();
 			case ACTION_UPDATE:

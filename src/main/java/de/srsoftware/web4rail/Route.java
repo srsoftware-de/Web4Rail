@@ -29,6 +29,7 @@ import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.actions.SpeedReduction;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tiles.Block;
@@ -55,12 +56,15 @@ public class Route implements Constants{
 	public Train train;
 	private Block startBlock = null,endBlock;
 	private static final String START_DIRECTION = "direction_start";
-	public Direction startDirection;
 	private static final String END_DIRECTION = "direction_end";
+	
+	public Direction startDirection;
+	private Direction endDirection;
+	private Plan plan;
+
 	private static final String TRIGGER = "trigger";
 	private static final String ACTIONS = "actions";
-	private static final String ID = "id";
-	private Direction endDirection;
+	private static final String CONTACT = "contact";
 	
 	/**
 	 * Route wurde von Zug betreten
@@ -96,6 +100,75 @@ public class Route implements Constants{
 		actions.add(action);
 	}
 	
+	public Object addActionForm(HashMap<String, String> params) {
+		String contactId = params.get(CONTACT);
+		Tile tag = plan.get(contactId, false);
+		if (!(tag instanceof Contact)) return t("No contact id passed to request!");
+		Contact contact = (Contact) tag;
+		Window win = new Window("add-action-form", t("Add action to contact on route"));		
+		new Tag("div").content("Route: "+this).addTo(win);
+		new Tag("div").content("Contact: "+contact).addTo(win);
+		return win;
+	}
+	
+	private void addBasicPropertiesTo(Window win) {
+		new Tag("h4").content(t("Origin and destination")).addTo(win);
+		Tag list = new Tag("ul");
+		Plan.addLink(startBlock, t("Origin: {} to {}",startBlock.name,startDirection), list);
+		Plan.addLink(endBlock, t("Destination: {} from {}",endBlock.name,endDirection), list);
+		list.addTo(win);
+
+		if (!signals.isEmpty()) {
+			new Tag("h4").content(t("Signals")).addTo(win);
+			list = new Tag("ul");
+			for (Signal s : signals) Plan.addLink(s,s.toString(),list);
+			list.addTo(win);
+		}
+	}
+	
+	private void addContactsTo(Window win) {
+		if (!contacts.isEmpty()) {
+			new Tag("h4").content(t("Contacts and actions")).addTo(win);
+			Tag list = new Tag("ul");
+			for (Contact c : contacts) {
+				Tag link = Plan.addLink(c,c.toString(),list);
+				JSONObject json = new JSONObject(Map.of(
+						REALM,REALM_ROUTE,
+						ID,id,
+						ACTION,ACTION_ADD_ACTION,
+						CONTACT,c.id()));
+				new Button(t("add action"),json).addTo(link);
+				Vector<Action> actions = triggers.get(c.trigger());
+				if (actions != null && !actions.isEmpty()) {
+					Tag ul = new Tag("ul");
+					for (Action action : actions) {
+						Tag act = new Tag("li").content(action.toString());
+						new Button("↑").addTo(act);
+						new Button("↓").addTo(act);
+						new Button("-").addTo(act);
+						act.addTo(ul);
+					}
+					ul.addTo(link);
+				}
+			}
+			list.addTo(win);
+		}
+	}
+	
+	private void addFormTo(Window win) {
+		Form form = new Form();
+		new Input(ACTION, ACTION_UPDATE).hideIn(form);
+		new Input(REALM,REALM_ROUTE).hideIn(form);
+		new Input(ID,id()).hideIn(form);
+		
+		Tag label = new Tag("label").content(t("name:"));
+		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).addTo(label);		
+		label.addTo(form);
+		
+		new Tag("button").attr("type", "submit").content(t("save")).addTo(form);
+		form.addTo(win);
+	}
+	
 	void addSignal(Signal signal) {
 		signals.add(signal);
 	}
@@ -104,6 +177,18 @@ public class Route implements Constants{
 		turnouts.put(t, s);
 	}
 
+	private void addTurnoutsTo(Window win) {
+		if (!turnouts.isEmpty()) {
+			new Tag("h4").content(t("Turnouts")).addTo(win);
+			Tag list = new Tag("ul");
+			for (Entry<Turnout, State> entry : turnouts.entrySet()) {
+				Turnout turnout = entry.getKey();
+				Plan.addLink(turnout, turnout+": "+entry.getValue(), list);
+			}
+			list.addTo(win);
+		}
+	}
+	
 	protected Route clone() {
 		Route clone = new Route();
 		clone.startBlock = startBlock;
@@ -233,6 +318,7 @@ public class Route implements Constants{
 	}
 	
 	private Route load(JSONObject json,Plan plan) {
+		this.plan = plan;
 		if (json.has(ID)) id = json.getInt(ID);
 		JSONArray pathIds = json.getJSONArray(PATH);
 		startDirection = Direction.valueOf(json.getString(START_DIRECTION));
@@ -336,64 +422,12 @@ public class Route implements Constants{
 	
 	public Window properties() {	
 		Window win = new Window("route-properties",t("Properties of {}",this));
-		
-		new Tag("h4").content(t("Origin and destination")).addTo(win);
-		Tag list = new Tag("ul");
-		Plan.addLink(startBlock, t("Origin: {} to {}",startBlock.name,startDirection), list);
-		Plan.addLink(endBlock, t("Destination: {} from {}",endBlock.name,endDirection), list);
-		list.addTo(win);
-		
-
-		if (!signals.isEmpty()) {
-			new Tag("h4").content(t("Signals")).addTo(win);
-			list = new Tag("ul");
-			for (Signal s : signals) Plan.addLink(s,s.toString(),list);
-			list.addTo(win);
-		}
-		
-		if (!contacts.isEmpty()) {
-			new Tag("h4").content(t("Contacts and actions")).addTo(win);
-			list = new Tag("ul");
-			for (Contact c : contacts) {
-				Tag link = Plan.addLink(c,c.toString(),list);
-				Vector<Action> actions = triggers.get(c.trigger());
-				if (actions != null && !actions.isEmpty()) {
-					Tag ul = new Tag("ul");
-					for (Action action : actions) new Tag("li").content(action.toString()).addTo(ul);
-					ul.addTo(link);
-				}
-			}
-			list.addTo(win);
-		}
-		
-		if (!turnouts.isEmpty()) {
-			new Tag("h4").content(t("Turnouts")).addTo(win);
-			list = new Tag("ul");
-			for (Entry<Turnout, State> entry : turnouts.entrySet()) {
-				Turnout turnout = entry.getKey();
-				Plan.addLink(turnout, turnout+": "+entry.getValue(), list);
-			}
-			list.addTo(win);
-		}
-		
-		Tag form = propForm();
-		new Tag("button").attr("type", "submit").content(t("save")).addTo(form);
-		form.addTo(win);
+		addFormTo(win);		
+		addBasicPropertiesTo(win);
+		addTurnoutsTo(win);
+		addContactsTo(win);
 
 		return win;
-	}
-	
-	public Tag propForm() {
-		Form form = new Form();
-		new Input(ACTION, ACTION_UPDATE).hideIn(form);
-		new Input(REALM,REALM_ROUTE).hideIn(form);
-		new Input(ID,id()).hideIn(form);
-		
-		Tag label = new Tag("label").content(t("name:"));
-		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).addTo(label);		
-		label.addTo(form);
-		
-		return form;
 	}
 	
 	public static void saveAll(Collection<Route> routes, String filename) throws IOException {

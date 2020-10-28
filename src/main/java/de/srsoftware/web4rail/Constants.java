@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 public interface Constants {
 	public static final String ACTION = "action";
 	public static final String ACTION_ADD = "add";
+	public static final String ACTION_ADD_ACTION = "add_action";
 	public static final String ACTION_ANALYZE = "analyze";
 	public static final String ACTION_AUTO = "auto";
 	public static final String ACTION_CLICK = "click";

@@ -1,5 +1,7 @@
 package de.srsoftware.web4rail.tags;
 
+import org.json.JSONObject;
+
 import de.srsoftware.tools.Tag;
 
 public class Button extends Tag {
@@ -16,5 +18,9 @@ public class Button extends Tag {
 		super("button");
 		attr("onclick",action).content(text);
 	}
-
+	
+	public Button(String text,JSONObject json) {
+		super("button");
+		attr("onclick","request("+(json.toString().replace("\"", "'"))+")").content(text);
+	}
 }
