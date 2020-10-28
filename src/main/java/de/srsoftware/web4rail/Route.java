@@ -28,6 +28,7 @@ import de.srsoftware.web4rail.actions.ActivateRoute;
 import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.actions.SpeedReduction;
+import de.srsoftware.web4rail.actions.TurnTrain;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
@@ -76,7 +77,11 @@ public class Route implements Constants{
 		new Input(ACTION,ACTION_ADD_ACTION).hideIn(typeForm);
 		new Input(CONTACT,contact.id()).hideIn(typeForm);
 		Select select = new Select(TYPE);
-		List<Class<? extends Action>> classes = List.of(SpeedReduction.class,SetSignalsToStop.class,FinishRoute.class);
+		List<Class<? extends Action>> classes = List.of(
+				SpeedReduction.class,
+				SetSignalsToStop.class,
+				FinishRoute.class,
+				TurnTrain.class);
 		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
 		select.addTo(new Label("Action type:")).addTo(typeForm);
 		return new Button(t("Create action"),"return submitForm('"+formId+"');").addTo(typeForm);
@@ -130,17 +135,20 @@ public class Route implements Constants{
 		switch (type) {
 			case "FinishRoute":
 				addAction(contact.trigger(),new FinishRoute(id()));
-				plan.stream("Action added!");
-				return properties();
+				break;
 			case "SpeedReduction":
 				return SpeedReduction.propForm(params,this,contact);
 			case "SetSignalsToStop":
 				addAction(contact.trigger(),new SetSignalsToStop(id()));
-				plan.stream("Action added!");
-				return properties();
+				break;
+			case "TurnTrain":
+				addAction(contact.trigger(),new TurnTrain(id()));
+				break;
+			default:
+				return win;			
 		}
-		
-		return win;
+		plan.stream("Action added!");
+		return properties();
 	}
 
 	private void addBasicPropertiesTo(Window win) {

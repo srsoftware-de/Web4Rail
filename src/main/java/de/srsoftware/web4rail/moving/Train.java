@@ -23,7 +23,6 @@ import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
-import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
@@ -430,13 +429,15 @@ public class Train implements Constants {
 		return name != null ? name : locos.firstElement().name();
 	}
 	
-	private Object turn() throws IOException {
+	public Object turn() {
 		LOG.debug("train.turn()");
 		if (direction != null) {
 			direction = direction.inverse();
 			for (Locomotive loco : locos) loco.turn(); 
 		}
-		if (block != null) plan.place(block.train(this));
+		if (block != null) try {
+			plan.place(block.train(this));
+		} catch (IOException e) {}
 		return t("{} turned.",this);
 	}
 

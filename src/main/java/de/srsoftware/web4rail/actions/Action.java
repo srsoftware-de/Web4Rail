@@ -38,6 +38,8 @@ public abstract class Action {
 				return new SetSignalsToStop(json.getInt(RouteAction.ROUTE));
 			case "SpeedReduction":
 				return new SpeedReduction(json.getInt(RouteAction.ROUTE), json.getInt(SpeedReduction.MAX_SPEED));
+			case "TurnTrain":
+				return new TurnTrain(json.getInt(RouteAction.ROUTE));
 		}
 		return null;
 	}
