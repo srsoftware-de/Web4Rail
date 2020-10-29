@@ -11,7 +11,8 @@ public class SetSignalsToStop extends RouteAction {
 	}
 
 	@Override
-	public void fire(Context context) throws IOException {
+	public boolean fire(Context context) throws IOException {
 		context.route.setSignals(Signal.STOP);
+		return true;
 	}
 }

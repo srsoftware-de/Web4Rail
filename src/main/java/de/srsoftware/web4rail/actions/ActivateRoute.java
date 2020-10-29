@@ -9,7 +9,8 @@ public class ActivateRoute extends RouteAction {
 	}
 
 	@Override
-	public void fire(Context context) throws IOException {
+	public boolean fire(Context context) throws IOException {
 		context.route.activate();
+		return true;
 	}
 }

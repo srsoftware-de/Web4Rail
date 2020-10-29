@@ -26,6 +26,7 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ActivateRoute;
+import de.srsoftware.web4rail.actions.ConditionalAction;
 import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.actions.SpeedReduction;
@@ -82,7 +83,8 @@ public class Route implements Constants{
 				SpeedReduction.class,
 				SetSignalsToStop.class,
 				FinishRoute.class,
-				TurnTrain.class);
+				TurnTrain.class,
+				ConditionalAction.class);
 		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
 		select.addTo(new Label("Action type:")).addTo(typeForm);
 		return new Button(t("Create action"),"return submitForm('"+formId+"');").addTo(typeForm);
@@ -127,13 +129,14 @@ public class Route implements Constants{
 		Tile tag = plan.get(contactId, false);
 		if (!(tag instanceof Contact)) return t("No contact id passed to request!");
 		Contact contact = (Contact) tag;
+		String type = params.get(TYPE);
 		Window win = new Window("add-action-form", t("Add action to contact on route"));		
 		new Tag("div").content("Route: "+this).addTo(win);
 		new Tag("div").content("Contact: "+contact).addTo(win);
-		
-		String type = params.get(TYPE);
 		if (type == null) return (actionTypeForm(contact).addTo(win));
 		switch (type) {
+			case "ConditionalAction":
+				return ConditionalAction.propForm(params,this,contact);
 			case "FinishRoute":
 				addAction(contact.trigger(),new FinishRoute(id()));
 				break;
@@ -184,7 +187,7 @@ public class Route implements Constants{
 					Tag ul = new Tag("ul");
 					boolean first = true;
 					for (Action action : actions) {
-						props.put(ACTION_ID, action.toString());
+						props.put(ACTION_ID, action.id());
 
 						Tag act = new Tag("li").content(action.toString());
 						if (!first) {
@@ -469,8 +472,10 @@ public class Route implements Constants{
 	}
 	
 	public Object moveAction(HashMap<String, String> params) {
-		String action_id = params.get(ACTION_ID);
-		if (action_id == null) return t("No action id passed to request!");
+		if (!params.containsKey(ACTION_ID)) return t("No action id passed to request!");
+		
+		int action_id = Integer.parseInt(params.get(ACTION_ID));
+		
 		String contactId = params.get(CONTACT);
 		Tile tag = plan.get(contactId, false);
 		if (!(tag instanceof Contact)) return t("No contact id passed to request!");
@@ -478,7 +483,7 @@ public class Route implements Constants{
 		Vector<Action> actions = triggers.get(contact.trigger());
 		
 		for (int i=1; i<actions.size(); i++) {
-			if (actions.elementAt(i).toString().equals(action_id)) {
+			if (action_id == actions.elementAt(i).id()) {
 				Action action = actions.remove(i);
 				actions.insertElementAt(action, i-1);
 				return properties();

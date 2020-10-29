@@ -25,6 +25,7 @@ import com.sun.net.httpserver.HttpServer;
 import de.keawe.localconfig.Configuration;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.moving.Train;
@@ -63,6 +64,8 @@ public class Application implements Constants{
 		switch (realm) {
 			case REALM_CAR:
 				return Car.action(params);
+			case REALM_CONDITION:
+				return Condition.action(params);
 			case REALM_CU:
 				return plan.controlUnit().process(params);
 			case REALM_LOCO:

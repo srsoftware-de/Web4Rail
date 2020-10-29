@@ -29,13 +29,14 @@ public interface Constants {
 	public static final String ACTION_TURN = "turn";
 	public static final String ACTION_UPDATE = "update";
 
-	public static final String REALM       = "realm";
-	public static final String REALM_CAR   = "car";
-	public static final String REALM_CU    = "cu";
-	public static final String REALM_LOCO  = "loco";
-	public static final String REALM_ROUTE = "route";
-	public static final String REALM_PLAN  = "plan";
-	public static final String REALM_TRAIN = "train";
+	public static final String REALM           = "realm";
+	public static final String REALM_CAR       = "car";
+	public static final String REALM_CONDITION = "condition";
+	public static final String REALM_CU        = "cu";
+	public static final String REALM_LOCO      = "loco";
+	public static final String REALM_ROUTE     = "route";
+	public static final String REALM_PLAN      = "plan";
+	public static final String REALM_TRAIN     = "train";
 	
 	public static final String ID = "id";
 	public static final String PORT = "port";
@@ -43,5 +44,4 @@ public interface Constants {
 	public static final String CONTACT = "contact";
 	public static final String TYPE = "type";
 	public static final String NBSP = "&nbsp;";
-
 }

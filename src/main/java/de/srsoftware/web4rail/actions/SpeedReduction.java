@@ -25,8 +25,12 @@ public class SpeedReduction extends RouteAction implements Constants{
 	}
 
 	@Override
-	public void fire(Context context) {
-		if (context.train != null && context.train.speed > maxSpeed) context.train.setSpeed(maxSpeed);
+	public boolean fire(Context context) {
+		if (context.train != null && context.train.speed > maxSpeed) {
+			context.train.setSpeed(maxSpeed);
+			return true;
+		}
+		return false;
 	}
 	
 	@Override

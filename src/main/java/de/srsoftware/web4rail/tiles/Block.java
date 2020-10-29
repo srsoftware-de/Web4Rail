@@ -14,6 +14,7 @@ import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Select;
 
 public abstract class Block extends StretchableTile{
 	private static final String NAME = "name";
@@ -22,7 +23,7 @@ public abstract class Block extends StretchableTile{
 	private static final String ALLOW_TURN = "allowTurn";
 	public boolean turnAllowed = false;
 	
-	private static final String TRAIN = "train";
+	private static final String TRAIN = Train.class.getSimpleName();
 	
 	@Override
 	public JSONObject config() {
@@ -51,7 +52,7 @@ public abstract class Block extends StretchableTile{
 		name = json.has(NAME) ? json.getString(NAME) : "Block";
 		turnAllowed = json.has(ALLOW_TURN) && json.getBoolean(ALLOW_TURN);
 		if (json.has(TRAIN)) {
-			Train tr = Train.get(json.getLong(TRAIN)); 
+			Train tr = Train.get(json.getInt(TRAIN)); 
 			train(tr);
 		}
 		return this;
@@ -65,13 +66,7 @@ public abstract class Block extends StretchableTile{
 		
 		new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed).addTo(new Tag("p")).addTo(form);
 
-		Tag select = new Tag("select").attr("name", TRAIN);
-		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
-		for (Train train : Train.list()) {
-			Tag opt = new Tag("option").attr("value", ""+train.id);
-			if (this.train == train) opt.attr("selected", "selected");
-			opt.content(train.toString()).addTo(select);
-		}
+		Select select = Train.selector(train, null);
 		select.addTo(new Label(t("Trains:")+" ")).addTo(new Tag("p")).addTo(form);
 		
 		return form;
@@ -118,7 +113,7 @@ public abstract class Block extends StretchableTile{
 		super.update(params);
 		if (params.containsKey(NAME)) name=params.get(NAME);
 		if (params.containsKey(TRAIN)) {
-			long trainId = Long.parseLong(params.get(TRAIN));
+			int trainId = Integer.parseInt(params.get(TRAIN));
 			Train t = Train.get(trainId);
 			if (t != null) {
 				Block oldBlock = t.block();

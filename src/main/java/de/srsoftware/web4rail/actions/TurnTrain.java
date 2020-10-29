@@ -9,7 +9,11 @@ public class TurnTrain extends RouteAction implements Constants{
 	}
 
 	@Override
-	public void fire(Context context) {
-		if (context.train != null) context.train.turn();
+	public boolean fire(Context context) {
+		if (context.train != null) {
+			context.train.turn();
+			return true;
+		}
+		return false;
 	}
 }

@@ -39,10 +39,10 @@ import de.srsoftware.web4rail.tiles.Signal;
 public class Train implements Constants {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 	
-	private static final HashMap<Long, Train> trains = new HashMap<>();
+	private static final HashMap<Integer, Train> trains = new HashMap<>();
 	
 	public static final String ID = "id";
-	public long id;
+	public int id;
 
 	private static final String NAME = "name";
 	private String name = null;
@@ -98,8 +98,8 @@ public class Train implements Constants {
 		this(loco,null);
 	}
 	
-	public Train(Locomotive loco, Long id) {
-		if (id == null) id = new Date().getTime();
+	public Train(Locomotive loco, Integer id) {
+		if (id == null) id = new Date().hashCode();
 		this.id = id;
 		add(loco);
 		trains.put(id, this);
@@ -117,7 +117,7 @@ public class Train implements Constants {
 			}
 			return t("No train id passed!");
 		}
-		long id = Long.parseLong(params.get(Train.ID));
+		int id = Integer.parseInt(params.get(Train.ID));
 		Train train = trains.get(id);
 		if (train == null) return(t("No train with id {}!",id));
 		switch (action) {
@@ -189,7 +189,7 @@ public class Train implements Constants {
 		this.block = block;
 	}
 	
-	public static Train get(long id) {
+	public static Train get(int id) {
 		return trains.get(id);
 	}
 
@@ -237,7 +237,7 @@ public class Train implements Constants {
 		while (line != null) {
 			JSONObject json = new JSONObject(line);
 			
-			long id = json.getLong(ID);
+			int id = json.getInt(ID);
 			
 			Train train = new Train(null,id);
 			train.load(json).plan(plan);			
@@ -378,11 +378,23 @@ public class Train implements Constants {
 	
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Entry<Long, Train> entry:trains.entrySet()) {
+		for (Entry<Integer, Train> entry:trains.entrySet()) {
 			Train train = entry.getValue();
 			file.write(train.json()+"\n");
 		}
 		file.close();
+	}
+	
+	public static Select selector(Train preselected,Collection<Train> exclude) {
+		if (exclude == null) exclude = new Vector<Train>();
+		Select select = new Select(Train.class.getSimpleName());
+		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
+		for (Train train : Train.list()) {			
+			if (exclude.contains(train)) continue;
+			Tag opt = select.addOption(train.id, train);
+			if (train == preselected) opt.attr("selected", "selected");
+		}
+		return select;
 	}
 
 	public void setSpeed(int v) {

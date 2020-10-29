@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Date;
 import java.util.HashMap;
 
 import org.json.JSONObject;
@@ -10,16 +11,17 @@ import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Contact;
 
-public abstract class Action {
+public abstract class Action implements Constants {
 	public static final Logger LOG = LoggerFactory.getLogger(Action.class);
 	private static final String TYPE = "type";
-
+	private int id;
 	
 	public static class Context {
 		public Plan plan = null;
@@ -34,8 +36,17 @@ public abstract class Action {
 			train = route.train;
 		}
 	}
+	
+	public Action() {
+		id = new Date().hashCode();
+	}
 
-	public abstract void fire(Context context) throws IOException;
+	public abstract boolean fire(Context context) throws IOException;
+	
+	public int id() {
+		return id;
+	}
+
 
 	public JSONObject json() {
 		JSONObject json = new JSONObject();
