@@ -135,6 +135,8 @@ public class ActionList extends Vector<Action> implements Constants{
 			case "SetSignalsToStop":
 				add(new SetSignalsToStop());
 				break;
+			case "SpeedReduction":
+				return SpeedReduction.propForm(this,params);
 			case "TurnTrain":
 				add(new TurnTrain());
 				break;
@@ -162,5 +164,9 @@ public class ActionList extends Vector<Action> implements Constants{
 		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
 		select.addTo(new Label("Action type:")).addTo(typeForm);
 		return new Button(t("Create action"),"return submitForm('"+formId+"');").addTo(typeForm).addTo(win);
+	}
+
+	public int id() {
+		return id;
 	}
 }
