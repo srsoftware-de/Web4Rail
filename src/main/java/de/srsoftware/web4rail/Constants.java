@@ -17,6 +17,7 @@ public interface Constants {
 	public static final String ACTION_MOVE = "move";
 	public static final String ACTION_POWER = "power";
 	public static final String ACTION_PROPS = "props";
+	public static final String ACTION_QUIT = "quit";
 	public static final String ACTION_SAVE = "save";
 	public static final String ACTION_SLOWER10 = "slower10";
 	public static final String ACTION_START = "start";
@@ -27,8 +28,6 @@ public interface Constants {
 	public static final String ACTION_TOGGLE_F4 = "f4";
 	public static final String ACTION_TURN = "turn";
 	public static final String ACTION_UPDATE = "update";
-	
-
 
 	public static final String REALM       = "realm";
 	public static final String REALM_CAR   = "car";
@@ -43,5 +42,6 @@ public interface Constants {
 	public static final Charset UTF8 = StandardCharsets.UTF_8;
 	public static final String CONTACT = "contact";
 	public static final String TYPE = "type";
+	public static final String NBSP = "&nbsp;";
 
 }

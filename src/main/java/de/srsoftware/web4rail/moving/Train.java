@@ -135,10 +135,12 @@ public class Train implements Constants {
 				return train.automatic();
 			case ACTION_PROPS:
 				return train.props();
+			case ACTION_QUIT:
+				return train.quitAutopilot();
 			case ACTION_START:
 				return train.start();
 			case ACTION_STOP:
-				return train.stop();
+				return train.stopNow();
 			case ACTION_TURN:
 				return train.turn();
 			case ACTION_UPDATE:
@@ -146,7 +148,6 @@ public class Train implements Constants {
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
-
 
 	private Object addCar(HashMap<String, String> params) {
 		LOG.debug("addCar({})",params);
@@ -346,7 +347,7 @@ public class Train implements Constants {
 			if (autopilot == null) {
 				new Button(t("auto"),"train("+id+",'"+ACTION_AUTO+"')").addTo(actions);
 			} else {
-				new Button(t("stop"),"train("+id+",'"+ACTION_STOP+"')").addTo(actions);
+				new Button(t("quit autopilot"),"train("+id+",'"+ACTION_QUIT+"')").addTo(actions);
 			}
 			actions.addTo(propList);
 
@@ -359,6 +360,14 @@ public class Train implements Constants {
 		
 		propList.addTo(window);
 		return window;
+	}
+	
+	private Object quitAutopilot() {
+		if (autopilot != null) {
+			autopilot.stop = true;
+			autopilot = null;
+			return t("{} stopping at next block.",this);
+		} else return t("autopilot not active.");
 	}
 	
 	public static void saveAll(String filename) throws IOException {
@@ -414,10 +423,17 @@ public class Train implements Constants {
 		return error;				
 	}
 	
-	private Object stop() {
-		autopilot.stop = true;
-		autopilot = null;
-		return t("{} stopping at next block.",this);
+	private Object stopNow() {
+		setSpeed(0);
+		if (route != null) try {
+			route.unlock();
+			route.endBlock().train(null);
+			route.startBlock().train(this);
+		} catch (IOException e) {
+			e.printStackTrace();			
+		}
+		route = null;
+		return t("Stopped {}.",this);
 	}
 	
 	private static String t(String message, Object...fills) {

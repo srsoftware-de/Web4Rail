@@ -208,8 +208,8 @@ public class Route implements Constants{
 		new Input(REALM,REALM_ROUTE).hideIn(form);
 		new Input(ID,id()).hideIn(form);
 		
-		Tag label = new Tag("label").content(t("name:"));
-		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).addTo(label);		
+		Tag label = new Tag("label").content(t("name:")+NBSP);
+		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).style("width: 80%").addTo(label);		
 		label.addTo(form);
 		
 		new Tag("button").attr("type", "submit").content(t("save")).addTo(form);
@@ -304,6 +304,10 @@ public class Route implements Constants{
 		plan.stream(t("No action \"{}\" assigned with {}!",actionId,contact));
 		return properties();
 	}
+	
+	public Block endBlock() {
+		return endBlock;
+	}	
 	
 	public void finish() throws IOException {
 		startBlock.train(null);		
@@ -563,7 +567,7 @@ public class Route implements Constants{
 	}
 
 	public Block startBlock() {
-		return (Block) path.get(0);
+		return startBlock;
 	}		
 	
 	protected static String t(String txt, Object...fills) {

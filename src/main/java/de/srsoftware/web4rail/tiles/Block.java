@@ -82,9 +82,10 @@ public abstract class Block extends StretchableTile{
 		Tag window = super.propMenu();
 		
 		if (train != null) {
-			new Tag("h4").content(t("Train:")).addTo(window);
-			train.link("span").addTo(window);
-			new Button(t("start"),"train("+train.id+",'"+ACTION_START+"')").addTo(window);
+			window.children().insertElementAt(new Button(t("stop"),"train("+train.id+",'"+ACTION_STOP+"')"), 1);
+			window.children().insertElementAt(new Button(t("start"),"train("+train.id+",'"+ACTION_START+"')"), 1);
+			window.children().insertElementAt(train.link("span"), 1);
+			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
 		}
 		return window;
 	}
