@@ -19,9 +19,15 @@ public class ConditionalAction extends Action {
 	
 	private Vector<Condition> conditions = new Vector<Condition>();
 	private ActionList actions = new ActionList();
-
+	
+	private Tag actionsForm(HashMap<String, String> params) {
+		Fieldset fieldset = new Fieldset(t("Actions"));
+		actions.addTo(fieldset, params.get(CONTEXT));
+		return fieldset;
+	}
+	
 	private Tag conditionForm(HashMap<String, String> params) {
-		Fieldset fieldset = new Fieldset("Conditions");
+		Fieldset fieldset = new Fieldset(t("Conditions"));
 
 		if (!conditions.isEmpty()) {
 			Tag list = new Tag("ul");
@@ -63,6 +69,7 @@ public class ConditionalAction extends Action {
 	public Window properties(HashMap<String, String> params) {
 		Window win = super.properties(params);
 		conditionForm(params).addTo(win);
+		actionsForm(params).addTo(win);
 		return win;
 	}
 
@@ -91,5 +98,9 @@ public class ConditionalAction extends Action {
 			}
 		}
 		return super.update(params);
+	}
+
+	public ActionList children() {
+		return actions;
 	}
 }

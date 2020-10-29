@@ -17,8 +17,7 @@ public class TrainSelect extends Condition {
 
 	@Override
 	public boolean fulfilledBy(Context context) {
-		// TODO Auto-generated method stub
-		return false;
+		return context.train == train;
 	}
 	
 	@Override

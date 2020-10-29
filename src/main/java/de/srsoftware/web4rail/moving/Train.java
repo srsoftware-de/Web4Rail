@@ -367,7 +367,7 @@ public class Train implements Constants {
 		return window;
 	}
 
-	private Object quitAutopilot() {
+	public Object quitAutopilot() {
 		if (autopilot != null) {
 			autopilot.stop = true;
 			autopilot = null;

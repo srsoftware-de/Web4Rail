@@ -56,11 +56,14 @@ public class ActionList extends Vector<Action> implements Constants{
 		new Input(CONTEXT,context).hideIn(typeForm);
 		Select select = new Select(TYPE);
 		List<Class<? extends Action>> classes = List.of(
+				ConditionalAction.class,
 				SpeedReduction.class,
 				SetSignalsToStop.class,
 				FinishRoute.class,
 				TurnTrain.class,
-				ConditionalAction.class);
+				StopAuto.class,
+				PowerOff.class
+				);
 		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
 		select.addTo(new Label("Action type:")).addTo(typeForm);
 		return new Button(t("Create action"),"return submitForm('"+formId+"');").addTo(typeForm).addTo(win);
@@ -87,7 +90,13 @@ public class ActionList extends Vector<Action> implements Constants{
 				break;
 			case "TurnTrain":
 				add(new TurnTrain());
-				break;				
+				break;	
+			case "StopAuto":
+				add(new StopAuto());
+				break;
+			case "PowerOff":
+				add(new PowerOff());
+				break;
 			default:
 				actionTypeForm(win,context);
 				new Tag("span").content(t("Unknown action type: {}",type)).addTo(win);
@@ -117,6 +126,10 @@ public class ActionList extends Vector<Action> implements Constants{
 				}
 				props.put(ACTION, ACTION_DROP);
 				new Button("-",props).addTo(act);
+				if (action instanceof ConditionalAction) {
+					ConditionalAction ca = (ConditionalAction) action;
+					ca.children().addTo(act, context);
+				}
 				act.addTo(ul);
 				first = false;
 			}

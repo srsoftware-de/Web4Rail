@@ -122,7 +122,7 @@ public class ControlUnit extends Thread implements Constants{
 			restart();
 			return t("Control unit (re)started.");
 		case ACTION_EMERGENCY:
-			power = true;
+			return emergency();
 		case ACTION_POWER:
 			return togglePower();
 		case ACTION_PROPS:
@@ -134,6 +134,11 @@ public class ControlUnit extends Thread implements Constants{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
+	public Object emergency() {
+		power = true;
+		return togglePower();
+	}
+
 	public Object properties() {
 		Window win = new Window("cu-props", t("Properties of the control unit"));
 		Form form = new Form();

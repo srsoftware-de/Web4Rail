@@ -29,7 +29,7 @@ public abstract class Action implements Constants {
 		public Route route = null;
 		public Train train = null;
 		
-		public Context(Contact c) {
+		public Context(Contact c) {			
 			contact = c;
 			route = contact.route();
 			if (route == null) return;
@@ -56,7 +56,7 @@ public abstract class Action implements Constants {
 	protected Tag link(int actionId, String context) {
 		Map<String, String> props = Map.of(REALM,REALM_ACTIONS,ID,actionId+"/"+id,ACTION,ACTION_PROPS,CONTEXT,context);
 		String action = "request("+(new JSONObject(props).toString().replace("\"", "'"))+")";
-		return new Tag("span").content(toString()).attr("onclick", action);
+		return new Tag("span").content(toString()+NBSP).attr("onclick", action);
 	}
 	
 	public static Action load(JSONObject json) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
