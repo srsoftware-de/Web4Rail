@@ -121,6 +121,7 @@ function moveTile(x,y){
 }
 
 function openRoute(id){
+	console.log("openRoute("+id+")");
 	request({realm:'route',action:PROPS,id:id});
 	return false;
 }

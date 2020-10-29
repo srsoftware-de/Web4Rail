@@ -23,7 +23,6 @@ public class Button extends Tag {
 	}
 	
 	public Button(String text, Map<String, Object> props) {
-		super("button");
-		attr("onclick","request("+(new JSONObject(props).toString().replace("\"", "'"))+")").content(text);
+		this(text,"request("+(new JSONObject(props).toString().replace("\"", "'"))+")");
 	}
 }

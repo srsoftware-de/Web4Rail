@@ -70,6 +70,7 @@ public class Route implements Constants{
 	private static final String TRIGGER = "trigger";
 	private static final String ACTIONS = "actions";
 	private static final String ACTION_ID = "action_id";
+	private static final String TILE = Tile.class.getSimpleName();
 	
 	private Tag actionTypeForm(Contact contact) {
 		String formId ="add-action-to-contact-"+contact.id();
@@ -291,10 +292,15 @@ public class Route implements Constants{
 	public Vector<Contact> contacts() {
 		return new Vector<>(contacts);
 	}
-	
+		
 	public Object dropAction(HashMap<String, String> params) {
 		String actionId = params.get(ACTION_ID);
-		if (actionId == null) return t("No action id passed to request!");
+		if (actionId == null) {
+			plan.remove(this); // if id of an action is given: delete the action from the route. otherwise: delete the route
+			String tileId = params.get(TILE);
+			Tile tile = plan.get(tileId,false);
+			return tile.propMenu();
+		}
 		String contactId = params.get(CONTACT);
 		Tile tag = plan.get(contactId, false);
 		if (!(tag instanceof Contact)) return t("No contact id passed to request!");

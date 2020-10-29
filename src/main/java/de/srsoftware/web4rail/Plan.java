@@ -381,10 +381,6 @@ public class Plan implements Constants{
 		return controlUnit.queue(command);		
 	}
 
-	public Route route(int routeId) {
-		return routes.get(routeId);
-	}
-
 	Route registerRoute(Route route) {
 		for (Tile tile: route.path()) tile.add(route);
 		routes.put(route.id(), route);
@@ -398,9 +394,22 @@ public class Plan implements Constants{
 		for (int i=1; i<tile.height(); i++) remove_intern(tile.x, tile.y+i); // remove shadow tiles
 		if (tile != null) stream("remove "+tile.id());
 	}
+	
+	public void remove(Route route) {
+		for (Tile tile : route.path()) tile.remove(route);
+		for (Train train : Train.list()) {
+			if (train.route == route) train.route = null;
+		}
+		routes.remove(route.id());
+		stream(t("Removed {}.",route));
+	}
 
 	private void remove_intern(int x, int y) {
 		LOG.debug("removed {} from tile list",tiles.remove(Tile.id(x, y)));
+	}
+	
+	public Route route(int routeId) {
+		return routes.get(routeId);
 	}
 	
 	Object routeAction(HashMap<String, String> params) throws IOException {

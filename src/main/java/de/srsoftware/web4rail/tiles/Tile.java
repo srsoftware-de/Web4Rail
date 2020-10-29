@@ -214,14 +214,20 @@ public abstract class Tile implements Constants{
 		
 		if (!routes.isEmpty()) {
 			new Tag("h4").content(t("Routes using this tile:")).addTo(window);
-			Tag routeList = new Tag("ul");
+			Tag routeList = new Tag("ol");
 			for (Route route : routes) {
-				new Tag("li").clazz("link").attr("onclick","openRoute('"+route.id()+"')").content(route.name()).addTo(routeList);
+				Tag li = new Tag("span").attr("onclick","openRoute('"+route.id()+"')").content(route.name()+NBSP).addTo(new Tag("li").clazz("link"));
+				Map<String, Object> params = Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_DROP,Tile.class.getSimpleName(),id());
+				new Button(t("delete route"),params).addTo(li);
+				li.addTo(routeList);
 			}
 			routeList.addTo(window);
-		}
-		
+		}		
 		return window;
+	}
+	
+	public void remove(Route route) {
+		routes.remove(route);
 	}
 
 	private static String replace(String line, Entry<String, Object> replacement) {
@@ -365,19 +371,4 @@ public abstract class Tile implements Constants{
 		}
 		return this;
 	}
-	
-	/*
-	if (clazz == null) throw new NullPointerException(TILE+" must not be null!");
-	Class<Tile> tc = Tile.class;		
-	clazz = tc.getName().replace(".Tile", "."+clazz);		
-	Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
-	if (tile instanceof Eraser) {
-		Tile erased = get(x,y,true);
-		remove(erased);
-		return erased == null ? null : t("Removed {}.",erased);
-	}
-	if (configJson != null) tile.configure(new JSONObject(configJson));		
-	set(x, y, tile);
-	return t("Added {}",tile.getClass().getSimpleName());
-}*/
 }
