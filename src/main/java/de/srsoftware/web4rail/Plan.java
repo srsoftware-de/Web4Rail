@@ -295,6 +295,7 @@ public class Plan implements Constants{
 	
 	private Tag menu() throws IOException {
 		Tag menu = new Tag("div").clazz("menu");
+		new Tag("div").clazz("emergency").content(t("Emergency")).attr("onclick","return request({realm:'"+REALM_CU+"',action:'"+ACTION_EMERGENCY+"'});").addTo(menu);
 		actionMenu().addTo(menu);
 		moveMenu().addTo(menu);		
 		tileMenu().addTo(menu);

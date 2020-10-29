@@ -219,3 +219,7 @@ fieldset{
 ul{
 	clear: both;
 }
+
+.menu div.emergency{
+	background: #ffb561;
+}
