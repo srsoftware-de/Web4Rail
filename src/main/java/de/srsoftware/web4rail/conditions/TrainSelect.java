@@ -22,13 +22,14 @@ public class TrainSelect extends Condition {
 	}
 	
 	@Override
-	protected Window properties() {
+	protected Window properties(HashMap<String, String> params) {
 		Window win = new Window("condition-props", t("Properties of {}",getClass().getSimpleName()));
 		String formId = "conditional-props-"+id;
 		Form form = new Form(formId);
 		new Input(REALM,REALM_CONDITION).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(ID,id).hideIn(form);
+		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
 		Train.selector(train, null).addTo(new Label(t("Select train:")+NBSP)).addTo(form);
 		new Button(t("Save"),"return submitForm('"+formId+"');").addTo(form).addTo(win);
 		return win;

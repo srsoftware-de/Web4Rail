@@ -37,7 +37,30 @@ public class SpeedReduction extends Action{
 		return json;
 	}
 	
-	public static Object propForm(ActionList actionList, HashMap<String, String> params) {
+	@Override
+	public Window properties(HashMap<String, String> params) {
+		Window win = super.properties(params);
+		String formId = "action-prop-form-"+id;
+		Form form = new Form(formId);
+		new Input(REALM,REALM_ACTIONS).hideIn(form);
+		new Input(ID,params.get(ID)).hideIn(form);
+		new Input(ACTION,ACTION_UPDATE).hideIn(form);
+		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
+		Label label = new Label(t("Set speed to")+NBSP);
+		new Input(MAX_SPEED, maxSpeed).addTo(label).content(NBSP+t("km/h"));
+		label.addTo(form);
+		new Button(t("Save"),"return submitForm('"+formId+"');").addTo(form).addTo(win);		
+		return win;
+	}
+	
+	@Override
+	public String toString() {
+		return t("Reduce speed to {} km/h",maxSpeed);
+	}
+
+	@Override
+	protected Object update(HashMap<String, String> params) {
+		LOG.debug("update: {}",params);
 		String error = null;
 		String ms = params.get(MAX_SPEED);
 		if (ms == null) {
@@ -47,28 +70,14 @@ public class SpeedReduction extends Action{
 				int s = Integer.parseInt(ms);
 				if (s<0) error = t("Speed must not be less than zero!");
 				if (error == null) {
-					actionList.add(new SpeedReduction(s));
-					return t("Action added!");
+					this.maxSpeed = s;
+					return t("Action updated!");
 				}
 			} catch (NumberFormatException e) {
 				error = t("Not a valid number!");
 			}
 		}
-		Window win = Action.propForm(params);
-		String formId = "edit-speedreduction";
-		Tag form = new Form(formId);
-		new Input(REALM, REALM_ACTIONS).hideIn(form);
-		new Input(ID,actionList.id()).hideIn(form);
-		new Input(ACTION,ACTION_ADD).hideIn(form);
-		new Input(TYPE,SpeedReduction.class.getSimpleName()).hideIn(form);
-		new Input(MAX_SPEED, ms).addTo(new Label("new speed")).addTo(form);
-		//if (error != null) new Tag("div").content(error).addTo(form); 
-		new Button(t("Create action"),"return submitForm('"+formId+"');").addTo(form).addTo(win);
-		return win;
-	}
-	
-	@Override
-	public String toString() {
-		return t("Reduce speed to {} km/h",maxSpeed);
+		Window win = properties(params);
+		return new Tag("span").content(error).addTo(win);
 	}
 }

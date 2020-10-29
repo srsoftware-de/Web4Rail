@@ -125,7 +125,7 @@ public class Route implements Constants{
 					actions = new ActionList();
 					triggers.put(c.trigger(), actions);
 				}
-				actions.addTo(link);
+				actions.addTo(link,REALM_ROUTE+":"+id());
 			}
 			list.addTo(win);
 		}

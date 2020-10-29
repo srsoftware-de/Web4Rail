@@ -13,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 
@@ -54,6 +55,15 @@ public class Application implements Constants{
         Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)+"/plan"));
 	}
 	
+	public static int createId() {
+		try {
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return new Date().hashCode();
+	}
+	
 	private static Object handle(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		
 		String realm = params.get(REALM);
@@ -64,11 +74,11 @@ public class Application implements Constants{
 
 		switch (realm) {
 			case REALM_ACTIONS:
-				return ActionList.process(params);
+				return ActionList.process(params,plan);
 			case REALM_CAR:
 				return Car.action(params);
 			case REALM_CONDITION:
-				return Condition.action(params);
+				return Condition.action(params,plan);
 			case REALM_CU:
 				return plan.controlUnit().process(params);
 			case REALM_LOCO:

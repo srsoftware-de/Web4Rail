@@ -45,4 +45,5 @@ public interface Constants {
 	public static final String CONTACT = "contact";
 	public static final String TYPE = "type";
 	public static final String NBSP = "&nbsp;";
+	public static final String CONTEXT = "context";
 }

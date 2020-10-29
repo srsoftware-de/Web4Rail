@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -99,7 +98,7 @@ public class Train implements Constants {
 	}
 	
 	public Train(Locomotive loco, Integer id) {
-		if (id == null) id = new Date().hashCode();
+		if (id == null) id = Application.createId();
 		this.id = id;
 		add(loco);
 		trains.put(id, this);

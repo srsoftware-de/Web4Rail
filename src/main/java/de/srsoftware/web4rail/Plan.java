@@ -448,6 +448,17 @@ public class Plan implements Constants{
 		tile.position(x, y).plan(this);
 		tiles.put(tile.id(),tile);
 	}
+
+	public Window showContext(HashMap<String, String> params) {
+		String[] parts = params.get(CONTEXT).split(":");
+		String realm = parts[0];
+		String id = parts.length>1 ? parts[1] : null;
+		switch (realm) {
+			case REALM_ROUTE:
+				return route(Integer.parseInt(id)).properties();
+		}
+		return null;
+	}
 	
 	public synchronized void stream(String data) {
 		data = data.replaceAll("\n", "").replaceAll("\r", "");
