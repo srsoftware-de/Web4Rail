@@ -20,7 +20,6 @@ import de.srsoftware.web4rail.tiles.Contact;
 
 public abstract class Action implements Constants {
 	public static final Logger LOG = LoggerFactory.getLogger(Action.class);
-	private static final String TYPE = "type";
 	private int id;
 	
 	public static class Context {
@@ -63,15 +62,15 @@ public abstract class Action implements Constants {
 		String clazz = json.getString(TYPE);
 		switch (clazz) {
 			case "ActivateRoute":
-				return new ActivateRoute(json.getInt(RouteAction.ROUTE));
+				return new ActivateRoute();
 			case "FinishRoute":
-				return new FinishRoute(json.getInt(RouteAction.ROUTE));
+				return new FinishRoute();
 			case "SetSignalsToStop":
-				return new SetSignalsToStop(json.getInt(RouteAction.ROUTE));
+				return new SetSignalsToStop();
 			case "SpeedReduction":
-				return new SpeedReduction(json.getInt(RouteAction.ROUTE), json.getInt(SpeedReduction.MAX_SPEED));
+				return new SpeedReduction(json.getInt(SpeedReduction.MAX_SPEED));
 			case "TurnTrain":
-				return new TurnTrain(json.getInt(RouteAction.ROUTE));
+				return new TurnTrain();
 		}
 		return null;
 	}

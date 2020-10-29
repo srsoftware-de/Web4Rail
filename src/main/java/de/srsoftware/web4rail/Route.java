@@ -25,18 +25,14 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.Action.Context;
+import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.actions.ActivateRoute;
-import de.srsoftware.web4rail.actions.ConditionalAction;
 import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.actions.SpeedReduction;
-import de.srsoftware.web4rail.actions.TurnTrain;
 import de.srsoftware.web4rail.moving.Train;
-import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
-import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
@@ -55,7 +51,7 @@ public class Route implements Constants{
 	private Vector<Signal> signals;
 	private Vector<Contact> contacts;
 	private HashMap<Turnout,Turnout.State> turnouts;
-	private HashMap<String,Vector<Action>> triggers = new HashMap<String, Vector<Action>>();
+	private HashMap<String,ActionList> triggers = new HashMap<String, ActionList>();
 	private int id;
 	private static HashMap<Integer, String> names = new HashMap<Integer, String>(); // maps id to name. needed to keep names during plan.analyze()
 	public Train train;
@@ -65,31 +61,9 @@ public class Route implements Constants{
 	
 	public Direction startDirection;
 	private Direction endDirection;
-	private Plan plan;
 
 	private static final String TRIGGER = "trigger";
 	private static final String ACTIONS = "actions";
-	private static final String ACTION_ID = "action_id";
-	private static final String TILE = Tile.class.getSimpleName();
-	
-	private Tag actionTypeForm(Contact contact) {
-		String formId ="add-action-to-contact-"+contact.id();
-		Tag typeForm = new Form(formId);
-		new Input(REALM, REALM_ROUTE).hideIn(typeForm);
-		new Input(ID,id()).hideIn(typeForm);
-		new Input(ACTION,ACTION_ADD_ACTION).hideIn(typeForm);
-		new Input(CONTACT,contact.id()).hideIn(typeForm);
-		Select select = new Select(TYPE);
-		List<Class<? extends Action>> classes = List.of(
-				SpeedReduction.class,
-				SetSignalsToStop.class,
-				FinishRoute.class,
-				TurnTrain.class,
-				ConditionalAction.class);
-		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
-		select.addTo(new Label("Action type:")).addTo(typeForm);
-		return new Button(t("Create action"),"return submitForm('"+formId+"');").addTo(typeForm);
-	}
 	
 	/**
 	 * Route wurde von Zug betreten
@@ -117,45 +91,14 @@ public class Route implements Constants{
 	}	
 	
 	public void addAction(String trigger, Action action) {
-		Vector<Action> actions = triggers.get(trigger);
+		ActionList actions = triggers.get(trigger);
 		if (actions == null) {
-			actions = new Vector<Action>();
+			actions = new ActionList();
 			triggers.put(trigger, actions);
 		}
 		actions.add(action);
 	}
 	
-	public Object addActionForm(HashMap<String, String> params) {
-		String contactId = params.get(CONTACT);
-		Tile tag = plan.get(contactId, false);
-		if (!(tag instanceof Contact)) return t("No contact id passed to request!");
-		Contact contact = (Contact) tag;
-		String type = params.get(TYPE);
-		Window win = new Window("add-action-form", t("Add action to contact on route"));		
-		new Tag("div").content("Route: "+this).addTo(win);
-		new Tag("div").content("Contact: "+contact).addTo(win);
-		if (type == null) return (actionTypeForm(contact).addTo(win));
-		switch (type) {
-			case "ConditionalAction":
-				return ConditionalAction.propForm(params,this,contact);
-			case "FinishRoute":
-				addAction(contact.trigger(),new FinishRoute(id()));
-				break;
-			case "SpeedReduction":
-				return SpeedReduction.propForm(params,this,contact);
-			case "SetSignalsToStop":
-				addAction(contact.trigger(),new SetSignalsToStop(id()));
-				break;
-			case "TurnTrain":
-				addAction(contact.trigger(),new TurnTrain(id()));
-				break;
-			default:
-				return win;			
-		}
-		plan.stream("Action added!");
-		return properties();
-	}
-
 	private void addBasicPropertiesTo(Window win) {
 		new Tag("h4").content(t("Origin and destination")).addTo(win);
 		Tag list = new Tag("ul");
@@ -174,34 +117,15 @@ public class Route implements Constants{
 	private void addContactsTo(Window win) {
 		if (!contacts.isEmpty()) {
 			new Tag("h4").content(t("Contacts and actions")).addTo(win);
-			Tag list = new Tag("ul");
+			Tag list = new Tag("ol");
 			for (Contact c : contacts) {
 				Tag link = Plan.addLink(c,c.toString(),list);
-				Map<String, Object> props = new HashMap<String, Object>(Map.of(
-						REALM,REALM_ROUTE,
-						ID,id,
-						ACTION,ACTION_ADD_ACTION,
-						CONTACT,c.id()));
-				new Button(t("add action"),props).addTo(link);
-				Vector<Action> actions = triggers.get(c.trigger());
-				if (actions != null && !actions.isEmpty()) {
-					Tag ul = new Tag("ul");
-					boolean first = true;
-					for (Action action : actions) {
-						props.put(ACTION_ID, action.id());
-
-						Tag act = new Tag("li").content(action.toString());
-						if (!first) {
-							props.put(ACTION, ACTION_MOVE);
-							new Button("↑",props).addTo(act);
-						}
-						props.put(ACTION, ACTION_DROP);
-						new Button("-",props).addTo(act);
-						act.addTo(ul);
-						first = false;
-					}
-					ul.addTo(link);
+				ActionList actions = triggers.get(c.trigger());
+				if (actions == null) {
+					actions = new ActionList();
+					triggers.put(c.trigger(), actions);
 				}
+				actions.addTo(link);
 			}
 			list.addTo(win);
 		}
@@ -254,18 +178,17 @@ public class Route implements Constants{
 		return clone;
 	}
 	
-	public void complete(Plan plan) {
-		this.plan = plan;
+	public void complete() {
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
-			addAction(contacts.firstElement().trigger(),new ActivateRoute(id()));
+			addAction(contacts.firstElement().trigger(),new ActivateRoute());
 			Contact nextToLastContact = contacts.get(contacts.size()-2);			
-			addAction(nextToLastContact.trigger(),new SpeedReduction(id(),30));			
-			addAction(nextToLastContact.trigger(),new SetSignalsToStop(id()));
+			addAction(nextToLastContact.trigger(),new SpeedReduction(30));			
+			addAction(nextToLastContact.trigger(),new SetSignalsToStop());
 		}
 		if (!contacts.isEmpty()) {
 			Contact lastContact = contacts.lastElement(); 
-			addAction(lastContact.trigger(), new SpeedReduction(id(), 0)); 
-			addAction(lastContact.trigger(), new FinishRoute(id()));
+			addAction(lastContact.trigger(), new SpeedReduction(0)); 
+			addAction(lastContact.trigger(), new FinishRoute());
 		}
 	}
 
@@ -276,48 +199,16 @@ public class Route implements Constants{
 	 */
 	public void contact(Contact contact) {
 		LOG.debug("{} on {} activated {}.",train,this,contact);
-		Vector<Action> actions = triggers.get(contact.trigger());
+		ActionList actions = triggers.get(contact.trigger());
 		if (actions == null) return;
-		LOG.debug("Triggering {}",actions);
 		Context context = new Context(contact);
-		for (Action action : actions) {
-			try {
-				action.fire(context);
-			} catch (IOException e) {
-				LOG.warn("Action did not fire properly: {}",action,e);
-			}
-		}
+		actions.fire(context);
 	}
 	
 	public Vector<Contact> contacts() {
 		return new Vector<>(contacts);
 	}
 		
-	public Object dropAction(HashMap<String, String> params) {
-		String actionId = params.get(ACTION_ID);
-		if (actionId == null) {
-			plan.remove(this); // if id of an action is given: delete the action from the route. otherwise: delete the route
-			String tileId = params.get(TILE);
-			Tile tile = plan.get(tileId,false);
-			return tile.propMenu();
-		}
-		String contactId = params.get(CONTACT);
-		Tile tag = plan.get(contactId, false);
-		if (!(tag instanceof Contact)) return t("No contact id passed to request!");
-		Contact contact = (Contact) tag;
-		Vector<Action> actions = triggers.get(contact.trigger());
-		
-		for (int i=0; i<actions.size(); i++) {
-			if (actions.elementAt(i).toString().equals(actionId)) {
-				actions.remove(i);
-				plan.stream(t("removed {}.",actionId));
-				return properties();
-			}
-		}
-		plan.stream(t("No action \"{}\" assigned with {}!",actionId,contact));
-		return properties();
-	}
-	
 	public Block endBlock() {
 		return endBlock;
 	}	
@@ -379,7 +270,7 @@ public class Route implements Constants{
 		json.put(END_DIRECTION, endDirection);
 		
 		JSONArray jTriggers = new JSONArray();
-		for (Entry<String, Vector<Action>> entry : triggers.entrySet()) {
+		for (Entry<String, ActionList> entry : triggers.entrySet()) {
 			JSONObject trigger = new JSONObject();
 			trigger.put(TRIGGER, entry.getKey());
 			
@@ -401,7 +292,6 @@ public class Route implements Constants{
 	}
 	
 	private Route load(JSONObject json,Plan plan) {
-		this.plan = plan;
 		if (json.has(ID)) id = json.getInt(ID);
 		JSONArray pathIds = json.getJSONArray(PATH);
 		startDirection = Direction.valueOf(json.getString(START_DIRECTION));
@@ -475,28 +365,6 @@ public class Route implements Constants{
 			return false;
 		}
 		return true;
-	}
-	
-	public Object moveAction(HashMap<String, String> params) {
-		if (!params.containsKey(ACTION_ID)) return t("No action id passed to request!");
-		
-		int action_id = Integer.parseInt(params.get(ACTION_ID));
-		
-		String contactId = params.get(CONTACT);
-		Tile tag = plan.get(contactId, false);
-		if (!(tag instanceof Contact)) return t("No contact id passed to request!");
-		Contact contact = (Contact) tag;
-		Vector<Action> actions = triggers.get(contact.trigger());
-		
-		for (int i=1; i<actions.size(); i++) {
-			if (action_id == actions.elementAt(i).id()) {
-				Action action = actions.remove(i);
-				actions.insertElementAt(action, i-1);
-				return properties();
-			}
-		}
-		plan.stream(t("No action \"{}\" assigned with {}!",action_id,contact));
-		return properties();
 	}
 	
 	public List<Route> multiply(int size) {

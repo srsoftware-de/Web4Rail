@@ -30,6 +30,7 @@ public interface Constants {
 	public static final String ACTION_UPDATE = "update";
 
 	public static final String REALM           = "realm";
+	public static final String REALM_ACTIONS   = "actions";
 	public static final String REALM_CAR       = "car";
 	public static final String REALM_CONDITION = "condition";
 	public static final String REALM_CU        = "cu";

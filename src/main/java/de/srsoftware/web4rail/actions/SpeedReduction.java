@@ -5,7 +5,6 @@ import java.util.HashMap;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
@@ -14,13 +13,13 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tiles.Contact;
 
-public class SpeedReduction extends RouteAction implements Constants{
+public class SpeedReduction extends Action{
 
 	public static final String MAX_SPEED = "max_speed";
 	private int maxSpeed;
 
-	public SpeedReduction(int routeId, int kmh) {
-		super(routeId);
+	public SpeedReduction(int kmh) {
+		super();
 		maxSpeed = kmh;
 	}
 
@@ -50,7 +49,7 @@ public class SpeedReduction extends RouteAction implements Constants{
 				int s = Integer.parseInt(ms);
 				if (s<0) error = t("Speed must not be less than zero!");
 				if (error == null) {
-					route.addAction(contact.trigger(),new SpeedReduction(route.id(), s));
+					route.addAction(contact.trigger(),new SpeedReduction(s));
 					contact.plan().stream("Action added!");
 					return route.properties();
 				}

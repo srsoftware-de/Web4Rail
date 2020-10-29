@@ -169,7 +169,7 @@ public class Plan implements Constants{
 		this.routes.clear();
 		for (Tile tile : tiles.values()) tile.routes().clear();
 		for (Route route : routes) {
-			route.complete(this);
+			route.complete();
 			registerRoute(route);
 		}
 		return t("Found {} routes.",routes.size());
@@ -416,12 +416,6 @@ public class Plan implements Constants{
 		Route route = route(Integer.parseInt(params.get(ID)));
 		if (route == null) return t("Unknown route: {}",params.get(ID));
 		switch (params.get(ACTION)) {
-			case ACTION_ADD_ACTION:
-				return route.addActionForm(params);
-			case ACTION_DROP:
-				return route.dropAction(params);
-			case ACTION_MOVE:
-				return route.moveAction(params);
 			case ACTION_PROPS:
 				return route.properties();
 			case ACTION_UPDATE:

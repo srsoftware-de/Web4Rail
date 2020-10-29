@@ -25,6 +25,7 @@ import com.sun.net.httpserver.HttpServer;
 import de.keawe.localconfig.Configuration;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Locomotive;
@@ -62,6 +63,8 @@ public class Application implements Constants{
 		if (action == null) throw new NullPointerException(ACTION+" should not be null!");
 
 		switch (realm) {
+			case REALM_ACTIONS:
+				return ActionList.process(params);
 			case REALM_CAR:
 				return Car.action(params);
 			case REALM_CONDITION:
