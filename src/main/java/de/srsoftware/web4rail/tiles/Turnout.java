@@ -101,8 +101,8 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	@Override
-	public Tag propForm() {
-		Tag form = super.propForm();
+	public Tag propForm(String id) {
+		Tag form = super.propForm(id);
 		Fieldset fieldset = new Fieldset(t("Decoder settings"));
 		Label protocol = new Label(t("Protocol:"));
 		for (Protocol proto : Protocol.values()) {

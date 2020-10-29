@@ -34,8 +34,8 @@ public abstract class StretchableTile extends Tile {
 	}
 	
 	@Override
-	public Tag propForm() {
-		Tag form = super.propForm();
+	public Tag propForm(String id) {
+		Tag form = super.propForm(id);
 
 		Tag label = new Tag("label").content(t("length:"));
 		new Tag("input").attr("type", "number").attr("name","length").attr("value", length).addTo(label);		

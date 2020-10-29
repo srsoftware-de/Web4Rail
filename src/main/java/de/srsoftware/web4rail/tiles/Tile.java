@@ -180,8 +180,8 @@ public abstract class Tile implements Constants{
 		return new Vector<Plan.Direction>();
 	}
 	
-	public Tag propForm() {
-		Form form = new Form();
+	public Tag propForm(String id) {
+		Form form = new Form(id);
 		new Input(ACTION, ACTION_UPDATE).hideIn(form);
 		new Input(REALM, REALM_PLAN).hideIn(form);
 		new Input(ID,id()).hideIn(form);
@@ -199,9 +199,10 @@ public abstract class Tile implements Constants{
 	
 	public Tag propMenu() {	
 		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",getClass().getSimpleName(),x,y));
-		Tag form = propForm();
+		String formId = "tile-properties-"+id();
+		Tag form = propForm(formId);
 		if (form!=null && form.children().size()>3) {
-			new Button(t("save")).addTo(form);
+			new Button(t("save"),"submitForm('"+formId+"')").addTo(form);
 			form.addTo(window);
 		} else {
 			window.content(t("This tile ({}) has no editable properties",getClass().getSimpleName()));

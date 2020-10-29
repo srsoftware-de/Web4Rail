@@ -24,6 +24,7 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
+import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ActivateRoute;
 import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
@@ -172,26 +173,26 @@ public class Route implements Constants{
 			Tag list = new Tag("ul");
 			for (Contact c : contacts) {
 				Tag link = Plan.addLink(c,c.toString(),list);
-				JSONObject json = new JSONObject(Map.of(
+				Map<String, Object> props = new HashMap<String, Object>(Map.of(
 						REALM,REALM_ROUTE,
 						ID,id,
 						ACTION,ACTION_ADD_ACTION,
 						CONTACT,c.id()));
-				new Button(t("add action"),json).addTo(link);
+				new Button(t("add action"),props).addTo(link);
 				Vector<Action> actions = triggers.get(c.trigger());
 				if (actions != null && !actions.isEmpty()) {
 					Tag ul = new Tag("ul");
 					boolean first = true;
 					for (Action action : actions) {
-						json.put(ACTION_ID, action.toString());
+						props.put(ACTION_ID, action.toString());
 
 						Tag act = new Tag("li").content(action.toString());
 						if (!first) {
-							json.put(ACTION, ACTION_MOVE);
-							new Button("↑",json).addTo(act);
+							props.put(ACTION, ACTION_MOVE);
+							new Button("↑",props).addTo(act);
 						}
-						json.put(ACTION, ACTION_DROP);
-						new Button("-",json).addTo(act);
+						props.put(ACTION, ACTION_DROP);
+						new Button("-",props).addTo(act);
 						act.addTo(ul);
 						first = false;
 					}
@@ -249,7 +250,8 @@ public class Route implements Constants{
 		return clone;
 	}
 	
-	public void complete() {
+	public void complete(Plan plan) {
+		this.plan = plan;
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
 			addAction(contacts.firstElement().trigger(),new ActivateRoute(id()));
 			Contact nextToLastContact = contacts.get(contacts.size()-2);			
@@ -272,9 +274,11 @@ public class Route implements Constants{
 		LOG.debug("{} on {} activated {}.",train,this,contact);
 		Vector<Action> actions = triggers.get(contact.trigger());
 		if (actions == null) return;
+		LOG.debug("Triggering {}",actions);
+		Context context = new Context(contact);
 		for (Action action : actions) {
 			try {
-				action.fire(contact.plan());
+				action.fire(context);
 			} catch (IOException e) {
 				LOG.warn("Action did not fire properly: {}",action,e);
 			}

@@ -58,8 +58,8 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
-	public Tag propForm() {
-		Tag form = super.propForm();
+	public Tag propForm(String id) {
+		Tag form = super.propForm(id);
 		
 		new Input(NAME, name).addTo(new Label(t("name:")+" ")).addTo(new Tag("p")).addTo(form);
 		
@@ -119,7 +119,12 @@ public abstract class Block extends StretchableTile{
 		if (params.containsKey(NAME)) name=params.get(NAME);
 		if (params.containsKey(TRAIN)) {
 			long trainId = Long.parseLong(params.get(TRAIN));
-			train(trainId == 0 ? null : Train.get(trainId));
+			Train t = Train.get(trainId);
+			if (t != null) {
+				Block oldBlock = t.block();
+				if (oldBlock != null) oldBlock.train(null);
+				train(t);
+			}			
 		}
 		turnAllowed = params.containsKey(ALLOW_TURN) && params.get(ALLOW_TURN).equals("on");
 		return this;

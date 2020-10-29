@@ -1,5 +1,7 @@
 package de.srsoftware.web4rail.tags;
 
+import java.util.Map;
+
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
@@ -20,8 +22,8 @@ public class Button extends Tag {
 		attr("onclick",action).content(text);
 	}
 	
-	public Button(String text,JSONObject json) {
+	public Button(String text, Map<String, Object> props) {
 		super("button");
-		attr("onclick","request("+(json.toString().replace("\"", "'"))+")").content(text);
+		attr("onclick","request("+(new JSONObject(props).toString().replace("\"", "'"))+")").content(text);
 	}
 }

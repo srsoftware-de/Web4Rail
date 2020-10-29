@@ -2,8 +2,6 @@ package de.srsoftware.web4rail.actions;
 
 import java.io.IOException;
 
-import de.srsoftware.web4rail.Route;
-
 public class FinishRoute extends RouteAction {
 
 	public FinishRoute(int routeId) {
@@ -11,7 +9,7 @@ public class FinishRoute extends RouteAction {
 	}
 
 	@Override
-	public void fire(Route route) throws IOException {
-		route.finish();
+	public void fire(Context context) throws IOException {
+		context.route.finish();
 	}
 }

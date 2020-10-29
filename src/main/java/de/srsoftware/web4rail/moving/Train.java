@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Vector;
@@ -33,9 +34,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Block;
-import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Signal;
-import de.srsoftware.web4rail.tiles.Tile;
 
 public class Train implements Constants {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
@@ -73,18 +72,11 @@ public class Train implements Constants {
 		public void run() {
 			try {
 				stop = false;
-				Vector<Tile> path = new Vector<Tile>();
 				while (true) {
 					if (route == null) {
 						Thread.sleep(2000);
 						if (stop) return;
 						Train.this.start();
-						path = route == null ? new Vector<Tile>() : route.path();
-					} else {
-						if (!path.isEmpty()) {
-							Tile t = path.remove(0);
-							if (t instanceof Contact) ((Contact)t).activate();
-						}
 					}
 					Thread.sleep(250);
 				}
@@ -189,6 +181,10 @@ public class Train implements Constants {
 		return t("{} now in auto-mode",this);
 	}
 	
+	public Block block() {
+		return block;
+	}
+	
 	public void block(Block block) throws IOException {
 		this.block = block;
 	}
@@ -259,6 +255,32 @@ public class Train implements Constants {
 		return this;
 	}
 	
+	private Tag locoList() {
+		Tag locoProp = new Tag("li").content(t("Locomotives:"));
+		Tag locoList = new Tag("ul").clazz("locolist");
+
+		for (Locomotive loco : this.locos) {
+			Tag li = loco.link("li");
+			Map<String, Object> props = Map.of(REALM,REALM_LOCO,ID,loco.id(),ACTION,ACTION_TURN);
+			new Button(t("turn within train"),props).addTo(li).addTo(locoList);
+		}
+
+		Tag addLocoForm = new Form().content(t("add locomotive:")+"&nbsp;");
+		new Input(REALM, REALM_TRAIN).hideIn(addLocoForm);
+		new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
+		new Input(ID,id).hideIn(addLocoForm);
+		Select select = new Select(CAR_ID);
+		for (Locomotive loco : Locomotive.list()) {
+			if (!this.locos.contains(loco)) select.addOption(loco.id(), loco);
+		}
+		if (!select.children().isEmpty()) {
+			select.addTo(addLocoForm);
+			new Button(t("add")).addTo(addLocoForm);
+			addLocoForm.addTo(new Tag("li")).addTo(locoList);
+		}
+		return locoList.addTo(locoProp);
+	}
+	
 	public static Object manager() {
 		Window win = new Window("train-manager", t("Train manager"));
 		new Tag("h4").content(t("known trains")).addTo(win);
@@ -307,7 +329,7 @@ public class Train implements Constants {
 	public Tag props() {
 		Window window = new Window("train-properties",t("Properties of {}",this));
 		
-		Fieldset fieldset = new Fieldset(t("Train properties"));
+		Fieldset fieldset = new Fieldset(t("editable train properties"));
 		Form form = new Form();
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(REALM,REALM_TRAIN).hideIn(form);
@@ -318,27 +340,11 @@ public class Train implements Constants {
 		
 		new Button(t("Turn"), "train("+id+",'"+ACTION_TURN+"')").addTo(fieldset).addTo(window);
 		
+		fieldset = new Fieldset(t("other train properties"));
+		
 		Tag propList = new Tag("ul").clazz("proplist");
 		
-		Tag locoProp = new Tag("li").content(t("Locomotives:"));
-		Tag locoList = new Tag("ul").clazz("locolist");
-
-		for (Locomotive loco : this.locos) loco.link("li").addTo(locoList);
-
-		Tag addLocoForm = new Form().content(t("add locomotive:")+"&nbsp;");
-		new Input(REALM, REALM_TRAIN).hideIn(addLocoForm);
-		new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
-		new Input(ID,id).hideIn(addLocoForm);
-		Select select = new Select(CAR_ID);
-		for (Locomotive loco : Locomotive.list()) {
-			if (!this.locos.contains(loco)) select.addOption(loco.id(), loco);
-		}
-		if (!select.children().isEmpty()) {
-			select.addTo(addLocoForm);
-			new Button(t("add")).addTo(addLocoForm);
-			addLocoForm.addTo(new Tag("li")).addTo(locoList);
-		}
-		locoList.addTo(locoProp).addTo(propList);
+		locoList().addTo(propList);
 		
 		if (block != null) {
 			new Tag("li").content(t("Current location: {}",block)).addTo(propList);
@@ -358,10 +364,10 @@ public class Train implements Constants {
 		if (direction != null) new Tag("li").content(t("Direction: heading {}",direction)).addTo(propList);
 		
 		
-		propList.addTo(window);
+		propList.addTo(fieldset).addTo(window);
 		return window;
 	}
-	
+
 	private Object quitAutopilot() {
 		if (autopilot != null) {
 			autopilot.stop = true;
@@ -424,6 +430,7 @@ public class Train implements Constants {
 	}
 	
 	private Object stopNow() {
+		quitAutopilot();
 		setSpeed(0);
 		if (route != null) try {
 			route.unlock();

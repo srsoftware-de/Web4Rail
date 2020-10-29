@@ -118,8 +118,7 @@ public class Plan implements Constants{
 		case ACTION_SAVE:
 			return saveTo("default");
 		case ACTION_UPDATE:
-			update(get(params.get(Tile.ID),true),params);
-			return html();
+			return update(get(params.get(Tile.ID),true),params);
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
@@ -170,7 +169,7 @@ public class Plan implements Constants{
 		this.routes.clear();
 		for (Tile tile : tiles.values()) tile.routes().clear();
 		for (Route route : routes) {
-			route.complete();
+			route.complete(this);
 			registerRoute(route);
 		}
 		return t("Found {} routes.",routes.size());
@@ -524,8 +523,8 @@ public class Plan implements Constants{
 		return tiles.addTo(tileMenu);
 	}
 
-	private void update(Tile tile, HashMap<String, String> params) throws IOException {
-		if (tile != null) place(tile.update(params));
+	private Tile update(Tile tile, HashMap<String, String> params) throws IOException {
+		return tile == null ? null : tile.update(params);
 	}
 
 	public void warn(Contact contact) {

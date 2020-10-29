@@ -8,13 +8,12 @@ public class Form extends Tag {
 	
 
 	public Form() {
-		super("form");
-		attr("method","POST");
+		this(null);
 	}
 
 	public Form(String id) {
 		super("form");
 		attr("method","POST");
-		id(id);
+		if (id!=null) id(id);
 	}
 }

@@ -8,7 +8,6 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
@@ -26,9 +25,8 @@ public class SpeedReduction extends RouteAction implements Constants{
 	}
 
 	@Override
-	public void fire(Route route) {
-		Train train = route.train;
-		if (train != null && train.speed > maxSpeed) train.setSpeed(maxSpeed);
+	public void fire(Context context) {
+		if (context.train != null && context.train.speed > maxSpeed) context.train.setSpeed(maxSpeed);
 	}
 	
 	@Override

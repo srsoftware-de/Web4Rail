@@ -35,8 +35,8 @@ public class TurnoutR extends Turnout {
 	}
 	
 	@Override
-	public Tag propForm() {
-		Tag form = super.propForm();
+	public Tag propForm(String id) {
+		Tag form = super.propForm(id);
 		Tag fieldset = null;
 		for (Tag child : form.children()) {
 			if (child.is(Fieldset.TYPE)) {
