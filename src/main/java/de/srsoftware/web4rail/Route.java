@@ -1,11 +1,9 @@
 package de.srsoftware.web4rail;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,8 +13,8 @@ import java.util.Map.Entry;
 import java.util.Vector;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +69,7 @@ public class Route implements Constants{
 	private static final String TRIGGER = "trigger";
 	private static final String ACTIONS = "actions";
 	private static final String ACTION_LISTS = "action_lists";
+	private static final String ROUTES = "routes";
 	
 	/**
 	 * process commands from the client
@@ -355,7 +354,6 @@ public class Route implements Constants{
 		if (json.has(SIGNALS)) {
 			for (Object signalId : json.getJSONArray(SIGNALS)) addSignal((Signal) plan.get((String) signalId, false));
 		}
-		if (json.has(ACTIONS)) loadActions(json.getJSONArray(ACTIONS));
 		if (json.has(ACTION_LISTS)) loadActions(json.getJSONArray(ACTION_LISTS));
 		return plan.registerRoute(this);
 	}
@@ -364,30 +362,21 @@ public class Route implements Constants{
 		for (int i=0; i<arr.length(); i++) {
 			JSONObject json = arr.getJSONObject(i);
 			String trigger = json.getString(TRIGGER);
-			JSONArray actions = json.getJSONArray("actions");
-			for (int k=0; k<actions.length(); k++) {
-				try {
-					Action action = Action.load(actions.getJSONObject(k));
-					LOG.debug("Loaded {}",action);
-					add(trigger, action);					
-				} catch (InstantiationException | IllegalAccessException | IllegalArgumentException| InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException | JSONException e) {
-					LOG.warn("Was not able to load action: ",e);
-				}
-				
-			}			
+			ActionList actionList = ActionList.load(json.getJSONArray(ACTIONS));
+			triggers.put(trigger, actionList);
 		}
 	}
 
 	public static void loadAll(String filename, Plan plan) throws IOException {
-		BufferedReader file = new BufferedReader(new FileReader(filename));
-		String line = file.readLine();
-		while (line != null) {
-			JSONObject json = new JSONObject(line);
-			new Route().load(json,plan);
-			
-			line = file.readLine();
+		FileInputStream fis = new FileInputStream(filename);
+		JSONTokener tokener = new JSONTokener(fis);
+		JSONObject json = new JSONObject(tokener);
+		JSONArray routes = json.getJSONArray(ROUTES);
+		for (Object o : routes) {
+			if (o instanceof JSONObject) new Route().load((JSONObject)o, plan);
 		}
-		file.close();
+		fis.close();
+		LOG.debug("json: {}",json.getClass());
 	}
 	
 	public boolean lock() {		
@@ -442,14 +431,14 @@ public class Route implements Constants{
 	
 	public static void saveAll(Collection<Route> routes, String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		file.write("[\n");
+		file.write("{\""+ROUTES+"\":[\n");
 		int count = 0;
 		for (Route route : routes) {			
 			file.write(route.json());
 			if (++count < routes.size()) file.write(",");
 			file.write("\n");
 		}
-		file.write("]");
+		file.write("]}");
 		file.close();
 	}
 

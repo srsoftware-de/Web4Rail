@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,6 +176,17 @@ public class ActionList extends Vector<Action> implements Constants{
 		JSONArray result = new JSONArray();
 		for (Action action : this) result.put(action.json());
 		return result;
+	}
+
+	public static ActionList load(JSONArray list) {
+		ActionList actionList = new ActionList();
+		for (Object o : list) {
+			if (o instanceof JSONObject) {
+				Action action = Action.load((JSONObject) o);
+				if (action != null) actionList.add(action);
+			}
+		}
+		return actionList;
 	}
 	
 	public boolean moveUp(int actionId) {

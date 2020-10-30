@@ -83,6 +83,18 @@ public class ConditionalAction extends Action {
 		json.put(ACTIONS, actions.json());
 		return json;
 	}
+	
+	public static ConditionalAction load(JSONObject json) {
+		ConditionalAction action = new ConditionalAction();
+		for (Object o : json.getJSONArray(CONDITIONS)) {
+			if (o instanceof JSONObject) {
+				Condition condition = Condition.load((JSONObject)o);
+				if (condition != null) action.conditions.add(condition);
+			}
+		}
+		action.actions = ActionList.load(json.getJSONArray(ACTIONS));
+		return action;
+	}
 		
 	@Override
 	public Window properties(HashMap<String, String> params) {

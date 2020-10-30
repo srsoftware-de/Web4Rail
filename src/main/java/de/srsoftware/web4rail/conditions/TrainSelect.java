@@ -27,6 +27,11 @@ public class TrainSelect extends Condition {
 		return super.json().put(REALM_TRAIN, train.id);
 	}
 	
+	public static TrainSelect load(JSONObject json) {
+		int trainId = json.getInt(REALM_TRAIN);
+		return new TrainSelect().train(Train.get(trainId));		
+	}
+	
 	@Override
 	protected Window properties(HashMap<String, String> params) {
 		Window win = new Window("condition-props", t("Properties of {}",getClass().getSimpleName()));
@@ -46,6 +51,12 @@ public class TrainSelect extends Condition {
 		if (train == null) return super.toString();
 		return t("Train = {}",train);
 	}
+	
+	private TrainSelect train(Train train) {
+		this.train = train;
+		return this;
+	}
+
 
 	@Override
 	protected Object update(HashMap<String, String> params) {

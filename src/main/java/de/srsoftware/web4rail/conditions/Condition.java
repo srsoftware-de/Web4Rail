@@ -52,6 +52,15 @@ public abstract class Condition implements Constants {
 		return new JSONObject().put(TYPE, getClass().getSimpleName());
 	}
 	
+	public static Condition load(JSONObject json) {
+		String type = json.getString(TYPE);
+		switch (type) {
+			case "TrainSelect":
+				return TrainSelect.load(json);
+		}
+		return null;
+	}
+
 	public Tag link(String tagClass,String context) {
 		String json = new JSONObject(Map.of(REALM,REALM_CONDITION,ID,id,ACTION,ACTION_PROPS,CONTEXT,context)).toString().replace("\"", "'");
 		return new Tag(tagClass).clazz("link").attr("onclick","request("+json+")").content(toString());

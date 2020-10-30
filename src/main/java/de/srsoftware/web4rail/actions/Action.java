@@ -1,7 +1,6 @@
 package de.srsoftware.web4rail.actions;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,17 +56,21 @@ public abstract class Action implements Constants {
 		return new Tag("span").content(toString()+NBSP).attr("onclick", action);
 	}
 	
-	public static Action load(JSONObject json) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException {
+	public static Action load(JSONObject json) {
 		String clazz = json.getString(TYPE);
 		switch (clazz) {
 			case "ActivateRoute":
 				return new ActivateRoute();
+			case "ConditionalAction":
+				return ConditionalAction.load(json);
 			case "FinishRoute":
 				return new FinishRoute();
+			case "PowerOff":
+				return new PowerOff();
 			case "SetSignalsToStop":
 				return new SetSignalsToStop();
-			case "SpeedReduction":
-				return new SetSpeed(json.getInt(SetSpeed.MAX_SPEED));
+			case "SetSpeed":
+				return SetSpeed.load(json);
 			case "TurnTrain":
 				return new TurnTrain();
 		}

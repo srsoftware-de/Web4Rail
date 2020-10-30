@@ -37,6 +37,11 @@ public class SetSpeed extends Action{
 		return json;
 	}
 	
+	public static SetSpeed load(JSONObject json) {
+		int s = json.getInt(MAX_SPEED);
+		return new SetSpeed(s);
+	}
+	
 	@Override
 	public Window properties(HashMap<String, String> params) {
 		Window win = super.properties(params);
