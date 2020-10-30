@@ -60,7 +60,7 @@ public class ConditionalAction extends Action {
 	@Override
 	public boolean fire(Context context) throws IOException {
 		for (Condition condition : conditions) {
-			if (condition.fulfilledBy(context)) return fireActions(context);
+			if (condition.fulfilledBy(context) != condition.inverted) return fireActions(context);
 		}
 		return false;		
 	}
@@ -106,7 +106,7 @@ public class ConditionalAction extends Action {
 
 	@Override
 	public String toString() {
-		if (conditions.isEmpty()) return t("Invalid condition");
+		if (conditions.isEmpty()) return t("[Click here to add condition]");
 		StringBuffer sb = new StringBuffer();		
 		for (int i = 0; i<conditions.size(); i++) {
 			if (i>0) sb.append(t(" or "));

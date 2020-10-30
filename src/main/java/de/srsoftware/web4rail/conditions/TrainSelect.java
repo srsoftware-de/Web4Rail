@@ -4,12 +4,9 @@ import java.util.HashMap;
 
 import org.json.JSONObject;
 
-import de.srsoftware.web4rail.Window;
+import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.moving.Train;
-import de.srsoftware.web4rail.tags.Button;
-import de.srsoftware.web4rail.tags.Form;
-import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
 public class TrainSelect extends Condition {
@@ -33,23 +30,16 @@ public class TrainSelect extends Condition {
 	}
 	
 	@Override
-	protected Window properties(HashMap<String, String> params) {
-		Window win = new Window("condition-props", t("Properties of {}",getClass().getSimpleName()));
-		String formId = "conditional-props-"+id;
-		Form form = new Form(formId);
-		new Input(REALM,REALM_CONDITION).hideIn(form);
-		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(ID,id).hideIn(form);
-		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
+	public Tag propForm(HashMap<String, String> params) {
+		Tag form = super.propForm(params);
 		Train.selector(train, null).addTo(new Label(t("Select train:")+NBSP)).addTo(form);
-		new Button(t("Apply"),"return submitForm('"+formId+"');").addTo(form).addTo(win);
-		return win;
+		return form;
 	}
-	
+
 	@Override
 	public String toString() {
-		if (train == null) return super.toString();
-		return t("Train = {}",train);
+		if (train == null) return t("[Click here to select train!]");
+		return t(inverted?"Train ≠ {}":"Train = {}",train);
 	}
 	
 	private TrainSelect train(Train train) {
@@ -65,6 +55,6 @@ public class TrainSelect extends Condition {
 		Train train = Train.get(tid);
 		if (train == null) return t("No train with id {} found!",tid);
 		this.train = train;
-		return t("Updated condition");
+		return super.update(params);
 	}
 }

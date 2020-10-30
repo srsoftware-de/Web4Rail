@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
@@ -12,12 +14,17 @@ import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.Action.Context;
+import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Checkbox;
+import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Input;
 
 public abstract class Condition implements Constants {
-
+	public static final Logger LOG = LoggerFactory.getLogger(Condition.class);
+	private static final String INVERTED = "inverted";
 	private static HashMap<Integer, Condition> conditions = new HashMap<Integer, Condition>();
-	
 	public abstract boolean fulfilledBy(Context context);
+	public boolean inverted = false;
 	protected int id;
 
 	public Condition() {
@@ -65,8 +72,23 @@ public abstract class Condition implements Constants {
 		String json = new JSONObject(Map.of(REALM,REALM_CONDITION,ID,id,ACTION,ACTION_PROPS,CONTEXT,context)).toString().replace("\"", "'");
 		return new Tag(tagClass).clazz("link").attr("onclick","request("+json+")").content(toString());
 	}
+	
+	public Tag propForm(HashMap<String, String> params) {
+		Form form = new Form("condition-props-"+id);
+		new Input(REALM,REALM_CONDITION).hideIn(form);
+		new Input(ACTION,ACTION_UPDATE).hideIn(form);
+		new Input(ID,id).hideIn(form);
+		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
+		return form;
+	}
 
-	protected abstract Window properties(HashMap<String, String> params);
+	protected Window properties(HashMap<String, String> params) {
+		Window win = new Window("condition-props", t("Properties of {}",getClass().getSimpleName()));		
+		Tag form = propForm(params);
+		new Checkbox(INVERTED, t("inverted"), inverted).addTo(form);
+		new Button(t("Apply"),"return submitForm('condition-props-"+id+"');").addTo(form).addTo(win);
+		return win;
+	}
 	
 	public static String t(String text, Object...fills) {
 		return Translation.get(Application.class, text, fills);
@@ -77,5 +99,8 @@ public abstract class Condition implements Constants {
 		return t("invalid condition");
 	}
 
-	protected abstract Object update(HashMap<String, String> params);
+	protected Object update(HashMap<String, String> params) {
+		inverted = "on".equals(params.get(INVERTED));
+		return t("updated {}.",this);
+	}
 }
