@@ -112,6 +112,7 @@ public class Plan implements Constants{
 	private static final String DIRECTION = "direction";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	private static final String ACTION_QR = "qrcode";
+	private static final String HELP = "help";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>(); // The list of tiles of this plan, i.e. the Track layout
 	private HashSet<Block> blocks = new HashSet<Block>(); // the list of tiles, that are blocks
@@ -351,6 +352,14 @@ public class Plan implements Constants{
 		stream("heartbeat @ "+new Date().getTime());
 	}
 	
+	private Tag help() {
+		Tag help = new Tag("div").clazz("help").content(t("Help"));
+		Tag list = new Tag("div").clazz("list").content("");
+		new Tag(HELP).content(t("Online Documentation")).attr("onclick", "window.open('"+GITHUB_URL+"')").addTo(list);
+		new Tag(HELP).content(t("Report Issue")).attr("onclick", "window.open('"+GITHUB_URL+"/issues')").addTo(list);
+		return list.addTo(help);
+	}
+	
 	/**
 	 * generates a html document of this plan
 	 * @return
@@ -429,6 +438,7 @@ public class Plan implements Constants{
 		tileMenu().addTo(menu);
 		trainMenu().addTo(menu);
 		hardwareMenu().addTo(menu);
+		help().addTo(menu);
 		return menu;
 	}
 
