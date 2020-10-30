@@ -56,16 +56,21 @@ public abstract class Condition implements Constants {
 	}
 	
 	public JSONObject json() {
-		return new JSONObject().put(TYPE, getClass().getSimpleName());
+		JSONObject json = new JSONObject().put(TYPE, getClass().getSimpleName());
+		if (inverted) json.put(INVERTED, true);
+		return json;
 	}
 	
 	public static Condition load(JSONObject json) {
 		String type = json.getString(TYPE);
+		Condition condition = null;
 		switch (type) {
 			case "TrainSelect":
-				return TrainSelect.load(json);
+				condition = TrainSelect.load(json);
+				break;
 		}
-		return null;
+		if (condition != null) condition.inverted = json.has(INVERTED) && json.getBoolean(INVERTED);
+		return condition;
 	}
 
 	public Tag link(String tagClass,String context) {

@@ -22,6 +22,10 @@ public class Button extends Tag {
 		attr("onclick",action).content(text);
 	}
 	
+	public Button(String text,Form form) {
+		this(text,"return submitForm('"+form.get("id")+"');");
+	}
+	
 	public Button(String text, Map<String, Object> props) {
 		this(text,"request("+(new JSONObject(props).toString().replace("\"", "'"))+")");
 	}

@@ -28,9 +28,13 @@ import de.srsoftware.web4rail.actions.ActivateRoute;
 import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.actions.SetSpeed;
+import de.srsoftware.web4rail.conditions.Condition;
+import de.srsoftware.web4rail.conditions.TrainSelect;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
@@ -62,6 +66,7 @@ public class Route implements Constants{
 	private Block startBlock = null,endBlock;
 	private static final String START_DIRECTION = "direction_start";
 	private static final String END_DIRECTION = "direction_end";
+	private Vector<Condition> conditions = new Vector<Condition>();
 	
 	public Direction startDirection;
 	private Direction endDirection;
@@ -70,6 +75,7 @@ public class Route implements Constants{
 	private static final String ACTIONS = "actions";
 	private static final String ACTION_LISTS = "action_lists";
 	private static final String ROUTES = "routes";
+	private static final String CONDITIONS = "conditions";
 	
 	/**
 	 * process commands from the client
@@ -81,11 +87,10 @@ public class Route implements Constants{
 		Route route = plan.route(Integer.parseInt(params.get(ID)));
 		if (route == null) return t("Unknown route: {}",params.get(ID));
 		switch (params.get(ACTION)) {
+			case ACTION_UPDATE:
+				return route.update(params);
 			case ACTION_PROPS:
 				return route.properties();
-			case ACTION_UPDATE:
-				route.update(params);
-				return plan.html();
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
@@ -150,6 +155,33 @@ public class Route implements Constants{
 		}
 	}
 	
+	private void addCondition(String type) {
+		switch (type) {
+			case "TrainSelect":
+				conditions.add(new TrainSelect());
+		}
+	}
+	
+	private void addConditionsTo(Window win) {
+		new Tag("h4").content(t("Conditions")).addTo(win);		
+		if (!conditions.isEmpty()) {
+			Tag list = new Tag("ul");
+			for (Condition condition : conditions) condition.link("li",REALM_ROUTE+":"+id).addTo(list);
+			list.addTo(win);
+		}
+
+		Form form = new Form("action-prop-form-"+id);
+		new Input(REALM,REALM_ROUTE).hideIn(form);
+		new Input(ID,id()).hideIn(form);
+		new Input(ACTION,ACTION_UPDATE).hideIn(form);
+
+		Select select = new Select(REALM_CONDITION);
+		List<Class<? extends Condition>> classes = List.of(TrainSelect.class);
+		for (Class<? extends Condition> clazz : classes) select.addOption(clazz.getSimpleName());
+		select.addTo(form);
+		new Button(t("Add condition"),form).addTo(form).addTo(win);
+	}
+	
 	private void addContactsTo(Window win) {
 		if (!contacts.isEmpty()) {
 			new Tag("h4").content(t("Contacts and actions")).addTo(win);
@@ -168,7 +200,7 @@ public class Route implements Constants{
 	}
 	
 	private void addFormTo(Window win) {
-		Form form = new Form();
+		Form form = new Form("route-"+id+"-props");
 		new Input(ACTION, ACTION_UPDATE).hideIn(form);
 		new Input(REALM,REALM_ROUTE).hideIn(form);
 		new Input(ID,id()).hideIn(form);
@@ -177,8 +209,7 @@ public class Route implements Constants{
 		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).style("width: 80%").addTo(label);		
 		label.addTo(form);
 		
-		new Tag("button").attr("type", "submit").content(t("Apply")).addTo(form);
-		form.addTo(win);
+		new Button(t("Apply"),form).addTo(form).addTo(win);
 	}
 	
 	void addSignal(Signal signal) {
@@ -199,6 +230,18 @@ public class Route implements Constants{
 			}
 			list.addTo(win);
 		}
+	}
+	
+	/**
+	 * checks, whether the route may be used in a given context
+	 * @param context
+	 * @return false, if any of the associated conditions is not fulfilled
+	 */
+	public boolean allowed(Context context) {
+		for (Condition condition : conditions) {
+			if (!condition.fulfilledBy(context)) return false;
+		}
+		return true;
 	}
 	
 	protected Route clone() {
@@ -309,6 +352,10 @@ public class Route implements Constants{
 		json.put(START_DIRECTION, startDirection);
 		json.put(END_DIRECTION, endDirection);
 		
+		JSONArray jConditions = new JSONArray();
+		for (Condition condition : conditions) jConditions.put(condition.json());
+		if (!jConditions.isEmpty()) json.put(CONDITIONS, jConditions);
+		
 		JSONArray jTriggers = new JSONArray();
 		for (Entry<String, ActionList> entry : triggers.entrySet()) {
 			JSONObject trigger = new JSONObject();
@@ -355,6 +402,7 @@ public class Route implements Constants{
 			for (Object signalId : json.getJSONArray(SIGNALS)) addSignal((Signal) plan.get((String) signalId, false));
 		}
 		if (json.has(ACTION_LISTS)) loadActions(json.getJSONArray(ACTION_LISTS));
+		if (json.has(CONDITIONS)) loadConditions(json.getJSONArray(CONDITIONS));
 		return plan.registerRoute(this);
 	}
 	
@@ -377,6 +425,14 @@ public class Route implements Constants{
 		}
 		fis.close();
 		LOG.debug("json: {}",json.getClass());
+	}
+	
+	private void loadConditions(JSONArray arr) {
+		for (int i=0; i<arr.length(); i++) {
+			JSONObject json = arr.getJSONObject(i);
+			Condition condition = Condition.load(json);
+			if (condition != null) conditions.add(condition);
+		}
 	}
 	
 	public boolean lock() {		
@@ -424,6 +480,7 @@ public class Route implements Constants{
 		addFormTo(win);		
 		addBasicPropertiesTo(win);
 		addTurnoutsTo(win);
+		addConditionsTo(win);
 		addContactsTo(win);
 
 		return win;
@@ -508,8 +565,16 @@ public class Route implements Constants{
 		return this;
 	}
 
-	public void update(HashMap<String, String> params) {
+	public Object update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
-		if (params.containsKey(NAME)) name(params.get(NAME));
+		String name = params.get(NAME);
+		if (name != null) name(name);
+		
+		String condition = params.get(REALM_CONDITION);
+		if (condition != null) {
+			addCondition(condition);
+			return properties();
+		}
+		return t("{} updated.",this);
 	}
 }

@@ -45,8 +45,7 @@ public class SetSpeed extends Action{
 	@Override
 	public Window properties(HashMap<String, String> params) {
 		Window win = super.properties(params);
-		String formId = "action-prop-form-"+id;
-		Form form = new Form(formId);
+		Form form = new Form("action-prop-form-"+id);
 		new Input(REALM,REALM_ACTIONS).hideIn(form);
 		new Input(ID,params.get(ID)).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
@@ -54,7 +53,7 @@ public class SetSpeed extends Action{
 		Label label = new Label(t("Set speed to")+NBSP);
 		new Input(MAX_SPEED, maxSpeed).addTo(label).content(NBSP+t("km/h"));
 		label.addTo(form);
-		new Button(t("Apply"),"return submitForm('"+formId+"');").addTo(form).addTo(win);		
+		new Button(t("Apply"),form).addTo(form).addTo(win);		
 		return win;
 	}
 	

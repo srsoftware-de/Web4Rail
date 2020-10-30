@@ -50,8 +50,7 @@ public class ActionList extends Vector<Action> implements Constants{
 	}
 	
 	private Object actionTypeForm(Window win, String context) {
-		String formId ="add-action-to-"+id;
-		Tag typeForm = new Form(formId);
+		Form typeForm = new Form("add-action-to-"+id);
 		new Input(REALM, REALM_ACTIONS).hideIn(typeForm);
 		new Input(ID,id).hideIn(typeForm);
 		new Input(ACTION,ACTION_ADD).hideIn(typeForm);
@@ -68,7 +67,7 @@ public class ActionList extends Vector<Action> implements Constants{
 				);
 		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
 		select.addTo(new Label("Action type:")).addTo(typeForm);
-		return new Button(t("Create action"),"return submitForm('"+formId+"');").addTo(typeForm).addTo(win);
+		return new Button(t("Create action"),typeForm).addTo(typeForm).addTo(win);
 	}
 	
 	private Object addActionForm(HashMap<String, String> params, Plan plan) {

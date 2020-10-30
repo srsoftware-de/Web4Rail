@@ -34,6 +34,10 @@ public abstract class Action implements Constants {
 			if (route == null) return;
 			train = route.train;
 		}
+
+		public Context(Train train) {
+			this.train = train;
+		}
 	}
 	
 	public Action() {

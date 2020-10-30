@@ -25,6 +25,7 @@ import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -407,6 +408,7 @@ public class Train implements Constants {
 		if (route != null) route.unlock().setSignals(Signal.STOP);
 		HashSet<Route> routes = block.routes();
 		Vector<Route> availableRoutes = new Vector<Route>();
+		Context context = new Context(this);
 		for (Route rt : routes) {
 			if (rt == route) continue; // andere Route als zuvor wählen
 			if (rt.path().firstElement() != block) continue; // keine Route wählen, die nicht vom aktuellen Block des Zuges startet
@@ -419,6 +421,7 @@ public class Train implements Constants {
 				LOG.debug("{} is not free!",rt);
 				continue;
 			}
+			if (!rt.allowed(context)) continue;
 			availableRoutes.add(rt);
 		}
 		Random rand = new Random();

@@ -43,8 +43,8 @@ public class ConditionalAction extends Action {
 			for (Condition condition : conditions) condition.link("li",params.get(CONTEXT)).addTo(list);
 			list.addTo(fieldset);
 		}
-		String formId = "action-prop-form-"+id;
-		Form form = new Form(formId);
+
+		Form form = new Form("action-prop-form-"+id);
 		new Input(REALM,REALM_ACTIONS).hideIn(form);
 		new Input(ID,params.get(ID)).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
@@ -54,7 +54,7 @@ public class ConditionalAction extends Action {
 		List<Class<? extends Condition>> classes = List.of(TrainSelect.class);
 		for (Class<? extends Condition> clazz : classes) select.addOption(clazz.getSimpleName());
 		select.addTo(form);
-		return new Button(t("Add condition"),"return submitForm('"+formId+"');").addTo(form).addTo(fieldset);
+		return new Button(t("Add condition"),form).addTo(form).addTo(fieldset);
 	}
 		
 	@Override
