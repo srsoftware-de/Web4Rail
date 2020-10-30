@@ -32,10 +32,29 @@ import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.moving.Train;
 
+/**
+ * Entry point class for the Web4Rail application
+ * 
+ * @author Stephan Richter, SRSoftware
+ *
+ */
 public class Application implements Constants{
-	private static Plan plan;
+	private static Plan plan; // the track layout in use
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 	
+	/**
+	 * entry point for the application:<br/>
+	 * creates a http server, loads a plan and directs a browser to the respective page
+	 * @param args
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 */
 	public static void main(String[] args) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Configuration config = new Configuration(Configuration.dir("Web4Rail")+"/app.config");
 		LOG.debug("config: {}",config);
@@ -55,6 +74,10 @@ public class Application implements Constants{
         Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)+"/plan"));
 	}
 	
+	/**
+	 * helper class creating unique ids for use throuout the application
+	 * @return
+	 */
 	public static int createId() {
 		try {
 			Thread.sleep(1);
@@ -64,6 +87,19 @@ public class Application implements Constants{
 		return new Date().hashCode();
 	}
 	
+	/**
+	 * handles request from clients by delegating them to respective classes
+	 * @param params
+	 * @return
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 */
 	private static Object handle(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		
 		String realm = params.get(REALM);
@@ -94,6 +130,11 @@ public class Application implements Constants{
 		return t("Unknown realm: {}",params.get(REALM));
 	}
 	
+	/**
+	 * creates a map from url-encoded data 
+	 * @param data
+	 * @return
+	 */
 	private static HashMap<String, String> inflate(String data) {
 		//LOG.debug("inflate({})",data);
 		HashMap<String, String> params = new HashMap<String, String>();
@@ -108,10 +149,21 @@ public class Application implements Constants{
 		return params;
 	}	
 
+	/**
+	 * creates a map from url-encoded data
+	 * @param data
+	 * @return
+	 */
 	private static HashMap<String, String> inflate(byte[] data) {
 		return inflate(new String(data,UTF8));
 	}
 	
+	/**
+	 * sends a response generated from the application to a given client
+	 * @param client
+	 * @param response
+	 * @throws IOException
+	 */
 	private static void send(HttpExchange client, Object response) throws IOException {
 		byte[] html;
 		if (response instanceof Page) {
@@ -145,6 +197,13 @@ public class Application implements Constants{
         os.close();
 	}
 
+	/**
+	 * sends an error to a given client
+	 * @param client
+	 * @param code
+	 * @param msg
+	 * @throws IOException
+	 */
 	private static void sendError(HttpExchange client, int code, String msg) throws IOException {
 		client.sendResponseHeaders(code, msg.length());
 		LOG.error(msg);
@@ -153,6 +212,11 @@ public class Application implements Constants{
 		out.close();
 	}
 
+	/**
+	 * sends a requested file to the given client
+	 * @param client
+	 * @throws IOException
+	 */
 	private static void sendFile(HttpExchange client) throws IOException {
 		URI uri = client.getRequestURI();
 		File file = new File(System.getProperty("user.dir")+"/resources"+uri);
@@ -170,6 +234,11 @@ public class Application implements Constants{
 		sendError(client,404,t("Could not find \"{}\"",uri));
 	}
 	
+	/**
+	 * sends a response to a given client
+	 * @param client
+	 * @throws IOException
+	 */
 	private static void sendPlan(HttpExchange client) throws IOException {
 		try {
 			HashMap<String, String> params = inflate(client.getRequestBody().readAllBytes());
@@ -189,6 +258,12 @@ public class Application implements Constants{
 			send(client,new Page().append(e.getMessage()));
 		}		
 	}
+	
+	/**
+	 * establishes an event stream connection between the application and a given client
+	 * @param client
+	 * @throws IOException
+	 */
 	private static void stream(HttpExchange client) throws IOException {
 		client.getResponseHeaders().set("content-type", "text/event-stream");
 		client.sendResponseHeaders(200, 0);
@@ -196,6 +271,12 @@ public class Application implements Constants{
 		plan.addClient(sseWriter);
 	}
 	
+	/**
+	 * shorthand for Translations.get(text,fills)
+	 * @param text
+	 * @param fills
+	 * @return
+	 */
 	private static String t(String text, Object...fills) {
 		return Translation.get(Application.class, text, fills);
 	}

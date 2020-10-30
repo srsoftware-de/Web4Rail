@@ -58,7 +58,21 @@ import de.srsoftware.web4rail.tiles.TurnoutRN;
 import de.srsoftware.web4rail.tiles.TurnoutRS;
 import de.srsoftware.web4rail.tiles.TurnoutRW;
 
+/**
+ * This class is a central part of the Application, as it loads, holds and saves all kinds of information:
+ * <ul>
+ *   <li>Tack layout</li>
+ *   <li>Trains and Cars</li>
+ *   <li>Routes</li>
+ *   <li>...</li>
+ * </ul>
+ * @author Stephan Richter, SRSoftware
+ *
+ */
 public class Plan implements Constants{
+	/**
+	 * The four directions Trains can be within blocks
+	 */
 	public enum Direction{		
 		NORTH, SOUTH, EAST, WEST;
 		
@@ -73,6 +87,9 @@ public class Plan implements Constants{
 		}
 	}
 	
+	/**
+	 * This thread sends a heartbea to the client
+	 */
 	private class Heartbeat extends Thread {
 		@Override
 		public void run() {			
@@ -96,15 +113,31 @@ public class Plan implements Constants{
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	private static final String ACTION_QR = "qrcode";
 	
-	public HashMap<String,Tile> tiles = new HashMap<String,Tile>();
-	private HashSet<Block> blocks = new HashSet<Block>();
-	private HashMap<Integer, Route> routes = new HashMap<Integer, Route>();
-	private ControlUnit controlUnit = new ControlUnit(this);
+	public HashMap<String,Tile> tiles = new HashMap<String,Tile>(); // The list of tiles of this plan, i.e. the Track layout
+	private HashSet<Block> blocks = new HashSet<Block>(); // the list of tiles, that are blocks
+	private HashMap<Integer, Route> routes = new HashMap<Integer, Route>(); // the list of routes of the track layout
+	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
 	
+	/**
+	 * creates a new plan, starts to send heart beats
+	 */
 	public Plan() {
 		new Heartbeat().start();
 	}
 	
+	/**
+	 * manages plan-related commands
+	 * @param params the parameters passed from the client
+	 * @return Object returned to the client
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 */
 	public Object action(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		switch (params.get(ACTION)) {
 		case ACTION_ADD:
@@ -123,6 +156,11 @@ public class Plan implements Constants{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
+	/**
+	 * generates the action menu that is appended to the plan
+	 * @return
+	 * @throws IOException
+	 */
 	private Tag actionMenu() throws IOException {
 		Tag actionMenu = new Tag("div").clazz("actions").content(t("Actions"));		
 		Tag actions = new Tag("div").clazz("list").content("");
@@ -133,17 +171,45 @@ public class Plan implements Constants{
 		return actions.addTo(actionMenu);
 	}
 	
+	/**
+	 * attaches a new client to the event stream of the plan
+	 * @param client
+	 */
 	public void addClient(OutputStreamWriter client) {
 		LOG.debug("Client connected.");
 		clients.put(client, 0);
 	}
 	
+	/**
+	 * helper function: creates a list element with a link that will call the <it>clickTile</it> function of the client side javascript.
+	 * @param tile the tile a click on which shall be simulated
+	 * @param content the text to be displayed to the user
+	 * @param list the tag to which the link tag shall be added
+	 * @return returns the list element itself
+	 * TODO: replace occurences by calls to <it>return request({...});</li>, then remove clickTile from the client javascript
+	 */
 	public static Tag addLink(Tile tile,String content,Tag list) {
 		Tag li = new Tag("li");
 		new Tag("span").clazz("link").attr("onclick", "return clickTile("+tile.x+","+tile.y+");").content(content).addTo(li).addTo(list);
 		return li;
 	}
 	
+	/**
+	 * add a tile of the specified class to the track layout
+	 * @param clazz
+	 * @param xs
+	 * @param ys
+	 * @param configJson
+	 * @return
+	 * @throws ClassNotFoundException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 * @throws IOException
+	 */
 	private String addTile(String clazz, String xs, String ys, String configJson) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
 		int x = Integer.parseInt(xs);
 		int y = Integer.parseInt(ys);
@@ -161,6 +227,10 @@ public class Plan implements Constants{
 		return t("Added {}",tile.getClass().getSimpleName());
 	}
 	
+	/**
+	 * search all possible routes in the plan
+	 * @return a string giving information how many routes have been found
+	 */
 	private String analyze() {
 		Vector<Route> routes = new Vector<Route>();
 		for (Block block : blocks) {
@@ -175,19 +245,38 @@ public class Plan implements Constants{
 		return t("Found {} routes.",routes.size());
 	}
 
+	/**
+	 * @return the list of blocks known to the plan
+	 */
 	public Collection<Block> blocks() {
 		return blocks;
 	}
 	
+	/**
+	 * calls tile.click()
+	 * @param tile
+	 * @return
+	 * @throws IOException
+	 */
 	private Object click(Tile tile) throws IOException {
 		if (tile == null) return null;
 		return tile.click();
 	}
 	
+	/**
+	 * @return the control unit currently connected to the plan
+	 */
 	public ControlUnit controlUnit() {
 		return controlUnit;
 	}
 
+	/**
+	 * completes a given route during a call to {@link #analyze()}.
+	 * It therefore traces where the current part of the route comes from and where it may go.
+	 * @param route an incomplete route, that shall be completed
+	 * @param connector
+	 * @return the set of routes, that result from the tracing operation
+	 */
 	private Collection<Route> follow(Route route, Connector connector) {
 		Tile tile = get(Tile.id(connector.x,connector.y),false);
 		Vector<Route> results = new Vector<>();
@@ -209,7 +298,6 @@ public class Plan implements Constants{
 		}
 		Map<Connector, State> connectors = tile.connections(connector.from);
 		List<Route>routes = route.multiply(connectors.size());
-		LOG.debug("{}",tile);
 		if (connectors.size()>1) LOG.debug("SPLITTING @ {}",tile);
 		
 		for (Entry<Connector, State> entry: connectors.entrySet()) {
@@ -223,6 +311,12 @@ public class Plan implements Constants{
 		return results;
 	}
 	
+	/**
+	 * returns the tile referenced by the tile id
+	 * @param tileId a combination of the coordinates of the requested tile
+	 * @param resolveShadows if this is set to true, this function will return the overlaying tiles, if the id belongs to a shadow tile.
+	 * @return the tile belonging to the id, or the overlaying tile if the respective tile is a shadow tile.
+	 */
 	public Tile get(String tileId,boolean resolveShadows) {
 		Tile tile = tiles.get(tileId);
 		if (resolveShadows && tile instanceof Shadow) tile = ((Shadow)tile).overlay();
@@ -230,6 +324,11 @@ public class Plan implements Constants{
 	}
 	
 	
+	/**
+	 * generates the hardware menu attached to the plan
+	 * @return
+	 * @throws IOException
+	 */
 	private Tag hardwareMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("hardware").content(t("Hardware"));
 		Tag list = new Tag("div").clazz("list").content("");
@@ -237,14 +336,26 @@ public class Plan implements Constants{
 		return list.addTo(tileMenu);
 	}
 	
+	/**
+	 * prepares the hardware div of the plan
+	 * @return
+	 */
 	private Tag heartbeat() {
 		return new Div("heartbeat").content("");
 	}
 
+	/**
+	 * send a heatbeat to the client
+	 */
 	public void heatbeat() {
 		stream("heartbeat @ "+new Date().getTime());
 	}
 	
+	/**
+	 * generates a html document of this plan
+	 * @return
+	 * @throws IOException
+	 */
 	public Page html() throws IOException {
 		Page page = new Page().append("<div id=\"plan\">");
 		for (Tile tile: tiles.values()) {
@@ -261,6 +372,19 @@ public class Plan implements Constants{
 				.js("js/plan.js");
 	}
 	
+	/**
+	 * loads a track layout from a file, along with its assigned cars, trains, routes and control unit settings
+	 * @param filename
+	 * @return
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
+	 * @throws InvocationTargetException
+	 * @throws NoSuchMethodException
+	 * @throws SecurityException
+	 */
 	public static Plan load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Plan plan = new Plan();
 		try {
@@ -292,6 +416,11 @@ public class Plan implements Constants{
 		return plan;
 	}
 	
+	/**
+	 * creates the main menu attached to the plan
+	 * @return
+	 * @throws IOException
+	 */
 	private Tag menu() throws IOException {
 		Tag menu = new Tag("div").clazz("menu");
 		new Tag("div").clazz("emergency").content(t("Emergency")).attr("onclick","return request({realm:'"+REALM_CU+"',action:'"+ACTION_EMERGENCY+"'});").addTo(menu);
@@ -303,10 +432,18 @@ public class Plan implements Constants{
 		return menu;
 	}
 
+	/**
+	 * prepares the messages div of the plan
+	 * @return
+	 */
 	private Tag messages() {
 		return new Div("messages").content("");
 	}
 	
+	/**
+	 * creates the move-tile menu of the plan
+	 * @return
+	 */
 	private Tag moveMenu() {
 		Tag tileMenu = new Tag("div").clazz("move").title(t("Move tiles")).content(t("↹"));		
 		Tag tiles = new Tag("div").clazz("list").content("");
@@ -317,6 +454,14 @@ public class Plan implements Constants{
 		return tiles.addTo(tileMenu);
 	}
 	
+	/**
+	 * processes move-tile instructions sent from the client
+	 * @param direction
+	 * @param tileId
+	 * @return
+	 * @throws NumberFormatException
+	 * @throws IOException
+	 */
 	private String moveTile(String direction, String tileId) throws NumberFormatException, IOException {
 		switch (direction) {
 		case "south":
@@ -331,6 +476,13 @@ public class Plan implements Constants{
 		throw new InvalidParameterException(t("\"{}\" is not a known direction!"));
 	}
 
+	/**
+	 * processes move-tile instructions sent from the client (subroutine)
+	 * @param tile
+	 * @param direction
+	 * @return
+	 * @throws IOException
+	 */
 	private String moveTile(Tile tile, Direction direction) throws IOException {
 		boolean moved = false;
 		if (tile != null) {
@@ -353,6 +505,14 @@ public class Plan implements Constants{
 		return t(moved ? "Tile(s) moved.":"No tile(s) moved.");
 	}
 
+	/**
+	 * processes move-tile instructions sent from the client (subroutine)
+	 * @param tile
+	 * @param xstep
+	 * @param ystep
+	 * @return
+	 * @throws IOException
+	 */
 	private boolean moveTile(Tile tile,int xstep,int ystep) throws IOException {
 		LOG.error("moveTile({}  +{}/+{})",tile,xstep,ystep);
 		Stack<Tile> stack = new Stack<Tile>();
@@ -372,29 +532,53 @@ public class Plan implements Constants{
 		return false;
 	}
 	
+	/**
+	 * adds a new tile to the plan on the client side
+	 * @param tile
+	 * @return
+	 * @throws IOException
+	 */
 	public Tile place(Tile tile) throws IOException {
 		stream("place "+tile.tag(null));
 		return tile;
 	}
 
+	/**
+	 * adds a command to the control unit's command queue
+	 * @param command
+	 * @return
+	 */
 	public Command queue(Command command) {
 		return controlUnit.queue(command);		
 	}
 
+	/**
+	 * adds a new route to the plan
+	 * @param route
+	 * @return
+	 */
 	Route registerRoute(Route route) {
 		for (Tile tile: route.path()) tile.add(route);
 		routes.put(route.id(), route);
 		return route;
 	}
 	
+	/**
+	 * removes a tile from the track layout
+	 * @param tile
+	 */
 	private void remove(Tile tile) {
-		remove_intern(tile.x,tile.y);
+		removeTile(tile.x,tile.y);
 		if (tile instanceof Block) blocks.remove(tile);
-		for (int i=1; i<tile.len(); i++) remove_intern(tile.x+i, tile.y); // remove shadow tiles
-		for (int i=1; i<tile.height(); i++) remove_intern(tile.x, tile.y+i); // remove shadow tiles
+		for (int i=1; i<tile.len(); i++) removeTile(tile.x+i, tile.y); // remove shadow tiles
+		for (int i=1; i<tile.height(); i++) removeTile(tile.x, tile.y+i); // remove shadow tiles
 		if (tile != null) stream("remove "+tile.id());
 	}
 	
+	/**
+	 * removes a route from the track layout
+	 * @param route
+	 */
 	public void remove(Route route) {
 		for (Tile tile : route.path()) tile.remove(route);
 		for (Train train : Train.list()) {
@@ -404,10 +588,20 @@ public class Plan implements Constants{
 		stream(t("Removed {}.",route));
 	}
 
-	private void remove_intern(int x, int y) {
+	/**
+	 * removes a tile from the track layout (subroutine)
+	 * @param x
+	 * @param y
+	 */
+	private void removeTile(int x, int y) {
 		LOG.debug("removed {} from tile list",tiles.remove(Tile.id(x, y)));
 	}
 	
+	/**
+	 * returns a specific route from the list of routes assigned to this plan
+	 * @param routeId the id of the route requestd
+	 * @return
+	 */
 	public Route route(int routeId) {
 		return routes.get(routeId);
 	}
@@ -425,6 +619,12 @@ public class Plan implements Constants{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
+	/**
+	 * saves the plan to a set of files, along with its cars, tiles, trains, routes and control unit settings
+	 * @param name
+	 * @return
+	 * @throws IOException
+	 */
 	private String saveTo(String name) throws IOException {
 		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
 		Car.saveAll(name+".cars");
@@ -435,20 +635,38 @@ public class Plan implements Constants{
 		return t("Plan saved as \"{}\".",name);
 	}
 	
+	/**
+	 * adds a tile to the plan at a specific position
+	 * @param x
+	 * @param y
+	 * @param tile
+	 * @throws IOException
+	 */
 	public void set(int x,int y,Tile tile) throws IOException {
 		if (tile == null) return;
 		if (tile instanceof Block) blocks.add((Block) tile);
 		for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow(tile));
 		for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
-		set_intern(x,y,tile);
+		setIntern(x,y,tile);
 		place(tile);		
 	}
 	
-	private void set_intern(int x, int y, Tile tile) {
+	/**
+	 * adds a tile to the plan at a specific position (subroutine)
+	 * @param x
+	 * @param y
+	 * @param tile
+	 */
+	private void setIntern(int x, int y, Tile tile) {
 		tile.position(x, y).plan(this);
 		tiles.put(tile.id(),tile);
 	}
 
+	/**
+	 * shows the properties of an entity specified in the params.context value
+	 * @param params
+	 * @return
+	 */
 	public Window showContext(HashMap<String, String> params) {
 		String[] parts = params.get(CONTEXT).split(":");
 		String realm = parts[0];
@@ -460,6 +678,10 @@ public class Plan implements Constants{
 		return null;
 	}
 	
+	/**
+	 * sends some data to the clients
+	 * @param data
+	 */
 	public synchronized void stream(String data) {
 		data = data.replaceAll("\n", "").replaceAll("\r", "");
 		//if (!data.startsWith("heartbeat")) LOG.debug("streaming: {}",data);
@@ -488,10 +710,21 @@ public class Plan implements Constants{
 		}
 	}
 	
+	/**
+	 * shorthand for Translations.get(message,fills)
+	 * @param message
+	 * @param fills
+	 * @return
+	 */
 	private String t(String message, Object...fills) {
 		return Translation.get(Application.class, message, fills);
 	}
 	
+	/**
+	 * generates the menu for selecting tiles to be added to the layout
+	 * @return
+	 * @throws IOException
+	 */
 	private Tag tileMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("addtile").title(t("Add tile")).content("╦");
 		
@@ -529,6 +762,11 @@ public class Plan implements Constants{
 		return tiles.addTo(tileMenu);
 	}
 	
+	/**
+	 * generates the train menu
+	 * @return
+	 * @throws IOException
+	 */
 	private Tag trainMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("trains").content(t("Trains"));		
 		Tag tiles = new Tag("div").clazz("list").content("");
@@ -537,10 +775,21 @@ public class Plan implements Constants{
 		return tiles.addTo(tileMenu);
 	}
 
+	/**
+	 * updates a tile
+	 * @param tile
+	 * @param params
+	 * @return
+	 * @throws IOException
+	 */
 	private Tile update(Tile tile, HashMap<String, String> params) throws IOException {
 		return tile == null ? null : tile.update(params);
 	}
 
+	/**
+	 * sends a Ghost train warning to the client
+	 * @param contact
+	 */
 	public void warn(Contact contact) {
 		stream(t("Warning: {}",t("Ghost train @ {}",contact)));
 	}

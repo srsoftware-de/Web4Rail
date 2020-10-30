@@ -23,6 +23,12 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
+/**
+ * abstraction of a SRCP daemon (control unit)
+ * 
+ * @author Stephan Richter, SRSoftware
+ *
+ */
 public class ControlUnit extends Thread implements Constants{	
 	private static final Logger LOG = LoggerFactory.getLogger(ControlUnit.class);
 	private static final String DEFAULT_HOST = "localhost";
@@ -53,6 +59,11 @@ public class ControlUnit extends Thread implements Constants{
 		return this;
 	}
 
+	/**
+	 * performs a handshake as specified in the SRCP protocol
+	 * @throws TimeoutException
+	 * @throws IOException
+	 */
 	private void handshake() throws TimeoutException, IOException {
 		String proto = null;
 		if (scanner.hasNext()) {
@@ -79,6 +90,9 @@ public class ControlUnit extends Thread implements Constants{
 		if (!command.reply().succeeded()) throw new IOException("Handshake failed: "+command.reply());
 	}
 	
+	/**
+	 * @return json string containing the connection information
+	 */
 	private JSONObject json() {
 		JSONObject json = new JSONObject();
 		json.put(HOST, host);
@@ -87,6 +101,11 @@ public class ControlUnit extends Thread implements Constants{
 		return json;
 	}
 	
+	/**
+	 * load connection information from file
+	 * @param filename
+	 * @throws IOException
+	 */
 	public void load(String filename) throws IOException {
 		BufferedReader file = new BufferedReader(new FileReader(filename));
 		JSONObject json = new JSONObject(file.readLine());
@@ -96,6 +115,11 @@ public class ControlUnit extends Thread implements Constants{
 		if (json.has(HOST)) host = json.getString(HOST);
 	}
 	
+	/**
+	 * test method
+	 * @param args
+	 * @throws InterruptedException
+	 */
 	public static void main(String[] args) throws InterruptedException {
 		ControlUnit cu = new ControlUnit(null).setEndpoint("Modellbahn", DEFAULT_PORT).setBus(1).restart();
 		Thread.sleep(1000);
@@ -116,6 +140,11 @@ public class ControlUnit extends Thread implements Constants{
 		cu.end();
 	}
 	
+	/**
+	 * process actions related to the SRCP daemon
+	 * @param params
+	 * @return
+	 */
 	public Object process(HashMap<String, String> params) {
 		switch (params.get(ACTION)) {
 		case ACTION_CONNECT:
@@ -134,11 +163,19 @@ public class ControlUnit extends Thread implements Constants{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
+	/**
+	 * turn of power immediately
+	 * @return
+	 */
 	public Object emergency() {
 		power = true;
 		return togglePower();
 	}
 
+	/**
+	 * generate a properties view for the client
+	 * @return
+	 */
 	public Object properties() {
 		Window win = new Window("cu-props", t("Properties of the control unit"));
 		Form form = new Form();
@@ -155,6 +192,11 @@ public class ControlUnit extends Thread implements Constants{
 		return win;
 	}
 
+	/**
+	 * add a command to the queue of commands to be sent to the server
+	 * @param command
+	 * @return
+	 */
 	public Command queue(Command command) {
 		queue.add(command);
 		return command;
@@ -170,6 +212,9 @@ public class ControlUnit extends Thread implements Constants{
 		return this;
 	}
 	
+	/**
+	 * thread, that repeatedly checks the queue for new commands and sends them to the SRCP daemon
+	 */
 	@Override
 	public void run() {		
 		while (!stopped) {
@@ -191,6 +236,11 @@ public class ControlUnit extends Thread implements Constants{
 		}
 	}
 	
+	/**
+	 * save settings to file
+	 * @param filename
+	 * @throws IOException
+	 */
 	public void save(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		file.write(json()+"\n");
@@ -211,11 +261,22 @@ public class ControlUnit extends Thread implements Constants{
 		command.readReplyFrom(scanner);
 	}
 	
+	/**
+	 * defines the bus on the SRCP deamon, to which commands shall be assigned
+	 * @param bus
+	 * @return
+	 */
 	private ControlUnit setBus(int bus) {
 		this.bus = bus;
 		return this;
 	}
 	
+	/**
+	 * set up the connection endpoint
+	 * @param newHost
+	 * @param newPort
+	 * @return
+	 */
 	public ControlUnit setEndpoint(String newHost, int newPort){
 		host = newHost;
 		port = newPort;
@@ -235,10 +296,20 @@ public class ControlUnit extends Thread implements Constants{
 		super.start();
 	}
 	
+	/**
+	 * shorthand for Translation.get(text,fills)
+	 * @param text
+	 * @param fills
+	 * @return
+	 */
 	private static String t(String text,Object...fills) {
 		return Translation.get(Application.class, text, fills);
 	}
 	
+	/**
+	 * togge power on/off at the SRCP daemon
+	 * @return
+	 */
 	private Command togglePower() {
 		power = !power;
 		String PW = power?"ON":"OFF";
@@ -259,6 +330,11 @@ public class ControlUnit extends Thread implements Constants{
 	}
 
 	
+	/**
+	 * update connection parameters
+	 * @param params
+	 * @return
+	 */
 	public String update(HashMap<String, String> params) {
 		if (params.containsKey(HOST)) host = params.get(HOST);
 		if (params.containsKey(PORT)) port = Integer.parseInt(params.get(PORT));
