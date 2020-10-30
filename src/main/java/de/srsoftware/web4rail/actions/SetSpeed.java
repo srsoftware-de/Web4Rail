@@ -11,12 +11,12 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
-public class SpeedReduction extends Action{
+public class SetSpeed extends Action{
 
 	public static final String MAX_SPEED = "max_speed";
 	private int maxSpeed = -1;
 
-	public SpeedReduction(int kmh) {
+	public SetSpeed(int kmh) {
 		super();
 		maxSpeed = kmh;
 	}

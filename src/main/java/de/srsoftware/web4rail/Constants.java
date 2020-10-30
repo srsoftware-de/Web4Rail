@@ -3,8 +3,6 @@ package de.srsoftware.web4rail;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import de.keawe.tools.translations.Translation;
-
 /**
  * this interface collects constants inherited to other classes of this application
  * 

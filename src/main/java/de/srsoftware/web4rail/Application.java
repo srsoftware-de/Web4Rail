@@ -122,7 +122,7 @@ public class Application implements Constants{
 			case REALM_PLAN:
 				return plan.action(params);
 			case REALM_ROUTE:
-				return plan.routeAction(params);
+				return Route.action(params,plan);
 			case REALM_TRAIN:				
 				return Train.action(params,plan);
 		}

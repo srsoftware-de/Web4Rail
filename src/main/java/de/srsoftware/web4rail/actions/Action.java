@@ -48,9 +48,7 @@ public abstract class Action implements Constants {
 	}
 
 	public JSONObject json() {
-		JSONObject json = new JSONObject();
-		json.put(TYPE, getClass().getSimpleName());
-		return json;
+		return new JSONObject().put(TYPE, getClass().getSimpleName());
 	}
 	
 	protected Tag link(int actionId, String context) {
@@ -69,7 +67,7 @@ public abstract class Action implements Constants {
 			case "SetSignalsToStop":
 				return new SetSignalsToStop();
 			case "SpeedReduction":
-				return new SpeedReduction(json.getInt(SpeedReduction.MAX_SPEED));
+				return new SetSpeed(json.getInt(SetSpeed.MAX_SPEED));
 			case "TurnTrain":
 				return new TurnTrain();
 		}

@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.conditions.Condition;
@@ -17,6 +20,8 @@ import de.srsoftware.web4rail.tags.Select;
 
 public class ConditionalAction extends Action {
 	
+	private static final String CONDITIONS = "conditions";
+	private static final String ACTIONS = "actions";
 	private Vector<Condition> conditions = new Vector<Condition>();
 	private ActionList actions = new ActionList();
 	
@@ -24,6 +29,10 @@ public class ConditionalAction extends Action {
 		Fieldset fieldset = new Fieldset(t("Actions"));
 		actions.addTo(fieldset, params.get(CONTEXT));
 		return fieldset;
+	}
+	
+	public ActionList children() {
+		return actions;
 	}
 	
 	private Tag conditionForm(HashMap<String, String> params) {
@@ -64,6 +73,16 @@ public class ConditionalAction extends Action {
 		}
 		return true;
 	}
+	
+	@Override
+	public JSONObject json() {
+		JSONObject json = super.json();
+		JSONArray conditions = new JSONArray();
+		for (Condition condition : this.conditions) conditions.put(condition.json());
+		json.put(CONDITIONS, conditions);
+		json.put(ACTIONS, actions.json());
+		return json;
+	}
 		
 	@Override
 	public Window properties(HashMap<String, String> params) {
@@ -98,9 +117,5 @@ public class ConditionalAction extends Action {
 			}
 		}
 		return super.update(params);
-	}
-
-	public ActionList children() {
-		return actions;
 	}
 }

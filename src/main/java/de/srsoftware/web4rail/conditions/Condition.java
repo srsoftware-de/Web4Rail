@@ -48,6 +48,10 @@ public abstract class Condition implements Constants {
 		return t("Unknown action: {}",action);
 	}
 	
+	public JSONObject json() {
+		return new JSONObject().put(TYPE, getClass().getSimpleName());
+	}
+	
 	public Tag link(String tagClass,String context) {
 		String json = new JSONObject(Map.of(REALM,REALM_CONDITION,ID,id,ACTION,ACTION_PROPS,CONTEXT,context)).toString().replace("\"", "'");
 		return new Tag(tagClass).clazz("link").attr("onclick","request("+json+")").content(toString());

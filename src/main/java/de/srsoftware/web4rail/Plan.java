@@ -606,19 +606,6 @@ public class Plan implements Constants{
 		return routes.get(routeId);
 	}
 	
-	Object routeAction(HashMap<String, String> params) throws IOException {
-		Route route = route(Integer.parseInt(params.get(ID)));
-		if (route == null) return t("Unknown route: {}",params.get(ID));
-		switch (params.get(ACTION)) {
-			case ACTION_PROPS:
-				return route.properties();
-			case ACTION_UPDATE:
-				route.update(params);
-				return html();
-		}
-		return t("Unknown action: {}",params.get(ACTION));
-	}
-	
 	/**
 	 * saves the plan to a set of files, along with its cars, tiles, trains, routes and control unit settings
 	 * @param name

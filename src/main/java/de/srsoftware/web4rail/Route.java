@@ -29,7 +29,7 @@ import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.actions.ActivateRoute;
 import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
-import de.srsoftware.web4rail.actions.SpeedReduction;
+import de.srsoftware.web4rail.actions.SetSpeed;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
@@ -41,6 +41,12 @@ import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.Turnout;
 import de.srsoftware.web4rail.tiles.Turnout.State;
 
+/**
+ * A route is a vector of tiles that leads from one block to another.
+ * 
+ * @author Stephan Richter, SRSoftware
+ *
+ */
 public class Route implements Constants{
 	private static final Logger LOG = LoggerFactory.getLogger(Route.class);
 	static final String NAME = "name";
@@ -64,6 +70,26 @@ public class Route implements Constants{
 
 	private static final String TRIGGER = "trigger";
 	private static final String ACTIONS = "actions";
+	private static final String ACTION_LISTS = "action_lists";
+	
+	/**
+	 * process commands from the client
+	 * @param params
+	 * @return
+	 * @throws IOException 
+	 */
+	public static Object action(HashMap<String, String> params,Plan plan) throws IOException {
+		Route route = plan.route(Integer.parseInt(params.get(ID)));
+		if (route == null) return t("Unknown route: {}",params.get(ID));
+		switch (params.get(ACTION)) {
+			case ACTION_PROPS:
+				return route.properties();
+			case ACTION_UPDATE:
+				route.update(params);
+				return plan.html();
+		}
+		return t("Unknown action: {}",params.get(ACTION));
+	}
 	
 	/**
 	 * Route wurde von Zug betreten
@@ -74,6 +100,12 @@ public class Route implements Constants{
 		for (Tile tile : path) tile.train(train);
 	}
 	
+	/**
+	 * adds a tile to the route
+	 * @param tile
+	 * @param direrction
+	 * @return
+	 */
 	public Tile add(Tile tile, Direction direrction) {
 		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay();
 		if (tile instanceof Block) {
@@ -90,7 +122,12 @@ public class Route implements Constants{
 		return tile;
 	}	
 	
-	public void addAction(String trigger, Action action) {
+	/**
+	 * adds a action to the action list of the given trigger
+	 * @param trigger
+	 * @param action
+	 */
+	public void add(String trigger, Action action) {
 		ActionList actions = triggers.get(trigger);
 		if (actions == null) {
 			actions = new ActionList();
@@ -180,15 +217,15 @@ public class Route implements Constants{
 	
 	public void complete() {
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
-			addAction(contacts.firstElement().trigger(),new ActivateRoute());
+			add(contacts.firstElement().trigger(),new ActivateRoute());
 			Contact nextToLastContact = contacts.get(contacts.size()-2);			
-			addAction(nextToLastContact.trigger(),new SpeedReduction(30));			
-			addAction(nextToLastContact.trigger(),new SetSignalsToStop());
+			add(nextToLastContact.trigger(),new SetSpeed(30));			
+			add(nextToLastContact.trigger(),new SetSignalsToStop());
 		}
 		if (!contacts.isEmpty()) {
 			Contact lastContact = contacts.lastElement(); 
-			addAction(lastContact.trigger(), new SpeedReduction(0)); 
-			addAction(lastContact.trigger(), new FinishRoute());
+			add(lastContact.trigger(), new SetSpeed(0)); 
+			add(lastContact.trigger(), new FinishRoute());
 		}
 	}
 
@@ -248,6 +285,10 @@ public class Route implements Constants{
 		return id;
 	}
 		
+	/**
+	 * creates a json representation of this route
+	 * @return
+	 */
 	public String json() {
 		JSONObject json = new JSONObject();
 		
@@ -273,17 +314,13 @@ public class Route implements Constants{
 		for (Entry<String, ActionList> entry : triggers.entrySet()) {
 			JSONObject trigger = new JSONObject();
 			trigger.put(TRIGGER, entry.getKey());
-			
-			JSONArray jActions = new JSONArray();
-			for (Action action : entry.getValue()) {
-				jActions.put(action.json());
-			}
-			trigger.put(ACTIONS, jActions);
+			ActionList actionList = entry.getValue();
+			trigger.put(ACTIONS, actionList.json());
 			
 			jTriggers.put(trigger);
 
 		}
-		if (!jTriggers.isEmpty()) json.put(ACTIONS, jTriggers);
+		if (!jTriggers.isEmpty()) json.put(ACTION_LISTS, jTriggers);
 		
 		String name = name();		
 		if (name != null) json.put(NAME, name);
@@ -319,6 +356,7 @@ public class Route implements Constants{
 			for (Object signalId : json.getJSONArray(SIGNALS)) addSignal((Signal) plan.get((String) signalId, false));
 		}
 		if (json.has(ACTIONS)) loadActions(json.getJSONArray(ACTIONS));
+		if (json.has(ACTION_LISTS)) loadActions(json.getJSONArray(ACTION_LISTS));
 		return plan.registerRoute(this);
 	}
 	
@@ -326,12 +364,12 @@ public class Route implements Constants{
 		for (int i=0; i<arr.length(); i++) {
 			JSONObject json = arr.getJSONObject(i);
 			String trigger = json.getString(TRIGGER);
-			JSONArray actions = json.getJSONArray(ACTIONS);
+			JSONArray actions = json.getJSONArray("actions");
 			for (int k=0; k<actions.length(); k++) {
 				try {
 					Action action = Action.load(actions.getJSONObject(k));
 					LOG.debug("Loaded {}",action);
-					addAction(trigger, action);					
+					add(trigger, action);					
 				} catch (InstantiationException | IllegalAccessException | IllegalArgumentException| InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException | JSONException e) {
 					LOG.warn("Was not able to load action: ",e);
 				}
@@ -404,7 +442,14 @@ public class Route implements Constants{
 	
 	public static void saveAll(Collection<Route> routes, String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Route route : routes) file.write(route.json()+"\n");
+		file.write("[\n");
+		int count = 0;
+		for (Route route : routes) {			
+			file.write(route.json());
+			if (++count < routes.size()) file.write(",");
+			file.write("\n");
+		}
+		file.write("]");
 		file.close();
 	}
 

@@ -2,6 +2,8 @@ package de.srsoftware.web4rail.conditions;
 
 import java.util.HashMap;
 
+import org.json.JSONObject;
+
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.moving.Train;
@@ -18,6 +20,11 @@ public class TrainSelect extends Condition {
 	@Override
 	public boolean fulfilledBy(Context context) {
 		return context.train == train;
+	}
+	
+	@Override
+	public JSONObject json() {
+		return super.json().put(REALM_TRAIN, train.id);
 	}
 	
 	@Override

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import org.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,7 @@ public class ActionList extends Vector<Action> implements Constants{
 		Select select = new Select(TYPE);
 		List<Class<? extends Action>> classes = List.of(
 				ConditionalAction.class,
-				SpeedReduction.class,
+				SetSpeed.class,
 				SetSignalsToStop.class,
 				FinishRoute.class,
 				TurnTrain.class,
@@ -85,8 +86,8 @@ public class ActionList extends Vector<Action> implements Constants{
 			case "SetSignalsToStop":
 				add(new SetSignalsToStop());
 				break;
-			case "SpeedReduction":
-				add(new SpeedReduction(0));
+			case "SetSpeed":
+				add(new SetSpeed(0));
 				break;
 			case "TurnTrain":
 				add(new TurnTrain());
@@ -168,6 +169,12 @@ public class ActionList extends Vector<Action> implements Constants{
 
 	public int id() {
 		return id;
+	}
+	
+	public JSONArray json() {
+		JSONArray result = new JSONArray();
+		for (Action action : this) result.put(action.json());
+		return result;
 	}
 	
 	public boolean moveUp(int actionId) {
