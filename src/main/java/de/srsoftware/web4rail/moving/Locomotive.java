@@ -214,7 +214,7 @@ public class Locomotive extends Car implements Constants,Device{
 		new Input(REALM,REALM_LOCO).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("add new locomotive"));
 		new Input(Locomotive.NAME, t("new locomotive")).addTo(new Label(t("Name:")+" ")).addTo(fieldset);
-		new Button(t("save")).addTo(fieldset);
+		new Button(t("Apply")).addTo(fieldset);
 		fieldset.addTo(form).addTo(win);
 		return win;
 	}

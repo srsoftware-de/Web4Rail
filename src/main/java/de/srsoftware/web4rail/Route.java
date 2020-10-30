@@ -178,7 +178,7 @@ public class Route implements Constants{
 		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).style("width: 80%").addTo(label);		
 		label.addTo(form);
 		
-		new Tag("button").attr("type", "submit").content(t("save")).addTo(form);
+		new Tag("button").attr("type", "submit").content(t("Apply")).addTo(form);
 		form.addTo(win);
 	}
 	

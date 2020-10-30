@@ -202,7 +202,7 @@ public abstract class Tile implements Constants{
 		String formId = "tile-properties-"+id();
 		Tag form = propForm(formId);
 		if (form!=null && form.children().size()>3) {
-			new Button(t("save"),"submitForm('"+formId+"')").addTo(form);
+			new Button(t("Apply"),"submitForm('"+formId+"')").addTo(form);
 			form.addTo(window);
 		} else {
 			window.content(t("This tile ({}) has no editable properties",getClass().getSimpleName()));

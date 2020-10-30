@@ -37,7 +37,7 @@ public class TrainSelect extends Condition {
 		new Input(ID,id).hideIn(form);
 		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
 		Train.selector(train, null).addTo(new Label(t("Select train:")+NBSP)).addTo(form);
-		new Button(t("Save"),"return submitForm('"+formId+"');").addTo(form).addTo(win);
+		new Button(t("Apply"),"return submitForm('"+formId+"');").addTo(form).addTo(win);
 		return win;
 	}
 	

@@ -185,7 +185,7 @@ public class ControlUnit extends Thread implements Constants{
 		new Input(HOST,host).addTo(new Label(t("Hostname"))).addTo(fieldset);
 		new Input(PORT,port).numeric().addTo(new Label(t("Port"))).addTo(fieldset);
 		new Input(BUS,bus).numeric().addTo(new Label(t("Bus"))).addTo(fieldset);
-		new Button(t("Save")).addTo(fieldset).addTo(form).addTo(win);
+		new Button(t("Apply")).addTo(fieldset).addTo(form).addTo(win);
 		
 		fieldset = new Fieldset("Actions");
 		new Button(t("Connect"),"connectCu();").addTo(fieldset).addTo(win);

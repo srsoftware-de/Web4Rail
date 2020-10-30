@@ -154,7 +154,7 @@ public class Car implements Constants {
 		
 		Tag form = propertyForm();
 		if (form!=null && form.children().size()>2) {
-			new Button(t("save")).addTo(form);
+			new Button(t("Apply")).addTo(form);
 			form.addTo(win);
 		} else {
 			win.content(t("This tile ({}) has no editable properties",getClass().getSimpleName()));

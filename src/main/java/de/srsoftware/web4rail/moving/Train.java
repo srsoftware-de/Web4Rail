@@ -299,7 +299,7 @@ public class Train implements Constants {
 		for (Locomotive loco : Locomotive.list()) select.addOption(loco.id(),loco.name());
 		select.addTo(new Label(t("Locomotive:")+" ")).addTo(fieldset);
 
-		new Button(t("save")).addTo(fieldset);
+		new Button(t("Apply")).addTo(fieldset);
 		fieldset.addTo(form).addTo(win);
 
 
@@ -335,7 +335,7 @@ public class Train implements Constants {
 		new Input(ID,id).hideIn(form);
 		new Input(NAME,name).addTo(form);
 		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(form);
-		new Button(t("save")).addTo(form).addTo(fieldset);
+		new Button(t("Apply")).addTo(form).addTo(fieldset);
 		
 		new Button(t("Turn"), "train("+id+",'"+ACTION_TURN+"')").addTo(fieldset).addTo(window);
 		

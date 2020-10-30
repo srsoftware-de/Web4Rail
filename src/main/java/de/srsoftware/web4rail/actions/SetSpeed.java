@@ -49,7 +49,7 @@ public class SetSpeed extends Action{
 		Label label = new Label(t("Set speed to")+NBSP);
 		new Input(MAX_SPEED, maxSpeed).addTo(label).content(NBSP+t("km/h"));
 		label.addTo(form);
-		new Button(t("Save"),"return submitForm('"+formId+"');").addTo(form).addTo(win);		
+		new Button(t("Apply"),"return submitForm('"+formId+"');").addTo(form).addTo(win);		
 		return win;
 	}
 	
