@@ -39,6 +39,7 @@ import de.srsoftware.web4rail.tiles.EndN;
 import de.srsoftware.web4rail.tiles.EndS;
 import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.Eraser;
+import de.srsoftware.web4rail.tiles.Relay;
 import de.srsoftware.web4rail.tiles.Shadow;
 import de.srsoftware.web4rail.tiles.SignalE;
 import de.srsoftware.web4rail.tiles.SignalN;
@@ -778,6 +779,7 @@ public class Plan implements Constants{
 		new Turnout3E().tag(null).addTo(tiles);
 		new CrossH().tag(null).addTo(tiles);
 		new CrossV().tag(null).addTo(tiles);
+		new Relay().setLabel(true,"RL").tag(null).addTo(tiles);
 		new Eraser().tag(null).addTo(tiles);
 		return tiles.addTo(tileMenu);
 	}

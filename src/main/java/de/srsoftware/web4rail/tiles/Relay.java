@@ -17,7 +17,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
 
-public abstract class Turnout extends Tile implements Device{
+public class Relay extends Tile implements Device{
 	public static final String STATE = "state";
 	private static final String PORT_A = "port_a";
 	private static final String PORT_B = "port_b";	
@@ -29,21 +29,24 @@ public abstract class Turnout extends Tile implements Device{
 	protected int delay = 400;
 	protected boolean initialized = false;
 	protected boolean error = false;
+	private String stateLabelA = "A";
+	private String stateLabelB = "B";
+	protected boolean state = true;
 	
-	public enum State{
-		LEFT,STRAIGHT,RIGHT,UNDEF;
-	}
-	
-	protected State state = State.STRAIGHT;
+	public static final boolean STATE_A = true,STATE_B=false;
+	private static final String LABEL_A = "label_a";
+	private static final String LABEL_B = "label_b";
 	
 	@Override
 	public Object click() throws IOException {
-		LOG.debug(getClass().getSimpleName()+".click()");
-		init();
-		return super.click();
+		Object o = super.click();
+		state(!state);
+		return o;
 	}
 
-	protected abstract String commandFor(State newState);
+	protected String commandFor(boolean newState) {
+		return "SET {} GA "+address+" "+(newState?portA:portB)+" 1 "+delay;		
+	}
 	
 	public void error(Reply reply) {
 		this.error = true;
@@ -88,6 +91,8 @@ public abstract class Turnout extends Tile implements Device{
 		if (portB != 1) json.put(PORT_B, portB);
 		if (address != 0) json.put(ADDRESS, address);
 		json.put(PROTOCOL, protocol);
+		json.put(LABEL_A, stateLabelA);
+		json.put(LABEL_B, stateLabelB);
 		return json;
 	}
 	
@@ -96,6 +101,8 @@ public abstract class Turnout extends Tile implements Device{
 		if (json.has(ADDRESS)) address = json.getInt(ADDRESS);
 		if (json.has(PORT_A)) portA = json.getInt(PORT_A);
 		if (json.has(PORT_B)) portB = json.getInt(PORT_B);
+		if (json.has(LABEL_A)) stateLabelA = json.getString(LABEL_A);
+		if (json.has(LABEL_B)) stateLabelB = json.getString(LABEL_B);
 		if (json.has(PROTOCOL)) protocol = Protocol.valueOf(json.getString(PROTOCOL));
 		return super.load(json);
 	}
@@ -108,8 +115,14 @@ public abstract class Turnout extends Tile implements Device{
 		for (Protocol proto : Protocol.values()) {
 			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == this.protocol).addTo(protocol);
 		}
-		protocol.addTo(fieldset).addTo(form);
-		new Input(ADDRESS, address).numeric().addTo(new Label(t("Address"))).addTo(fieldset);
+		protocol.addTo(fieldset);
+		new Input(ADDRESS, address).numeric().addTo(new Label(t("Address"))).addTo(fieldset).addTo(form);
+		fieldset = new Fieldset(t("Ports and Labels"));
+		new Input(PORT_A, portA).numeric().addTo(new Label(t("Port for state A"))).addTo(fieldset);
+		new Input(LABEL_A, stateLabelA).addTo(new Label(t("Label for state A"))).addTo(fieldset);
+		new Input(PORT_B, portB).numeric().addTo(new Label(t("Port for state B"))).addTo(fieldset);
+		new Input(LABEL_B, stateLabelB).addTo(new Label(t("Label for state B"))).addTo(fieldset);
+		fieldset.addTo(form);
 		return form;
 	}
 	
@@ -129,11 +142,18 @@ public abstract class Turnout extends Tile implements Device{
 		}		
 	}
 	
-	public State state() {
+	public Relay setLabel(boolean state, String tx) {
+		if (state) {
+			stateLabelA = tx;
+		} else stateLabelB = tx;
+		return this;
+	}
+	
+	public boolean state() {
 		return state;
 	}
 	
-	public Reply state(State newState) throws IOException {
+	public Reply state(boolean newState) throws IOException {
 		Reply reply = init();
 		if (reply != null && !reply.succeeded()) return reply;
 		LOG.debug("Setting {} to {}",this,newState);
@@ -145,15 +165,15 @@ public abstract class Turnout extends Tile implements Device{
 				public void onSuccess() {
 					super.onSuccess();
 					try {
-						Turnout.this.state = newState;
-						plan.place(Turnout.this);
+						Relay.this.state = newState;
+						plan.place(Relay.this);
 					} catch (IOException e) {}
 				}
 
 				@Override
 				protected void onFailure(Reply reply) {
 					super.onFailure(reply);
-					plan.stream(t("Unable to switch \"{}\": {}",Turnout.this,reply.message()));
+					plan.stream(t("Unable to switch \"{}\": {}",Relay.this,reply.message()));
 				}
 				
 			}).reply();
@@ -176,6 +196,8 @@ public abstract class Turnout extends Tile implements Device{
 
 	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {
+		if (replacements == null) replacements = new HashMap<String, Object>();
+		replacements.put("%text%",state ? stateLabelA : stateLabelB);
 		Tag tag = super.tag(replacements);
 		tag.clazz(tag.get("class")+(" "+state).toLowerCase()+(error?" error":""));
 		return tag;
@@ -192,6 +214,8 @@ public abstract class Turnout extends Tile implements Device{
 		if (params.containsKey(ADDRESS)) address = Integer.parseInt(params.get(ADDRESS));
 		if (params.containsKey(PORT_A)) portA = Integer.parseInt(params.get(PORT_A));
 		if (params.containsKey(PORT_B)) portB = Integer.parseInt(params.get(PORT_B));
+		if (params.containsKey(LABEL_A)) stateLabelA = params.get(LABEL_A);
+		if (params.containsKey(LABEL_B)) stateLabelB = params.get(LABEL_B);
 		return super.update(params);
 	}
 }

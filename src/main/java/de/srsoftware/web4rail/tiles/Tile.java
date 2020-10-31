@@ -79,7 +79,7 @@ public abstract class Tile implements Constants{
 	}
 	
 	public Object click() throws IOException {
-		LOG.debug("Tile.click()");
+		LOG.debug("{}.click()",getClass().getSimpleName());
 		return propMenu();
 	}
 	
