@@ -658,6 +658,11 @@ public class Plan implements Constants{
 		tile.position(x, y).plan(this);
 		tiles.put(tile.id(),tile);
 	}
+	
+	public void sensor(int addr, boolean active) {
+		
+	}
+
 
 	/**
 	 * shows the properties of an entity specified in the params.context value

@@ -36,14 +36,17 @@ public class ControlUnit extends Thread implements Constants{
 	private static final String HOST = "host";
 	private static final String PORT = "port";
 	private static final String BUS = "bus";
+	private static final String MODE_INFO = "INFO";
+	private static final String MODE_COMMAND = "COMMAND";
+	protected static final String FEEDBACK = "FB";
 	
 	private String host = DEFAULT_HOST;
 	private int port = DEFAULT_PORT;
 	private int bus = 0;
 	private boolean stopped = true;
 	private LinkedList<Command> queue = new LinkedList<Command>();
-	private Socket socket;
-	private Scanner scanner;
+	private Socket commandSocket,infoSocket;
+	private Scanner commandScanner,infoScanner;
 	private boolean power = false;
 	private Plan plan;
 
@@ -61,13 +64,16 @@ public class ControlUnit extends Thread implements Constants{
 
 	/**
 	 * performs a handshake as specified in the SRCP protocol
+	 * @param mode 
 	 * @throws TimeoutException
 	 * @throws IOException
 	 */
-	private void handshake() throws TimeoutException, IOException {
+	private void handshake(String mode) throws TimeoutException, IOException {
 		String proto = null;
-		if (scanner.hasNext()) {
-			String line = scanner.nextLine();
+		commandSocket = new Socket(host, port);
+		commandScanner = new Scanner(commandSocket.getInputStream());
+		if (commandScanner.hasNext()) {
+			String line = commandScanner.nextLine();
 			LOG.debug("recv: "+line);
 			for (String part : line.split(";")) {
 				part = part.trim();
@@ -81,7 +87,7 @@ public class ControlUnit extends Thread implements Constants{
 		send(command);
 		if (!command.reply().succeeded()) throw new IOException("Handshake failed: "+command.reply());
 		
-		command = new Command("SET CONNECTIONMODE SRCP COMMAND"); // preset following mode: COMMAND MODE
+		command = new Command("SET CONNECTIONMODE SRCP "+mode); // preset following mode: COMMAND MODE
 		send(command);
 		if (!command.reply().succeeded()) throw new IOException("Handshake failed: "+command.reply());
 		
@@ -119,7 +125,7 @@ public class ControlUnit extends Thread implements Constants{
 	 * test method
 	 * @param args
 	 * @throws InterruptedException
-	 */
+	 *
 	public static void main(String[] args) throws InterruptedException {
 		ControlUnit cu = new ControlUnit(null).setEndpoint("Modellbahn", DEFAULT_PORT).setBus(1).restart();
 		Thread.sleep(1000);
@@ -138,7 +144,7 @@ public class ControlUnit extends Thread implements Constants{
 		});
 		Thread.sleep(1000);
 		cu.end();
-	}
+	} //*/
 	
 	/**
 	 * process actions related to the SRCP daemon
@@ -230,9 +236,10 @@ public class ControlUnit extends Thread implements Constants{
 			}
 		}
 		try {
-			socket.close();
+			commandSocket.close();
+			LOG.debug("Closed command socket.");
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.warn("Was not able to close command socket: ",e);
 		}
 	}
 	
@@ -256,19 +263,9 @@ public class ControlUnit extends Thread implements Constants{
 	private void send(Command command) throws IOException {
 		if (command == null || command.toString() == null) return;
 		String data = command.toString().replace("{}", ""+bus);
-		socket.getOutputStream().write((data+"\n").getBytes(StandardCharsets.US_ASCII));
+		commandSocket.getOutputStream().write((data+"\n").getBytes(StandardCharsets.US_ASCII));
 		LOG.info("sent {}.",data);
-		command.readReplyFrom(scanner);
-	}
-	
-	/**
-	 * defines the bus on the SRCP deamon, to which commands shall be assigned
-	 * @param bus
-	 * @return
-	 */
-	private ControlUnit setBus(int bus) {
-		this.bus = bus;
-		return this;
+		command.readReplyFrom(commandScanner);
 	}
 	
 	/**
@@ -286,16 +283,61 @@ public class ControlUnit extends Thread implements Constants{
 	@Override
 	public synchronized void start() {
 		try {
-			socket = new Socket(host, port);
-			scanner = new Scanner(socket.getInputStream());
-			handshake();			
+			handshake(MODE_INFO);
 			stopped = false;
+			startInfoThread();
+			handshake(MODE_COMMAND);
 		} catch (IOException | TimeoutException e) {
 			throw new IllegalStateException(e);
 		}
 		super.start();
 	}
 	
+	private void startInfoThread() {
+		infoSocket  = commandSocket; // handshake läuft immer über commandSocket und commandScanner
+		infoScanner = commandScanner;
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				while (!stopped) {
+					String line = infoScanner.nextLine();
+					String[] parts = line.split(" ");
+//					String time   = parts[0];
+//					String code   = parts[1];
+					String type   = parts[2];
+//					String bus    = parts[3];
+					String device = parts[4];					
+					if (type.equals("INFO")) {
+						
+						switch (device) {
+							case FEEDBACK:
+								int addr = Integer.parseInt(parts[5]);
+								boolean active = !parts[6].equals("0");
+								ControlUnit.this.plan.sensor(addr,active);
+								break;
+							default:
+								LOG.debug("Info thread received: {}",line);
+								break;
+						}
+					} else {
+						LOG.warn("Unknown/unexpected message type: {}",line);
+					}
+					
+				}
+				infoScanner.close();
+				LOG.info("Closed info stream.");
+				try {
+					infoSocket.close();
+					LOG.info("Closed info socket.");
+				} catch (IOException e) {
+					LOG.warn("Was not able to close info socket:",e);
+				}
+				
+			}
+		}).start();
+	}
+
 	/**
 	 * shorthand for Translation.get(text,fills)
 	 * @param text
