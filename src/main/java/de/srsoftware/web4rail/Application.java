@@ -15,7 +15,6 @@ import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +30,7 @@ import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tiles.Contact;
 
 /**
  * Entry point class for the Web4Rail application
@@ -113,6 +113,8 @@ public class Application implements Constants{
 				return ActionList.process(params,plan);
 			case REALM_CAR:
 				return Car.action(params);
+			case REALM_CONTACT:
+				return Contact.process(params);
 			case REALM_CONDITION:
 				return Condition.action(params,plan);
 			case REALM_CU:
@@ -169,23 +171,6 @@ public class Application implements Constants{
 		if (response instanceof Page) {
 			html = ((Page)response).html().toString().getBytes(UTF8);
 			client.getResponseHeaders().add("content-type", "text/html");
-		} else if (response instanceof CompletableFuture) {
-			CompletableFuture<?> promise = (CompletableFuture<?>) response;
-			promise.thenAccept(object -> {
-				try {
-					send(client,object);
-				} catch (IOException e) {
-					LOG.warn("Was not able to send {}!",object);
-				}
-			}).exceptionally(ex -> {
-				try {
-					send(client,ex.getMessage());
-				} catch (IOException e) {
-					LOG.warn("Was not able to send {}!",ex);
-				}
-				throw new RuntimeException(ex);
-			});
-			return;
 		} else {
 			html = (response == null ? "" : response.toString()).getBytes(UTF8);	
 			client.getResponseHeaders().add("content-type", "text/plain");	

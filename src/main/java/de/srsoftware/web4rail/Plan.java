@@ -118,6 +118,7 @@ public class Plan implements Constants{
 	private HashSet<Block> blocks = new HashSet<Block>(); // the list of tiles, that are blocks
 	private HashMap<Integer, Route> routes = new HashMap<Integer, Route>(); // the list of routes of the track layout
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
+	private Contact learningContact;
 	
 	/**
 	 * creates a new plan, starts to send heart beats
@@ -588,14 +589,15 @@ public class Plan implements Constants{
 	/**
 	 * removes a route from the track layout
 	 * @param route
+	 * @return 
 	 */
-	public void remove(Route route) {
+	public String remove(Route route) {
 		for (Tile tile : route.path()) tile.remove(route);
 		for (Train train : Train.list()) {
 			if (train.route == route) train.route = null;
 		}
 		routes.remove(route.id());
-		stream(t("Removed {}.",route));
+		return t("Removed {}.",route);
 	}
 
 	/**
@@ -660,7 +662,19 @@ public class Plan implements Constants{
 	}
 	
 	public void sensor(int addr, boolean active) {
-		
+		LOG.debug("contact({},{})",addr,active);
+		Contact contact = Contact.get(addr);
+		LOG.debug("contact: {}",contact);
+		LOG.debug("learning: {}",learningContact);
+		if (contact != null) {
+			contact.activate(active);
+		} else {
+			if (active && learningContact != null) {
+				LOG.debug("learned: {} = {}",addr,learningContact);
+				stream(learningContact.addr(addr).propMenu().toString());
+				learningContact = null;
+			}
+		}
 	}
 
 
@@ -669,13 +683,17 @@ public class Plan implements Constants{
 	 * @param params
 	 * @return
 	 */
-	public Window showContext(HashMap<String, String> params) {
+	public Tag showContext(HashMap<String, String> params) {
 		String[] parts = params.get(CONTEXT).split(":");
 		String realm = parts[0];
 		String id = parts.length>1 ? parts[1] : null;
 		switch (realm) {
 			case REALM_ROUTE:
-				return route(Integer.parseInt(id)).properties();
+				return route(Integer.parseInt(id)).properties(params);
+			case REALM_PLAN:
+				Tile tile = get(id, false);
+				return tile == null? null : tile.propMenu();
+				
 		}
 		return null;
 	}
@@ -794,5 +812,11 @@ public class Plan implements Constants{
 	 */
 	public void warn(Contact contact) {
 		stream(t("Warning: {}",t("Ghost train @ {}",contact)));
+	}
+
+	public void learn(Contact contact) {
+		learningContact = contact;
+		LOG.debug("learning contact {}",learningContact);
+		
 	}
 }

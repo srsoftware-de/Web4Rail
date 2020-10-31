@@ -120,12 +120,6 @@ function moveTile(x,y){
 	return request({realm:'plan',action:mode,direction:selected.id,id:id});
 }
 
-function openRoute(id){
-	console.log("openRoute("+id+")");
-	request({realm:'route',action:PROPS,id:id});
-	return false;
-}
-
 function place(data){
 	var tag = $(data);
 	$('#'+tag.attr('id')).remove();
@@ -201,6 +195,14 @@ function stream(ev){
 	if (data.startsWith("remove")) return remove(data.substring(7));
 	if (data.startsWith("addclass")) return addClass(data.substring(9));
 	if (data.startsWith("dropclass")) return dropClass(data.substring(10));
+	
+	if (data.startsWith("<div") && $(data).attr('class') == 'window'){
+		$('.window').remove();
+		$(BODY).append($(data));
+		tileWindow();
+		return;
+	}			
+
 	addMessage(data);
 }
 

@@ -87,10 +87,21 @@ public class Route implements Constants{
 		Route route = plan.route(Integer.parseInt(params.get(ID)));
 		if (route == null) return t("Unknown route: {}",params.get(ID));
 		switch (params.get(ACTION)) {
-			case ACTION_UPDATE:
-				return route.update(params);
+			case ACTION_DROP:
+				String message = plan.remove(route);
+				String tileId = params.get(Tile.class.getSimpleName());
+				if (tileId != null) {
+					Tile tile = plan.get(tileId, false);
+					if (tile != null) {
+						plan.stream(message);
+						return tile.propMenu();
+					}
+				}
+				return message;
 			case ACTION_PROPS:
-				return route.properties();
+				return route.properties(params);
+			case ACTION_UPDATE:
+				return route.update(params,plan);
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
@@ -199,12 +210,12 @@ public class Route implements Constants{
 		}
 	}
 	
-	private void addFormTo(Window win) {
+	private void addFormTo(Window win, HashMap<String, String> params) {
 		Form form = new Form("route-"+id+"-props");
 		new Input(ACTION, ACTION_UPDATE).hideIn(form);
 		new Input(REALM,REALM_ROUTE).hideIn(form);
 		new Input(ID,id()).hideIn(form);
-		
+		if (params.containsKey(CONTEXT)) new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
 		Tag label = new Tag("label").content(t("name:")+NBSP);
 		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).style("width: 80%").addTo(label);		
 		label.addTo(form);
@@ -475,9 +486,9 @@ public class Route implements Constants{
 		return result;
 	}
 	
-	public Window properties() {	
+	public Window properties(HashMap<String, String> params) {	
 		Window win = new Window("route-properties",t("Properties of {}",this));
-		addFormTo(win);		
+		addFormTo(win,params);		
 		addBasicPropertiesTo(win);
 		addTurnoutsTo(win);
 		addConditionsTo(win);
@@ -565,7 +576,7 @@ public class Route implements Constants{
 		return this;
 	}
 
-	public Object update(HashMap<String, String> params) {
+	public Object update(HashMap<String, String> params,Plan plan) {
 		LOG.debug("update({})",params);
 		String name = params.get(NAME);
 		if (name != null) name(name);
@@ -573,8 +584,13 @@ public class Route implements Constants{
 		String condition = params.get(REALM_CONDITION);
 		if (condition != null) {
 			addCondition(condition);
-			return properties();
+			return properties(params);
 		}
-		return t("{} updated.",this);
+		String message = t("{} updated.",this); 
+		if (params.containsKey(CONTEXT)) {
+			plan.stream(message);
+			return plan.showContext(params);
+		}
+		return message;
 	}
 }

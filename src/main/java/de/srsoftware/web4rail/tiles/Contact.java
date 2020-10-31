@@ -1,38 +1,118 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
 
 public abstract class Contact extends Tile{
 	
+	private static final String ADDRESS = "address";
+	private static final HashMap<String, Contact> contactsById = new HashMap<String, Contact>();
+	private static final HashMap<Integer, Contact> contactsByAddr = new HashMap<Integer, Contact>();
 	private boolean active = false;
 	private String trigger = null;
-
-	public void activate() throws IOException {
-		active = true;
-		stream();
+	private int addr = 0;
+	
+	public void trigger(int duration) throws IOException {
+		activate(true);
 		new Thread() {
 			public void run() {
 				try {
-					sleep(200);
-					active=false;
-					stream();
+					sleep(duration);
+					activate(false);
 				} catch (Exception e) {}
 			}
 		}.start();
-		if (route == null) {
-			plan.warn(this);
-		} else {
-			route.contact(this);
+	}
+	
+	public void activate(boolean active) {		
+		this.active = active;		
+		if (active) {
+			if (route == null) {
+				plan.warn(this);
+			} else {
+				route.contact(this);
+			}
+		}
+		try {
+			stream();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
-
+	
+	public Contact addr(int address) {
+		addr = address;
+		contactsByAddr.put(addr, this);
+		return this;
+	}
 
 	@Override
 	public Object click() throws IOException {
-		activate();
+		trigger(200);
 		return super.click();
+	}
+	
+	public static Contact get(int addr) {
+		return contactsByAddr.get(addr);
+	}
+	
+	@Override
+	public JSONObject json() {
+		JSONObject json = super.json();
+		if (addr > 0) json.put(ADDRESS, addr);
+		return json;
+	}
+	
+	@Override
+	protected Tile load(JSONObject json) throws IOException {
+		super.load(json);
+		if (json.has(ADDRESS)) addr(json.getInt(ADDRESS));
+		return this;
+	}
+	
+	@Override
+	public Tile position(int x, int y) {
+		super.position(x, y);
+		contactsById.put(id(), this);
+		return this;
+	}
+	
+	public static Object process(HashMap<String, String> params) {
+		String action = params.get(ACTION);
+		String id = params.get(ID);
+		if (action == null) return t("Missing ACTION on call to {}.process()",Contact.class.getSimpleName());
+		Contact contact;
+		switch (action) {
+			case ACTION_ANALYZE:
+				if (id == null) return t("Missing ID on call to {}.process()",Contact.class.getSimpleName());
+				contact = contactsById.get(id);
+				if (contact == null) return t("No contact with id {} found!",id);
+				Tag propMenu = contact.propMenu();
+				propMenu.children().insertElementAt(new Tag("div").content(t("Trigger a feedback sensor to assign it with this contact!")), 1);
+				contact.plan.learn(contact);
+				return propMenu;
+		}
+		return t("Unknown action: {}",action);
+	}
+
+	
+	@Override
+	public Tag propForm(String formId) {
+		Tag form = super.propForm(formId);
+		new Tag("h4").content(t("Hardware settings")).addTo(form);
+		Tag label = new Input(ADDRESS, addr).addTo(new Label(t("Address:")+NBSP));
+		Map<String, String> props = Map.of(REALM,REALM_CONTACT,ID,id(),ACTION,ACTION_ANALYZE);
+		new Button(t("learn"), props).addTo(label).addTo(form);
+		
+		return form;
 	}
 	
 	public void stream() throws IOException {
@@ -46,5 +126,12 @@ public abstract class Contact extends Tile{
 		if (trigger == null) trigger = getClass().getSimpleName()+"-"+id();
 		return trigger;
 	}
+	
+	@Override
+	public Tile update(HashMap<String, String> params) throws IOException {
+		if (params.containsKey(ADDRESS)) addr(Integer.parseInt(params.get(ADDRESS)));
+		return super.update(params);
+	}
+
 
 }

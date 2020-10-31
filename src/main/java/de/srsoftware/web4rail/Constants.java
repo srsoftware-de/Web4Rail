@@ -39,6 +39,7 @@ public interface Constants {
 	public static final String REALM_ACTIONS   = "actions";
 	public static final String REALM_CAR       = "car";
 	public static final String REALM_CONDITION = "condition";
+	public static final String REALM_CONTACT   = "contact";
 	public static final String REALM_CU        = "cu";
 	public static final String REALM_LOCO      = "loco";
 	public static final String REALM_ROUTE     = "route";

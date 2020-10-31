@@ -26,7 +26,7 @@ public class Button extends Tag {
 		this(text,"return submitForm('"+form.get("id")+"');");
 	}
 	
-	public Button(String text, Map<String, Object> props) {
+	public Button(String text, Map<String, ? extends Object> props) {
 		this(text,"request("+(new JSONObject(props).toString().replace("\"", "'"))+")");
 	}
 }

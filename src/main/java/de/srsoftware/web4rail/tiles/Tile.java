@@ -180,8 +180,8 @@ public abstract class Tile implements Constants{
 		return new Vector<Plan.Direction>();
 	}
 	
-	public Tag propForm(String id) {
-		Form form = new Form(id);
+	public Tag propForm(String formId) {
+		Form form = new Form(formId);
 		new Input(ACTION, ACTION_UPDATE).hideIn(form);
 		new Input(REALM, REALM_PLAN).hideIn(form);
 		new Input(ID,id()).hideIn(form);
@@ -216,7 +216,8 @@ public abstract class Tile implements Constants{
 			new Tag("h4").content(t("Routes using this tile:")).addTo(window);
 			Tag routeList = new Tag("ol");
 			for (Route route : routes) {
-				Tag li = new Tag("span").attr("onclick","openRoute('"+route.id()+"')").content(route.name()+NBSP).addTo(new Tag("li").clazz("link"));
+				String json = new JSONObject(Map.of(REALM,ROUTE,ID,route.id(),ACTION,ACTION_PROPS,CONTEXT,REALM_PLAN+":"+id())).toString().replace("\"", "'");
+				Tag li = new Tag("span").attr("onclick","return request("+json+");").content(route.name()+NBSP).addTo(new Tag("li").clazz("link"));
 				Map<String, Object> params = Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_DROP,Tile.class.getSimpleName(),id());
 				new Button(t("delete route"),params).addTo(li);
 				li.addTo(routeList);
