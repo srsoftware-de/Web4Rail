@@ -38,7 +38,7 @@ import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Signal;
 
-public class Train implements Constants {
+public class Train implements Comparable,Constants {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 	
 	private static final HashMap<Integer, Train> trains = new HashMap<>();
@@ -229,8 +229,8 @@ public class Train implements Constants {
 		return new Tag(tagClass).clazz("link").attr("onclick","train("+id+",'"+ACTION_PROPS+"')").content(name());
 	}
 	
-	public static Collection<Train> list() {
-		return trains.values();
+	public static TreeSet<Train> list() {
+		return new TreeSet<Train>(trains.values());
 	}
 
 	public static void loadAll(String filename, Plan plan) throws IOException {
@@ -513,5 +513,10 @@ public class Train implements Constants {
 		}
 
 		return this;
+	}
+
+	@Override
+	public int compareTo(Object o) {
+		return name().compareTo(o.toString());
 	}
 }
