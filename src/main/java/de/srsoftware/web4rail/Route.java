@@ -67,6 +67,7 @@ public class Route implements Constants{
 	private static final String START_DIRECTION = "direction_start";
 	private static final String END_DIRECTION = "direction_end";
 	private Vector<Condition> conditions = new Vector<Condition>();
+	private ActionList setupActions = new ActionList();
 	
 	public Direction startDirection;
 	private Direction endDirection;
@@ -195,8 +196,12 @@ public class Route implements Constants{
 	
 	private void addContactsTo(Window win) {
 		if (!contacts.isEmpty()) {
-			new Tag("h4").content(t("Contacts and actions")).addTo(win);
+			new Tag("h4").content(t("Actions and Contacts")).addTo(win);
 			Tag list = new Tag("ol");
+			
+			Tag setup = new Tag("li").content("Setup actions");
+			setupActions.addTo(setup, context());
+			setup.addTo(list);
 			for (Contact c : contacts) {
 				Tag link = Plan.addLink(c,c.toString(),list);
 				ActionList actions = triggers.get(c.trigger());
@@ -204,7 +209,7 @@ public class Route implements Constants{
 					actions = new ActionList();
 					triggers.put(c.trigger(), actions);
 				}
-				actions.addTo(link,REALM_ROUTE+":"+id());
+				actions.addTo(link,context());
 			}
 			list.addTo(win);
 		}
@@ -298,6 +303,10 @@ public class Route implements Constants{
 	public Vector<Contact> contacts() {
 		return new Vector<>(contacts);
 	}
+	
+	public String context() {
+		return REALM_ROUTE+":"+id();
+	}
 		
 	public Block endBlock() {
 		return endBlock;
@@ -309,6 +318,11 @@ public class Route implements Constants{
 		unlock();
 		endBlock.train(train.heading(endDirection.inverse()));
 		train = null;
+	}
+	
+
+	public void fireSetupActions(Context context) {
+		setupActions.fire(context);
 	}
 	
 	public boolean free() {
@@ -378,6 +392,7 @@ public class Route implements Constants{
 
 		}
 		if (!jTriggers.isEmpty()) json.put(ACTION_LISTS, jTriggers);
+		if (!setupActions.isEmpty()) json.put(ACTIONS, setupActions.json());
 		
 		String name = name();		
 		if (name != null) json.put(NAME, name);
@@ -414,6 +429,9 @@ public class Route implements Constants{
 		}
 		if (json.has(ACTION_LISTS)) loadActions(json.getJSONArray(ACTION_LISTS));
 		if (json.has(CONDITIONS)) loadConditions(json.getJSONArray(CONDITIONS));
+		if (json.has(ACTIONS)) {
+			setupActions = ActionList.load(json.getJSONArray(ACTIONS));
+		}
 		return plan.registerRoute(this);
 	}
 	

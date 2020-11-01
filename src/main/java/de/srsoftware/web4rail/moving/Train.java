@@ -431,6 +431,7 @@ public class Train implements Constants {
 		if (!route.lock()) return t("Was not able to lock {}",route);
 		String error = null;
 		if (!route.setTurnouts()) error = t("Was not able to set all turnouts!");
+		route.fireSetupActions(context);
 		if (error == null && !route.setSignals(null)) error = t("Was not able to set all signals!");
 		if (error == null && !route.train(this)) error = t("Was not able to assign {} to {}!",this,route);
 		if (error == null) {

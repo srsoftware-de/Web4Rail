@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -22,6 +23,8 @@ public class Relay extends Tile implements Device{
 	private static final String PORT_A = "port_a";
 	private static final String PORT_B = "port_b";	
 	protected static final String STRAIGHT = "straight";
+	public static final String DEFAULT_LABEL_A = "A";
+	public static final String DEFAULT_LABEL_B = "B";
 
 	private Protocol protocol = Protocol.DCC128;
 	protected int address = 0;
@@ -29,13 +32,16 @@ public class Relay extends Tile implements Device{
 	protected int delay = 400;
 	protected boolean initialized = false;
 	protected boolean error = false;
-	private String stateLabelA = "A";
-	private String stateLabelB = "B";
+	public String stateLabelA = DEFAULT_LABEL_A;
+	public String stateLabelB = DEFAULT_LABEL_B;
+	private String name = t("Relay");
 	protected boolean state = true;
 	
+	private static final HashMap<String,Relay> relays = new HashMap<String, Relay>();
 	public static final boolean STATE_A = true,STATE_B=false;
 	private static final String LABEL_A = "label_a";
 	private static final String LABEL_B = "label_b";
+	private static final String NAME = "name";
 	
 	@Override
 	public Object click() throws IOException {
@@ -93,6 +99,7 @@ public class Relay extends Tile implements Device{
 		json.put(PROTOCOL, protocol);
 		json.put(LABEL_A, stateLabelA);
 		json.put(LABEL_B, stateLabelB);
+		json.put(NAME, name);
 		return json;
 	}
 	
@@ -104,7 +111,15 @@ public class Relay extends Tile implements Device{
 		if (json.has(LABEL_A)) stateLabelA = json.getString(LABEL_A);
 		if (json.has(LABEL_B)) stateLabelB = json.getString(LABEL_B);
 		if (json.has(PROTOCOL)) protocol = Protocol.valueOf(json.getString(PROTOCOL));
+		if (json.has(NAME)) name = json.getString(NAME);
 		return super.load(json);
+	}
+	
+	@Override
+	public Tile position(int x, int y) {
+		super.position(x, y);
+		relays.put(id(), this);
+		return this;
 	}
 	
 	@Override
@@ -123,6 +138,8 @@ public class Relay extends Tile implements Device{
 		new Input(PORT_B, portB).numeric().addTo(new Label(t("Port for state B"))).addTo(fieldset);
 		new Input(LABEL_B, stateLabelB).addTo(new Label(t("Label for state B"))).addTo(fieldset);
 		fieldset.addTo(form);
+		fieldset = new Fieldset(t("Name"));
+		new Input(NAME,name).addTo(new Label(t("Name"))).addTo(fieldset).addTo(form);
 		return form;
 	}
 	
@@ -205,7 +222,7 @@ public class Relay extends Tile implements Device{
 	
 	@Override
 	public String title() {
-		return getClass().getSimpleName()+t("(Address: {}, Ports {} and {})",address,portA,portB);
+		return name;
 	}
 	
 	@Override
@@ -216,6 +233,15 @@ public class Relay extends Tile implements Device{
 		if (params.containsKey(PORT_B)) portB = Integer.parseInt(params.get(PORT_B));
 		if (params.containsKey(LABEL_A)) stateLabelA = params.get(LABEL_A);
 		if (params.containsKey(LABEL_B)) stateLabelB = params.get(LABEL_B);
+		if (params.containsKey(NAME)) name = params.get(NAME);
 		return super.update(params);
+	}
+
+	public static Collection<Relay> list() {
+		return relays.values();
+	}
+
+	public static Relay get(String relayId) {
+		return relays.get(relayId);
 	}
 }

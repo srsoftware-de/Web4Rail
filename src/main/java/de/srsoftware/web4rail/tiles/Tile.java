@@ -198,7 +198,7 @@ public abstract class Tile implements Constants{
 	}
 	
 	public Tag propMenu() {	
-		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",getClass().getSimpleName(),x,y));
+		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",title(),x,y));
 		String formId = "tile-properties-"+id();
 		Tag form = propForm(formId);
 		if (form!=null && form.children().size()>3) {
@@ -337,7 +337,7 @@ public abstract class Tile implements Constants{
 	}
 	
 	public String title() {
-		return null;
+		return getClass().getSimpleName();
 	}
 	
 	@Override

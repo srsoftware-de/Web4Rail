@@ -63,7 +63,8 @@ public class ActionList extends Vector<Action> implements Constants{
 				FinishRoute.class,
 				TurnTrain.class,
 				StopAuto.class,
-				PowerOff.class
+				PowerOff.class,
+				SetRelay.class
 				);
 		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
 		select.addTo(new Label("Action type:")).addTo(typeForm);
@@ -76,7 +77,7 @@ public class ActionList extends Vector<Action> implements Constants{
 		String context = params.get(CONTEXT);
 		if (type == null) return actionTypeForm(win,context);
 		
-		switch (type) {
+		switch (type) { // TODO: das kann man mit Reflection generischer lösen
 			case "ConditionalAction":
 				add(new ConditionalAction());
 				break;
@@ -97,6 +98,9 @@ public class ActionList extends Vector<Action> implements Constants{
 				break;
 			case "PowerOff":
 				add(new PowerOff());
+				break;
+			case "SetRelay":
+				add(new SetRelay());
 				break;
 			default:
 				actionTypeForm(win,context);

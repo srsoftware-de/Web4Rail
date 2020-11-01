@@ -62,7 +62,7 @@ public abstract class Action implements Constants {
 	
 	public static Action load(JSONObject json) {
 		String clazz = json.getString(TYPE);
-		switch (clazz) {
+		switch (clazz) { // TODO: das kann generisch mittels Reflection implementiert werden!
 			case "ActivateRoute":
 				return new ActivateRoute();
 			case "ConditionalAction":
@@ -75,9 +75,12 @@ public abstract class Action implements Constants {
 				return new SetSignalsToStop();
 			case "SetSpeed":
 				return SetSpeed.load(json);
+			case "SetRelay":
+				return SetRelay.load(json);
 			case "TurnTrain":
 				return new TurnTrain();
 		}
+		LOG.error("Found unknwon action \"{}\" in json!",clazz);
 		return null;
 	}
 	
