@@ -17,7 +17,7 @@ public class TrainHasTag extends Condition {
 	@Override
 	public boolean fulfilledBy(Context context) {
 		if (tag == null) return true;
-		return context.train.tags().contains(tag);
+		return context.train.tags().contains(tag) != inverted;
 	}
 	
 	@Override

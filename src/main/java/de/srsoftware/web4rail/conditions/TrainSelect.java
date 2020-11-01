@@ -16,7 +16,7 @@ public class TrainSelect extends Condition {
 
 	@Override
 	public boolean fulfilledBy(Context context) {
-		return context.train == train;
+		return (context.train == train) != inverted;
 	}
 	
 	@Override

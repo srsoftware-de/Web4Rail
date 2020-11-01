@@ -29,7 +29,6 @@ public abstract class Condition implements Constants {
 	private static final String INVERTED = "inverted";
 	private static final String PREFIX = Condition.class.getPackageName();
 	private static HashMap<Integer, Condition> conditions = new HashMap<Integer, Condition>();
-	public abstract boolean fulfilledBy(Context context);
 	public boolean inverted = false;
 	protected int id;
 
@@ -70,6 +69,8 @@ public abstract class Condition implements Constants {
 		return null;
 	}
 	
+	public abstract boolean fulfilledBy(Context context);
+
 	public int id() {
 		return id;
 	}

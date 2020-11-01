@@ -38,7 +38,7 @@ import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Signal;
 
-public class Train implements Comparable,Constants {
+public class Train implements Comparable<Train>,Constants {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 	
 	private static final HashMap<Integer, Train> trains = new HashMap<>();
@@ -516,7 +516,7 @@ public class Train implements Comparable,Constants {
 	}
 
 	@Override
-	public int compareTo(Object o) {
+	public int compareTo(Train o) {
 		return name().compareTo(o.toString());
 	}
 }

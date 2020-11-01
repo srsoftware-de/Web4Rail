@@ -54,7 +54,7 @@ public class ConditionalAction extends Action {
 	@Override
 	public boolean fire(Context context) throws IOException {
 		for (Condition condition : conditions) {
-			if (condition.fulfilledBy(context) != condition.inverted) return actions.fire(context);
+			if (condition.fulfilledBy(context)) return actions.fire(context);
 		}
 		return false;		
 	}
