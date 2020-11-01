@@ -60,18 +60,9 @@ public class ConditionalAction extends Action {
 	@Override
 	public boolean fire(Context context) throws IOException {
 		for (Condition condition : conditions) {
-			if (condition.fulfilledBy(context) != condition.inverted) return fireActions(context);
+			if (condition.fulfilledBy(context) != condition.inverted) return actions.fire(context);
 		}
 		return false;		
-	}
-
-	private boolean fireActions(Context context) {
-		for (Action action : actions) try {
-			action.fire(context);
-		} catch (IOException e) {
-			LOG.warn("Was not able to fire {}",action);
-		}
-		return true;
 	}
 	
 	@Override

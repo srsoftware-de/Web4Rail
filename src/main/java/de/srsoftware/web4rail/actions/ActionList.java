@@ -113,6 +113,10 @@ public class ActionList extends Vector<Action> implements Constants{
 					ConditionalAction ca = (ConditionalAction) action;
 					ca.children().addTo(act, context);
 				}
+				if (action instanceof DelayedAction) {
+					DelayedAction da = (DelayedAction) action;
+					da.children().addTo(act, context);
+				}
 				act.addTo(ul);
 				first = false;
 			}
@@ -130,7 +134,7 @@ public class ActionList extends Vector<Action> implements Constants{
 		return false;
 	}
 	
-	public void fire(Context context) {
+	public boolean fire(Context context) {
 		LOG.debug("Firing {}",this);
 
 		for (Action action : this) {
@@ -140,6 +144,7 @@ public class ActionList extends Vector<Action> implements Constants{
 				LOG.warn("Action did not fire properly: {}",action,e);
 			}
 		}
+		return true;
 	}
 
 	public int id() {
