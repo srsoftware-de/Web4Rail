@@ -25,10 +25,10 @@ public class TrainHasTag extends Condition {
 		return super.json().put(TAG, tag);
 	}
 	
-	public static TrainHasTag load(JSONObject json) {		
-		TrainHasTag tl = new TrainHasTag();
-		if (json.has(TAG)) tl.tag = json.getString(TAG);
-		return tl;
+	public Condition load(JSONObject json) {
+		super.load(json);
+		if (json.has(TAG)) tag = json.getString(TAG);
+		return this;
 	}
 
 	@Override

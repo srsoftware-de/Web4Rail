@@ -74,8 +74,9 @@ public class ConditionalAction extends Action {
 		super.load(json);
 		for (Object o : json.getJSONArray(CONDITIONS)) {
 			if (o instanceof JSONObject) {
-				Condition condition = Condition.load((JSONObject)o);
-				if (condition != null) conditions.add(condition);
+				JSONObject j = (JSONObject) o;
+				Condition condition = Condition.create(j.getString(TYPE));
+				if (condition != null) conditions.add(condition.load(j));
 			}
 		}
 		actions = ActionList.load(json.getJSONArray(ACTIONS));

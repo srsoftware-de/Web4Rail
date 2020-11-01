@@ -80,11 +80,9 @@ public abstract class Condition implements Constants {
 		return json;
 	}
 	
-	public static Condition load(JSONObject json) {
-		String type = json.getString(TYPE);
-		Condition condition = Condition.create(type);
-		if (condition != null) condition.inverted = json.has(INVERTED) && json.getBoolean(INVERTED);
-		return condition;
+	public Condition load(JSONObject json) {
+		inverted = json.has(INVERTED) && json.getBoolean(INVERTED);
+		return this;
 	}
 
 	public Tag link(String tagClass,String context) {

@@ -32,6 +32,7 @@ import de.srsoftware.web4rail.actions.SetSpeed;
 import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tiles.Block;
@@ -196,13 +197,15 @@ public class Route implements Constants{
 			list.addTo(win);
 		}
 
+		new Tag("div").content(t("Route will only be available to trains fulfilling all conditions.")).addTo(win);
 		Form form = new Form("action-prop-form-"+id);
+		Fieldset fieldset = new Fieldset(t("Add condition"));
 		new Input(REALM,REALM_ROUTE).hideIn(form);
 		new Input(ID,id()).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 
-		Condition.selector().addTo(form);
-		new Button(t("Add condition"),form).addTo(form).addTo(win);
+		Condition.selector().addTo(fieldset);
+		new Button(t("Add condition"),form).addTo(fieldset).addTo(form).addTo(win);
 	}
 	
 	private void addContactsTo(Window win) {
@@ -475,8 +478,8 @@ public class Route implements Constants{
 	private void loadConditions(JSONArray arr) {
 		for (int i=0; i<arr.length(); i++) {
 			JSONObject json = arr.getJSONObject(i);
-			Condition condition = Condition.load(json);
-			if (condition != null) conditions.add(condition);
+			Condition condition = Condition.create(json.getString(TYPE));
+			if (condition != null) conditions.add(condition.load(json));
 		}
 	}
 	

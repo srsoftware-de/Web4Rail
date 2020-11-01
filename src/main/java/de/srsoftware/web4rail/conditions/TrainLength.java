@@ -25,10 +25,10 @@ public class TrainLength extends Condition {
 		return super.json().put(MAX_LENGTH, maxLength);
 	}
 	
-	public static TrainLength load(JSONObject json) {		
-		TrainLength tl = new TrainLength();
-		if (json.has(MAX_LENGTH)) tl.maxLength = json.getInt(MAX_LENGTH);
-		return tl;
+	public Condition load(JSONObject json) {
+		super.load(json);
+		if (json.has(MAX_LENGTH)) maxLength = json.getInt(MAX_LENGTH);
+		return this;
 	}
 
 	@Override

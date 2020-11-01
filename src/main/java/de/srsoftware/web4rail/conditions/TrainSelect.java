@@ -24,9 +24,10 @@ public class TrainSelect extends Condition {
 		return super.json().put(REALM_TRAIN, train.id);
 	}
 	
-	public static TrainSelect load(JSONObject json) {
-		int trainId = json.getInt(REALM_TRAIN);
-		return new TrainSelect().train(Train.get(trainId));		
+	public Condition load(JSONObject json) {
+		super.load(json);
+		train(Train.get(json.getInt(REALM_TRAIN)));
+		return this;
 	}
 	
 	@Override

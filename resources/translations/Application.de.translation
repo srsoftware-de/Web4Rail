@@ -29,6 +29,7 @@ Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
 Reduce speed to {} km/h : Geschwindigkeit auf {} km/h reduzieren
 Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
+Route will only be available to trains fulfilling all conditions. : Route ist nur für Züge verfügbar, die alle Bedingungen erfüllen.
 save : speichern
 Save plan : Plan speichern
 SetRelay : Relais schalten
