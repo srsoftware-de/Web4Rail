@@ -290,8 +290,8 @@ public class Train implements Comparable<Train>,Constants {
 	private Train load(JSONObject json) {
 		pushPull = json.getBoolean(PUSH_PULL);
 		if (json.has(NAME)) name = json.getString(NAME);
-		for (Object id : json.getJSONArray(CARS)) add(Car.get((String)id));
-		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get((String)id));
+		for (Object id : json.getJSONArray(CARS)) add(Car.get(id));
+		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get(id));
 		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
 		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
 		return this;
@@ -401,7 +401,7 @@ public class Train implements Comparable<Train>,Constants {
 		
 		if (block != null) {
 			new Tag("li").content(t("Current location: {}",block)).addTo(propList);
-			Tag actions = new Tag("li").clazz().content(t("Actions: "));
+			Tag actions = new Tag("li").clazz().content(t("Actions:")+NBSP);
 			new Button(t("start"),"train("+id+",'"+ACTION_START+"')").addTo(actions);
 			if (autopilot == null) {
 				new Button(t("auto"),"train("+id+",'"+ACTION_AUTO+"')").addTo(actions);

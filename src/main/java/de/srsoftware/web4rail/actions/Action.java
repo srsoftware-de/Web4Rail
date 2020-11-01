@@ -110,7 +110,7 @@ public abstract class Action implements Constants {
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName();
+		return t(getClass().getSimpleName());
 	}
 
 	protected Object update(HashMap<String, String> params) {

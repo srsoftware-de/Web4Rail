@@ -256,7 +256,7 @@ public class Route implements Constants{
 			Tag list = new Tag("ul");
 			for (Entry<Turnout, State> entry : turnouts.entrySet()) {
 				Turnout turnout = entry.getKey();
-				Plan.addLink(turnout, turnout+": "+entry.getValue(), list);
+				Plan.addLink(turnout, turnout+": "+t(entry.getValue().toString()), list);
 			}
 			list.addTo(win);
 		}

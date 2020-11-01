@@ -1,27 +1,44 @@
 Actions : Aktionen
+Actions\: : Aktionen:
 Action type\: : Aktions-Typ
+ActivateRoute : Route aktivieren
 Added {} : {} hinzugefügt
 add action : Aktion hinzufügen
+add car\: : Waggon hinzufügen:
 Add condition : Bedingung hinzufügen
+add locomotive\: : Lok hinzufügen:
 Add tile : Kachel hinzufügen
 Analyze plan : Plan analysieren
 Apply : Übernehmen
+Cars\: : Waggons:
 ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
+Control unit : Zentrale
+Current location\: : Aktueller Ort:
 Actions and contacts : Aktionen und Kontakte
 Create action : Aktion erzeugen
 DelayedAction : verzögerte Aktion
+delete : entfernen
 delete route : Route löschen
 Destination\: {} from {} : Ziel: {} von {}
+editable train properties : veränderliche Zug-Eigenschaften
 Emergency : Notfall
 FinishRoute : Route abschließen
 FreeStartBlock : Start-Block freigeben
 Help : Hilfe
 inverted : invertiert
+LEFT : links
 length\: : Länge:
+length\: {} : Länge: {}
+Locomotives\: : Lokomotiven:
+Manage cars : Waggons verwalten
+Manage locos : Lokomotiven verwalten
+Manage trains : Züge verwalten
 Maximum train length\: : maximale Zug-Länge
 Move tiles : Kacheln verschieben
 name\: : Name:
+Online Documentation : Online-Dokumentation
+other train properties : andere Zug-Eigenschaften
 Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
 Plan saved as "{}". : Plan als „{}“ gespeichert.
@@ -29,7 +46,10 @@ PowerOff : Strom abschalten
 Properties : Eigenschaften
 Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
+Push-pull train : Wendezug
 Reduce speed to {} km/h : Geschwindigkeit auf {} km/h reduzieren
+Report Issue : Problem melden
+RIGHT : rechts
 Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
 Route will only be available to trains fulfilling all conditions. : Route ist nur für Züge verfügbar, die alle Bedingungen erfüllen.
 save : speichern
@@ -40,7 +60,9 @@ SetSpeed : Geschwindigkeit ändern
 Setup actions : Aktivierungs-Aktionen
 Signals : Signale
 StopAuto : Automatikmodus abschalten
+STRAIGHT : gerade
 Tags : Markierungen
+Toggle power : Stom an/ausschalten
 Train\: : Zug:
 train does not have tag "{}" : Zug hat keine Markierung „{}“
 train has tag "{}" : Zug hat Markierung „{}“
