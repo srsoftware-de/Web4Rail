@@ -70,6 +70,10 @@ public abstract class Condition implements Constants {
 		return null;
 	}
 	
+	public int id() {
+		return id;
+	}
+	
 	public JSONObject json() {
 		JSONObject json = new JSONObject().put(TYPE, getClass().getSimpleName());
 		if (inverted) json.put(INVERTED, true);
@@ -86,6 +90,10 @@ public abstract class Condition implements Constants {
 	public Tag link(String tagClass,String context) {
 		String json = new JSONObject(Map.of(REALM,REALM_CONDITION,ID,id,ACTION,ACTION_PROPS,CONTEXT,context)).toString().replace("\"", "'");
 		return new Tag(tagClass).clazz("link").attr("onclick","request("+json+")").content(toString());
+	}
+	
+	private static List<Class<? extends Condition>> list() {
+		return List.of(TrainHasTag.class,TrainSelect.class,TrainLength.class);
 	}
 	
 	public Tag propForm(HashMap<String, String> params) {
@@ -118,10 +126,6 @@ public abstract class Condition implements Constants {
 		return select.addTo(new Label(t("Action type:")+NBSP));
 	}
 	
-	private static List<Class<? extends Condition>> list() {
-		return List.of(TrainSelect.class,TrainLength.class);
-	}
-
 	public static String t(String text, Object...fills) {
 		return Translation.get(Application.class, text, fills);
 	}
@@ -134,9 +138,5 @@ public abstract class Condition implements Constants {
 	protected Object update(HashMap<String, String> params) {
 		inverted = "on".equals(params.get(INVERTED));
 		return t("updated {}.",this);
-	}
-
-	public int id() {
-		return id;
 	}
 }

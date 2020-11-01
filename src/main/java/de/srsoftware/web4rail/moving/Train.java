@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.json.JSONObject;
@@ -62,6 +64,10 @@ public class Train implements Constants {
 
 	private static final String LOCOS = "locomotives";	
 	private Vector<Locomotive> locos = new Vector<Locomotive>();
+	
+	private static final String TAGS = "tags";
+	private HashSet<String> tags = new HashSet<String>();
+
 
 	private Block block = null;
 		
@@ -208,6 +214,7 @@ public class Train implements Constants {
 		Vector<String> carIds = new Vector<String>();
 		for (Car car : cars) carIds.add(car.id());
 		json.put(CARS,carIds);
+		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;
 	}
 		
@@ -247,6 +254,7 @@ public class Train implements Constants {
 		if (json.has(NAME)) name = json.getString(NAME);
 		for (Object id : json.getJSONArray(CARS)) add(Car.get((String)id));
 		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get((String)id));
+		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
 		return this;
 	}
 	
@@ -336,6 +344,7 @@ public class Train implements Constants {
 		new Input(ID,id).hideIn(form);
 		new Input(NAME,name).addTo(form);
 		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(form);
+		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(form);
 		new Button(t("Apply")).addTo(form).addTo(fieldset);
 		
 		new Button(t("Turn"), "train("+id+",'"+ACTION_TURN+"')").addTo(fieldset).addTo(window);
@@ -363,9 +372,19 @@ public class Train implements Constants {
 		}
 		if (direction != null) new Tag("li").content(t("Direction: heading {}",direction)).addTo(propList);
 		
+		Tag tagList = new Tag("ul");
+		for (String tag : tags()) new Tag("li").content(tag).addTo(tagList);
+		tagList.addTo(new Tag("li").content(t("Tags"))).addTo(propList);
 		
 		propList.addTo(fieldset).addTo(window);
 		return window;
+	}
+
+	public SortedSet<String> tags() {
+		TreeSet<String> list = new TreeSet<String>(tags);
+		for (Locomotive loco : locos) list.addAll(loco.tags());
+		for (Car car:cars) list.addAll(car.tags());
+		return list;
 	}
 
 	public Object quitAutopilot() {
@@ -484,6 +503,15 @@ public class Train implements Constants {
 		LOG.debug("update({})",params);
 		pushPull = params.containsKey(PUSH_PULL) && params.get(PUSH_PULL).equals("on");
 		if (params.containsKey(NAME)) name = params.get(NAME);
+		if (params.containsKey(TAGS)) {
+			String[] parts = params.get(TAGS).replace(",", " ").split(" ");
+			tags.clear();
+			for (String tag : parts) {
+				tag = tag.trim();
+				if (!tag.isEmpty()) tags.add(tag);
+			}
+		}
+
 		return this;
 	}
 }

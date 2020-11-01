@@ -7,7 +7,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.TreeSet;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -32,6 +34,8 @@ public class Car implements Constants {
 	public static final String NAME = "name";
 	private static final String LENGTH = "length";
 	private static final String STOCK_ID = "stock-id";
+	private static final String TAGS = "tags";
+	protected HashSet<String> tags = new HashSet<String>();
 	
 	private String id;
 	private String name;
@@ -94,6 +98,7 @@ public class Car implements Constants {
 		json.put(NAME, name);
 		json.put(LENGTH, length);
 		json.put(STOCK_ID, stockId);
+		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;
 	}
 	
@@ -121,6 +126,7 @@ public class Car implements Constants {
 		if (json.has(ID)) id = json.getString(ID);
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
 		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
+		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
 		return this;
 	}
 	
@@ -139,9 +145,10 @@ public class Car implements Constants {
 		new Input(REALM,REALM_CAR).hideIn(form);
 		new Input(ID,id()).hideIn(form);
 		Fieldset fieldset = new Fieldset("Basic properties");
-		new Input(NAME,name).addTo(new Label(t("Name"))).addTo(fieldset);
-		new Input(STOCK_ID,stockId).addTo(new Label(t("Stock ID"))).addTo(fieldset);
-		new Input(LENGTH,length).attr("type", "number").addTo(new Label(t("Length"))).addTo(fieldset);
+		new Input(NAME,name).addTo(new Label(t("Name")+NBSP)).addTo(fieldset);
+		new Input(STOCK_ID,stockId).addTo(new Label(t("Stock ID")+NBSP)).addTo(fieldset);
+		new Input(LENGTH,length).attr("type", "number").addTo(new Label(t("Length")+NBSP)).addTo(fieldset);
+		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(fieldset);
 		fieldset.addTo(form);
 		return form;
 	}
@@ -181,6 +188,10 @@ public class Car implements Constants {
 		return Translation.get(Application.class, txt, fills);
 	}
 	
+	public TreeSet<String> tags() {
+		return new TreeSet<String>(tags);
+	}
+	
 	@Override
 	public String toString() {
 		return getClass().getSimpleName()+"("+name()+")";
@@ -194,6 +205,14 @@ public class Car implements Constants {
 		if (params.containsKey(NAME)) name = params.get(NAME);
 		if (params.containsKey(STOCK_ID)) stockId  = params.get(STOCK_ID);
 		if (params.containsKey(LENGTH)) length = Integer.parseInt(params.get(LENGTH));
+		if (params.containsKey(TAGS)) {
+			String[] parts = params.get(TAGS).replace(",", " ").split(" ");
+			tags.clear();
+			for (String tag : parts) {
+				tag = tag.trim();
+				if (!tag.isEmpty()) tags.add(tag);
+			}
+		}
 		return this;
 	}
 }

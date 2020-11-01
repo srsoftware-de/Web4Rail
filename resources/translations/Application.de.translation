@@ -37,10 +37,14 @@ SetSpeed : Geschwindigkeit ändern
 Setup actions : Aktivierungs-Aktionen
 Signals : Signale
 StopAuto : Automatikmodus abschalten
+Tags : Markierungen
 Train\: : Zug:
+train does not have tag "{}" : Zug hat keine Markierung „{}“
+train has tag "{}" : Zug hat Markierung „{}“
 train is longer than {} : Zug ist länger als {}
 train is shorter than {} : Zug ist kürzer als {}
 Trains\: : Züge:
+TrainHasTag : Zug mit Tag
 TrainLength : Zuglänge
 TrainSelect : Zug-Auswahl
 Turn allowed : Wenden erlaubt

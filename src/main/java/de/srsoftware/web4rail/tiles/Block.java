@@ -67,7 +67,7 @@ public abstract class Block extends StretchableTile{
 		new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed).addTo(new Tag("p")).addTo(form);
 
 		Select select = Train.selector(train, null);
-		select.addTo(new Label(t("Trains:")+NBSP)).addTo(new Tag("p")).addTo(form);
+		select.addTo(new Label(t("Train:")+NBSP)).addTo(new Tag("p")).addTo(form);
 		
 		return form;
 	}

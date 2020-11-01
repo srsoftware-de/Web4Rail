@@ -191,7 +191,7 @@ public class Route implements Constants{
 				Tag li = new Tag("li");
 				condition.link("span",REALM_ROUTE+":"+id).addTo(li);
 				Map<String, Object> params = Map.of(REALM,REALM_ROUTE,ID,id(),ACTION,DROP_CONDITION,REALM_CONDITION,condition.id());
-				new Button(t("delete"), params).addTo(li).addTo(list);
+				new Button(t("delete"), params).addTo(li.content(NBSP)).addTo(list);
 			}
 			list.addTo(win);
 		}
