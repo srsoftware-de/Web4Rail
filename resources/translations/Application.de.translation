@@ -16,9 +16,11 @@ Destination\: {} from {} : Ziel: {} von {}
 Emergency : Notfall
 FinishRoute : Route abschließen
 FreeStartBlock : Start-Block freigeben
+Help : Hilfe
 inverted : invertiert
 length\: : Länge:
 Maximum train length\: : maximale Zug-Länge
+Move tiles : Kacheln verschieben
 name\: : Name:
 Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
@@ -44,6 +46,7 @@ train does not have tag "{}" : Zug hat keine Markierung „{}“
 train has tag "{}" : Zug hat Markierung „{}“
 train is longer than {} : Zug ist länger als {}
 train is shorter than {} : Zug ist kürzer als {}
+Trains : Züge
 Trains\: : Züge:
 TrainHasTag : Zug mit Tag
 TrainLength : Zuglänge

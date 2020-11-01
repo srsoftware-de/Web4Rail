@@ -794,6 +794,7 @@ public class Plan implements Constants{
 		Tag tiles = new Tag("div").clazz("list").content("");
 		new Div(ACTION_PROPS).clazz(REALM_TRAIN).content(t("Manage trains")).addTo(tiles);
 		new Div(ACTION_PROPS).clazz(REALM_LOCO).content(t("Manage locos")).addTo(tiles);
+		new Div(ACTION_PROPS).clazz(REALM_CAR).content(t("Manage cars")).addTo(tiles);
 		return tiles.addTo(tileMenu);
 	}
 

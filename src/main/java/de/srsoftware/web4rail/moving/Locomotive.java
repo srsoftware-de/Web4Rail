@@ -177,8 +177,8 @@ public class Locomotive extends Car implements Constants,Device{
 		return json;
 	}
 	
-	static Vector<Locomotive> list() {
-		Vector<Locomotive> locos = new Vector<Locomotive>();
+	static Vector<Car> list() {
+		Vector<Car> locos = new Vector<Car>();
 		for (Car car : Car.cars.values()) {
 			if (car instanceof Locomotive) locos.add((Locomotive) car);
 		}

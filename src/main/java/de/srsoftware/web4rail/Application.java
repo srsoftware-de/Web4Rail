@@ -112,7 +112,7 @@ public class Application implements Constants{
 			case REALM_ACTIONS:
 				return ActionList.process(params,plan);
 			case REALM_CAR:
-				return Car.action(params);
+				return Car.action(params,plan);
 			case REALM_CONTACT:
 				return Contact.process(params);
 			case REALM_CONDITION:

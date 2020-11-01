@@ -182,6 +182,28 @@ public class Train implements Comparable<Train>,Constants {
 		this.block = block;
 	}
 	
+	private Tag carList() {
+		Tag locoProp = new Tag("li").content(t("Cars:"));
+		Tag locoList = new Tag("ul").clazz("carlist");
+
+		for (Car car : this.cars) car.link("li").addTo(locoList);
+
+		Tag addCarForm = new Form().content(t("add car:")+"&nbsp;");
+		new Input(REALM, REALM_TRAIN).hideIn(addCarForm);
+		new Input(ACTION, ACTION_ADD).hideIn(addCarForm);
+		new Input(ID,id).hideIn(addCarForm);
+		Select select = new Select(CAR_ID);
+		for (Car car : Car.list()) {
+			if (!this.cars.contains(car)) select.addOption(car.id(), car);
+		}
+		if (!select.children().isEmpty()) {
+			select.addTo(addCarForm);
+			new Button(t("add")).addTo(addCarForm);
+			addCarForm.addTo(new Tag("li")).addTo(locoList);
+		}
+		return locoList.addTo(locoProp);
+	}
+	
 	private static Object create(HashMap<String, String> params, Plan plan) {
 		Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
 		if (loco == null) return t("unknown locomotive: {}",params.get(ID));
@@ -273,7 +295,7 @@ public class Train implements Comparable<Train>,Constants {
 		new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
 		new Input(ID,id).hideIn(addLocoForm);
 		Select select = new Select(CAR_ID);
-		for (Locomotive loco : Locomotive.list()) {
+		for (Car loco : Locomotive.list()) {
 			if (!this.locos.contains(loco)) select.addOption(loco.id(), loco);
 		}
 		if (!select.children().isEmpty()) {
@@ -300,7 +322,7 @@ public class Train implements Comparable<Train>,Constants {
 		new Input(Train.NAME, t("new train")).addTo(new Label(t("Name:")+" ")).addTo(fieldset);
 
 		Select select = new Select(LOCO_ID);
-		for (Locomotive loco : Locomotive.list()) select.addOption(loco.id(),loco.name());
+		for (Car loco : Locomotive.list()) select.addOption(loco.id(),loco.name());
 		select.addTo(new Label(t("Locomotive:")+" ")).addTo(fieldset);
 
 		new Button(t("Apply")).addTo(fieldset);
@@ -354,6 +376,8 @@ public class Train implements Comparable<Train>,Constants {
 		Tag propList = new Tag("ul").clazz("proplist");
 		
 		locoList().addTo(propList);
+		carList().addTo(propList);
+		new Tag("li").content(t("length: {}",length())).addTo(propList);
 		
 		if (block != null) {
 			new Tag("li").content(t("Current location: {}",block)).addTo(propList);

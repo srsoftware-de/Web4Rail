@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -60,19 +61,44 @@ public class Car implements Constants {
 		cars.put(id, this);
 	}	
 	
-	public static Object action(HashMap<String, String> params) throws IOException {
-		Car car = Car.get(params.get(Car.ID));
-		if (car == null) return t("No car with id {} found!",params.get(Car.ID));		
+	public static Object action(HashMap<String, String> params,Plan plan) throws IOException {
+		String id = params.get(ID);
+		Car car = id == null ? null : Car.get(id);
+
 		switch (params.get(ACTION)) {
+			case ACTION_ADD:
+				return new Car(params.get(Car.NAME)).plan(plan);
+
 			case ACTION_PROPS:
-				return car.properties();
+				return car == null ? Car.manager() : car.properties();
 			case ACTION_UPDATE:
 				return car.update(params); 
 		}
-		if (car instanceof Locomotive) return Locomotive.action(params);
+		if (car instanceof Locomotive) return Locomotive.action(params,plan);
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
+	public static Object manager() {
+		Window win = new Window("car-manager", t("Car manager"));
+		new Tag("h4").content(t("known cars")).addTo(win);
+		Tag list = new Tag("ul");
+		for (Car car : cars.values()) {
+			if (!(car instanceof Locomotive)) {
+				car.link("li").addTo(list);	
+			}			
+		}
+		list.addTo(win);
+		
+		Form form = new Form();
+		new Input(ACTION, ACTION_ADD).hideIn(form);
+		new Input(REALM,REALM_CAR).hideIn(form);
+		Fieldset fieldset = new Fieldset(t("add new car"));
+		new Input(Locomotive.NAME, t("new car")).addTo(new Label(t("Name:")+" ")).addTo(fieldset);
+		new Button(t("Apply")).addTo(fieldset);
+		fieldset.addTo(form).addTo(win);
+		return win;
+	}
+
 	protected Tag cockpit() {
 		return null;
 	}
@@ -104,6 +130,14 @@ public class Car implements Constants {
 	
 	public Tag link(String tagClass) {
 		return new Tag(tagClass).clazz("link").attr("onclick","car("+id+",'"+ACTION_PROPS+"')").content(name());
+	}
+	
+	static Vector<Car> list() {
+		Vector<Car> cars = new Vector<Car>();
+		for (Car car : Car.cars.values()) {
+			if (!(car instanceof Locomotive)) cars.add(car);
+		}
+		return cars;
 	}
 	
 	public static void loadAll(String filename, Plan plan) throws IOException {
@@ -194,7 +228,7 @@ public class Car implements Constants {
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName()+"("+name()+")";
+		return name;
 	}
 
 	public void train(Train train) {
