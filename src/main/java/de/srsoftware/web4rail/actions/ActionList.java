@@ -64,10 +64,11 @@ public class ActionList extends Vector<Action> implements Constants{
 				TurnTrain.class,
 				StopAuto.class,
 				PowerOff.class,
-				SetRelay.class
+				SetRelay.class,
+				DelayedAction.class
 				);
 		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
-		select.addTo(new Label("Action type:")).addTo(typeForm);
+		select.addTo(new Label(t("Action type:")+NBSP)).addTo(typeForm);
 		return new Button(t("Create action"),typeForm).addTo(typeForm).addTo(win);
 	}
 	
@@ -77,37 +78,14 @@ public class ActionList extends Vector<Action> implements Constants{
 		String context = params.get(CONTEXT);
 		if (type == null) return actionTypeForm(win,context);
 		
-		switch (type) { // TODO: das kann man mit Reflection generischer lösen
-			case "ConditionalAction":
-				add(new ConditionalAction());
-				break;
-			case "FinishRoute":
-				add(new FinishRoute());
-				break;
-			case "SetSignalsToStop":
-				add(new SetSignalsToStop());
-				break;
-			case "SetSpeed":
-				add(new SetSpeed(0));
-				break;
-			case "TurnTrain":
-				add(new TurnTrain());
-				break;	
-			case "StopAuto":
-				add(new StopAuto());
-				break;
-			case "PowerOff":
-				add(new PowerOff());
-				break;
-			case "SetRelay":
-				add(new SetRelay());
-				break;
-			default:
-				actionTypeForm(win,context);
-				new Tag("span").content(t("Unknown action type: {}",type)).addTo(win);
-				return win;			
-		}
-		return plan.showContext(params);
+		Action action = Action.create(type);
+		if (action instanceof Action) {
+			add(action);
+			return plan.showContext(params);
+		} 
+		actionTypeForm(win,context);
+		new Tag("span").content(t("Unknown action type: {}",type)).addTo(win);
+		return win;			
 	}
 	
 	public void addTo(Tag link, String context) {
@@ -163,13 +141,6 @@ public class ActionList extends Vector<Action> implements Constants{
 			}
 		}
 	}
-	
-	private Action getAction(int actionId) {
-		for (Action action : this) {
-			if (action.id == actionId) return action;
-		}
-		return null;
-	}
 
 	public int id() {
 		return id;
@@ -207,11 +178,11 @@ public class ActionList extends Vector<Action> implements Constants{
 		Integer listId = actionListId(params);
 		if (listId == null) return t("No action list id passed to ActionList.process()!");
 		ActionList actionList = actionLists.get(listId);
-		if (actionList == null) return t("No action list with id {} found!",listId);
 
 		Integer actionId = actionId(params);
 		String action = params.get(ACTION);
 		if (action == null) return t("No action passed to ActionList.process()!");
+		if (actionList == null && !List.of(ACTION_UPDATE,ACTION_PROPS).contains(action)) return t("No action list with id {} found!",listId);
 		
 		switch (action) {
 			case ACTION_ADD:
@@ -221,16 +192,16 @@ public class ActionList extends Vector<Action> implements Constants{
 			case ACTION_MOVE:
 				return actionList.moveUp(actionId) ? plan.showContext(params) : t("No action with id {} found!",actionId);
 			case ACTION_PROPS:
-				return actionList.propsOf(params);
+				return propsOf(params);
 			case ACTION_UPDATE:
-				return actionList.update(actionId,params,plan);
+				return update(actionId,params,plan);
 		}
 		return t("Unknown action: {}",action);
 	}
 	
-	private Object propsOf(HashMap<String, String> params) {
+	private static Object propsOf(HashMap<String, String> params) {
 		int actionId = actionId(params); 
-		Action action = getAction(actionId);
+		Action action = Action.get(actionId);
 		if (action != null) return action.properties(params);
 		return t("No action with id {} found!",actionId);
 	}
@@ -239,8 +210,8 @@ public class ActionList extends Vector<Action> implements Constants{
 		return Translation.get(Application.class, text, fills);
 	}
 	
-	private Object update(int actionId, HashMap<String, String> params, Plan plan) {
-		Action action = getAction(actionId);
+	private static Object update(int actionId, HashMap<String, String> params, Plan plan) {
+		Action action = Action.get(actionId);
 		if (action != null) {
 			plan.stream(action.update(params).toString());
 			return plan.showContext(params);

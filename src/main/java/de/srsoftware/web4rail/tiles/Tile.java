@@ -337,7 +337,7 @@ public abstract class Tile implements Constants{
 	}
 	
 	public String title() {
-		return getClass().getSimpleName();
+		return getClass().getSimpleName() + " @ ("+x+", "+y+")";
 	}
 	
 	@Override
