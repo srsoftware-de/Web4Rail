@@ -131,6 +131,8 @@ public class Train implements Comparable<Train>,Constants {
 				return train.addCar(params);
 			case ACTION_AUTO:
 				return train.automatic();
+			case ACTION_DROP:
+				return train.dropCar(params);
 			case ACTION_PROPS:
 				return train.props();
 			case ACTION_QUIT:
@@ -145,6 +147,14 @@ public class Train implements Comparable<Train>,Constants {
 				return train.update(params);		 
 		}
 		return t("Unknown action: {}",params.get(ACTION));
+	}
+
+	private Object dropCar(HashMap<String, String> params) {
+		String carId = params.get(CAR_ID);
+		if (carId != null) cars.remove(Car.get(carId));
+		String locoId = params.get(LOCO_ID);
+		if (locoId != null) locos.remove(Car.get(locoId));
+		return props();
 	}
 
 	private Object addCar(HashMap<String, String> params) {
@@ -186,7 +196,13 @@ public class Train implements Comparable<Train>,Constants {
 		Tag locoProp = new Tag("li").content(t("Cars:"));
 		Tag locoList = new Tag("ul").clazz("carlist");
 
-		for (Car car : this.cars) car.link("li").addTo(locoList);
+		for (Car car : this.cars) {
+			Tag li = new Tag("li");
+			car.link("span").addTo(li).content(NBSP);
+			Map<String, Object> params = Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_DROP,CAR_ID,car.id());
+			new Button("delete",params).addTo(li);
+			li.addTo(locoList);
+		}
 
 		Tag addCarForm = new Form().content(t("add car:")+"&nbsp;");
 		new Input(REALM, REALM_TRAIN).hideIn(addCarForm);
@@ -230,10 +246,10 @@ public class Train implements Comparable<Train>,Constants {
 		if (direction != null) json.put(DIRECTION, direction);
 		json.put(PUSH_PULL, pushPull);
 		if (name != null)json.put(NAME, name);
-		Vector<String> locoIds = new Vector<String>();
+		Vector<Integer> locoIds = new Vector<Integer>();
 		for (Locomotive loco : locos) locoIds.add(loco.id());
 		json.put(LOCOS, locoIds);
-		Vector<String> carIds = new Vector<String>();
+		Vector<Integer> carIds = new Vector<Integer>();
 		for (Car car : cars) carIds.add(car.id());
 		json.put(CARS,carIds);
 		if (!tags.isEmpty()) json.put(TAGS, tags);
@@ -277,6 +293,7 @@ public class Train implements Comparable<Train>,Constants {
 		for (Object id : json.getJSONArray(CARS)) add(Car.get((String)id));
 		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get((String)id));
 		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
+		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
 		return this;
 	}
 	
@@ -285,9 +302,12 @@ public class Train implements Comparable<Train>,Constants {
 		Tag locoList = new Tag("ul").clazz("locolist");
 
 		for (Locomotive loco : this.locos) {
-			Tag li = loco.link("li");
+			Tag li = new Tag("li");
+			loco.link("span").addTo(li);
 			Map<String, Object> props = Map.of(REALM,REALM_LOCO,ID,loco.id(),ACTION,ACTION_TURN);
 			new Button(t("turn within train"),props).addTo(li).addTo(locoList);
+			Map<String, Object> params = Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_DROP,LOCO_ID,loco.id());
+			new Button("delete",params).addTo(li);
 		}
 
 		Tag addLocoForm = new Form().content(t("add locomotive:")+"&nbsp;");

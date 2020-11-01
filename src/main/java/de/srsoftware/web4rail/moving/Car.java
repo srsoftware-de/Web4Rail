@@ -5,7 +5,6 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -30,7 +29,7 @@ import de.srsoftware.web4rail.tags.Label;
 
 public class Car implements Constants {
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
-	static HashMap<String,Car> cars = new HashMap<String, Car>();
+	static HashMap<Integer,Car> cars = new HashMap<Integer, Car>();
 	
 	public static final String NAME = "name";
 	private static final String LENGTH = "length";
@@ -38,7 +37,7 @@ public class Car implements Constants {
 	private static final String TAGS = "tags";
 	protected HashSet<String> tags = new HashSet<String>();
 	
-	private String id;
+	private int id;
 	private String name;
 	public int length;
 	private String stockId = "";
@@ -49,13 +48,13 @@ public class Car implements Constants {
 		this(name,null);
 	}
 	
-	public Car(String name, String id) {
+	public Car(String name, Integer id) {
 		this.name = name;
 		if (id == null) {
 			try { // make sure multiple consecutive creations get different ids
 				Thread.sleep(1);
 			} catch (InterruptedException e) {}
-			id = ""+new Date().getTime();
+			id = Application.createId();
 		}
 		this.id = id;
 		cars.put(id, this);
@@ -103,18 +102,12 @@ public class Car implements Constants {
 		return null;
 	}
 	
-	public static Car get(String nameOrId) {
-		Car car = cars.get(nameOrId); // try to get by id
-		if (car == null) { // try to get by name
-			for (Car c : cars.values()) {
-				if (c.name.equals(nameOrId)) car = c;
-			}
-		}
-		return car;
+	public static Car get(Object id) {
+		return cars.get(Integer.parseInt(""+id)); // try to get by id
 	}
 
 	
-	public String id() {
+	public int id() {
 		return id;
 	}
 	
@@ -147,7 +140,7 @@ public class Car implements Constants {
 		while (line != null) {
 			JSONObject json = new JSONObject(line);
 			String name = json.getString(Car.NAME);
-			String id = json.getString(ID);
+			int id = json.getInt(ID);
 			Car car = json.has(Locomotive.LOCOMOTIVE) ? new Locomotive(name, id) : new Car(name,id);
 			car.load(json).plan(plan);
 			
@@ -157,7 +150,7 @@ public class Car implements Constants {
 	}
 	
 	protected Car load(JSONObject json) {
-		if (json.has(ID)) id = json.getString(ID);
+		if (json.has(ID)) id = json.getInt(ID);
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
 		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
 		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
@@ -211,10 +204,7 @@ public class Car implements Constants {
 
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Entry<String, Car> entry: cars.entrySet()) {
-			Car c = entry.getValue();
-			file.write(c.json()+"\n");
-		}
+		for (Entry<Integer, Car> entry: cars.entrySet()) file.write(entry.getValue().json()+"\n");
 		file.close();
 	}
 	

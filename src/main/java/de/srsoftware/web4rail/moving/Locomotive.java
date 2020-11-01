@@ -36,7 +36,7 @@ public class Locomotive extends Car implements Constants,Device{
 		super(name);
 	}
 	
-	public Locomotive(String name, String id) {
+	public Locomotive(String name, Integer id) {
 		super(name,id);
 	}
 	
@@ -120,8 +120,8 @@ public class Locomotive extends Car implements Constants,Device{
 		return setSpeed(speed + steps);
 	}
 	
-	public static Locomotive get(String nameOrId) {		
-		Car car = Car.get(nameOrId);
+	public static Locomotive get(Object id) {		
+		Car car = Car.get(id);
 		if (car instanceof Locomotive) return (Locomotive) car;
 		return null;
 	}
