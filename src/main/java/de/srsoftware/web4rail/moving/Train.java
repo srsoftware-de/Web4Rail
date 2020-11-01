@@ -57,7 +57,7 @@ public class Train implements Comparable<Train>,Constants {
 	private Direction direction;
 	
 	private static final String PUSH_PULL = "pushPull";
-	private boolean pushPull = false;
+	public boolean pushPull = false;
 	
 	private static final String CARS = "cars";
 	private Vector<Car> cars = new Vector<Car>();

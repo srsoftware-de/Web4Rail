@@ -92,7 +92,11 @@ public abstract class Condition implements Constants {
 	}
 	
 	private static List<Class<? extends Condition>> list() {
-		return List.of(TrainHasTag.class,TrainSelect.class,TrainLength.class);
+		return List.of(
+				PushPullTrain.class,
+				TrainHasTag.class,
+				TrainSelect.class,
+				TrainLength.class);
 	}
 	
 	public Tag propForm(HashMap<String, String> params) {
@@ -122,7 +126,7 @@ public abstract class Condition implements Constants {
 		}
 		
 		for (Entry<String, String> entry : names.entrySet()) select.addOption(entry.getValue(), entry.getKey());
-		return select.addTo(new Label(t("Action type:")+NBSP));
+		return select.addTo(new Label(t("Condition type:")+NBSP));
 	}
 	
 	public static String t(String text, Object...fills) {

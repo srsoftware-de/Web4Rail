@@ -13,6 +13,7 @@ Apply : Übernehmen
 Cars\: : Waggons:
 ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
+Condition type\: : Bedingungs-Typ:
 Control unit : Zentrale
 Current location\: : Aktueller Ort:
 Actions and contacts : Aktionen und Kontakte
@@ -46,6 +47,7 @@ PowerOff : Strom abschalten
 Properties : Eigenschaften
 Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
+PushPullTrain : Wendezug
 Push-pull train : Wendezug
 Reduce speed to {} km/h : Geschwindigkeit auf {} km/h reduzieren
 Report Issue : Problem melden
@@ -66,7 +68,9 @@ Toggle power : Stom an/ausschalten
 Train\: : Zug:
 train does not have tag "{}" : Zug hat keine Markierung „{}“
 train has tag "{}" : Zug hat Markierung „{}“
+train is a push-pull train : Zug ist ein Wendezug
 train is longer than {} : Zug ist länger als {}
+train is not a push-pull train : Zug ist kein Wendezug
 train is shorter than {} : Zug ist kürzer als {}
 Trains : Züge
 Trains\: : Züge:
