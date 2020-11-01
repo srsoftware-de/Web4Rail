@@ -151,19 +151,6 @@ public class Train implements Constants {
 		} else cars.add(car);
 		return this;
 	}
-	
-	private static Object create(HashMap<String, String> params, Plan plan) {
-		Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
-		if (loco == null) return t("unknown locomotive: {}",params.get(ID));
-		Train train = new Train(loco).plan(plan);
-		if (params.containsKey(NAME)) train.name(params.get(NAME));
-		return train;
-	}
-
-	private Train name(String newName) {
-		this.name = newName;
-		return this;
-	}
 
 	public void add(Car car) {
 		if (car == null) return;
@@ -187,6 +174,14 @@ public class Train implements Constants {
 	
 	public void block(Block block) throws IOException {
 		this.block = block;
+	}
+	
+	private static Object create(HashMap<String, String> params, Plan plan) {
+		Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
+		if (loco == null) return t("unknown locomotive: {}",params.get(ID));
+		Train train = new Train(loco).plan(plan);
+		if (params.containsKey(NAME)) train.name(params.get(NAME));
+		return train;
 	}
 	
 	public static Train get(int id) {
@@ -319,6 +314,11 @@ public class Train implements Constants {
 			return result+'→';
 		}
 		return result;
+	}
+	
+	private Train name(String newName) {
+		this.name = newName;
+		return this;
 	}
 	
 	private Train plan(Plan plan) {

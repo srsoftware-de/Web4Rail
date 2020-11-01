@@ -2,7 +2,6 @@ package de.srsoftware.web4rail.actions;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -11,12 +10,10 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.conditions.Condition;
-import de.srsoftware.web4rail.conditions.TrainSelect;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Select;
 
 public class ConditionalAction extends Action {
 	
@@ -50,10 +47,7 @@ public class ConditionalAction extends Action {
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
 
-		Select select = new Select(REALM_CONDITION);
-		List<Class<? extends Condition>> classes = List.of(TrainSelect.class);
-		for (Class<? extends Condition> clazz : classes) select.addOption(clazz.getSimpleName());
-		select.addTo(form);
+		Condition.selector().addTo(form);
 		return new Button(t("Add condition"),form).addTo(form).addTo(fieldset);
 	}
 		
@@ -75,16 +69,17 @@ public class ConditionalAction extends Action {
 		return json;
 	}
 	
-	public static ConditionalAction load(JSONObject json) {
-		ConditionalAction action = new ConditionalAction();
+	@Override
+	public Action load(JSONObject json) {
+		super.load(json);
 		for (Object o : json.getJSONArray(CONDITIONS)) {
 			if (o instanceof JSONObject) {
 				Condition condition = Condition.load((JSONObject)o);
-				if (condition != null) action.conditions.add(condition);
+				if (condition != null) conditions.add(condition);
 			}
 		}
-		action.actions = ActionList.load(json.getJSONArray(ACTIONS));
-		return action;
+		actions = ActionList.load(json.getJSONArray(ACTIONS));
+		return this;
 	}
 		
 	@Override
@@ -109,16 +104,9 @@ public class ConditionalAction extends Action {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		String conditionClass = params.get(REALM_CONDITION);
-		if (conditionClass != null) {
-			switch (conditionClass) {
-			case "TrainSelect":
-				conditions.add(new TrainSelect());
-				break;
-
-			default:
-				return t("Unknown type of condition: {}",conditionClass);
-			}
-		}
+		Condition condition = Condition.create(conditionClass);
+		if (condition == null) return t("Unknown type of condition: {}",conditionClass);
+		conditions.add(condition);
 		return super.update(params);
 	}
 }

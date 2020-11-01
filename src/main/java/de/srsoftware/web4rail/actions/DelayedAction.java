@@ -70,11 +70,11 @@ public class DelayedAction extends Action {
 		return json;
 	}
 	
-	public static DelayedAction load(JSONObject json) {
-		DelayedAction action = new DelayedAction();
-		action.delay = json.getInt(DELAY);
-		if (json.has(ACTIONS)) action.actions = ActionList.load(json.getJSONArray(ACTIONS));
-		return action;
+	public DelayedAction load(JSONObject json) {
+		super.load(json);
+		delay = json.getInt(DELAY);
+		if (json.has(ACTIONS)) actions = ActionList.load(json.getJSONArray(ACTIONS));
+		return this;
 	}
 		
 	@Override

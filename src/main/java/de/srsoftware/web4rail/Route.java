@@ -26,15 +26,14 @@ import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.actions.ActivateRoute;
 import de.srsoftware.web4rail.actions.FinishRoute;
+import de.srsoftware.web4rail.actions.FreeStartBlock;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.actions.SetSpeed;
 import de.srsoftware.web4rail.conditions.Condition;
-import de.srsoftware.web4rail.conditions.TrainSelect;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
@@ -77,6 +76,7 @@ public class Route implements Constants{
 	private static final String ACTION_LISTS = "action_lists";
 	private static final String ROUTES = "routes";
 	private static final String CONDITIONS = "conditions";
+	private static final String DROP_CONDITION = "drop_condition";
 	
 	/**
 	 * process commands from the client
@@ -103,10 +103,26 @@ public class Route implements Constants{
 				return route.properties(params);
 			case ACTION_UPDATE:
 				return route.update(params,plan);
+			case DROP_CONDITION:
+				return route.dropCodition(params);
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
-	
+
+	private Object dropCodition(HashMap<String, String> params) {
+		String condId = params.get(REALM_CONDITION);
+		if (condId != null) {
+			int cid = Integer.parseInt(condId);
+			for (Condition condition : conditions) {
+				if (condition.id() == cid) {
+					conditions.remove(condition);
+					break;
+				}
+			}
+		}
+		return properties(params);
+	}
+
 	/**
 	 * Route wurde von Zug betreten
 	 * @throws IOException 
@@ -167,18 +183,16 @@ public class Route implements Constants{
 		}
 	}
 	
-	private void addCondition(String type) {
-		switch (type) {
-			case "TrainSelect":
-				conditions.add(new TrainSelect());
-		}
-	}
-	
 	private void addConditionsTo(Window win) {
 		new Tag("h4").content(t("Conditions")).addTo(win);		
 		if (!conditions.isEmpty()) {
 			Tag list = new Tag("ul");
-			for (Condition condition : conditions) condition.link("li",REALM_ROUTE+":"+id).addTo(list);
+			for (Condition condition : conditions) {
+				Tag li = new Tag("li");
+				condition.link("span",REALM_ROUTE+":"+id).addTo(li);
+				Map<String, Object> params = Map.of(REALM,REALM_ROUTE,ID,id(),ACTION,DROP_CONDITION,REALM_CONDITION,condition.id());
+				new Button(t("delete"), params).addTo(li).addTo(list);
+			}
 			list.addTo(win);
 		}
 
@@ -187,19 +201,16 @@ public class Route implements Constants{
 		new Input(ID,id()).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 
-		Select select = new Select(REALM_CONDITION);
-		List<Class<? extends Condition>> classes = List.of(TrainSelect.class);
-		for (Class<? extends Condition> clazz : classes) select.addOption(clazz.getSimpleName());
-		select.addTo(form);
+		Condition.selector().addTo(form);
 		new Button(t("Add condition"),form).addTo(form).addTo(win);
 	}
 	
 	private void addContactsTo(Window win) {
 		if (!contacts.isEmpty()) {
-			new Tag("h4").content(t("Actions and Contacts")).addTo(win);
+			new Tag("h4").content(t("Actions and contacts")).addTo(win);
 			Tag list = new Tag("ol");
 			
-			Tag setup = new Tag("li").content("Setup actions");
+			Tag setup = new Tag("li").content(t("Setup actions"));
 			setupActions.addTo(setup, context());
 			setup.addTo(list);
 			for (Contact c : contacts) {
@@ -277,12 +288,13 @@ public class Route implements Constants{
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
 			add(contacts.firstElement().trigger(),new ActivateRoute());
 			Contact nextToLastContact = contacts.get(contacts.size()-2);			
-			add(nextToLastContact.trigger(),new SetSpeed(30));			
+			add(nextToLastContact.trigger(),new SetSpeed().speed(30));			
 			add(nextToLastContact.trigger(),new SetSignalsToStop());
 		}
 		if (!contacts.isEmpty()) {
 			Contact lastContact = contacts.lastElement(); 
-			add(lastContact.trigger(), new SetSpeed(0)); 
+			add(lastContact.trigger(), new SetSpeed()); 
+			add(lastContact.trigger(), new FreeStartBlock());
 			add(lastContact.trigger(), new FinishRoute());
 		}
 	}
@@ -313,7 +325,6 @@ public class Route implements Constants{
 	}	
 	
 	public void finish() throws IOException {
-		startBlock.train(null);		
 		train.route = null;		
 		unlock();
 		endBlock.train(train.heading(endDirection.inverse()));
@@ -330,6 +341,11 @@ public class Route implements Constants{
 			if (!path.get(i).free()) return false;
 		}
 		return true;
+	}
+	
+	public Route freeStartBlock() throws IOException {
+		startBlock.train(null);
+		return this;
 	}
 	
 	private String generateName() {
@@ -599,9 +615,9 @@ public class Route implements Constants{
 		String name = params.get(NAME);
 		if (name != null) name(name);
 		
-		String condition = params.get(REALM_CONDITION);
+		Condition condition = Condition.create(params.get(REALM_CONDITION));
 		if (condition != null) {
-			addCondition(condition);
+			conditions.add(condition);
 			return properties(params);
 		}
 		String message = t("{} updated.",this); 

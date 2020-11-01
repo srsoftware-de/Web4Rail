@@ -21,8 +21,6 @@ import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
-import de.srsoftware.web4rail.tags.Select;
 
 public class ActionList extends Vector<Action> implements Constants{
 	
@@ -55,20 +53,7 @@ public class ActionList extends Vector<Action> implements Constants{
 		new Input(ID,id).hideIn(typeForm);
 		new Input(ACTION,ACTION_ADD).hideIn(typeForm);
 		new Input(CONTEXT,context).hideIn(typeForm);
-		Select select = new Select(TYPE);
-		List<Class<? extends Action>> classes = List.of(
-				ConditionalAction.class,
-				SetSpeed.class,
-				SetSignalsToStop.class,
-				FinishRoute.class,
-				TurnTrain.class,
-				StopAuto.class,
-				PowerOff.class,
-				SetRelay.class,
-				DelayedAction.class
-				);
-		for (Class<? extends Action> clazz : classes) select.addOption(clazz.getSimpleName());
-		select.addTo(new Label(t("Action type:")+NBSP)).addTo(typeForm);
+		Action.selector().addTo(typeForm);
 		return new Button(t("Create action"),typeForm).addTo(typeForm).addTo(win);
 	}
 	
@@ -161,8 +146,9 @@ public class ActionList extends Vector<Action> implements Constants{
 		ActionList actionList = new ActionList();
 		for (Object o : list) {
 			if (o instanceof JSONObject) {
-				Action action = Action.load((JSONObject) o);
-				if (action != null) actionList.add(action);
+				JSONObject json = (JSONObject) o;
+				Action action = Action.create(json.getString(TYPE));
+				if (action != null) actionList.add(action.load(json));
 			}
 		}
 		return actionList;

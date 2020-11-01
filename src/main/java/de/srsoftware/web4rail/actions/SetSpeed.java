@@ -14,12 +14,7 @@ import de.srsoftware.web4rail.tags.Label;
 public class SetSpeed extends Action{
 
 	public static final String MAX_SPEED = "max_speed";
-	private int maxSpeed = -1;
-
-	public SetSpeed(int kmh) {
-		super();
-		maxSpeed = kmh;
-	}
+	private int maxSpeed = 0;
 
 	@Override
 	public boolean fire(Context context) {
@@ -37,9 +32,12 @@ public class SetSpeed extends Action{
 		return json;
 	}
 	
-	public static SetSpeed load(JSONObject json) {
-		int s = json.getInt(MAX_SPEED);
-		return new SetSpeed(s);
+	@Override
+	public Action load(JSONObject json) {
+		super.load(json);
+		maxSpeed = json.getInt(MAX_SPEED);
+		return this;
+	
 	}
 	
 	@Override
@@ -60,6 +58,11 @@ public class SetSpeed extends Action{
 	@Override
 	public String toString() {
 		return t("Reduce speed to {} km/h",maxSpeed);
+	}
+	
+	public SetSpeed speed(int kmh) {
+		maxSpeed = kmh;
+		return this;
 	}
 
 	@Override

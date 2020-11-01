@@ -39,14 +39,15 @@ public class SetRelay extends Action {
 		return json;
 	}
 	
-	public static SetRelay load(JSONObject json) {
+	@Override
+	public Action load(JSONObject json) {
+		super.load(json);
 		String relayId = json.getString(RELAY);
-		SetRelay result = new SetRelay();
 		if (relayId != null) {
-			result.relay = Relay.get(relayId);
-			result.state = json.getBoolean(Relay.STATE);
+			relay = Relay.get(relayId);
+			state = json.getBoolean(Relay.STATE);
 		}
-		return result;
+		return this;
 	}
 	
 	@Override

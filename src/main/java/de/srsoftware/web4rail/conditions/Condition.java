@@ -1,7 +1,10 @@
 package de.srsoftware.web4rail.conditions;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -18,10 +21,13 @@ import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Select;
 
 public abstract class Condition implements Constants {
 	public static final Logger LOG = LoggerFactory.getLogger(Condition.class);
 	private static final String INVERTED = "inverted";
+	private static final String PREFIX = Condition.class.getPackageName();
 	private static HashMap<Integer, Condition> conditions = new HashMap<Integer, Condition>();
 	public abstract boolean fulfilledBy(Context context);
 	public boolean inverted = false;
@@ -55,6 +61,15 @@ public abstract class Condition implements Constants {
 		return t("Unknown action: {}",action);
 	}
 	
+	public static Condition create(String type) {
+		try {
+			return (Condition) Class.forName(PREFIX+"."+type).getDeclaredConstructor().newInstance();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	public JSONObject json() {
 		JSONObject json = new JSONObject().put(TYPE, getClass().getSimpleName());
 		if (inverted) json.put(INVERTED, true);
@@ -63,12 +78,7 @@ public abstract class Condition implements Constants {
 	
 	public static Condition load(JSONObject json) {
 		String type = json.getString(TYPE);
-		Condition condition = null;
-		switch (type) {
-			case "TrainSelect":
-				condition = TrainSelect.load(json);
-				break;
-		}
+		Condition condition = Condition.create(type);
 		if (condition != null) condition.inverted = json.has(INVERTED) && json.getBoolean(INVERTED);
 		return condition;
 	}
@@ -95,6 +105,23 @@ public abstract class Condition implements Constants {
 		return win;
 	}
 	
+	public static Tag selector() {
+		Select select = new Select(REALM_CONDITION);
+		TreeMap<String, String> names = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+		
+		for (Class<? extends Condition> clazz : list()) {
+			String s = t(clazz.getSimpleName());
+			names.put(s, clazz.getSimpleName());
+		}
+		
+		for (Entry<String, String> entry : names.entrySet()) select.addOption(entry.getValue(), entry.getKey());
+		return select.addTo(new Label(t("Action type:")+NBSP));
+	}
+	
+	private static List<Class<? extends Condition>> list() {
+		return List.of(TrainSelect.class,TrainLength.class);
+	}
+
 	public static String t(String text, Object...fills) {
 		return Translation.get(Application.class, text, fills);
 	}
@@ -107,5 +134,9 @@ public abstract class Condition implements Constants {
 	protected Object update(HashMap<String, String> params) {
 		inverted = "on".equals(params.get(INVERTED));
 		return t("updated {}.",this);
+	}
+
+	public int id() {
+		return id;
 	}
 }

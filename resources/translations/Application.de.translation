@@ -1,17 +1,29 @@
 Actions : Aktionen
+Action type\: : Aktions-Typ
 Added {} : {} hinzugefügt
+add action : Aktion hinzufügen
+Add condition : Bedingung hinzufügen
 Add tile : Kachel hinzufügen
 Analyze plan : Plan analysieren
 Apply : Übernehmen
+ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
-Contacts and actions : Kontakte und Aktionen
+Actions and contacts : Aktionen und Kontakte
+Create action : Aktion erzeugen
+DelayedAction : verzögerte Aktion
+delete route : Route löschen
 Destination\: {} from {} : Ziel: {} von {}
+Emergency : Notfall
+FinishRoute : Route abschließen
+FreeStartBlock : Start-Block freigeben
 inverted : invertiert
 length\: : Länge:
+Maximum train length\: : maximale Zug-Länge
 name\: : Name:
 Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
 Plan saved as "{}". : Plan als „{}“ gespeichert.
+PowerOff : Strom abschalten
 Properties : Eigenschaften
 Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
@@ -19,6 +31,19 @@ Reduce speed to {} km/h : Geschwindigkeit auf {} km/h reduzieren
 Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
 save : speichern
 Save plan : Plan speichern
+SetRelay : Relais schalten
+SetSignalsToStop : Signale auf Halt stellen
+SetSpeed : Geschwindigkeit ändern
+Setup actions : Aktivierungs-Aktionen
 Signals : Signale
+StopAuto : Automatikmodus abschalten
+Train\: : Zug:
+train is longer than {} : Zug ist länger als {}
+train is shorter than {} : Zug ist kürzer als {}
+Trains\: : Züge:
+TrainLength : Zuglänge
+TrainSelect : Zug-Auswahl
+Turn allowed : Wenden erlaubt
 Turnouts : Weichen
+TurnTrain : Fahrtrichtung umkehren
 Unknown action\: {} : Unbekannte Aktion: {}

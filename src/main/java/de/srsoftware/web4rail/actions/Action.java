@@ -2,7 +2,10 @@ package de.srsoftware.web4rail.actions;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -16,11 +19,14 @@ import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Contact;
 
 public abstract class Action implements Constants {
 	private static final HashMap<Integer,Action> actions = new HashMap<Integer, Action>();
 	public static final Logger LOG = LoggerFactory.getLogger(Action.class);
+	private static final String PREFIX = Action.class.getPackageName();
 	protected int id;
 	
 	public static class Context {
@@ -47,30 +53,19 @@ public abstract class Action implements Constants {
 	}
 	
 	public static Action create(String type) {
-		switch (type) { // TODO: das kann man mit Reflection generischer lösen
-			case "ConditionalAction":
-				return new ConditionalAction();
-			case "FinishRoute":
-				return new FinishRoute();
-			case "SetSignalsToStop":
-				return new SetSignalsToStop();
-			case "SetSpeed":
-				return new SetSpeed(0);
-			case "TurnTrain":
-				return new TurnTrain();
-			case "StopAuto":
-				return new StopAuto();
-			case "PowerOff":
-				return new PowerOff();
-			case "SetRelay":
-				return new SetRelay();
-			case "DelayedAction":
-				return new DelayedAction();
+		try {
+			return (Action) Class.forName(PREFIX+"."+type).getDeclaredConstructor().newInstance();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
 
 	public abstract boolean fire(Context context) throws IOException;
+	
+	public static Action get(int actionId) {
+		return actions.get(actionId);
+	}
 	
 	public int id() {
 		return id;
@@ -86,30 +81,23 @@ public abstract class Action implements Constants {
 		return new Tag("span").content(toString()+NBSP).attr("onclick", action);
 	}
 	
-	public static Action load(JSONObject json) {
-		String clazz = json.getString(TYPE);
-		switch (clazz) { // TODO: das kann generisch mittels Reflection implementiert werden!
-			case "ActivateRoute":
-				return new ActivateRoute();
-			case "ConditionalAction":
-				return ConditionalAction.load(json);
-			case "FinishRoute":
-				return new FinishRoute();
-			case "PowerOff":
-				return new PowerOff();
-			case "SetSignalsToStop":
-				return new SetSignalsToStop();
-			case "SetSpeed":
-				return SetSpeed.load(json);
-			case "SetRelay":
-				return SetRelay.load(json);
-			case "TurnTrain":
-				return new TurnTrain();
-			case "DelayedAction":
-				return DelayedAction.load(json);
-		}
-		LOG.error("Found unknwon action \"{}\" in json!",clazz);
-		return null;
+	public static List<Class<? extends Action>> list() {
+		return List.of(
+			ConditionalAction.class,
+			SetSpeed.class,
+			SetSignalsToStop.class,
+			FreeStartBlock.class,
+			FinishRoute.class,
+			TurnTrain.class,
+			StopAuto.class,
+			PowerOff.class,
+			SetRelay.class,
+			DelayedAction.class
+		);
+	}
+	
+	public Action load(JSONObject json) {
+		return this;
 	}
 	
 	public Window properties(HashMap<String, String> params) {
@@ -129,7 +117,16 @@ public abstract class Action implements Constants {
 		return t("Nothing changed");
 	}
 
-	public static Action get(int actionId) {
-		return actions.get(actionId);
+	public static Tag selector() {
+		Select select = new Select(TYPE);
+		TreeMap<String, String> names = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+		
+		for (Class<? extends Action> clazz : Action.list()) {
+			String s = t(clazz.getSimpleName());
+			names.put(s, clazz.getSimpleName());
+		}
+		
+		for (Entry<String, String> entry : names.entrySet()) select.addOption(entry.getValue(), entry.getKey());
+		return select.addTo(new Label(t("Action type:")+NBSP));
 	}
 }
