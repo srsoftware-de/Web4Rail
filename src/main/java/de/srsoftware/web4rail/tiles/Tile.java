@@ -69,6 +69,7 @@ public abstract class Tile implements Constants{
 		classes.add(getClass().getSimpleName());
 		if (route != null) classes.add(LOCKED);
 		if (train != null) classes.add(OCCUPIED);
+		if (disabled) classes.add(DISABLED);
 		return classes;
 	}
 
@@ -378,6 +379,7 @@ public abstract class Tile implements Constants{
 			}
 		}
 		disabled = "on".equals(params.get(DISABLED));
+		plan.stream(tag(null).toString());
 		return this;
 	}
 }

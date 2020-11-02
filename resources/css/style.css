@@ -227,3 +227,12 @@ h4,ul{
 .menu div.emergency{
 	background: #ffb561;
 }
+
+svg.disabled circle,
+svg.disabled line,
+svg.disabled polygon,
+svg.disabled rect{
+	fill: #ddddef;
+	stroke-width:5;
+	stroke: red;
+}

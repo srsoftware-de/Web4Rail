@@ -159,7 +159,7 @@ function request(data){
 			if (data.realm != 'car' && data.realm != 'loco') closeWindows();
 			if (resp.startsWith('<html')) return;
 			if (resp.startsWith('<svg')){
-				$(PLAN).append($(resp));
+				place(resp);				
 			} else if (resp.startsWith('<')) {
 				var isWindow = $(resp).attr('class') == 'window';
 				if (isWindow) $('.window').remove();
@@ -186,10 +186,7 @@ function runAction(ev){
 function stream(ev){
 	var data = ev.data;
 	console.log("received: ",data);
-	if (data.startsWith('<svg')) {
-		$(PLAN).append($(data));
-		return false;
-	}
+	if (data.startsWith('<svg')) return place(data);
 	if (data.startsWith("heartbeat")) return heartbeat(data);
 	if (data.startsWith("place ")) return place(data.substring(6));
 	if (data.startsWith("remove")) return remove(data.substring(7));
