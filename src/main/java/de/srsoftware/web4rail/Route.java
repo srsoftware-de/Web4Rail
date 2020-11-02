@@ -32,6 +32,7 @@ import de.srsoftware.web4rail.actions.SetSpeed;
 import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
@@ -71,6 +72,7 @@ public class Route implements Constants{
 	
 	public Direction startDirection;
 	private Direction endDirection;
+	private boolean disabled = false;
 
 	private static final String TRIGGER = "trigger";
 	private static final String ACTIONS = "actions";
@@ -236,8 +238,9 @@ public class Route implements Constants{
 		new Input(ID,id()).hideIn(form);
 		if (params.containsKey(CONTEXT)) new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
 		Tag label = new Tag("label").content(t("name:")+NBSP);
-		new Tag("input").attr("type", "text").attr(NAME,"name").attr("value", name()).style("width: 80%").addTo(label);		
+		new Input(NAME, name()).style("width: 80%").addTo(label);
 		label.addTo(form);
+		new Checkbox(DISABLED, t("disabled"), disabled).addTo(form);
 		
 		new Button(t("Apply"),form).addTo(form).addTo(win);
 	}
@@ -268,6 +271,7 @@ public class Route implements Constants{
 	 * @return false, if any of the associated conditions is not fulfilled
 	 */
 	public boolean allowed(Context context) {
+		if (disabled) return false;
 		for (Condition condition : conditions) {
 			if (!condition.fulfilledBy(context)) return false;
 		}
@@ -415,6 +419,8 @@ public class Route implements Constants{
 		
 		String name = name();		
 		if (name != null) json.put(NAME, name);
+		
+		if (disabled) json.put(DISABLED, true);
 
 		return json.toString();
 	}
@@ -451,6 +457,7 @@ public class Route implements Constants{
 		if (json.has(ACTIONS)) {
 			setupActions = ActionList.load(json.getJSONArray(ACTIONS));
 		}
+		if (json.has(DISABLED)) disabled = json.getBoolean(DISABLED);
 		return plan.registerRoute(this);
 	}
 	
@@ -617,6 +624,8 @@ public class Route implements Constants{
 		LOG.debug("update({})",params);
 		String name = params.get(NAME);
 		if (name != null) name(name);
+		
+		disabled = "on".equals(params.get(DISABLED));
 		
 		Condition condition = Condition.create(params.get(REALM_CONDITION));
 		if (condition != null) {

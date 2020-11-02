@@ -22,6 +22,7 @@ DelayedAction : verzögerte Aktion
 delete : entfernen
 delete route : Route löschen
 Destination\: {} from {} : Ziel: {} von {}
+disabled : deaktiviert
 editable train properties : veränderliche Zug-Eigenschaften
 Emergency : Notfall
 FinishRoute : Route abschließen
@@ -38,6 +39,7 @@ Manage trains : Züge verwalten
 Maximum train length\: : maximale Zug-Länge
 Move tiles : Kacheln verschieben
 name\: : Name:
+No free routes from {} : keine Route von {} frei
 Online Documentation : Online-Dokumentation
 other train properties : andere Zug-Eigenschaften
 Origin and destination : Start und Ziel
@@ -61,6 +63,7 @@ SetSignalsToStop : Signale auf Halt stellen
 SetSpeed : Geschwindigkeit ändern
 Setup actions : Aktivierungs-Aktionen
 Signals : Signale
+Started {} : {} gestartet
 StopAuto : Automatikmodus abschalten
 STRAIGHT : gerade
 Tags : Markierungen
@@ -82,3 +85,7 @@ Turnouts : Weichen
 TurnTrain : Fahrtrichtung umkehren
 Unknown action\: {} : Unbekannte Aktion: {}
 unset : ungesetzt
+Was not able to assign {} to {}! : Konnte {} nicht an {} zuweisen!
+Was not able to lock {} : Konnte {} nicht reservieren
+Was not able to set all signals! : Konnte nicht alle Signale stellen!
+Was not able to set all turnouts! : Konnte nicht alle Weichen stellen!

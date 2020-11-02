@@ -31,6 +31,7 @@ import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
@@ -58,6 +59,7 @@ public abstract class Tile implements Constants{
 	protected HashSet<Shadow> shadows = new HashSet<>();
 	private HashSet<Route> routes = new HashSet<>();
 	protected Plan plan;
+	private boolean disabled = false;
 	
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);	
 	
@@ -92,7 +94,7 @@ public abstract class Tile implements Constants{
 	}
 
 	public boolean free() {
-		return route == null;
+		return (!disabled) && route == null;
 	}
 	
 	public int height() {
@@ -122,6 +124,7 @@ public abstract class Tile implements Constants{
 		json.put(POS, pos);
 		if (route != null) json.put(ROUTE, route.id());
 		if (oneWay != null) json.put(ONEW_WAY, oneWay);
+		if (disabled) json.put(DISABLED, true);
 		return json;
 	}
 	
@@ -152,6 +155,7 @@ public abstract class Tile implements Constants{
 		x = pos.getInt(X);
 		y = pos.getInt(Y);
 		if (json.has(ONEW_WAY)) oneWay = Direction.valueOf(json.getString(ONEW_WAY));
+		if (json.has(DISABLED)) disabled = json.getBoolean(DISABLED);
 		return this;
 	}
 	
@@ -185,7 +189,8 @@ public abstract class Tile implements Constants{
 		new Input(ACTION, ACTION_UPDATE).hideIn(form);
 		new Input(REALM, REALM_PLAN).hideIn(form);
 		new Input(ID,id()).hideIn(form);
-		
+
+
 		List<Direction> pd = possibleDirections();
 		if (!pd.isEmpty()) {
 			new Tag("h4").content(t("One way:")).addTo(form);
@@ -202,6 +207,8 @@ public abstract class Tile implements Constants{
 		String formId = "tile-properties-"+id();
 		Tag form = propForm(formId);
 		if (form!=null && form.children().size()>3) {
+			new Checkbox(DISABLED, t("disabled"), disabled).addTo(form);
+
 			new Button(t("Apply"),"submitForm('"+formId+"')").addTo(form);
 			form.addTo(window);
 		} else {
@@ -370,6 +377,7 @@ public abstract class Tile implements Constants{
 				oneWay = null;
 			}
 		}
+		disabled = "on".equals(params.get(DISABLED));
 		return this;
 	}
 }

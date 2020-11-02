@@ -54,4 +54,5 @@ public interface Constants {
 	public static final String NBSP = "&nbsp;";
 	public static final String CONTEXT = "context";
 	public static final String GITHUB_URL = "https://github.com/srsoftware-de/Web4Rail";
+	public static final String DISABLED = "disabled";
 }

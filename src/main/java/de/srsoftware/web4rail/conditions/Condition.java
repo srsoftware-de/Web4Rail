@@ -61,6 +61,7 @@ public abstract class Condition implements Constants {
 	}
 	
 	public static Condition create(String type) {
+		if (type == null) return null;
 		try {
 			return (Condition) Class.forName(PREFIX+"."+type).getDeclaredConstructor().newInstance();
 		} catch (Exception e) {
