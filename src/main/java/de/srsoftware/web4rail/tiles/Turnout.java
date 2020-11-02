@@ -56,6 +56,7 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	protected Reply init() {
+		if (address == 0) return new Reply(200,"OK");
 		if (!initialized) {
 			Command command = new Command("INIT {} GA "+address+" "+proto()) {
 
@@ -109,7 +110,7 @@ public abstract class Turnout extends Tile implements Device{
 			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == this.protocol).addTo(protocol);
 		}
 		protocol.addTo(fieldset).addTo(form);
-		new Input(ADDRESS, address).numeric().addTo(new Label(t("Address"))).addTo(fieldset);
+		new Input(ADDRESS, address).numeric().addTo(new Label(t("Address:")+NBSP)).addTo(fieldset);
 		return form;
 	}
 	
@@ -137,9 +138,13 @@ public abstract class Turnout extends Tile implements Device{
 		Reply reply = init();
 		if (reply != null && !reply.succeeded()) return reply;
 		LOG.debug("Setting {} to {}",this,newState);
+		if (address == 0) { 
+			state = newState;
+			plan.place(this);
+			return new Reply(200,"OK");
+		}
 		try {
-			String cmd = commandFor(newState);
-			return plan.queue(new Command(cmd) {
+			return plan.queue(new Command(commandFor(newState)) {
 				
 				@Override
 				public void onSuccess() {

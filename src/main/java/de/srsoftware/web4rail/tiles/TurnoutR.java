@@ -44,8 +44,8 @@ public class TurnoutR extends Turnout {
 				break;
 			}
 		}
-		new Input(STRAIGHT, portA).numeric().addTo(new Label(t("Straight port"))).addTo(fieldset);
-		new Input(RIGHT, portB).numeric().addTo(new Label(t("Right port"))).addTo(fieldset);
+		new Input(STRAIGHT, portA).numeric().addTo(new Label(t("Straight port:")+NBSP)).addTo(fieldset);
+		new Input(RIGHT, portB).numeric().addTo(new Label(t("Right port:")+NBSP)).addTo(fieldset);
 		return form;
 	}
 	

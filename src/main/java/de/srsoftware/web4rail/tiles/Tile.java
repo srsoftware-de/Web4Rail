@@ -207,14 +207,10 @@ public abstract class Tile implements Constants{
 		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",title(),x,y));
 		String formId = "tile-properties-"+id();
 		Tag form = propForm(formId);
-		if (form!=null && form.children().size()>3) {
-			new Checkbox(DISABLED, t("disabled"), disabled).addTo(form);
-
-			new Button(t("Apply"),"submitForm('"+formId+"')").addTo(form);
-			form.addTo(window);
-		} else {
-			window.content(t("This tile ({}) has no editable properties",getClass().getSimpleName()));
-		}
+		new Tag("h4").content(t("Availability")).addTo(form);
+		new Checkbox(DISABLED, t("disabled"), disabled).addTo(form);
+		new Button(t("Apply"),"submitForm('"+formId+"')").addTo(form);
+		form.addTo(window);
 		
 		if (route != null) {
 			new Tag("p").content(t("Locked by {}",route)).addTo(window);

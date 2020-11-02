@@ -493,6 +493,7 @@ public class Train implements Comparable<Train>,Constants {
 		
 		if (!route.lock()) return t("Was not able to lock {}",route);
 		String error = null;
+		if (direction != route.startDirection) turn();
 		if (!route.setTurnouts()) error = t("Was not able to set all turnouts!");
 		route.fireSetupActions(context);
 		if (error == null && !route.setSignals(null)) error = t("Was not able to set all signals!");

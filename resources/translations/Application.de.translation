@@ -8,8 +8,11 @@ add car\: : Waggon hinzufügen:
 Add condition : Bedingung hinzufügen
 add locomotive\: : Lok hinzufügen:
 Add tile : Kachel hinzufügen
+Address\: : Adresse:
 Analyze plan : Plan analysieren
 Apply : Übernehmen
+Availability : Verfügbarkeit
+Block properties : Block-Eigenschaften
 Cars\: : Waggons:
 ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
@@ -23,13 +26,18 @@ delete : entfernen
 delete route : Route löschen
 Destination\: {} from {} : Ziel: {} von {}
 disabled : deaktiviert
+EAST : Osten
 editable train properties : veränderliche Zug-Eigenschaften
 Emergency : Notfall
 FinishRoute : Route abschließen
 FreeStartBlock : Start-Block freigeben
+Hardware settings : Hardware-Einstellungen
 Help : Hilfe
 inverted : invertiert
+learn : lernen
 LEFT : links
+Left port\: : Port für links
+Length : Länge
 length\: : Länge:
 length\: {} : Länge: {}
 Locomotives\: : Lokomotiven:
@@ -39,7 +47,10 @@ Manage trains : Züge verwalten
 Maximum train length\: : maximale Zug-Länge
 Move tiles : Kacheln verschieben
 name\: : Name:
+No : keine
 No free routes from {} : keine Route von {} frei
+NORTH : Norden
+One way\: : Richtung:
 Online Documentation : Online-Dokumentation
 other train properties : andere Zug-Eigenschaften
 Origin and destination : Start und Ziel
@@ -54,6 +65,7 @@ Push-pull train : Wendezug
 Reduce speed to {} km/h : Geschwindigkeit auf {} km/h reduzieren
 Report Issue : Problem melden
 RIGHT : rechts
+Right port\: : Port für rechts
 Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
 Route will only be available to trains fulfilling all conditions. : Route ist nur für Züge verfügbar, die alle Bedingungen erfüllen.
 save : speichern
@@ -63,8 +75,10 @@ SetSignalsToStop : Signale auf Halt stellen
 SetSpeed : Geschwindigkeit ändern
 Setup actions : Aktivierungs-Aktionen
 Signals : Signale
+SOUTH : Süden
 Started {} : {} gestartet
 StopAuto : Automatikmodus abschalten
+Straight port\: : Port für gerade
 STRAIGHT : gerade
 Tags : Markierungen
 Toggle power : Stom an/ausschalten
@@ -89,3 +103,4 @@ Was not able to assign {} to {}! : Konnte {} nicht an {} zuweisen!
 Was not able to lock {} : Konnte {} nicht reservieren
 Was not able to set all signals! : Konnte nicht alle Signale stellen!
 Was not able to set all turnouts! : Konnte nicht alle Weichen stellen!
+WEST : Westen

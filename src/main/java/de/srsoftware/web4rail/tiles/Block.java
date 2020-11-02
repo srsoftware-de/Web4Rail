@@ -61,8 +61,9 @@ public abstract class Block extends StretchableTile{
 	@Override
 	public Tag propForm(String id) {
 		Tag form = super.propForm(id);
+		new Tag("h4").content(t("Block properties")).addTo(form);
 		
-		new Input(NAME, name).addTo(new Label(t("name:")+" ")).addTo(new Tag("p")).addTo(form);
+		new Input(NAME, name).addTo(new Label(t("name:")+NBSP)).addTo(new Tag("p")).addTo(form);
 		
 		new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed).addTo(new Tag("p")).addTo(form);
 
@@ -114,8 +115,7 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) throws IOException {
-		super.update(params);
+	public Tile update(HashMap<String, String> params) throws IOException {		
 		if (params.containsKey(NAME)) name=params.get(NAME);
 		if (params.containsKey(TRAIN)) {
 			int trainId = Integer.parseInt(params.get(TRAIN));
@@ -127,6 +127,6 @@ public abstract class Block extends StretchableTile{
 			}			
 		}
 		turnAllowed = params.containsKey(ALLOW_TURN) && params.get(ALLOW_TURN).equals("on");
-		return this;
+		return super.update(params);
 	}	
 }
