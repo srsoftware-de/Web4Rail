@@ -540,9 +540,11 @@ public class Route implements Constants{
 		}
 		if (endBlock.route() == this) endBlock.lock(null);
 		if (startBlock.route() == this) startBlock.lock(null);
-		train.heading(startDirection);
-		train.block(startBlock, false);
-		if (train.route == this) train.route = null;
+		if (train != null) {
+			train.heading(startDirection);
+			train.block(startBlock, false);
+			if (train.route == this) train.route = null;
+		}
 	}
 
 	public static void saveAll(Collection<Route> routes, String filename) throws IOException {
