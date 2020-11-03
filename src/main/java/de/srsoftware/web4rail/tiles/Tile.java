@@ -95,7 +95,10 @@ public abstract class Tile implements Constants{
 	}
 
 	public boolean free() {
-		return (!disabled) && route == null;
+		if (disabled) return false;
+		if (route != null) return false;
+		if (train != null) return false;
+		return true;
 	}
 	
 	public int height() {
@@ -160,8 +163,9 @@ public abstract class Tile implements Constants{
 		return this;
 	}
 	
-	public Tile lock(Route lockingRoute) throws IOException {
-		if (route != null && route != lockingRoute) throw new IllegalStateException(this.toString());
+	public Tile lock(Route lockingRoute) {
+		if (route == lockingRoute) return this;
+		if (route != null && lockingRoute != null) throw new IllegalStateException(this.toString());
 		route = lockingRoute;
 		return plan.place(this);
 	}
@@ -353,12 +357,13 @@ public abstract class Tile implements Constants{
 		return train;
 	}
 	
-	public Tile train(Train train) throws IOException {
+	public Tile train(Train train) {
+		if (this.train == train) return this; // nothing to update
 		this.train = train;		
 		return plan.place(this);
 	}	
 
-	public void unlock() throws IOException {
+	public void unlock() {
 		route = null;
 		train = null;
 		plan.place(this);

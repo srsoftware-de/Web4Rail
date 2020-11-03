@@ -36,7 +36,6 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Block;
-import de.srsoftware.web4rail.tiles.Signal;
 
 public class Train implements Comparable<Train>,Constants {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
@@ -70,6 +69,7 @@ public class Train implements Comparable<Train>,Constants {
 
 
 	private Block block = null;
+	private Vector<Block> previousBlocks = new Vector<Block>();
 		
 	private class Autopilot extends Thread{
 		boolean stop = false;
@@ -149,6 +149,47 @@ public class Train implements Comparable<Train>,Constants {
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 
+	private Route chooseRoute(Context context) {		HashSet<Route> routes = block.routes();
+		Vector<Route> availableRoutes = new Vector<Route>();
+		for (Route rt : routes) {
+			if (rt == route) continue; // andere Route als zuvor wählen
+			if (rt.path().firstElement() != block) continue; // keine Route wählen, die nicht vom aktuellen Block des Zuges startet
+			if (direction != null && rt.startDirection != direction) { // Route ist entgegen der Startrichtung des Zuges
+				if (!pushPull || !block.turnAllowed) { // Zug ist kein Wendezug oder Block erlaubt kein Wenden
+					continue;
+				}
+			}
+			if (!rt.free()) { // keine belegten Routen wählen
+				LOG.debug("{} is not free!",rt);
+				continue;
+			}
+			if (!rt.allowed(context)) continue;
+			availableRoutes.add(rt);
+		}
+		Random rand = new Random();
+		if (availableRoutes.isEmpty()) return null;
+		return availableRoutes.get(rand.nextInt(availableRoutes.size()));
+	}
+
+	@Override
+	public int compareTo(Train o) {
+		return name().compareTo(o.toString());
+	}
+
+	public String directedName() {
+		String result = name();
+		if (direction == null) return result;
+		switch (direction) {
+		case NORTH:
+		case WEST:
+			return '←'+result;
+		case SOUTH:
+		case EAST:
+			return result+'→';
+		}
+		return result;
+	}
+
 	private Object dropCar(HashMap<String, String> params) {
 		String carId = params.get(CAR_ID);
 		if (carId != null) cars.remove(Car.get(carId));
@@ -188,10 +229,18 @@ public class Train implements Comparable<Train>,Constants {
 		return block;
 	}
 	
-	public void block(Block block) throws IOException {
+	public Train block(Block block, boolean resetPreviousBlocks) {
+		if (this.block == block) return this; // nothing to update
+		if (this.block != null) {
+			this.block.trailingTrain(this);
+			previousBlocks.add(this.block);
+		}
 		this.block = block;
+		block.train(this);
+		if (resetPreviousBlocks) resetPreviousBlocks();
+		return this;
 	}
-	
+
 	private Tag carList() {
 		Tag locoProp = new Tag("li").content(t("Cars:"));
 		Tag locoList = new Tag("ul").clazz("carlist");
@@ -235,6 +284,7 @@ public class Train implements Comparable<Train>,Constants {
 	
 	public Train heading(Direction dir) {
 		direction = dir;
+		if (block != null) plan.place(block);
 		return this;
 	}	
 	
@@ -353,17 +403,7 @@ public class Train implements Comparable<Train>,Constants {
 	}
 
 	public String name() {
-		String result = (name != null ? name : locos.firstElement().name());
-		if (direction == null) return result;
-		switch (direction) {
-		case NORTH:
-		case WEST:
-			return '←'+result;
-		case SOUTH:
-		case EAST:
-			return result+'→';
-		}
-		return result;
+		return (name != null ? name : locos.firstElement().name());
 	}
 	
 	private Train name(String newName) {
@@ -438,7 +478,20 @@ public class Train implements Comparable<Train>,Constants {
 			return t("{} stopping at next block.",this);
 		} else return t("autopilot not active.");
 	}
+
+	public void removeFromBlock(Block block) {
+		if (block.train() == this) block.train(null);
+		if (this.block == block) this.block = null;
+		previousBlocks.remove(block);		
+	}
 	
+	public void resetPreviousBlocks() {
+		for (Block block : previousBlocks) {
+			if (block.train() == this || block.trailingTrain() == this) block.unlock();
+		}
+		previousBlocks.clear();
+	}
+
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		for (Entry<Integer, Train> entry:trains.entrySet()) {
@@ -468,44 +521,25 @@ public class Train implements Comparable<Train>,Constants {
 	
 	public String start() throws IOException {
 		if (block == null) return t("{} not in a block",this);
-		if (route != null) route.unlock().setSignals(Signal.STOP);
-		HashSet<Route> routes = block.routes();
-		Vector<Route> availableRoutes = new Vector<Route>();
+		if (route != null) route.reset(); // reset route previously chosen
 		Context context = new Context(this);
-		for (Route rt : routes) {
-			if (rt == route) continue; // andere Route als zuvor wählen
-			if (rt.path().firstElement() != block) continue; // keine Route wählen, die nicht vom aktuellen Block des Zuges startet
-			if (direction != null && rt.startDirection != direction) { // Route ist entgegen der Startrichtung des Zuges
-				if (!pushPull || !block.turnAllowed) { // Zug ist kein Wendezug oder Block erlaubt kein Wenden
-					continue;
-				}
-			}
-			if (!rt.free()) { // keine belegten Routen wählen
-				LOG.debug("{} is not free!",rt);
-				continue;
-			}
-			if (!rt.allowed(context)) continue;
-			availableRoutes.add(rt);
-		}
-		Random rand = new Random();
-		if (availableRoutes.isEmpty()) return t("No free routes from {}",block);
-		route = availableRoutes.get(rand.nextInt(availableRoutes.size()));
+		route = chooseRoute(context);
+		if (route == null) return t("No free routes from {}",block);
 		
 		if (!route.lock()) return t("Was not able to lock {}",route);
-		String error = null;
 		if (direction != route.startDirection) turn();
+		
+		String error = null;
 		if (!route.setTurnouts()) error = t("Was not able to set all turnouts!");
-		route.fireSetupActions(context);
+		if (error == null && !route.fireSetupActions(context)) error = t("Was not able to fire all setup actions of route!");
 		if (error == null && !route.setSignals(null)) error = t("Was not able to set all signals!");
 		if (error == null && !route.train(this)) error = t("Was not able to assign {} to {}!",this,route);
-		if (error == null) {
-			setSpeed(128);
-			return t("Started {}",this);
+		if (error != null) {
+			route.reset();
+			return error;
 		}
-		route.unlock();
-		this.block.train(this); // re-set train on previous block
-		this.route = null;
-		return error;				
+		setSpeed(128);
+		return t("Started {}",this);
 	}
 	
 	private Object stopNow() {
@@ -537,9 +571,7 @@ public class Train implements Comparable<Train>,Constants {
 			direction = direction.inverse();
 			for (Locomotive loco : locos) loco.turn(); 
 		}
-		if (block != null) try {
-			plan.place(block.train(this));
-		} catch (IOException e) {}
+		if (block != null) plan.place(block.train(this));
 		return t("{} turned.",this);
 	}
 
@@ -558,10 +590,5 @@ public class Train implements Comparable<Train>,Constants {
 		}
 
 		return this;
-	}
-
-	@Override
-	public int compareTo(Train o) {
-		return name().compareTo(o.toString());
 	}
 }

@@ -26,9 +26,13 @@ public abstract class Signal extends Tile{
 	
 	public abstract boolean isAffectedFrom(Direction dir);
 
-	public boolean state(String state) throws IOException {
+	public boolean state(String state) {
 		this.state = state;
-		plan.stream("place "+tag(null));
+		try {
+			plan.stream("place "+tag(null));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		return true;
 	}
 	

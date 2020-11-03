@@ -149,10 +149,8 @@ public abstract class Turnout extends Tile implements Device{
 				@Override
 				public void onSuccess() {
 					super.onSuccess();
-					try {
-						Turnout.this.state = newState;
-						plan.place(Turnout.this);
-					} catch (IOException e) {}
+					Turnout.this.state = newState;
+					plan.place(Turnout.this);
 				}
 
 				@Override

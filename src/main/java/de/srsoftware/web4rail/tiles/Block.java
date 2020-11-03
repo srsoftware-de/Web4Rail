@@ -22,6 +22,7 @@ public abstract class Block extends StretchableTile{
 	
 	private static final String ALLOW_TURN = "allowTurn";
 	public boolean turnAllowed = false;
+	private Train trailingTrain = null;
 	
 	private static final String TRAIN = Train.class.getSimpleName();
 	
@@ -34,9 +35,9 @@ public abstract class Block extends StretchableTile{
 	
 	@Override
 	public boolean free() {
-		return train == null && super.free();
+		return super.free() && trailingTrain == null;
 	}
-	
+		
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
@@ -53,7 +54,7 @@ public abstract class Block extends StretchableTile{
 		turnAllowed = json.has(ALLOW_TURN) && json.getBoolean(ALLOW_TURN);
 		if (json.has(TRAIN)) {
 			Train tr = Train.get(json.getInt(TRAIN)); 
-			train(tr);
+			train(tr.block(this, false));
 		}
 		return this;
 	}
@@ -91,9 +92,11 @@ public abstract class Block extends StretchableTile{
 	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {
 		if (replacements == null) replacements = new HashMap<String, Object>();
-		replacements.put("%text%",train == null ? name : train.name());
+		replacements.put("%text%",name);
+		if (trailingTrain != null) replacements.put("%text%","("+trailingTrain.name()+")");
+		if (train != null) replacements.put("%text%",train.directedName());
 		Tag tag = super.tag(replacements);
-		if (train != null) tag.clazz(tag.get("class")+" occupied");
+		if (train != null || trailingTrain != null) tag.clazz(tag.get("class")+" occupied");
 		return tag;
 	}
 	
@@ -107,11 +110,20 @@ public abstract class Block extends StretchableTile{
 		return getClass().getSimpleName()+"("+name+") @ ("+x+","+y+")";
 	}
 	
-	public Tile train(Train newTrain) throws IOException {
-		if (train == newTrain) return this;
-		if (train != null) train.block(null); // vorherigen Zug rauswerfen
-		if (newTrain != null) newTrain.block(this);
-		return super.train(newTrain);
+	public void trailingTrain(Train train) {
+		trailingTrain = train;
+		this.train = null;
+		plan.place(this);
+	}
+
+	public Train trailingTrain() {
+		return trailingTrain;
+	}
+
+	@Override
+	public void unlock() {
+		trailingTrain = null;
+		super.unlock();
 	}
 	
 	@Override
@@ -119,14 +131,14 @@ public abstract class Block extends StretchableTile{
 		if (params.containsKey(NAME)) name=params.get(NAME);
 		if (params.containsKey(TRAIN)) {
 			int trainId = Integer.parseInt(params.get(TRAIN));
-			Train t = Train.get(trainId);
-			if (t != null) {
-				Block oldBlock = t.block();
-				if (oldBlock != null) oldBlock.train(null);
-				train(t);
-			}			
+			if (trainId == 0) {
+				train(null);
+			} else {
+				Train t = Train.get(trainId);
+				if (t != null) train = t.block(this,true);
+			}
 		}
 		turnAllowed = params.containsKey(ALLOW_TURN) && params.get(ALLOW_TURN).equals("on");
 		return super.update(params);
-	}	
+	}
 }

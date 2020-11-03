@@ -181,10 +181,8 @@ public class Relay extends Tile implements Device{
 				@Override
 				public void onSuccess() {
 					super.onSuccess();
-					try {
-						Relay.this.state = newState;
-						plan.place(Relay.this);
-					} catch (IOException e) {}
+					Relay.this.state = newState;
+					plan.place(Relay.this);
 				}
 
 				@Override

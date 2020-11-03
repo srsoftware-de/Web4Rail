@@ -550,8 +550,12 @@ public class Plan implements Constants{
 	 * @return
 	 * @throws IOException
 	 */
-	public Tile place(Tile tile) throws IOException {
-		stream("place "+tile.tag(null));
+	public Tile place(Tile tile) {
+		try {
+			stream("place "+tile.tag(null));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		return tile;
 	}
 

@@ -45,6 +45,11 @@ public abstract class Action implements Constants {
 		public Context(Train train) {
 			this.train = train;
 		}
+
+		public Context(Route route) {
+			this.route = route;
+			train = route.train;
+		}
 	}
 	
 	public Action() {
@@ -54,6 +59,7 @@ public abstract class Action implements Constants {
 	
 	public static Action create(String type) {
 		try {
+			if (type.equals("FreeStartBlock")) type = FreePreviousBlocks.class.getSimpleName();
 			return (Action) Class.forName(PREFIX+"."+type).getDeclaredConstructor().newInstance();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -86,7 +92,7 @@ public abstract class Action implements Constants {
 			ConditionalAction.class,
 			SetSpeed.class,
 			SetSignalsToStop.class,
-			FreeStartBlock.class,
+			FreePreviousBlocks.class,
 			FinishRoute.class,
 			TurnTrain.class,
 			StopAuto.class,

@@ -26,7 +26,7 @@ import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.actions.ActivateRoute;
 import de.srsoftware.web4rail.actions.FinishRoute;
-import de.srsoftware.web4rail.actions.FreeStartBlock;
+import de.srsoftware.web4rail.actions.FreePreviousBlocks;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.actions.SetSpeed;
 import de.srsoftware.web4rail.conditions.Condition;
@@ -43,7 +43,6 @@ import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.Turnout;
 import de.srsoftware.web4rail.tiles.Turnout.State;
-
 /**
  * A route is a vector of tiles that leads from one block to another.
  * 
@@ -131,8 +130,12 @@ public class Route implements Constants{
 	 * @throws IOException 
 	 */
 	public void activate() throws IOException {
-		LOG.debug("{} aktiviert.",this);
-		for (Tile tile : path) tile.train(train);
+		for (Tile tile : path) {
+			if (!(tile instanceof Block)) tile.train(train);
+		}
+		train.heading(endDirection.inverse());
+		endBlock.train(train);
+		startBlock.trailingTrain(train);
 	}
 	
 	/**
@@ -301,8 +304,8 @@ public class Route implements Constants{
 		if (!contacts.isEmpty()) {
 			Contact lastContact = contacts.lastElement(); 
 			add(lastContact.trigger(), new SetSpeed()); 
-			add(lastContact.trigger(), new FreeStartBlock());
 			add(lastContact.trigger(), new FinishRoute());
+			add(lastContact.trigger(), new FreePreviousBlocks());
 		}
 	}
 
@@ -331,16 +334,14 @@ public class Route implements Constants{
 		return endBlock;
 	}	
 	
-	public void finish() throws IOException {
-		train.route = null;		
-		unlock();
-		endBlock.train(train.heading(endDirection.inverse()));
-		train = null;
+	public void finish() {
+		reset();
+		train.block(endBlock, false);
+		train.heading(endDirection.inverse());
 	}
 	
-
-	public void fireSetupActions(Context context) {
-		setupActions.fire(context);
+	public boolean fireSetupActions(Context context) {
+		return setupActions.fire(context);
 	}
 	
 	public boolean free() {
@@ -348,11 +349,6 @@ public class Route implements Constants{
 			if (!path.get(i).free()) return false;
 		}
 		return true;
-	}
-	
-	public Route freeStartBlock() throws IOException {
-		startBlock.train(null);
-		return this;
 	}
 	
 	private String generateName() {
@@ -494,12 +490,8 @@ public class Route implements Constants{
 		ArrayList<Tile> lockedTiles = new ArrayList<Tile>();
 		try {
 			for (Tile tile : path) lockedTiles.add(tile.lock(this));
-		} catch (IOException e) {
-			for (Tile tile: lockedTiles) try {
-				tile.unlock();
-			} catch (IOException inner) {
-				LOG.warn("Was not able to unlock {}!",tile,inner);
-			}
+		} catch (IllegalStateException e) {
+			for (Tile tile: lockedTiles) tile.unlock();
 			return false;
 		}
 		return true;
@@ -541,6 +533,18 @@ public class Route implements Constants{
 		return win;
 	}
 	
+	public void reset() {
+		new SetSignalsToStop().fire(new Context(this));
+		for (Tile tile : path) {
+			if (!(tile instanceof Block)) tile.unlock();
+		}
+		if (endBlock.route() == this) endBlock.lock(null);
+		if (startBlock.route() == this) startBlock.lock(null);
+		train.heading(startDirection);
+		train.block(startBlock, false);
+		if (train.route == this) train.route = null;
+	}
+
 	public static void saveAll(Collection<Route> routes, String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		file.write("{\""+ROUTES+"\":[\n");
@@ -560,7 +564,7 @@ public class Route implements Constants{
 		if (lastTile instanceof Turnout) addTurnout((Turnout) lastTile,state);
 	}
 	
-	public boolean setSignals(String state) throws IOException {
+	public boolean setSignals(String state) {
 		for (Signal signal : signals) {
 			if (!signal.state(state == null ? Signal.GO : state)) return false;
 		}

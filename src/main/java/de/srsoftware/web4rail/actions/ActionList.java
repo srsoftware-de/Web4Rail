@@ -121,15 +121,16 @@ public class ActionList extends Vector<Action> implements Constants{
 	
 	public boolean fire(Context context) {
 		LOG.debug("Firing {}",this);
-
+		boolean success = true;
 		for (Action action : this) {
 			try {
-				action.fire(context);
+				success &= action.fire(context);
 			} catch (IOException e) {
 				LOG.warn("Action did not fire properly: {}",action,e);
+				success = false;
 			}
 		}
-		return true;
+		return success;
 	}
 
 	public int id() {
