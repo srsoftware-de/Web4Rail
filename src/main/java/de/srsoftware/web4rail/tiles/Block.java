@@ -23,9 +23,7 @@ public abstract class Block extends StretchableTile{
 	private static final String ALLOW_TURN = "allowTurn";
 	public boolean turnAllowed = false;
 	private Train trailingTrain = null;
-	
-	private static final String TRAIN = Train.class.getSimpleName();
-	
+		
 	@Override
 	public JSONObject config() {
 		JSONObject config = super.config();
@@ -34,8 +32,8 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
-	public boolean free() {
-		return super.free() && trailingTrain == null;
+	public boolean isFree() {
+		return super.isFree() && trailingTrain == null;
 	}
 		
 	@Override
@@ -43,7 +41,6 @@ public abstract class Block extends StretchableTile{
 		JSONObject json = super.json();
 		json.put(NAME, name);
 		json.put(ALLOW_TURN, turnAllowed);
-		if (train != null) json.put(TRAIN, train.id);
 		return json;
 	}
 	
@@ -52,10 +49,6 @@ public abstract class Block extends StretchableTile{
 		super.load(json);
 		name = json.has(NAME) ? json.getString(NAME) : "Block";
 		turnAllowed = json.has(ALLOW_TURN) && json.getBoolean(ALLOW_TURN);
-		if (json.has(TRAIN)) {
-			Train tr = Train.get(json.getInt(TRAIN)); 
-			train(tr.block(this, false));
-		}
 		return this;
 	}
 	
@@ -68,7 +61,7 @@ public abstract class Block extends StretchableTile{
 		
 		new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed).addTo(new Tag("p")).addTo(form);
 
-		Select select = Train.selector(train, null);
+		Select select = Train.selector(trainHead, null);
 		select.addTo(new Label(t("Train:")+NBSP)).addTo(new Tag("p")).addTo(form);
 		
 		return form;
@@ -78,10 +71,10 @@ public abstract class Block extends StretchableTile{
 	public Tag propMenu() {
 		Tag window = super.propMenu();
 		
-		if (train != null) {
-			window.children().insertElementAt(new Button(t("stop"),"train("+train.id+",'"+ACTION_STOP+"')"), 1);
-			window.children().insertElementAt(new Button(t("start"),"train("+train.id+",'"+ACTION_START+"')"), 1);
-			window.children().insertElementAt(train.link("span"), 1);
+		if (trainHead != null) {
+			window.children().insertElementAt(new Button(t("stop"),"train("+trainHead.id+",'"+ACTION_STOP+"')"), 1);
+			window.children().insertElementAt(new Button(t("start"),"train("+trainHead.id+",'"+ACTION_START+"')"), 1);
+			window.children().insertElementAt(trainHead.link("span"), 1);
 			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
 		}
 		return window;
@@ -94,9 +87,9 @@ public abstract class Block extends StretchableTile{
 		if (replacements == null) replacements = new HashMap<String, Object>();
 		replacements.put("%text%",name);
 		if (trailingTrain != null) replacements.put("%text%","("+trailingTrain.name()+")");
-		if (train != null) replacements.put("%text%",train.directedName());
+		if (trainHead != null) replacements.put("%text%",trainHead.directedName());
 		Tag tag = super.tag(replacements);
-		if (train != null || trailingTrain != null) tag.clazz(tag.get("class")+" occupied");
+		if (trainHead != null || trailingTrain != null) tag.clazz(tag.get("class")+" occupied");
 		return tag;
 	}
 	
@@ -112,7 +105,7 @@ public abstract class Block extends StretchableTile{
 	
 	public void trailingTrain(Train train) {
 		trailingTrain = train;
-		this.train = null;
+		this.trainHead = null;
 		plan.place(this);
 	}
 
@@ -129,13 +122,13 @@ public abstract class Block extends StretchableTile{
 	@Override
 	public Tile update(HashMap<String, String> params) throws IOException {		
 		if (params.containsKey(NAME)) name=params.get(NAME);
-		if (params.containsKey(TRAIN)) {
-			int trainId = Integer.parseInt(params.get(TRAIN));
+		if (params.containsKey(Train.HEAD)) {
+			int trainId = Integer.parseInt(params.get(Train.HEAD));
 			if (trainId == 0) {
-				train(null);
+				trainHead(null);
 			} else {
 				Train t = Train.get(trainId);
-				if (t != null) train = t.block(this,true);
+				if (t != null) trainHead = t.block(this,true);
 			}
 		}
 		turnAllowed = params.containsKey(ALLOW_TURN) && params.get(ALLOW_TURN).equals("on");

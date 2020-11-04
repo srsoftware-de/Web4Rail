@@ -37,38 +37,36 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
 
 public abstract class Tile implements Constants{
-	
-	public static final String ID = "id";
-	private static final String TYPE = "type";
-	private static final String LOCKED = "locked";
-	
-	private static final String POS = "pos";
-	private static final String X = "x";
-	private static final String Y = "y";
-	public int x = -1,y = -1;
-	
-	private static final String ROUTE = "route";
-	protected Route route;
-	
-	private static final String OCCUPIED = "occupied";
-	protected Train train;
-	
-	private static final String ONEW_WAY = "one_way";
-	protected Direction oneWay = null;
-
-	protected HashSet<Shadow> shadows = new HashSet<>();
-	private HashSet<Route> routes = new HashSet<>();
-	protected Plan plan;
-	private boolean disabled = false;
-	
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);	
 	
+	public    static final String ID         = "id";
+	private   static final String LOCKED     = "locked";
+	private   static final String OCCUPIED   = "occupied";
+	private   static final String ONEW_WAY   = "one_way";
+	private   static final String POS        = "pos";
+	private   static final String ROUTE      = "route";
+	private   static final String TYPE       = "type";
+	private   static final String X          = "x";
+	private   static final String Y          = "y";
+	
+	
+	private  boolean          disabled  = false;
+	protected Direction       oneWay    = null;
+	protected Plan            plan      = null;;
+	protected Route           route     = null;
+	private   HashSet<Route>  routes    = new HashSet<>();
+	protected HashSet<Shadow> shadows   = new HashSet<>();
+	protected Train           trainHead = null;	
+	protected Train           trainTail = null;
+	public    Integer         x         = null;
+	public    Integer         y         = null;
+
 	protected Vector<String> classes(){
 		Vector<String> classes = new Vector<String>();
 		classes.add("tile");
 		classes.add(getClass().getSimpleName());
-		if (route != null) classes.add(LOCKED);
-		if (train != null) classes.add(OCCUPIED);
+		if (isSet(route)) classes.add(LOCKED);
+		if (isSet(trainHead) || isSet(trainTail)) classes.add(OCCUPIED);
 		if (disabled) classes.add(DISABLED);
 		return classes;
 	}
@@ -94,11 +92,8 @@ public abstract class Tile implements Constants{
 		return new HashMap<>();
 	}
 
-	public boolean free() {
-		if (disabled) return false;
-		if (route != null) return false;
-		if (train != null) return false;
-		return true;
+	public boolean isFree() {
+		return !(disabled || isSet(route) || isSet(trainHead) || isSet(trainTail));
 	}
 	
 	public int height() {
@@ -121,14 +116,24 @@ public abstract class Tile implements Constants{
 		plan.set(tile.x, tile.y, tile);
 	}
 	
+	protected static boolean isNull(Object o) {
+		return o==null;
+	}
+
+	protected static boolean isSet(Object o) {
+		return o != null;
+	}
+
 	public JSONObject json() {
 		JSONObject json = new JSONObject();
 		json.put(TYPE, getClass().getSimpleName());
 		JSONObject pos = new JSONObject(Map.of(X,x,Y,y));
 		json.put(POS, pos);
-		if (route != null) json.put(ROUTE, route.id());
-		if (oneWay != null) json.put(ONEW_WAY, oneWay);
-		if (disabled) json.put(DISABLED, true);
+		if (isSet(route))     json.put(ROUTE, route.id());
+		if (isSet(oneWay))    json.put(ONEW_WAY, oneWay);
+		if (disabled)         json.put(DISABLED, true);
+		if (isSet(trainHead)) json.put(Train.HEAD, trainHead.id);
+		if (isSet(trainTail)) json.put(Train.TAIL, trainTail.id);
 		return json;
 	}
 	
@@ -139,7 +144,7 @@ public abstract class Tile implements Constants{
 	public static void loadAll(String filename, Plan plan) throws IOException {		
 		BufferedReader file = new BufferedReader(new FileReader(filename));
 		String line = file.readLine();
-		while (line != null) {
+		while (isSet(line)) {
 			JSONObject json = new JSONObject(line);
 			String clazz = json.getString(TYPE);
 			
@@ -158,18 +163,13 @@ public abstract class Tile implements Constants{
 		JSONObject pos = json.getJSONObject(POS);
 		x = pos.getInt(X);
 		y = pos.getInt(Y);
-		if (json.has(ONEW_WAY)) oneWay = Direction.valueOf(json.getString(ONEW_WAY));
-		if (json.has(DISABLED)) disabled = json.getBoolean(DISABLED);
+		if (json.has(ONEW_WAY))   oneWay    = Direction.valueOf(json.getString(ONEW_WAY));
+		if (json.has(DISABLED))   disabled  = json.getBoolean(DISABLED);
+		if (json.has(Train.HEAD)) trainHead = Train.get(json.getInt(Train.HEAD));
+		if (json.has(Train.TAIL)) trainTail = Train.get(json.getInt(Train.TAIL));
 		return this;
 	}
-	
-	public Tile lock(Route lockingRoute) {
-		if (route == lockingRoute) return this;
-		if (route != null && lockingRoute != null) throw new IllegalStateException(this.toString());
-		route = lockingRoute;
-		return plan.place(this);
-	}
-	
+		
 	public Plan plan() {
 		return plan;
 	}
@@ -199,7 +199,7 @@ public abstract class Tile implements Constants{
 		List<Direction> pd = possibleDirections();
 		if (!pd.isEmpty()) {
 			new Tag("h4").content(t("One way:")).addTo(form);
-			new Radio("oneway","none",t("No"),oneWay == null).addTo(form);		
+			new Radio("oneway","none",t("No"),isNull(oneWay)).addTo(form);		
 			for (Direction d:pd) {
 				new Radio("oneway",d.toString(),t(d.toString()),d == oneWay).addTo(form);
 			}
@@ -216,7 +216,7 @@ public abstract class Tile implements Constants{
 		new Button(t("Apply"),"submitForm('"+formId+"')").addTo(form);
 		form.addTo(window);
 		
-		if (route != null) {
+		if (isSet(route)) {
 			new Tag("p").content(t("Locked by {}",route)).addTo(window);
 		}
 		
@@ -249,9 +249,7 @@ public abstract class Tile implements Constants{
 			int end2 = line.indexOf("<",start);
 			if (end2>0 && (end<0 || end2<end)) end=end2;
 			String tag = line.substring(start, end);
-			if (tag.length()>len) {
-				val = Integer.parseInt(tag.substring(len)) + (int) val;
-			}
+			if (tag.length()>len) val = Integer.parseInt(tag.substring(len)) + (int) val;
 			line = line.replace(tag, ""+val);
 			start = line.indexOf(key);
 		}
@@ -269,10 +267,17 @@ public abstract class Tile implements Constants{
 	public static void saveAll(HashMap<String, Tile> tiles ,String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		for (Tile tile : tiles.values()) {
-			if (tile == null || tile instanceof Shadow) continue;
+			if (isNull(tile) || tile instanceof Shadow) continue;
 			file.append(tile.json()+"\n");
 		}
 		file.close();
+	}
+	
+	public Tile setRoute(Route lockingRoute) {
+		if (route == lockingRoute) return this; // nothing changed
+		if (isSet(route) && isSet(lockingRoute)) throw new IllegalStateException(this.toString()); // tile already locked by other route
+		route = lockingRoute;
+		return plan.place(this);
 	}
 
 	protected static String t(String txt, Object...fills) {
@@ -282,17 +287,17 @@ public abstract class Tile implements Constants{
 	public Tag tag(Map<String,Object> replacements) throws IOException {
 		int width = 100*len();
 		int height = 100*height();
-		if (replacements == null) replacements = new HashMap<String, Object>();
+		if (isNull(replacements)) replacements = new HashMap<String, Object>();
 		replacements.put("%width%",width);
 		replacements.put("%height%",height);
 		String style = "";
 		Tag svg = new Tag("svg")
-				.id((x!=-1 && y!=-1)?(id()):(getClass().getSimpleName()))
+				.id(isSet(x) && isSet(y) ? id() : getClass().getSimpleName())
 				.clazz(classes())
 				.size(100,100)
 				.attr("name", getClass().getSimpleName())				
 				.attr("viewbox", "0 0 "+width+" "+height);
-				if (x>-1) style="left: "+(30*x)+"px; top: "+(30*y)+"px;";
+				if (isSet(x)) style="left: "+(30*x)+"px; top: "+(30*y)+"px;";
 				if (len()>1) style+=" width: "+(30*len())+"px;";
 				if (height()>1) style+=" height: "+(30*height())+"px;";
 		
@@ -305,30 +310,27 @@ public abstract class Tile implements Constants{
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();
 				if (line.startsWith("<svg") || line.endsWith("svg>")) continue;
-				for (Entry<String, Object> replacement : replacements.entrySet()) {
-					line = replace(line,replacement);
-				}
+				for (Entry<String, Object> replacement : replacements.entrySet()) line = replace(line,replacement);
 				sb.append(line+"\n");
 			}
 			scanner.close();
 			svg.content(sb.toString());
 			
-			if (oneWay != null) {
-				switch (oneWay) {
-			
-				case EAST:
-					new Tag("polygon").clazz("oneway").attr("points", "100,50 75,35 75,65").addTo(svg);
-					break;
-				case WEST:
-					new Tag("polygon").clazz("oneway").attr("points", "0,50 25,35 25,65").addTo(svg);
-					break;
-				case SOUTH:
-					new Tag("polygon").clazz("oneway").attr("points", "50,100 35,75 65,75").addTo(svg);
-					break;
-				case NORTH:
-					new Tag("polygon").clazz("oneway").attr("points", "50,0 35,25 65,25").addTo(svg);
-					break;
-				default:
+			if (isSet(oneWay)) {
+				switch (oneWay) {			
+					case EAST:
+						new Tag("polygon").clazz("oneway").attr("points", "100,50 75,35 75,65").addTo(svg);
+						break;
+					case WEST:
+						new Tag("polygon").clazz("oneway").attr("points", "0,50 25,35 25,65").addTo(svg);
+						break;
+					case SOUTH:
+						new Tag("polygon").clazz("oneway").attr("points", "50,100 35,75 65,75").addTo(svg);
+						break;
+					case NORTH:
+						new Tag("polygon").clazz("oneway").attr("points", "50,0 35,25 65,25").addTo(svg);
+						break;
+					default:
 				}
 			}
 		} else {
@@ -339,7 +341,7 @@ public abstract class Tile implements Constants{
 				.addTo(svg);
 		}
 		String title = title();
-		if (title!=null) new Tag("title").content(title()).addTo(svg);
+		if (isSet(title)) new Tag("title").content(title()).addTo(svg);
 
 		return svg;
 	}
@@ -353,26 +355,27 @@ public abstract class Tile implements Constants{
 		return t("{}({},{})",getClass().getSimpleName(),x,y) ;
 	}
 	
-	public Train train() {
-		return train;
+	public Train trainHead() {
+		return trainHead;
 	}
 	
-	public Tile train(Train train) {
-		if (this.train == train) return this; // nothing to update
-		this.train = train;		
+	public Tile trainHead(Train train) {
+		if (this.trainHead == train) return this; // nothing to update
+		this.trainHead = train;		
 		return plan.place(this);
 	}	
 
 	public void unlock() {
-		route = null;
-		train = null;
+		route     = null;
+		trainHead = null;
+		trainTail = null;
 		plan.place(this);
 	}
 
 	public Tile update(HashMap<String, String> params) throws IOException {
 		LOG.debug("{}.update({})",getClass().getSimpleName(),params);
 		String oneWayDir = params.get("oneway");
-		if (oneWayDir != null) {
+		if (isSet(oneWayDir)) {
 			try {
 				oneWay = Direction.valueOf(oneWayDir);
 			} catch (Exception e) {

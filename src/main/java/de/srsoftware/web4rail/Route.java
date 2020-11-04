@@ -131,10 +131,10 @@ public class Route implements Constants{
 	 */
 	public void activate() throws IOException {
 		for (Tile tile : path) {
-			if (!(tile instanceof Block)) tile.train(train);
+			if (!(tile instanceof Block)) tile.trainHead(train);
 		}
 		train.heading(endDirection.inverse());
-		endBlock.train(train);
+		endBlock.trainHead(train);
 		startBlock.trailingTrain(train);
 	}
 	
@@ -312,7 +312,7 @@ public class Route implements Constants{
 	/**
 	 * Kontakt der Route aktivieren
 	 * @param contact
-	 * @param train
+	 * @param trainHead
 	 */
 	public void contact(Contact contact) {
 		LOG.debug("{} on {} activated {}.",train,this,contact);
@@ -346,7 +346,7 @@ public class Route implements Constants{
 	
 	public boolean free() {
 		for (int i=1; i<path.size(); i++) { 
-			if (!path.get(i).free()) return false;
+			if (!path.get(i).isFree()) return false;
 		}
 		return true;
 	}
@@ -489,7 +489,7 @@ public class Route implements Constants{
 	public boolean lock() {		
 		ArrayList<Tile> lockedTiles = new ArrayList<Tile>();
 		try {
-			for (Tile tile : path) lockedTiles.add(tile.lock(this));
+			for (Tile tile : path) lockedTiles.add(tile.setRoute(this));
 		} catch (IllegalStateException e) {
 			for (Tile tile: lockedTiles) tile.unlock();
 			return false;
@@ -538,8 +538,8 @@ public class Route implements Constants{
 		for (Tile tile : path) {
 			if (!(tile instanceof Block)) tile.unlock();
 		}
-		if (endBlock.route() == this) endBlock.lock(null);
-		if (startBlock.route() == this) startBlock.lock(null);
+		if (endBlock.route() == this) endBlock.setRoute(null);
+		if (startBlock.route() == this) startBlock.setRoute(null);
 		if (train != null) {
 			train.heading(startDirection);
 			train.block(startBlock, false);

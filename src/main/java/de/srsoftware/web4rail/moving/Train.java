@@ -39,7 +39,9 @@ import de.srsoftware.web4rail.tiles.Block;
 
 public class Train implements Comparable<Train>,Constants {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
-	
+
+	public static final String HEAD = "train_head";
+	public static final String TAIL = "train_tile";
 	private static final HashMap<Integer, Train> trains = new HashMap<>();
 	
 	public static final String ID = "id";
@@ -236,7 +238,7 @@ public class Train implements Comparable<Train>,Constants {
 			previousBlocks.add(this.block);
 		}
 		this.block = block;
-		block.train(this);
+		block.trainHead(this);
 		if (resetPreviousBlocks) resetPreviousBlocks();
 		return this;
 	}
@@ -480,14 +482,14 @@ public class Train implements Comparable<Train>,Constants {
 	}
 
 	public void removeFromBlock(Block block) {
-		if (block.train() == this) block.train(null);
+		if (block.trainHead() == this) block.trainHead(null);
 		if (this.block == block) this.block = null;
 		previousBlocks.remove(block);		
 	}
 	
 	public void resetPreviousBlocks() {
 		for (Block block : previousBlocks) {
-			if (block.train() == this || block.trailingTrain() == this) block.unlock();
+			if (block.trainHead() == this || block.trailingTrain() == this) block.unlock();
 		}
 		previousBlocks.clear();
 	}
@@ -503,7 +505,7 @@ public class Train implements Comparable<Train>,Constants {
 	
 	public static Select selector(Train preselected,Collection<Train> exclude) {
 		if (exclude == null) exclude = new Vector<Train>();
-		Select select = new Select(Train.class.getSimpleName());
+		Select select = new Select(Train.HEAD);
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
 		for (Train train : Train.list()) {			
 			if (exclude.contains(train)) continue;
@@ -547,8 +549,8 @@ public class Train implements Comparable<Train>,Constants {
 		setSpeed(0);
 		if (route != null) try {
 			route.unlock();
-			route.endBlock().train(null);
-			route.startBlock().train(this);
+			route.endBlock().trainHead(null);
+			route.startBlock().trainHead(this);
 		} catch (IOException e) {
 			e.printStackTrace();			
 		}
@@ -571,7 +573,7 @@ public class Train implements Comparable<Train>,Constants {
 			direction = direction.inverse();
 			for (Locomotive loco : locos) loco.turn(); 
 		}
-		if (block != null) plan.place(block.train(this));
+		if (block != null) plan.place(block.trainHead(this));
 		return t("{} turned.",this);
 	}
 
