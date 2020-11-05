@@ -23,7 +23,6 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ActionList;
-import de.srsoftware.web4rail.actions.ActivateRoute;
 import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.actions.SetSpeed;
@@ -124,14 +123,6 @@ public class Route extends BaseClass{
 		return properties(params);
 	}
 
-	/**
-	 * Route wurde von Zug betreten
-	 * @throws IOException 
-	 */
-	public void activate() throws IOException {
-		// TODO
-	}
-	
 	/**
 	 * adds a tile to the route
 	 * @param tile
@@ -300,7 +291,6 @@ public class Route extends BaseClass{
 	
 	public void complete() {
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
-			add(contacts.firstElement().trigger(),new ActivateRoute());
 			Contact nextToLastContact = contacts.get(contacts.size()-2);			
 			add(nextToLastContact.trigger(),new SetSpeed().speed(30));			
 			add(nextToLastContact.trigger(),new SetSignalsToStop());
@@ -525,7 +515,7 @@ public class Route extends BaseClass{
 			name = generateName();
 			name(name);
 		}
-		return name;
+		return name + (disabled?" ["+t("disabled")+"]" : "");
 	}
 
 	public void name(String name) {
