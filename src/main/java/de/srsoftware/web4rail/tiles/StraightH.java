@@ -15,7 +15,7 @@ public class StraightH extends StretchableTile{
 		if (oneWay == from) return new HashMap<>();
 		switch (from) {
 			case WEST:
-				return Map.of(new Connector(x+len(),y,Direction.WEST),State.UNDEF);
+				return Map.of(new Connector(x+width(),y,Direction.WEST),State.UNDEF);
 			case EAST:
 				return Map.of(new Connector(x-1,y,Direction.EAST),State.UNDEF);
 			default:
@@ -24,12 +24,17 @@ public class StraightH extends StretchableTile{
 	}
 	
 	@Override
-	public int len() {
-		return length;
+	public int width() {
+		return stretch;
 	}
 	
 	@Override
 	public List<Direction> possibleDirections() {
 		return List.of(Direction.EAST,Direction.WEST);
 	}
+	
+	@Override
+	protected String stretchType() {
+		return t("Width");
+	}	
 }

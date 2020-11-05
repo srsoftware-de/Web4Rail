@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
@@ -36,10 +36,12 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
 
-public abstract class Tile implements Constants{
+public abstract class Tile extends BaseClass{
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);	
+	private static int DEFAUT_LENGTH = 5;
 	
 	public    static final String ID         = "id";
+	private   static final String LENGTH     = "length";
 	private   static final String LOCKED     = "locked";
 	private   static final String OCCUPIED   = "occupied";
 	private   static final String ONEW_WAY   = "one_way";
@@ -48,16 +50,17 @@ public abstract class Tile implements Constants{
 	private   static final String TYPE       = "type";
 	private   static final String X          = "x";
 	private   static final String Y          = "y";
+
 	
 	
-	private  boolean          disabled  = false;
+	private   boolean         disabled  = false;
+	private   int             length    = DEFAUT_LENGTH;
 	protected Direction       oneWay    = null;
 	protected Plan            plan      = null;;
 	protected Route           route     = null;
 	private   HashSet<Route>  routes    = new HashSet<>();
 	protected HashSet<Shadow> shadows   = new HashSet<>();
-	protected Train           trainHead = null;	
-	protected Train           trainTail = null;
+	protected Train           train     = null;	
 	public    Integer         x         = null;
 	public    Integer         y         = null;
 
@@ -66,8 +69,8 @@ public abstract class Tile implements Constants{
 		classes.add("tile");
 		classes.add(getClass().getSimpleName());
 		if (isSet(route)) classes.add(LOCKED);
-		if (isSet(trainHead) || isSet(trainTail)) classes.add(OCCUPIED);
-		if (disabled) classes.add(DISABLED);
+		if (isSet(train)) classes.add(OCCUPIED);
+		if (disabled)     classes.add(DISABLED);
 		return classes;
 	}
 
@@ -93,7 +96,7 @@ public abstract class Tile implements Constants{
 	}
 
 	public boolean isFree() {
-		return !(disabled || isSet(route) || isSet(trainHead) || isSet(trainTail));
+		return !(disabled || isSet(route) || isSet(train));
 	}
 	
 	public int height() {
@@ -115,14 +118,6 @@ public abstract class Tile implements Constants{
 		tile.load(json);
 		plan.set(tile.x, tile.y, tile);
 	}
-	
-	protected static boolean isNull(Object o) {
-		return o==null;
-	}
-
-	protected static boolean isSet(Object o) {
-		return o != null;
-	}
 
 	public JSONObject json() {
 		JSONObject json = new JSONObject();
@@ -132,13 +127,18 @@ public abstract class Tile implements Constants{
 		if (isSet(route))     json.put(ROUTE, route.id());
 		if (isSet(oneWay))    json.put(ONEW_WAY, oneWay);
 		if (disabled)         json.put(DISABLED, true);
-		if (isSet(trainHead)) json.put(Train.HEAD, trainHead.id);
-		if (isSet(trainTail)) json.put(Train.TAIL, trainTail.id);
+		if (isSet(train))     json.put(REALM_TRAIN, train.id);
+		json.put(LENGTH, length);
 		return json;
 	}
 	
-	public int len() {
-		return 1;
+	public int length() {
+		return length;
+	}
+	
+	public Tile length(int newLength) {
+		length = newLength;
+		return this;
 	}
 	
 	public static void loadAll(String filename, Plan plan) throws IOException {		
@@ -163,10 +163,10 @@ public abstract class Tile implements Constants{
 		JSONObject pos = json.getJSONObject(POS);
 		x = pos.getInt(X);
 		y = pos.getInt(Y);
-		if (json.has(ONEW_WAY))   oneWay    = Direction.valueOf(json.getString(ONEW_WAY));
-		if (json.has(DISABLED))   disabled  = json.getBoolean(DISABLED);
-		if (json.has(Train.HEAD)) trainHead = Train.get(json.getInt(Train.HEAD));
-		if (json.has(Train.TAIL)) trainTail = Train.get(json.getInt(Train.TAIL));
+		if (json.has(DISABLED))    disabled  = json.getBoolean(DISABLED);
+		if (json.has(LENGTH))	   length    = json.getInt(LENGTH);
+		if (json.has(ONEW_WAY))    oneWay    = Direction.valueOf(json.getString(ONEW_WAY));
+		if (json.has(REALM_TRAIN)) train = Train.get(json.getInt(REALM_TRAIN));
 		return this;
 	}
 		
@@ -195,7 +195,6 @@ public abstract class Tile implements Constants{
 		new Input(REALM, REALM_PLAN).hideIn(form);
 		new Input(ID,id()).hideIn(form);
 
-
 		List<Direction> pd = possibleDirections();
 		if (!pd.isEmpty()) {
 			new Tag("h4").content(t("One way:")).addTo(form);
@@ -211,6 +210,8 @@ public abstract class Tile implements Constants{
 		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",title(),x,y));
 		String formId = "tile-properties-"+id();
 		Tag form = propForm(formId);
+		new Tag("h4").content(t("Length")).addTo(form);
+		new Input(LENGTH,length).numeric().addTo(form);
 		new Tag("h4").content(t("Availability")).addTo(form);
 		new Checkbox(DISABLED, t("disabled"), disabled).addTo(form);
 		new Button(t("Apply"),"submitForm('"+formId+"')").addTo(form);
@@ -285,7 +286,7 @@ public abstract class Tile implements Constants{
 	}
 
 	public Tag tag(Map<String,Object> replacements) throws IOException {
-		int width = 100*len();
+		int width = 100*width();
 		int height = 100*height();
 		if (isNull(replacements)) replacements = new HashMap<String, Object>();
 		replacements.put("%width%",width);
@@ -298,7 +299,7 @@ public abstract class Tile implements Constants{
 				.attr("name", getClass().getSimpleName())				
 				.attr("viewbox", "0 0 "+width+" "+height);
 				if (isSet(x)) style="left: "+(30*x)+"px; top: "+(30*y)+"px;";
-				if (len()>1) style+=" width: "+(30*len())+"px;";
+				if (width()>1) style+=" width: "+(30*width())+"px;";
 				if (height()>1) style+=" height: "+(30*height())+"px;";
 		
 		if (!style.isEmpty()) svg.style(style);
@@ -355,20 +356,19 @@ public abstract class Tile implements Constants{
 		return t("{}({},{})",getClass().getSimpleName(),x,y) ;
 	}
 	
-	public Train trainHead() {
-		return trainHead;
+	public Train train() {
+		return train;
 	}
 	
-	public Tile trainHead(Train train) {
-		if (this.trainHead == train) return this; // nothing to update
-		this.trainHead = train;		
+	public Tile set(Train newTrain) {
+		if (newTrain == train) return this; // nothing to update
+		this.train = newTrain;		
 		return plan.place(this);
 	}	
 
 	public void unlock() {
-		route     = null;
-		trainHead = null;
-		trainTail = null;
+		route = null;
+		train = null;
 		plan.place(this);
 	}
 
@@ -383,7 +383,13 @@ public abstract class Tile implements Constants{
 			}
 		}
 		disabled = "on".equals(params.get(DISABLED));
+		String len = params.get(LENGTH);
+		if (isSet(len)) length(Integer.parseInt(len));
 		plan.stream(tag(null).toString());
 		return this;
+	}
+	
+	public int width() {
+		return 1;
 	}
 }

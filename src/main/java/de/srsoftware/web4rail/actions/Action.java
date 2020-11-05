@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
-import de.srsoftware.web4rail.Constants;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
@@ -23,7 +23,7 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Contact;
 
-public abstract class Action implements Constants {
+public abstract class Action extends BaseClass {
 	private static final HashMap<Integer,Action> actions = new HashMap<Integer, Action>();
 	public static final Logger LOG = LoggerFactory.getLogger(Action.class);
 	private static final String PREFIX = Action.class.getPackageName();
@@ -50,6 +50,17 @@ public abstract class Action implements Constants {
 			this.route = route;
 			train = route.train;
 		}
+		
+		@Override
+		public String toString() {
+			StringBuffer sb = new StringBuffer(getClass().getSimpleName());
+			sb.append("(");
+			sb.append(t("Train: {}",train));
+			if (isSet(route))   sb.append(", "+t("Route: {}",route));
+			if (isSet(contact)) sb.append(", "+t("Contact: {}",contact));
+			sb.append(")");
+			return sb.toString();
+		}
 	}
 	
 	public Action() {
@@ -59,7 +70,6 @@ public abstract class Action implements Constants {
 	
 	public static Action create(String type) {
 		try {
-			if (type.equals("FreeStartBlock")) type = FreePreviousBlocks.class.getSimpleName();
 			return (Action) Class.forName(PREFIX+"."+type).getDeclaredConstructor().newInstance();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -92,7 +102,6 @@ public abstract class Action implements Constants {
 			ConditionalAction.class,
 			SetSpeed.class,
 			SetSignalsToStop.class,
-			FreePreviousBlocks.class,
 			FinishRoute.class,
 			TurnTrain.class,
 			StopAuto.class,

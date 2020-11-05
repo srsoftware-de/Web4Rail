@@ -25,11 +25,16 @@ public class StraightV extends StretchableTile{
 	
 	@Override
 	public int height() {
-		return length;
+		return stretch;
 	}
 	
 	@Override
 	public List<Direction> possibleDirections() {
 		return List.of(Direction.NORTH,Direction.SOUTH);
 	}
+	
+	@Override
+	protected String stretchType() {
+		return t("Height");
+	}	
 }

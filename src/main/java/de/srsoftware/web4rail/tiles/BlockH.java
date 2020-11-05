@@ -15,7 +15,7 @@ public class BlockH extends Block{
 	public Map<Connector, State> connections(Direction from) {
 		switch (from) {
 			case WEST:
-				return Map.of(new Connector(x+len(),y,Direction.WEST),State.UNDEF);
+				return Map.of(new Connector(x+width(),y,Direction.WEST),State.UNDEF);
 			case EAST:
 				return Map.of(new Connector(x-1,y,Direction.EAST),State.UNDEF);
 			default:
@@ -24,12 +24,17 @@ public class BlockH extends Block{
 	}
 		
 	@Override
-	public int len() {
-		return length;
+	public int width() {
+		return stretch;
 	}
 	
 	@Override
 	public List<Connector> startPoints() {
-		return List.of(new Connector(x-1, y, Direction.EAST),new Connector(x+len(), y, Direction.WEST));
+		return List.of(new Connector(x-1, y, Direction.EAST),new Connector(x+width(), y, Direction.WEST));
+	}
+
+	@Override
+	protected String stretchType() {
+		return t("Width");
 	}
 }

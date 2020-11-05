@@ -24,7 +24,7 @@ public class CrossH extends Cross{
 	}
 	
 	@Override
-	public int len() {
+	public int width() {
 		return 2;
 	}
 	

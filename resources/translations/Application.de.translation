@@ -32,6 +32,7 @@ Emergency : Notfall
 FinishRoute : Route abschließen
 FreeStartBlock : Start-Block freigeben
 Hardware settings : Hardware-Einstellungen
+Height : Höhe
 Help : Hilfe
 inverted : invertiert
 learn : lernen
@@ -104,3 +105,4 @@ Was not able to lock {} : Konnte {} nicht reservieren
 Was not able to set all signals! : Konnte nicht alle Signale stellen!
 Was not able to set all turnouts! : Konnte nicht alle Weichen stellen!
 WEST : Westen
+Width : Breite

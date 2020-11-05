@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +25,6 @@ import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.actions.ActivateRoute;
 import de.srsoftware.web4rail.actions.FinishRoute;
-import de.srsoftware.web4rail.actions.FreePreviousBlocks;
 import de.srsoftware.web4rail.actions.SetSignalsToStop;
 import de.srsoftware.web4rail.actions.SetSpeed;
 import de.srsoftware.web4rail.conditions.Condition;
@@ -36,6 +34,7 @@ import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
@@ -49,7 +48,7 @@ import de.srsoftware.web4rail.tiles.Turnout.State;
  * @author Stephan Richter, SRSoftware
  *
  */
-public class Route implements Constants{
+public class Route extends BaseClass{
 	private static final Logger LOG = LoggerFactory.getLogger(Route.class);
 	static final String NAME = "name";
 	static final String PATH = "path";
@@ -88,14 +87,14 @@ public class Route implements Constants{
 	 */
 	public static Object action(HashMap<String, String> params,Plan plan) throws IOException {
 		Route route = plan.route(Integer.parseInt(params.get(ID)));
-		if (route == null) return t("Unknown route: {}",params.get(ID));
+		if (isNull(route)) return t("Unknown route: {}",params.get(ID));
 		switch (params.get(ACTION)) {
 			case ACTION_DROP:
 				String message = plan.remove(route);
 				String tileId = params.get(Tile.class.getSimpleName());
-				if (tileId != null) {
+				if (isSet(tileId)) {
 					Tile tile = plan.get(tileId, false);
-					if (tile != null) {
+					if (isSet(tile)) {
 						plan.stream(message);
 						return tile.propMenu();
 					}
@@ -113,7 +112,7 @@ public class Route implements Constants{
 
 	private Object dropCodition(HashMap<String, String> params) {
 		String condId = params.get(REALM_CONDITION);
-		if (condId != null) {
+		if (isSet(condId)) {
 			int cid = Integer.parseInt(condId);
 			for (Condition condition : conditions) {
 				if (condition.id() == cid) {
@@ -130,12 +129,7 @@ public class Route implements Constants{
 	 * @throws IOException 
 	 */
 	public void activate() throws IOException {
-		for (Tile tile : path) {
-			if (!(tile instanceof Block)) tile.trainHead(train);
-		}
-		train.heading(endDirection.inverse());
-		endBlock.trainHead(train);
-		startBlock.trailingTrain(train);
+		// TODO
 	}
 	
 	/**
@@ -167,7 +161,7 @@ public class Route implements Constants{
 	 */
 	public void add(String trigger, Action action) {
 		ActionList actions = triggers.get(trigger);
-		if (actions == null) {
+		if (isNull(actions)) {
 			actions = new ActionList();
 			triggers.put(trigger, actions);
 		}
@@ -224,7 +218,7 @@ public class Route implements Constants{
 			for (Contact c : contacts) {
 				Tag link = Plan.addLink(c,c.toString(),list);
 				ActionList actions = triggers.get(c.trigger());
-				if (actions == null) {
+				if (isNull(actions)) {
 					actions = new ActionList();
 					triggers.put(c.trigger(), actions);
 				}
@@ -240,9 +234,7 @@ public class Route implements Constants{
 		new Input(REALM,REALM_ROUTE).hideIn(form);
 		new Input(ID,id()).hideIn(form);
 		if (params.containsKey(CONTEXT)) new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
-		Tag label = new Tag("label").content(t("name:")+NBSP);
-		new Input(NAME, name()).style("width: 80%").addTo(label);
-		label.addTo(form);
+		new Input(NAME, name()).style("width: 80%").addTo(new Label(t("name:")+NBSP)).addTo(form);
 		new Checkbox(DISABLED, t("disabled"), disabled).addTo(form);
 		
 		new Button(t("Apply"),form).addTo(form).addTo(win);
@@ -281,6 +273,18 @@ public class Route implements Constants{
 		return true;
 	}
 	
+	public Route begin(Block block,Direction from) {
+		// add those fields to clone, too!
+		contacts = new Vector<Contact>();
+		signals = new Vector<Signal>();
+		path = new Vector<Tile>();
+		turnouts = new HashMap<>();
+		startBlock = block;
+		startDirection = from;
+		path.add(block);
+		return this;
+	}
+	
 	protected Route clone() {
 		Route clone = new Route();
 		clone.startBlock = startBlock;
@@ -305,7 +309,6 @@ public class Route implements Constants{
 			Contact lastContact = contacts.lastElement(); 
 			add(lastContact.trigger(), new SetSpeed()); 
 			add(lastContact.trigger(), new FinishRoute());
-			add(lastContact.trigger(), new FreePreviousBlocks());
 		}
 	}
 
@@ -315,13 +318,14 @@ public class Route implements Constants{
 	 * @param trainHead
 	 */
 	public void contact(Contact contact) {
+		traceTrainFrom(contact);
 		LOG.debug("{} on {} activated {}.",train,this,contact);
 		ActionList actions = triggers.get(contact.trigger());
-		if (actions == null) return;
+		if (isNull(actions)) return;
 		Context context = new Context(contact);
 		actions.fire(context);
 	}
-	
+
 	public Vector<Contact> contacts() {
 		return new Vector<>(contacts);
 	}
@@ -335,8 +339,11 @@ public class Route implements Constants{
 	}	
 	
 	public void finish() {
-		reset();
-		train.block(endBlock, false);
+		setSignals(Signal.STOP);
+		for (Tile tile : path) tile.setRoute(null);
+		Tile lastTile = path.lastElement();
+		if (lastTile instanceof Contact) lastTile.set(null);
+		train.set(endBlock);
 		train.heading(endDirection.inverse());
 	}
 	
@@ -344,7 +351,7 @@ public class Route implements Constants{
 		return setupActions.fire(context);
 	}
 	
-	public boolean free() {
+	public boolean isFree() {
 		for (int i=1; i<path.size(); i++) { 
 			if (!path.get(i).isFree()) return false;
 		}
@@ -414,7 +421,7 @@ public class Route implements Constants{
 		if (!setupActions.isEmpty()) json.put(ACTIONS, setupActions.json());
 		
 		String name = name();		
-		if (name != null) json.put(NAME, name);
+		if (isSet(name)) json.put(NAME, name);
 		
 		if (disabled) json.put(DISABLED, true);
 
@@ -428,8 +435,8 @@ public class Route implements Constants{
 		endDirection = Direction.valueOf(json.getString(END_DIRECTION));
 		for (Object tileId : pathIds) {
 			Tile tile = plan.get((String) tileId,false);
-			if (startBlock == null) {
-				start((Block) tile, startDirection);
+			if (isNull(startBlock)) {
+				begin((Block) tile, startDirection);
 			} else if (tile instanceof Block) { // make sure, endDirection is set on last block
 				add(tile,endDirection);
 			} else {
@@ -482,19 +489,25 @@ public class Route implements Constants{
 		for (int i=0; i<arr.length(); i++) {
 			JSONObject json = arr.getJSONObject(i);
 			Condition condition = Condition.create(json.getString(TYPE));
-			if (condition != null) conditions.add(condition.load(json));
+			if (isSet(condition)) conditions.add(condition.load(json));
 		}
 	}
 	
-	public boolean lock() {		
-		ArrayList<Tile> lockedTiles = new ArrayList<Tile>();
-		try {
-			for (Tile tile : path) lockedTiles.add(tile.setRoute(this));
-		} catch (IllegalStateException e) {
-			for (Tile tile: lockedTiles) tile.unlock();
-			return false;
+	public boolean lock() {
+		Vector<Tile> alreadyLocked = new Vector<Tile>();
+		boolean success = true;
+		for (Tile tile : path) {
+			try {
+				tile.setRoute(this);
+			} catch (IllegalStateException e) {
+				success = false;
+				break;
+			}			
 		}
-		return true;
+		if (!success) for (Tile tile :alreadyLocked) {
+			tile.setRoute(null);
+		}
+		return success;
 	}
 	
 	public List<Route> multiply(int size) {
@@ -505,7 +518,7 @@ public class Route implements Constants{
 	
 	public String name() {
 		String name = names.get(id());
-		if (name == null) {			
+		if (isNull(name)) {			
 			name = generateName();
 			name(name);
 		}
@@ -518,7 +531,7 @@ public class Route implements Constants{
 	
 	public Vector<Tile> path() {
 		Vector<Tile> result = new Vector<Tile>();
-		if (path != null) result.addAll(path);
+		if (isSet(path)) result.addAll(path);
 		return result;
 	}
 	
@@ -533,18 +546,9 @@ public class Route implements Constants{
 		return win;
 	}
 	
-	public void reset() {
-		new SetSignalsToStop().fire(new Context(this));
-		for (Tile tile : path) {
-			if (!(tile instanceof Block)) tile.unlock();
-		}
-		if (endBlock.route() == this) endBlock.setRoute(null);
-		if (startBlock.route() == this) startBlock.setRoute(null);
-		if (train != null) {
-			train.heading(startDirection);
-			train.block(startBlock, false);
-			if (train.route == this) train.route = null;
-		}
+	public boolean reset() {
+		// TODO
+		return false;
 	}
 
 	public static void saveAll(Collection<Route> routes, String filename) throws IOException {
@@ -561,14 +565,14 @@ public class Route implements Constants{
 	}
 
 	public void setLast(State state) {
-		if (state == null || state == State.UNDEF) return;
+		if (isNull(state) || state == State.UNDEF) return;
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Turnout) addTurnout((Turnout) lastTile,state);
 	}
 	
 	public boolean setSignals(String state) {
 		for (Signal signal : signals) {
-			if (!signal.state(state == null ? Signal.GO : state)) return false;
+			if (!signal.state(isNull(state) ? Signal.GO : state)) return false;
 		}
 		return true;
 	}
@@ -588,18 +592,6 @@ public class Route implements Constants{
 		}
 		return true;
 	}
-	
-	public Route start(Block block,Direction from) {
-		// add those fields to clone, too!
-		contacts = new Vector<Contact>();
-		signals = new Vector<Signal>();
-		path = new Vector<Tile>();
-		turnouts = new HashMap<>();
-		startBlock = block;
-		startDirection = from;
-		path.add(block);
-		return this;
-	}
 
 	public Block startBlock() {
 		return startBlock;
@@ -614,27 +606,35 @@ public class Route implements Constants{
 		return getClass().getSimpleName()+"("+name()+")";
 	}
 	
-	public boolean train(Train train) {
-		if (this.train != null && this.train != train) return false;
-		this.train = train;
+	private void traceTrainFrom(Tile tile) {
+		Vector<Tile> trace = new Vector<Tile>();
+		for (Tile t:path) {
+			trace.add(t);
+			if (t == tile) break;
+		}
+		train.addToTrace(trace);
+	}
+	
+	public boolean train(Train newTrain) {
+		if (isSet(train) && newTrain != train) return false;
+		train = newTrain;
 		return true;
 	}
 	
 	public Route unlock() throws IOException {
-		setSignals(Signal.STOP);
-		for (Tile tile : path) tile.unlock();
+		// TODO
 		return this;
 	}
 
 	public Object update(HashMap<String, String> params,Plan plan) {
 		LOG.debug("update({})",params);
 		String name = params.get(NAME);
-		if (name != null) name(name);
+		if (isSet(name)) name(name);
 		
 		disabled = "on".equals(params.get(DISABLED));
 		
 		Condition condition = Condition.create(params.get(REALM_CONDITION));
-		if (condition != null) {
+		if (isSet(condition)) {
 			conditions.add(condition);
 			return properties(params);
 		}

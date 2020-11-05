@@ -25,11 +25,16 @@ public class BlockV extends Block{
 	
 	@Override
 	public int height() {
-		return length;
+		return stretch;
 	}
 	
 	@Override
 	public List<Connector> startPoints() {
 		return List.of(new Connector(x,y-1,Direction.SOUTH),new Connector(x,y+height(),Direction.NORTH));
+	}
+
+	@Override
+	protected String stretchType() {
+		return t("Height");
 	}	
 }

@@ -237,7 +237,7 @@ public class Plan implements Constants{
 	private String analyze() {
 		Vector<Route> routes = new Vector<Route>();
 		for (Block block : blocks) {
-			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().start(block,con.from.inverse()),con));
+			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
 		}
 		this.routes.clear();
 		for (Tile tile : tiles.values()) tile.routes().clear();
@@ -586,7 +586,7 @@ public class Plan implements Constants{
 	private void remove(Tile tile) {
 		removeTile(tile.x,tile.y);
 		if (tile instanceof Block) blocks.remove(tile);
-		for (int i=1; i<tile.len(); i++) removeTile(tile.x+i, tile.y); // remove shadow tiles
+		for (int i=1; i<tile.width(); i++) removeTile(tile.x+i, tile.y); // remove shadow tiles
 		for (int i=1; i<tile.height(); i++) removeTile(tile.x, tile.y+i); // remove shadow tiles
 		if (tile != null) stream("remove "+tile.id());
 	}
@@ -649,7 +649,7 @@ public class Plan implements Constants{
 	public void set(int x,int y,Tile tile) throws IOException {
 		if (tile == null) return;
 		if (tile instanceof Block) blocks.add((Block) tile);
-		for (int i=1; i<tile.len(); i++) set(x+i,y,new Shadow(tile));
+		for (int i=1; i<tile.width(); i++) set(x+i,y,new Shadow(tile));
 		for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
 		setIntern(x,y,tile);
 		place(tile);		

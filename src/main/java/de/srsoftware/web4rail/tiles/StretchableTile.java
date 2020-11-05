@@ -7,61 +7,64 @@ import java.util.Map.Entry;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
 
 public abstract class StretchableTile extends Tile {
-	private static final String LENGTH = "length";
-	public int length = 1;
+	private static final String STRETCH_LENGTH = "stretch";
+	public int stretch = 1;
 	
 	@Override
 	public JSONObject config() {
 		JSONObject config = super.config();
-		if (length != 1) config.put(LENGTH, length);
+		if (stretch != 1) config.put(STRETCH_LENGTH, stretch);
 		return config;
 	}
 	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
-		if (length > 1) json.put(LENGTH, length);
+		if (stretch > 1) json.put(STRETCH_LENGTH, stretch);
 		return json;
 	}
 	
 	@Override
 	protected Tile load(JSONObject json) throws IOException {
 		super.load(json);
-		if (json.has(LENGTH)) length = json.getInt(LENGTH);
+		if (json.has(STRETCH_LENGTH)) stretch = json.getInt(STRETCH_LENGTH);
 		return this;
 	}
 	
 	@Override
 	public Tag propForm(String id) {
 		Tag form = super.propForm(id);
-		new Tag("h4").content(t("Length")).addTo(form);
-		Tag label = new Tag("label").content(t("length:")+NBSP);
-		new Tag("input").attr("type", "number").attr("name","length").attr("value", length).addTo(label);		
-		label.addTo(new Tag("p")).addTo(form);
+		new Tag("h4").content(stretchType()).addTo(form);
+		
+		new Input(STRETCH_LENGTH, stretch).numeric().addTo(new Label(stretchType()+":"+NBSP)).addTo(new Tag("p")).addTo(form);
 		
 		return form;
 	}
 	
-	private void setLength(String value) {
+	private void stretch(String value) {
 		try {
-			setLength(Integer.parseInt(value));
+			stretch(Integer.parseInt(value));
 		} catch (NumberFormatException nfe) {
 			LOG.warn("{} is not a valid length!",value);
 		}
 	}
 
-	public void setLength(int len) {
-		this.length = Math.max(1, len);
+	public void stretch(int len) {
+		this.stretch = Math.max(1, len);
 	}
+	
+	protected abstract String stretchType();
 	
 	@Override
 	public Tile update(HashMap<String, String> params) throws IOException {
 		for (Entry<String, String> entry : params.entrySet()) {
 			switch (entry.getKey()) {
-				case LENGTH:
-					setLength(entry.getValue());
+				case STRETCH_LENGTH:
+					stretch(entry.getValue());
 					break;
 			}
 		}
