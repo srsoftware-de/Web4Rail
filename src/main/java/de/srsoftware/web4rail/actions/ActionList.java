@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
@@ -87,7 +88,7 @@ public class ActionList extends Vector<Action> implements Constants{
 			boolean first = true;
 			for (Action action : this) {
 				props.put(ID, id+"/"+action.id());
-				Tag act = action.link(id,context).addTo(new Tag("li"));
+				Tag act = BaseClass.link("span", Map.of(REALM,REALM_ACTIONS,ID,id+"/"+action.id(),ACTION,ACTION_PROPS,CONTEXT,context), this+NBSP).addTo(new Tag("li"));; 
 				if (!first) {
 					props.put(ACTION, ACTION_MOVE);
 					new Button("↑",props).addTo(act);

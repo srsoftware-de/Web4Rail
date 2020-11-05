@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
@@ -105,8 +106,8 @@ public abstract class Contact extends Tile{
 
 	
 	@Override
-	public Tag propForm(String formId) {
-		Tag form = super.propForm(formId);
+	public Form propForm(String formId) {
+		Form form = super.propForm(formId);
 		new Tag("h4").content(t("Hardware settings")).addTo(form);
 		Tag label = new Input(ADDRESS, addr).addTo(new Label(t("Address:")+NBSP));
 		Map<String, String> props = Map.of(REALM,REALM_CONTACT,ID,id(),ACTION,ACTION_ANALYZE);

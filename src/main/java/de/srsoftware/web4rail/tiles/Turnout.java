@@ -13,6 +13,7 @@ import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
@@ -108,8 +109,8 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	@Override
-	public Tag propForm(String id) {
-		Tag form = super.propForm(id);
+	public Form propForm(String id) {
+		Form form = super.propForm(id);
 		Fieldset fieldset = new Fieldset(t("Decoder settings"));
 		Label protocol = new Label(t("Protocol:"));
 		for (Protocol proto : Protocol.values()) {

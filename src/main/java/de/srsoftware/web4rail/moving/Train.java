@@ -311,7 +311,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Tag link(String tagClass) {
-		return new Tag(tagClass).clazz("link").attr("onclick","train("+id+",'"+ACTION_PROPS+"')").content(name());
+		return link(tagClass, Map.of(REALM, REALM_TRAIN,ID,id,ACTION,ACTION_PROPS),name());
 	}
 	
 	public static TreeSet<Train> list() {
@@ -336,11 +336,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private Train load(JSONObject json) {
 		pushPull = json.getBoolean(PUSH_PULL);
-		if (json.has(BLOCK)) block = (Block) plan.get(json.getString(BLOCK), false);
 		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
 		if (json.has(NAME)) name = json.getString(NAME);
 		if (json.has(TAGS))  json.getJSONArray(TAGS ).forEach(elem -> {  tags.add(elem.toString()); });
 		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(elem.toString(), false).set(this)); });
+		if (json.has(BLOCK)) block = (Block) plan.get(json.getString(BLOCK), false).set(this); // do not move this up! during set, other fields will be referenced!
 		for (Object id : json.getJSONArray(CARS)) add(Car.get(id));
 		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get(id));
 		

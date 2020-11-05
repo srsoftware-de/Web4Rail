@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -18,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
-import de.srsoftware.web4rail.Constants;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
@@ -27,7 +28,7 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
-public class Car implements Constants {
+public class Car extends BaseClass {
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
 	static HashMap<Integer,Car> cars = new HashMap<Integer, Car>();
 	
@@ -122,7 +123,7 @@ public class Car implements Constants {
 	}
 	
 	public Tag link(String tagClass) {
-		return new Tag(tagClass).clazz("link").attr("onclick","car("+id+",'"+ACTION_PROPS+"')").content(name());
+		return link(tagClass, Map.of(REALM,REALM_CAR,ID,id,ACTION,ACTION_PROPS), name());
 	}
 	
 	static Vector<Car> list() {

@@ -30,10 +30,6 @@ function addTile(x,y){
 	return request({realm:'plan',action:mode,tile:selected.id,x:x,y:y});
 }
 
-function car(id,action){
-	return request({realm:"car",action:action,id:id});
-}
-
 function clickTile(x,y){
 	var id = x+"-"+y;
 	if ($('#'+id).length > 0) request({realm:'plan',action:'click',id:id});
@@ -220,10 +216,6 @@ function tileWindow(){
 	$(PLAN).css('width',width).css('height',height);
 	$('.window').css('width',width).css('height',height);
 	$('.swapbtn').text(vertical ? '⇩' : '⇨');
-}
-
-function train(id,action){
-	return request({realm:'train',action:action,id:id});
 }
 
 window.onload = function () {

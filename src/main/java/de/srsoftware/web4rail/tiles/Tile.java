@@ -195,7 +195,7 @@ public abstract class Tile extends BaseClass{
 		return new Vector<Plan.Direction>();
 	}
 	
-	public Tag propForm(String formId) {
+	public Form propForm(String formId) {
 		Form form = new Form(formId);
 		new Input(ACTION, ACTION_UPDATE).hideIn(form);
 		new Input(REALM, REALM_PLAN).hideIn(form);
@@ -214,16 +214,23 @@ public abstract class Tile extends BaseClass{
 	
 	public Tag propMenu() {	
 		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",title(),x,y));
-		String formId = "tile-properties-"+id();
-		Tag form = propForm(formId);
+		
+		if (isSet(train)) {
+			window.children().insertElementAt(new Button(t("stop"),"train("+train.id+",'"+ACTION_STOP+"')"), 1);
+			window.children().insertElementAt(new Button(t("start"),"train("+train.id+",'"+ACTION_START+"')"), 1);
+			window.children().insertElementAt(train.link("span"), 1);
+			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
+		}
+
+		Form form = propForm("tile-properties-"+id());
 		new Tag("h4").content(t("Length")).addTo(form);
 		new Input(LENGTH,length).numeric().addTo(new Label(t("Length")+":"+NBSP)).addTo(form);
 		new Tag("h4").content(t("Availability")).addTo(form);
 		new Checkbox(DISABLED, t("disabled"), disabled).addTo(form);
-		new Button(t("Apply"),"submitForm('"+formId+"')").addTo(form);
+		new Button(t("Apply"),form).addTo(form);
 		form.addTo(window);
 		
-		if (isSet(route)) {
+		if (isSet(route)) {			
 			new Tag("p").content(t("Locked by {}",route)).addTo(window);
 		}
 		

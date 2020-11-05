@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
@@ -24,7 +25,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
-public abstract class Condition implements Constants {
+public abstract class Condition extends BaseClass {
 	public static final Logger LOG = LoggerFactory.getLogger(Condition.class);
 	private static final String INVERTED = "inverted";
 	private static final String PREFIX = Condition.class.getPackageName();
@@ -85,11 +86,6 @@ public abstract class Condition implements Constants {
 	public Condition load(JSONObject json) {
 		inverted = json.has(INVERTED) && json.getBoolean(INVERTED);
 		return this;
-	}
-
-	public Tag link(String tagClass,String context) {
-		String json = new JSONObject(Map.of(REALM,REALM_CONDITION,ID,id,ACTION,ACTION_PROPS,CONTEXT,context)).toString().replace("\"", "'");
-		return new Tag(tagClass).clazz("link").attr("onclick","request("+json+")").content(toString());
 	}
 	
 	private static List<Class<? extends Condition>> list() {

@@ -96,12 +96,6 @@ public abstract class Action extends BaseClass {
 		return new JSONObject().put(TYPE, getClass().getSimpleName());
 	}
 	
-	protected Tag link(Integer parentId, String context) {
-		Map<String, String> props = Map.of(REALM,REALM_ACTIONS,ID,parentId+"/"+id,ACTION,ACTION_PROPS,CONTEXT,context);
-		String action = "request("+(new JSONObject(props).toString().replace("\"", "'"))+")";
-		return new Tag("span").content(toString()+NBSP).attr("onclick", action);
-	}
-	
 	public static List<Class<? extends Action>> list() {
 		return List.of(
 			ConditionalAction.class,

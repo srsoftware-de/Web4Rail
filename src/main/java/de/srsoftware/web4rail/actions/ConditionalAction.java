@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.actions;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -37,7 +38,9 @@ public class ConditionalAction extends Action {
 
 		if (!conditions.isEmpty()) {
 			Tag list = new Tag("ul");
-			for (Condition condition : conditions) condition.link("li",params.get(CONTEXT)).addTo(list);
+			for (Condition condition : conditions) {
+				link("li", Map.of(REALM,REALM_CONDITION,ID,id,ACTION,ACTION_PROPS,CONTEXT,params.get(CONTEXT)), condition).addTo(list);
+			}
 			list.addTo(fieldset);
 		}
 

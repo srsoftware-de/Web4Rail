@@ -168,7 +168,7 @@ public class Route extends BaseClass{
 			Tag list = new Tag("ul");
 			for (Condition condition : conditions) {
 				Tag li = new Tag("li");
-				condition.link("span",REALM_ROUTE+":"+id).addTo(li);
+				link("span",Map.of(REALM,REALM_CONDITION,ID,id,ACTION,ACTION_PROPS,CONTEXT,REALM_ROUTE+":"+id),condition).addTo(li);
 				Map<String, Object> params = Map.of(REALM,REALM_ROUTE,ID,id(),ACTION,DROP_CONDITION,REALM_CONDITION,condition.id());
 				new Button(t("delete"), params).addTo(li.content(NBSP)).addTo(list);
 			}
@@ -611,7 +611,7 @@ public class Route extends BaseClass{
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName()+"("+name()+")";
+		return getClass().getSimpleName()+"("+(isSet(train)?train+":":"")+name()+")";
 	}
 	
 	private void traceTrainFrom(Tile tile) {

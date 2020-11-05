@@ -10,8 +10,8 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.moving.Train;
-import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
+import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
@@ -51,8 +51,8 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
-	public Tag propForm(String id) {
-		Tag form = super.propForm(id);
+	public Form propForm(String id) {
+		Form form = super.propForm(id);
 		new Tag("h4").content(t("Block properties")).addTo(form);
 		
 		new Input(NAME, name).addTo(new Label(t("name:")+NBSP)).addTo(new Tag("p")).addTo(form);
@@ -64,20 +64,7 @@ public abstract class Block extends StretchableTile{
 		
 		return form;
 	}
-	
-	@Override
-	public Tag propMenu() {
-		Tag window = super.propMenu();
 		
-		if (isSet(train)) {
-			window.children().insertElementAt(new Button(t("stop"),"train("+train.id+",'"+ACTION_STOP+"')"), 1);
-			window.children().insertElementAt(new Button(t("start"),"train("+train.id+",'"+ACTION_START+"')"), 1);
-			window.children().insertElementAt(train.link("span"), 1);
-			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
-		}
-		return window;
-	}
-	
 	public abstract List<Connector> startPoints();
 
 	@Override
@@ -111,8 +98,8 @@ public abstract class Block extends StretchableTile{
 			} else {
 				Train newTrain = Train.get(trainId);
 				if (isSet(newTrain) && newTrain != train) {
-					newTrain.set(this);
 					newTrain.dropTrace();
+					newTrain.set(this);
 				}
 			}
 		}

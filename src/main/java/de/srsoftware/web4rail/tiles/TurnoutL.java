@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
@@ -34,8 +35,8 @@ public class TurnoutL extends Turnout {
 	}
 	
 	@Override
-	public Tag propForm(String id) {
-		Tag form = super.propForm(id);
+	public Form propForm(String id) {
+		Form form = super.propForm(id);
 		Tag fieldset = null;
 		for (Tag child : form.children()) {
 			if (child.is(Fieldset.TYPE)) {
