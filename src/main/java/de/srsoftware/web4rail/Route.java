@@ -342,7 +342,10 @@ public class Route extends BaseClass{
 		setSignals(Signal.STOP);
 		for (Tile tile : path) tile.setRoute(null);
 		Tile lastTile = path.lastElement();
-		if (lastTile instanceof Contact) lastTile.set(null);
+		if (lastTile instanceof Contact) {
+			lastTile.set(null);
+			train.removeFromTrace(lastTile);
+		}
 		train.set(endBlock);
 		train.heading(endDirection.inverse());
 	}

@@ -589,6 +589,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public void showTrace() {
  		int remainingLength = length();
+ 		if (remainingLength<1) remainingLength=1;
 		for (int i=0; i<trace.size(); i++) {
 			Tile tile = trace.get(i);
 			if (remainingLength>0) {
@@ -604,5 +605,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public void dropTrace() {
 		while (!trace.isEmpty()) trace.removeFirst().set(null);
+	}
+
+	public void removeFromTrace(Tile tile) {
+		trace.remove(tile);
+		
 	}
 }

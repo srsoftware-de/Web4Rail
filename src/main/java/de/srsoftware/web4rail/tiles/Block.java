@@ -102,12 +102,13 @@ public abstract class Block extends StretchableTile{
 		if (params.containsKey(Train.HEAD)) {
 			int trainId = Integer.parseInt(params.get(Train.HEAD));
 			if (trainId == 0) {
+				if (isSet(train)) train.dropTrace();
 				train = null;
 			} else {
-				Train dummy = Train.get(trainId);
-				if (isSet(dummy) && dummy != train) {
-					dummy.set(this);
-					dummy.dropTrace();
+				Train newTrain = Train.get(trainId);
+				if (isSet(newTrain) && newTrain != train) {
+					newTrain.set(this);
+					newTrain.dropTrace();
 				}
 			}
 		}
