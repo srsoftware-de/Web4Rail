@@ -67,7 +67,7 @@ public class Application implements Constants{
         server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
         server.start();
         try {
-        	plan = Plan.load("default");
+        	plan = Plan.load(Plan.DEFAULT_NAME);
         } catch (FileNotFoundException e) {
         	plan = new Plan();
 		}

@@ -106,14 +106,15 @@ public class Plan implements Constants{
 	}
 	
 
-	private static final String TILE = "tile";
+	private static final String ACTION_QR = "qrcode";
+	public  static final String DEFAULT_NAME = "default";
+	private static final String DIRECTION = "direction";
+	private static final String HELP = "help";
 	private static final Logger LOG = LoggerFactory.getLogger(Plan.class);
+	private static final String TILE = "tile";
 	private static final String X = "x";
 	private static final String Y = "y";
-	private static final String DIRECTION = "direction";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
-	private static final String ACTION_QR = "qrcode";
-	private static final String HELP = "help";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>(); // The list of tiles of this plan, i.e. the Track layout
 	private HashSet<Block> blocks = new HashSet<Block>(); // the list of tiles, that are blocks
@@ -152,7 +153,7 @@ public class Plan implements Constants{
 		case ACTION_MOVE:
 			return moveTile(params.get(DIRECTION),params.get(Tile.ID));
 		case ACTION_SAVE:
-			return saveTo("default");
+			return saveTo(DEFAULT_NAME);
 		case ACTION_UPDATE:
 			return update(get(params.get(Tile.ID),true),params);
 		}
@@ -403,12 +404,12 @@ public class Plan implements Constants{
 		} catch (Exception e) {
 			LOG.warn("Was not able to load cars!",e);
 		}
+		Tile.loadAll(filename+".plan",plan);
 		try {
 			Train.loadAll(filename+".trains",plan);
 		} catch (Exception e) {
 			LOG.warn("Was not able to load trains!",e);
 		}
-		Tile.loadAll(filename+".plan",plan);
 		try {
 			Route.loadAll(filename+".routes",plan);
 		} catch (Exception e) {

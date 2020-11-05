@@ -34,6 +34,7 @@ import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
 
 /**
@@ -118,8 +119,11 @@ public abstract class Tile extends BaseClass{
 		plan.set(tile.x, tile.y, tile);
 	}
 
-	public boolean isFree() {
-		return !(disabled || isSet(route) || isSet(train));
+	public boolean isFreeFor(Train newTrain) {
+		if (disabled) return false;
+		if (isSet(route)) return false;
+		if (isSet(train) && newTrain != train) return false;
+		return true;
 	}
 		
 	public JSONObject json() {
@@ -169,7 +173,6 @@ public abstract class Tile extends BaseClass{
 		if (json.has(DISABLED))    disabled  = json.getBoolean(DISABLED);
 		if (json.has(LENGTH))	   length    = json.getInt(LENGTH);
 		if (json.has(ONEW_WAY))    oneWay    = Direction.valueOf(json.getString(ONEW_WAY));
-		if (json.has(REALM_TRAIN)) train = Train.get(json.getInt(REALM_TRAIN));
 		return this;
 	}
 		
@@ -214,7 +217,7 @@ public abstract class Tile extends BaseClass{
 		String formId = "tile-properties-"+id();
 		Tag form = propForm(formId);
 		new Tag("h4").content(t("Length")).addTo(form);
-		new Input(LENGTH,length).numeric().addTo(form);
+		new Input(LENGTH,length).numeric().addTo(new Label(t("Length")+":"+NBSP)).addTo(form);
 		new Tag("h4").content(t("Availability")).addTo(form);
 		new Checkbox(DISABLED, t("disabled"), disabled).addTo(form);
 		new Button(t("Apply"),"submitForm('"+formId+"')").addTo(form);

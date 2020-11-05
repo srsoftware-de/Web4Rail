@@ -93,6 +93,7 @@ public abstract class Turnout extends Tile implements Device{
 		if (portB != 1) json.put(PORT_B, portB);
 		if (address != 0) json.put(ADDRESS, address);
 		json.put(PROTOCOL, protocol);
+		json.put(STATE, state);
 		return json;
 	}
 	
@@ -102,6 +103,7 @@ public abstract class Turnout extends Tile implements Device{
 		if (json.has(PORT_A)) portA = json.getInt(PORT_A);
 		if (json.has(PORT_B)) portB = json.getInt(PORT_B);
 		if (json.has(PROTOCOL)) protocol = Protocol.valueOf(json.getString(PROTOCOL));
+		if (json.has(STATE))    state = State.valueOf(json.getString(STATE));
 		return super.load(json);
 	}
 	
@@ -139,9 +141,9 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	public Reply state(State newState) throws IOException {
+		if (train != null && newState != state) return new Reply(415, t("{} locked by {}!",this,train));
 		Reply reply = init();
 		if (reply != null && !reply.succeeded()) return reply;
-		LOG.debug("Setting {} to {}",this,newState);
 		if (address == 0) { 
 			state = newState;
 			plan.place(this);

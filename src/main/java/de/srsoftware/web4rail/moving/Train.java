@@ -42,8 +42,11 @@ import de.srsoftware.web4rail.tiles.Tile;
 public class Train extends BaseClass implements Comparable<Train> {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 
-	public static final String HEAD = "train_head";
-	public static final String TAIL = "train_tile";
+	private static final String CAR_ID  = "carId";
+	public  static final String HEAD    = "train_head";
+	public  static final String LOCO_ID = "locoId";
+	public  static final String TAIL    = "train_tile";
+	private static final String TRACE   = "trace";
 	private static final HashMap<Integer, Train> trains = new HashMap<>();
 	
 	public static final String ID = "id";
@@ -95,9 +98,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 			}			
 		}
 	}
-
-	public static final String LOCO_ID = "locoId";
-	private static final String CAR_ID = "carId";
 
 	public int speed = 0;
 	private Autopilot autopilot = null;
@@ -164,7 +164,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 					continue;
 				}
 			}
-			if (!rt.isFree()) { // keine belegten Routen wählen
+			if (!rt.isFreeFor(this)) { // keine belegten Routen wählen
 				LOG.debug("{} is not free!",rt);
 				continue;
 			}
@@ -280,17 +280,25 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private JSONObject json() {
 		JSONObject json = new JSONObject();
 		json.put(ID, id);
-		json.put(NAME,name);
+		json.put(PUSH_PULL, pushPull);
+
+		if (isSet(block)) json.put(BLOCK, block.id());
+		if (isSet(name))json.put(NAME, name);
 		if (isSet(route)) json.put(ROUTE, route.id());
 		if (isSet(direction)) json.put(DIRECTION, direction);
-		json.put(PUSH_PULL, pushPull);
-		if (isSet(name))json.put(NAME, name);
+
 		Vector<Integer> locoIds = new Vector<Integer>();
 		for (Locomotive loco : locos) locoIds.add(loco.id());
 		json.put(LOCOS, locoIds);
+		
 		Vector<Integer> carIds = new Vector<Integer>();
 		for (Car car : cars) carIds.add(car.id());
 		json.put(CARS,carIds);
+		
+		Vector<String> tileIds = new Vector<String>();
+		for (Tile tile : trace) tileIds.add(tile.id());
+		json.put(TRACE, tileIds);
+		
 		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;
 	}
@@ -319,7 +327,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			int id = json.getInt(ID);
 			
 			Train train = new Train(null,id);
-			train.load(json).plan(plan);			
+			train.plan(plan).load(json);			
 			
 			line = file.readLine();
 		}
@@ -328,11 +336,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private Train load(JSONObject json) {
 		pushPull = json.getBoolean(PUSH_PULL);
+		if (json.has(BLOCK)) block = (Block) plan.get(json.getString(BLOCK), false);
+		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
 		if (json.has(NAME)) name = json.getString(NAME);
+		if (json.has(TAGS))  json.getJSONArray(TAGS ).forEach(elem -> {  tags.add(elem.toString()); });
+		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(elem.toString(), false).set(this)); });
 		for (Object id : json.getJSONArray(CARS)) add(Car.get(id));
 		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get(id));
-		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
-		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
+		
 		return this;
 	}
 	
@@ -523,7 +534,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Object stopNow() {
 		quitAutopilot();
 		setSpeed(0);
-		route = null;
+		if (isSet(route)) route.reset();
 		return t("Stopped {}.",this);
 	}
 	

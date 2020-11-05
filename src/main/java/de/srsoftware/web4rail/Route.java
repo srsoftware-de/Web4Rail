@@ -340,6 +340,8 @@ public class Route extends BaseClass{
 		}
 		train.set(endBlock);
 		train.heading(endDirection.inverse());
+		if (train.route == this) train.route = null;
+		
 	}
 	
 	public boolean fireSetupActions(Context context) {
@@ -366,9 +368,9 @@ public class Route extends BaseClass{
 		return id;
 	}
 		
-	public boolean isFree() {
+	public boolean isFreeFor(Train newTrain) {
 		for (int i=1; i<path.size(); i++) { 
-			if (!path.get(i).isFree()) return false;
+			if (!path.get(i).isFreeFor(newTrain)) return false;
 		}
 		return true;
 	}
@@ -542,8 +544,19 @@ public class Route extends BaseClass{
 	}
 	
 	public boolean reset() {
-		// TODO
-		return false;
+		setSignals(Signal.STOP);
+		for (Tile tile : path) tile.setRoute(null);
+		Tile lastTile = path.lastElement();
+		if (lastTile instanceof Contact) {
+			lastTile.set(null);
+			if (isSet(train)) train.removeFromTrace(lastTile);
+		}
+		if (isSet(train)) {
+			train.set(startBlock);
+			train.heading(startDirection);
+			if (train.route == this) train.route = null;
+		}	
+		return true;
 	}
 
 	public static void saveAll(Collection<Route> routes, String filename) throws IOException {
