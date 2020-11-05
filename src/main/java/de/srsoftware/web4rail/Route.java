@@ -48,35 +48,37 @@ import de.srsoftware.web4rail.tiles.Turnout.State;
  *
  */
 public class Route extends BaseClass{
-	private static final Logger LOG = LoggerFactory.getLogger(Route.class);
-	static final String NAME = "name";
-	static final String PATH = "path";
-	static final String SIGNALS = "signals";
-	static final String TURNOUTS = "turnouts";
-	private Vector<Tile> path;
-	private Vector<Signal> signals;
-	private Vector<Contact> contacts;
-	private HashMap<Turnout,Turnout.State> turnouts;
-	private HashMap<String,ActionList> triggers = new HashMap<String, ActionList>();
-	private int id;
-	private static HashMap<Integer, String> names = new HashMap<Integer, String>(); // maps id to name. needed to keep names during plan.analyze()
-	public Train train;
-	private Block startBlock = null,endBlock;
-	private static final String START_DIRECTION = "direction_start";
-	private static final String END_DIRECTION = "direction_end";
-	private Vector<Condition> conditions = new Vector<Condition>();
-	private ActionList setupActions = new ActionList();
-	
-	public Direction startDirection;
-	private Direction endDirection;
-	private boolean disabled = false;
+	private static final Logger LOG             = LoggerFactory.getLogger(Route.class);
 
-	private static final String TRIGGER = "trigger";
-	private static final String ACTIONS = "actions";
 	private static final String ACTION_LISTS = "action_lists";
-	private static final String ROUTES = "routes";
+	private static final String ACTIONS = "actions";
 	private static final String CONDITIONS = "conditions";
 	private static final String DROP_CONDITION = "drop_condition";
+  	private static final String END_DIRECTION   = "direction_end";
+	private static final String ROUTES = "routes";
+	private static final String START_DIRECTION = "direction_start";
+	private static final String TRIGGER = "trigger";
+	static final String NAME     = "name";
+	static final String PATH     = "path";
+	static final String SIGNALS  = "signals";
+	static final String TURNOUTS = "turnouts";
+
+	private static HashMap<Integer, String> names = new HashMap<Integer, String>(); // maps id to name. needed to keep names during plan.analyze()
+
+	private Vector<Condition>              conditions = new Vector<Condition>();
+	private Vector<Contact>                contacts;
+	private boolean                        disabled = false;
+	private Block                          endBlock = null;
+	private Direction					   endDirection;
+	private int                            id;
+	private Vector<Tile>                   path;
+	private Vector<Signal>                 signals;
+	public  Train                          train;
+	private HashMap<String,ActionList>     triggers = new HashMap<String, ActionList>();
+	private HashMap<Turnout,Turnout.State> turnouts;
+	private ActionList                     setupActions = new ActionList();
+	private Block                          startBlock = null;
+	public  Direction 					   startDirection;
 	
 	/**
 	 * process commands from the client
@@ -107,20 +109,6 @@ public class Route extends BaseClass{
 				return route.dropCodition(params);
 		}
 		return t("Unknown action: {}",params.get(ACTION));
-	}
-
-	private Object dropCodition(HashMap<String, String> params) {
-		String condId = params.get(REALM_CONDITION);
-		if (isSet(condId)) {
-			int cid = Integer.parseInt(condId);
-			for (Condition condition : conditions) {
-				if (condition.id() == cid) {
-					conditions.remove(condition);
-					break;
-				}
-			}
-		}
-		return properties(params);
 	}
 
 	/**
@@ -323,6 +311,20 @@ public class Route extends BaseClass{
 	public String context() {
 		return REALM_ROUTE+":"+id();
 	}
+	
+	private Object dropCodition(HashMap<String, String> params) {
+		String condId = params.get(REALM_CONDITION);
+		if (isSet(condId)) {
+			int cid = Integer.parseInt(condId);
+			for (Condition condition : conditions) {
+				if (condition.id() == cid) {
+					conditions.remove(condition);
+					break;
+				}
+			}
+		}
+		return properties(params);
+	}
 		
 	public Block endBlock() {
 		return endBlock;
@@ -342,13 +344,6 @@ public class Route extends BaseClass{
 	
 	public boolean fireSetupActions(Context context) {
 		return setupActions.fire(context);
-	}
-	
-	public boolean isFree() {
-		for (int i=1; i<path.size(); i++) { 
-			if (!path.get(i).isFree()) return false;
-		}
-		return true;
 	}
 	
 	private String generateName() {
@@ -371,6 +366,13 @@ public class Route extends BaseClass{
 		return id;
 	}
 		
+	public boolean isFree() {
+		for (int i=1; i<path.size(); i++) { 
+			if (!path.get(i).isFree()) return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * creates a json representation of this route
 	 * @return

@@ -23,11 +23,11 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 
 public class ActionList extends Vector<Action> implements Constants{
+	private static final Logger LOG = LoggerFactory.getLogger(ActionList.class);
 	
 	private static final long serialVersionUID = 4862000041987682112L;
-	private static final Logger LOG = LoggerFactory.getLogger(ActionList.class);
-	private int id;
 	private static final HashMap<Integer, ActionList> actionLists = new HashMap<Integer, ActionList>();
+	private int id;
 	
 	public ActionList() {
 		id = Application.createId();

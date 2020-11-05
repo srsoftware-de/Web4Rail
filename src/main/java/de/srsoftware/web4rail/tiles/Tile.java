@@ -36,6 +36,11 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
 
+/**
+ * Base class for all tiles
+ * @author Stephan Richter, SRSoftware
+ *
+ */
 public abstract class Tile extends BaseClass{
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);	
 	private static int DEFAUT_LENGTH = 5;
@@ -50,8 +55,6 @@ public abstract class Tile extends BaseClass{
 	private   static final String TYPE       = "type";
 	private   static final String X          = "x";
 	private   static final String Y          = "y";
-
-	
 	
 	private   boolean         disabled  = false;
 	private   int             length    = DEFAUT_LENGTH;
@@ -64,6 +67,14 @@ public abstract class Tile extends BaseClass{
 	public    Integer         x         = null;
 	public    Integer         y         = null;
 
+	public void add(Route route) {
+		this.routes.add(route);
+	}
+
+	public void addShadow(Shadow shadow) {
+		shadows.add(shadow);
+	}
+	
 	protected Vector<String> classes(){
 		Vector<String> classes = new Vector<String>();
 		classes.add("tile");
@@ -74,14 +85,6 @@ public abstract class Tile extends BaseClass{
 		return classes;
 	}
 
-	public void add(Route route) {
-		this.routes.add(route);
-	}
-
-	public void addShadow(Shadow shadow) {
-		shadows.add(shadow);
-	}
-	
 	public Object click() throws IOException {
 		LOG.debug("{}.click()",getClass().getSimpleName());
 		return propMenu();
@@ -95,14 +98,10 @@ public abstract class Tile extends BaseClass{
 		return new HashMap<>();
 	}
 
-	public boolean isFree() {
-		return !(disabled || isSet(route) || isSet(train));
-	}
-	
 	public int height() {
 		return 1;
 	}
-	
+
 	public String id() {
 		return Tile.id(x, y);
 	}
@@ -119,6 +118,10 @@ public abstract class Tile extends BaseClass{
 		plan.set(tile.x, tile.y, tile);
 	}
 
+	public boolean isFree() {
+		return !(disabled || isSet(route) || isSet(train));
+	}
+		
 	public JSONObject json() {
 		JSONObject json = new JSONObject();
 		json.put(TYPE, getClass().getSimpleName());
@@ -274,6 +277,12 @@ public abstract class Tile extends BaseClass{
 		file.close();
 	}
 	
+	public Tile set(Train newTrain) {
+		if (newTrain == train) return this; // nothing to update
+		this.train = newTrain;		
+		return plan.place(this);
+	}	
+
 	public Tile setRoute(Route lockingRoute) {
 		if (route == lockingRoute) return this; // nothing changed
 		if (isSet(route) && isSet(lockingRoute)) throw new IllegalStateException(this.toString()); // tile already locked by other route
@@ -360,12 +369,6 @@ public abstract class Tile extends BaseClass{
 		return train;
 	}
 	
-	public Tile set(Train newTrain) {
-		if (newTrain == train) return this; // nothing to update
-		this.train = newTrain;		
-		return plan.place(this);
-	}	
-
 	public void unlock() {
 		route = null;
 		train = null;

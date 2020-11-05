@@ -17,24 +17,28 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
 
+/**
+ * Base class for Turnouts
+ * @author Stephan Richter, SRSoftware
+ *
+ */
 public abstract class Turnout extends Tile implements Device{
-	public static final String STATE = "state";
-	private static final String PORT_A = "port_a";
-	private static final String PORT_B = "port_b";	
+	private   static final String PORT_A   = "port_a";
+	private   static final String PORT_B   = "port_b";	
+	public    static final String STATE    = "state";
 	protected static final String STRAIGHT = "straight";
 
-	private Protocol protocol = Protocol.DCC128;
-	protected int address = 0;
-	protected int portA = 0, portB = 1;
-	protected int delay = 400;
-	protected boolean initialized = false;
-	protected boolean error = false;
+	protected int      address     = 0;
+	protected int      delay       = 400;
+	protected boolean  error       = false;
+	protected boolean  initialized = false;
+	private   Protocol protocol    = Protocol.DCC128;
+	protected int      portA       = 0, portB = 1;
+	protected State    state       = State.STRAIGHT;
 	
 	public enum State{
 		LEFT,STRAIGHT,RIGHT,UNDEF;
 	}
-	
-	protected State state = State.STRAIGHT;
 	
 	@Override
 	public Object click() throws IOException {

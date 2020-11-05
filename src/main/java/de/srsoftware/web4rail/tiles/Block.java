@@ -16,11 +16,15 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
+/**
+ * Base class for all kinds of Blocks
+ * @author Stephan Richter, SRSoftware
+ *
+ */
 public abstract class Block extends StretchableTile{
-	private static final String NAME = "name";
-	public String name = "Block";
-	
 	private static final String ALLOW_TURN = "allowTurn";
+	private static final String NAME       = "name";
+	public String  name        = "Block";
 	public boolean turnAllowed = false;
 		
 	@Override

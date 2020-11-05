@@ -23,6 +23,11 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Contact;
 
+/**
+ * Base Class for all other actions
+ * @author Stephan Richter, SRSoftware
+ *
+ */
 public abstract class Action extends BaseClass {
 	private static final HashMap<Integer,Action> actions = new HashMap<Integer, Action>();
 	public static final Logger LOG = LoggerFactory.getLogger(Action.class);
@@ -115,6 +120,19 @@ public abstract class Action extends BaseClass {
 		return this;
 	}
 	
+	public static Tag selector() {
+		Select select = new Select(TYPE);
+		TreeMap<String, String> names = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+		
+		for (Class<? extends Action> clazz : Action.list()) {
+			String s = t(clazz.getSimpleName());
+			names.put(s, clazz.getSimpleName());
+		}
+		
+		for (Entry<String, String> entry : names.entrySet()) select.addOption(entry.getValue(), entry.getKey());
+		return select.addTo(new Label(t("Action type:")+NBSP));
+	}
+
 	public Window properties(HashMap<String, String> params) {
 		return new Window("action-props-"+id, t("Properties of {}",this.getClass().getSimpleName()));
 	}
@@ -130,18 +148,5 @@ public abstract class Action extends BaseClass {
 
 	protected Object update(HashMap<String, String> params) {
 		return t("Nothing changed");
-	}
-
-	public static Tag selector() {
-		Select select = new Select(TYPE);
-		TreeMap<String, String> names = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
-		
-		for (Class<? extends Action> clazz : Action.list()) {
-			String s = t(clazz.getSimpleName());
-			names.put(s, clazz.getSimpleName());
-		}
-		
-		for (Entry<String, String> entry : names.entrySet()) select.addOption(entry.getValue(), entry.getKey());
-		return select.addTo(new Label(t("Action type:")+NBSP));
 	}
 }
