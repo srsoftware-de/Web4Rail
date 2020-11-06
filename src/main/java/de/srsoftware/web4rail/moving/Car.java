@@ -93,7 +93,7 @@ public class Car extends BaseClass {
 		new Input(ACTION, ACTION_ADD).hideIn(form);
 		new Input(REALM,REALM_CAR).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("add new car"));
-		new Input(Locomotive.NAME, t("new car")).addTo(new Label(t("Name:")+" ")).addTo(fieldset);
+		new Input(Locomotive.NAME, t("new car")).addTo(new Label(t("Name:")+NBSP)).addTo(fieldset);
 		new Button(t("Apply")).addTo(fieldset);
 		fieldset.addTo(form).addTo(win);
 		return win;
@@ -197,7 +197,7 @@ public class Car extends BaseClass {
 		
 		Tag list = new Tag("ul");
 		if (train != null) {
-			train.link("span").addTo(new Tag("li").content(t("Train:")+" ")).addTo(list);
+			train.link("span").addTo(new Tag("li").content(t("Train:")+NBSP)).addTo(list);
 		}
 		list.addTo(win);
 		return win;

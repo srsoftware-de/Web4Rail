@@ -7,6 +7,8 @@ add action : Aktion hinzufügen
 add car\: : Waggon hinzufügen:
 Add condition : Bedingung hinzufügen
 add locomotive\: : Lok hinzufügen:
+add new locomotive : neue Lok anlegen
+add new train : neuen Zug anlegen
 Add tile : Kachel hinzufügen
 Address\: : Adresse:
 Analyze plan : Plan analysieren
@@ -52,6 +54,8 @@ Manage trains : Züge verwalten
 Maximum train length\: : maximale Zug-Länge
 Move tiles : Kacheln verschieben
 name\: : Name:
+new locomotive : neue Lok
+new train : neuer Zug
 No : keine
 No free routes from {} : keine Route von {} frei
 NORTH : Norden

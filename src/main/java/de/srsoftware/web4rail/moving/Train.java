@@ -413,11 +413,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Input(ACTION, ACTION_ADD).hideIn(form);
 		new Input(REALM,REALM_TRAIN).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("add new train"));
-		new Input(Train.NAME, t("new train")).addTo(new Label(t("Name:")+" ")).addTo(fieldset);
+		new Input(Train.NAME, t("new train")).addTo(new Label(t("Name:")+NBSP)).addTo(fieldset);
 
 		Select select = new Select(LOCO_ID);
 		for (Car loco : Locomotive.list()) select.addOption(loco.id(),loco.name());
-		select.addTo(new Label(t("Locomotive:")+" ")).addTo(fieldset);
+		select.addTo(new Label(t("Locomotive:")+NBSP)).addTo(fieldset);
 
 		new Button(t("Apply")).addTo(fieldset);
 		fieldset.addTo(form).addTo(win);
