@@ -88,7 +88,7 @@ public class ActionList extends Vector<Action> implements Constants{
 			boolean first = true;
 			for (Action action : this) {
 				props.put(ID, id+"/"+action.id());
-				Tag act = BaseClass.link("span", Map.of(REALM,REALM_ACTIONS,ID,id+"/"+action.id(),ACTION,ACTION_PROPS,CONTEXT,context), this+NBSP).addTo(new Tag("li"));; 
+				Tag act = BaseClass.link("span", Map.of(REALM,REALM_ACTIONS,ID,id+"/"+action.id(),ACTION,ACTION_PROPS,CONTEXT,context), action+NBSP).addTo(new Tag("li"));; 
 				if (!first) {
 					props.put(ACTION, ACTION_MOVE);
 					new Button("↑",props).addTo(act);

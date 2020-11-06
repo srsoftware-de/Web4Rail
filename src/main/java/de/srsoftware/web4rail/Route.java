@@ -148,11 +148,13 @@ public class Route extends BaseClass{
 	}
 	
 	private void addBasicPropertiesTo(Window win) {
+		if (isSet(train)) link("span",Map.of(REALM,REALM_TRAIN,ID,train.id,ACTION,ACTION_PROPS),t("Train: {}",train)).addTo(win);
 		new Tag("h4").content(t("Origin and destination")).addTo(win);
 		Tag list = new Tag("ul");
 		Plan.addLink(startBlock, t("Origin: {} to {}",startBlock.name,startDirection), list);
 		Plan.addLink(endBlock, t("Destination: {} from {}",endBlock.name,endDirection), list);
 		list.addTo(win);
+		
 
 		if (!signals.isEmpty()) {
 			new Tag("h4").content(t("Signals")).addTo(win);
@@ -341,6 +343,7 @@ public class Route extends BaseClass{
 		train.set(endBlock);
 		train.heading(endDirection.inverse());
 		if (train.route == this) train.route = null;
+		train = null;
 		
 	}
 	

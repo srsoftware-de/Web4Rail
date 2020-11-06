@@ -2,7 +2,6 @@ package de.srsoftware.web4rail.conditions;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -14,7 +13,6 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.Action.Context;

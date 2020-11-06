@@ -216,11 +216,16 @@ public abstract class Tile extends BaseClass{
 		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",title(),x,y));
 		
 		if (isSet(train)) {
-			window.children().insertElementAt(new Button(t("stop"),"train("+train.id+",'"+ACTION_STOP+"')"), 1);
-			window.children().insertElementAt(new Button(t("start"),"train("+train.id+",'"+ACTION_START+"')"), 1);
+			HashMap<String, Object> props = new HashMap<String,Object>(Map.of(REALM,REALM_TRAIN,ID,train.id));
+			props.put(ACTION, ACTION_STOP);
+			window.children().insertElementAt(new Button(t("stop"),props), 1);
+			props.put(ACTION, ACTION_START);
+			window.children().insertElementAt(new Button(t("start"),props), 1);
 			window.children().insertElementAt(train.link("span"), 1);
 			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
 		}
+
+		if (isSet(route)) link("p",Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_PROPS),t("Locked by {}",route)).addTo(window);
 
 		Form form = propForm("tile-properties-"+id());
 		new Tag("h4").content(t("Length")).addTo(form);
@@ -230,9 +235,6 @@ public abstract class Tile extends BaseClass{
 		new Button(t("Apply"),form).addTo(form);
 		form.addTo(window);
 		
-		if (isSet(route)) {			
-			new Tag("p").content(t("Locked by {}",route)).addTo(window);
-		}
 		
 		if (!routes.isEmpty()) {
 			new Tag("h4").content(t("Routes using this tile:")).addTo(window);

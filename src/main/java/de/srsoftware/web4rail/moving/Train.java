@@ -195,14 +195,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return result;
 	}
 
-	private Object dropCar(HashMap<String, String> params) {
-		String carId = params.get(CAR_ID);
-		if (isSet(carId)) cars.remove(Car.get(carId));
-		String locoId = params.get(LOCO_ID);
-		if (isSet(locoId)) locos.remove(Car.get(locoId));
-		return props();
-	}
-
 	private Object addCar(HashMap<String, String> params) {
 		LOG.debug("addCar({})",params);
 		if (!params.containsKey(CAR_ID)) return t("No car id passed to Train.addCar!");
@@ -264,6 +256,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 		Train train = new Train(loco).plan(plan);
 		if (params.containsKey(NAME)) train.name(params.get(NAME));
 		return train;
+	}
+	
+	public Direction direction() {
+		return direction;
+	}
+
+	private Object dropCar(HashMap<String, String> params) {
+		String carId = params.get(CAR_ID);
+		if (isSet(carId)) cars.remove(Car.get(carId));
+		String locoId = params.get(LOCO_ID);
+		if (isSet(locoId)) locos.remove(Car.get(locoId));
+		return props();
 	}
 	
 	public static Train get(int id) {
@@ -429,7 +433,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(form);
 		new Button(t("Apply")).addTo(form).addTo(fieldset);
 		
-		new Button(t("Turn"), "train("+id+",'"+ACTION_TURN+"')").addTo(fieldset).addTo(window);
+		HashMap<String, Object> props = new HashMap<String,Object>(Map.of(REALM,REALM_TRAIN,ID,id));
+		props.put(ACTION, ACTION_TURN);
+		new Button(t("Turn"), props).addTo(fieldset).addTo(window);
 		
 		fieldset = new Fieldset(t("other train properties"));
 		
@@ -439,20 +445,30 @@ public class Train extends BaseClass implements Comparable<Train> {
 		carList().addTo(propList);
 		new Tag("li").content(t("length: {}",length())).addTo(propList);
 		
+		if (!trace.isEmpty()) {
+			Tag li = new Tag("li").content(t("Occupied area:"));
+			Tag ul = new Tag("ul");
+			for (Tile tile : trace) new Tag("li").content(tile.toString()).addTo(ul);
+			ul.addTo(li).addTo(propList);
+		}
+		
 		if (isSet(block)) {
-			new Tag("li").content(t("Current location: {}",block)).addTo(propList);
+			link("li",Map.of(REALM,REALM_PLAN,ID,block.id(),ACTION,ACTION_CLICK),t("Current location: {}",block)).addTo(propList);
 			Tag actions = new Tag("li").clazz().content(t("Actions:")+NBSP);
-			new Button(t("start"),"train("+id+",'"+ACTION_START+"')").addTo(actions);
+			props.put(ACTION, ACTION_START);
+			new Button(t("start"),props).addTo(actions);
 			if (isNull(autopilot)) {
-				new Button(t("auto"),"train("+id+",'"+ACTION_AUTO+"')").addTo(actions);
+				props.put(ACTION, ACTION_AUTO);
+				new Button(t("auto"),props).addTo(actions);
 			} else {
-				new Button(t("quit autopilot"),"train("+id+",'"+ACTION_QUIT+"')").addTo(actions);
+				props.put(ACTION, ACTION_QUIT);
+				new Button(t("quit autopilot"),props).addTo(actions);
 			}
 			actions.addTo(propList);
-
 		}
+		
 		if (isSet(route)) {
-			new Tag("li").content(t("Current route: {}",route)).addTo(propList);
+			link("li", Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_PROPS), route).addTo(propList);
 		}
 		if (isSet(direction)) new Tag("li").content(t("Direction: heading {}",direction)).addTo(propList);
 		
@@ -587,12 +603,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		for (Tile tile : newTiles) {
 			if (active) {
 				trace.addFirst(tile);
-				System.err.println(trace);
 			} else {
 				Tile dummy = trace.getFirst();
-				if (dummy == tile) {
-					active = true;
-				};
+				if (dummy == tile) active = true;
 			}			
 		}
 		showTrace();
