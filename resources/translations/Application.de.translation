@@ -20,6 +20,8 @@ Condition type\: : Bedingungs-Typ:
 Control unit : Zentrale
 Current location\: : Aktueller Ort:
 Actions and contacts : Aktionen und Kontakte
+click here to setup contact : Hier klicken, um Kontakt auszuwählen
+click here to setup relay : Hier klicken, um Relay einzurichten
 Create action : Aktion erzeugen
 DelayedAction : verzögerte Aktion
 delete : entfernen
@@ -71,9 +73,12 @@ Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
 Route will only be available to trains fulfilling all conditions. : Route ist nur für Züge verfügbar, die alle Bedingungen erfüllen.
 save : speichern
 Save plan : Plan speichern
+Select contact\: : Kotakt auswählen:
+Select relay\: : Relais auswählen:
 SetRelay : Relais schalten
 SetSignalsToStop : Signale auf Halt stellen
 SetSpeed : Geschwindigkeit ändern
+Set speed to : Geschwindigkeit setzen
 Setup actions : Aktivierungs-Aktionen
 Signals : Signale
 SOUTH : Süden
@@ -95,6 +100,7 @@ Trains\: : Züge:
 TrainHasTag : Zug mit Tag
 TrainLength : Zuglänge
 TrainSelect : Zug-Auswahl
+TriggerContact : Kontakt auslösen
 Turn allowed : Wenden erlaubt
 Turnouts : Weichen
 TurnTrain : Fahrtrichtung umkehren

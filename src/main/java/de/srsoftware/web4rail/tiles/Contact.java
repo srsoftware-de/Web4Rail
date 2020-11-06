@@ -1,8 +1,11 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.json.JSONObject;
 
@@ -11,6 +14,7 @@ import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Select;
 
 public abstract class Contact extends Tile{
 	
@@ -65,12 +69,21 @@ public abstract class Contact extends Tile{
 		return contactsByAddr.get(addr);
 	}
 	
+	public static Contact get(String contactId) {
+		return contactsById.get(contactId);
+	}
+	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (addr > 0) json.put(ADDRESS, addr);
 		return json;
 	}
+	
+	public static Collection<Contact> list() {
+		return contactsById.values();
+	}
+
 	
 	@Override
 	protected Tile load(JSONObject json) throws IOException {
@@ -134,5 +147,15 @@ public abstract class Contact extends Tile{
 		return super.update(params);
 	}
 
-
+	public static Select selector(Contact preselect) {
+		TreeMap<String,Contact> sortedSet = new TreeMap<String, Contact>(); // Map from Name to Contact
+		for (Contact contact : contactsById.values()) sortedSet.put(contact.toString(), contact);
+		Select select = new Select(CONTACT);
+		for (Entry<String, Contact> entry : sortedSet.entrySet()) {
+			Contact contact = entry.getValue();
+			Tag option = select.addOption(contact.id(),contact);
+			if (contact == preselect) option.attr("selected", "selected");
+		}
+		return select;
+	}
 }

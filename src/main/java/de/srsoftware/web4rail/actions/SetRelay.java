@@ -32,7 +32,7 @@ public class SetRelay extends Action {
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
-		if (relay != null) {
+		if (isSet(relay)) {
 			json.put(RELAY, relay.id());
 			json.put(Relay.STATE, state);
 		}
@@ -43,7 +43,7 @@ public class SetRelay extends Action {
 	public Action load(JSONObject json) {
 		super.load(json);
 		String relayId = json.getString(RELAY);
-		if (relayId != null) {
+		if (isSet(relayId)) {
 			relay = Relay.get(relayId);
 			state = json.getBoolean(Relay.STATE);
 		}
@@ -67,8 +67,8 @@ public class SetRelay extends Action {
 		select.addTo(new Label(t("Select relay:")+NBSP)).addTo(form);
 		
 		Select state = new Select(Relay.STATE);
-		state.addOption(true,relay == null?Relay.DEFAULT_LABEL_A:relay.stateLabelA);
-		state.addOption(false,relay == null?Relay.DEFAULT_LABEL_B:relay.stateLabelB);
+		state.addOption(true,isNull(relay)?Relay.DEFAULT_LABEL_A:relay.stateLabelA);
+		state.addOption(false,isNull(relay)?Relay.DEFAULT_LABEL_B:relay.stateLabelB);
 		state.addTo(new Label(t("Select state:")+NBSP)).addTo(form);
 		
 		
@@ -77,7 +77,7 @@ public class SetRelay extends Action {
 	}
 
 	public String toString() {
-		if (relay == null) return t("[click here to setup relay]");
+		if (isNull(relay)) return "["+t("click here to setup relay")+"]";
 		return t("Set "+relay+" to "+(state?relay.stateLabelA:relay.stateLabelB));
 	};
 	
@@ -87,7 +87,7 @@ public class SetRelay extends Action {
 		String relayId = params.get(RELAY);
 		relay = Relay.get(relayId);
 		String st = params.get(Relay.STATE);
-		if (st != null) state = st.equals("true");
+		if (isSet(st)) state = st.equals("true");
 		return properties(params);
 	}
 }

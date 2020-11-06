@@ -3,7 +3,6 @@ package de.srsoftware.web4rail.actions;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -102,6 +101,7 @@ public abstract class Action extends BaseClass {
 			SetSpeed.class,
 			SetSignalsToStop.class,
 			FinishRoute.class,
+			TriggerContact.class,
 			TurnTrain.class,
 			StopAuto.class,
 			PowerOff.class,
