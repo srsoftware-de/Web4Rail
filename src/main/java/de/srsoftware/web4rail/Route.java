@@ -646,7 +646,7 @@ public class Route extends BaseClass{
 			trace.add(t);
 			if (t == tile) break;
 		}
-		train.addToTrace(trace);
+		if (isSet(train)) train.addToTrace(trace);
 	}
 	
 	public boolean train(Train newTrain) {

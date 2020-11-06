@@ -44,6 +44,10 @@ public class DelayedAction extends Action {
 		new Input(DELAY,delay).numeric().addTo(new Label(t("Delay")+NBSP)).content(NBSP+"ms").addTo(form);
 		return new Button(t("Apply"),form).addTo(form).addTo(fieldset);
 	}
+	
+	public boolean equals(DelayedAction other) {
+		return (delay+":"+actions).equals(other.delay+":"+other.actions);
+	}
 		
 	@Override
 	public boolean fire(Context context) throws IOException {
@@ -85,7 +89,7 @@ public class DelayedAction extends Action {
 
 	@Override
 	public String toString() {	
-		return t("Wait {} ms, then: {}",delay,actions);
+		return t("Wait {} ms, then: ",delay);
 	}
 
 	@Override

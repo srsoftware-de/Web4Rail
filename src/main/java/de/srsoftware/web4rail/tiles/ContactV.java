@@ -21,7 +21,7 @@ public class ContactV extends Contact {
 			default:
 				return new HashMap<>();
 		}		
-	}
+	}	
 	
 	@Override
 	public List<Direction> possibleDirections() {

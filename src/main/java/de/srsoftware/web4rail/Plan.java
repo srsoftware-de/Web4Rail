@@ -671,7 +671,7 @@ public class Plan extends BaseClass{
 	
 	public void sensor(int addr, boolean active) {
 		Contact contact = Contact.get(addr);
-		LOG.debug("contact: {}",contact);
+		LOG.debug("contact: {}",isSet(contact) ? contact : addr);
 		if (contact != null) {
 			contact.activate(active);
 		} else {

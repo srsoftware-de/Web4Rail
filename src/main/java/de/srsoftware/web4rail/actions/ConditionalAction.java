@@ -33,6 +33,15 @@ public class ConditionalAction extends Action {
 		return actions;
 	}
 	
+	private StringBuffer conditions() {
+		StringBuffer sb = new StringBuffer();		
+		for (int i = 0; i<conditions.size(); i++) {
+			if (i>0) sb.append(t(" or "));
+			sb.append(conditions.get(i).toString());
+		}
+		return sb;
+	}
+	
 	private Tag conditionForm(HashMap<String, String> params) {
 		Fieldset fieldset = new Fieldset(t("Conditions"));
 
@@ -52,6 +61,10 @@ public class ConditionalAction extends Action {
 
 		Condition.selector().addTo(form);
 		return new Button(t("Add condition"),form).addTo(form).addTo(fieldset);
+	}
+	
+	public boolean equals(ConditionalAction other) {
+		return (conditions()+":"+actions).equals(other.conditions()+":"+other.actions);
 	}
 		
 	@Override
@@ -97,12 +110,7 @@ public class ConditionalAction extends Action {
 	@Override
 	public String toString() {
 		if (conditions.isEmpty()) return t("[Click here to add condition]");
-		StringBuffer sb = new StringBuffer();		
-		for (int i = 0; i<conditions.size(); i++) {
-			if (i>0) sb.append(t(" or "));
-			sb.append(conditions.get(i).toString());
-		}
-		return t("if ({}): {}",sb,actions);
+		return t("if ({}):",conditions());
 	}
 
 	@Override

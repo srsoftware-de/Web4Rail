@@ -105,7 +105,7 @@ train is shorter than {} : Zug ist kürzer als {}
 Trains : Züge
 Trains\: : Züge:
 TrainHasTag : Zug mit Tag
-TrainLength : Zuglänge
+TrainLength : Zug-Länge
 TrainSelect : Zug-Auswahl
 Trigger {} : {} betätigen
 TriggerContact : Kontakt auslösen

@@ -355,6 +355,8 @@ public abstract class Tile extends BaseClass{
 					default:
 				}
 			}
+			String title = title();
+			if (isSet(title)) new Tag("title").content(title()).addTo(svg);
 		} else {
 			new Tag("title").content(t("No display defined for this tile ({})",getClass().getSimpleName())).addTo(svg);
 			new Tag("text")
@@ -362,8 +364,6 @@ public abstract class Tile extends BaseClass{
 				.content("?")
 				.addTo(svg);
 		}
-		String title = title();
-		if (isSet(title)) new Tag("title").content(title()).addTo(svg);
 
 		return svg;
 	}

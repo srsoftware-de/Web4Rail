@@ -76,7 +76,7 @@ public class ActionList extends Vector<Action> implements Constants{
 	
 	public void addActionsFrom(ActionList other) {
 		for (Action otherAction : other) {
-			LOG.debug("old action: {}",otherAction);
+			//LOG.debug("old action ({}): {}",otherAction.getClass().getSimpleName(),otherAction);
 			boolean exists = false;
 			int len = this.size();
 			for (int i=0; i<len; i++) {

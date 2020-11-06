@@ -87,7 +87,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				stop = false;
 				while (true) {
 					if (isNull(route)) {
-						Thread.sleep(2000);
+						Thread.sleep(1000);
 						if (stop) return;
 						Train.this.start();
 					}

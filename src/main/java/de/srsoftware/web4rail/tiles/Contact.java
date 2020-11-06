@@ -136,6 +136,11 @@ public abstract class Contact extends Tile{
 	}
 
 
+	@Override
+	public String title() {
+		return t("Contact {} @ ({}, {})",addr,x,y);
+	}
+
 	public String trigger() {
 		if (trigger == null) trigger = getClass().getSimpleName()+"-"+id();
 		return trigger;
