@@ -13,6 +13,7 @@ public class BlockV extends Block{
 	
 	@Override
 	public Map<Connector, State> connections(Direction from) {
+		if (isNull(from)) return new HashMap<Connector, Turnout.State>();
 		switch (from) {
 			case NORTH:
 				return Map.of(new Connector(x,y+height(),Direction.NORTH),State.UNDEF);

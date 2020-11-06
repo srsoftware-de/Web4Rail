@@ -12,7 +12,7 @@ public class StraightH extends StretchableTile{
 	
 	@Override
 	public Map<Connector, State> connections(Direction from) {
-		if (oneWay == from) return new HashMap<>();
+		if (isNull(from) || oneWay == from) return new HashMap<>();
 		switch (from) {
 			case WEST:
 				return Map.of(new Connector(x+width(),y,Direction.WEST),State.UNDEF);

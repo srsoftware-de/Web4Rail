@@ -12,7 +12,7 @@ public class ContactV extends Contact {
 	
 	@Override
 	public Map<Connector, State> connections(Direction from) {
-		if (oneWay == from) return new HashMap<>();
+		if (isNull(from) || oneWay == from) return new HashMap<>();
 		switch (from) {
 			case NORTH:
 				return Map.of(new Connector(x,y+1,from),State.UNDEF);

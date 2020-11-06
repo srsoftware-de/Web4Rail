@@ -16,6 +16,7 @@ public class Turnout3E extends Turnout{
 
 	@Override
 	public Map<Connector, State> connections(Direction from) {
+		if (isNull(from) || oneWay == from) return new HashMap<>();
 		switch (from) {
 			case EAST:
 				return Map.of(

@@ -10,6 +10,7 @@ public class TurnoutLS extends TurnoutL{
 	
 	@Override
 	public Map<Connector, State> connections(Direction from) {
+		if (isNull(from) || oneWay == from) return new HashMap<>();
 		switch (from) {
 			case SOUTH:
 				return Map.of(new Connector(x-1,y,Direction.EAST),State.LEFT,new Connector(x, y-1, Direction.SOUTH),State.STRAIGHT);

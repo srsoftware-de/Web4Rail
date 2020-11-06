@@ -11,7 +11,7 @@ import de.srsoftware.web4rail.tiles.Turnout.State;
 public class ContactH extends Contact {
 	@Override
 	public Map<Connector, State> connections(Direction from) {
-		if (oneWay == from) return new HashMap<>();
+		if (isNull(from) || oneWay == from) return new HashMap<>();
 		switch (from) {
 			case WEST:
 				return Map.of(new Connector(x+1,y,from),State.UNDEF);

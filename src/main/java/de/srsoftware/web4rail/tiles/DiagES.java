@@ -11,6 +11,7 @@ public class DiagES extends Tile{
 
 	@Override
 	public Map<Connector, State> connections(Direction from) {
+		if (isNull(from)) return new HashMap<>();
 		switch (from) {
 			case SOUTH:
 				return Map.of(new Connector(x+1,y,Direction.WEST),State.UNDEF);

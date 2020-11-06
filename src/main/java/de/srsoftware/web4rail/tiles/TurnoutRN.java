@@ -10,6 +10,7 @@ public class TurnoutRN extends TurnoutR{
 
 	@Override
 	public Map<Connector, State> connections(Direction from) {
+		if (isNull(from) || oneWay == from) return new HashMap<>();
 		switch (from) {
 			case NORTH:
 				return Map.of(new Connector(x-1,y,Direction.EAST),State.RIGHT,new Connector(x, y+1, Direction.NORTH),State.STRAIGHT);
