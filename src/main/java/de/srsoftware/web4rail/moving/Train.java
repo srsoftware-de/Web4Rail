@@ -152,6 +152,19 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
+	
+	public void addToTrace(Vector<Tile> newTiles) {
+		boolean active = trace.isEmpty();
+		for (Tile tile : newTiles) {
+			if (active) {
+				trace.addFirst(tile);
+			} else {
+				Tile dummy = trace.getFirst();
+				if (dummy == tile) active = true;
+			}			
+		}
+		showTrace();
+	}
 
 	private Route chooseRoute(Context context) {		
 		HashSet<Route> routes = block.routes();
@@ -270,16 +283,23 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return props();
 	}
 	
+	public void dropTrace() {
+		while (!trace.isEmpty()) trace.removeFirst().set(null);
+	}
+	
 	public static Train get(int id) {
 		return trains.get(id);
 	}
-
 	
 	public Train heading(Direction dir) {
 		direction = dir;
 		if (isSet(block)) plan.place(block);
 		return this;
 	}	
+	
+	public Tile headPos() {
+		return trace.getFirst();
+	}
 	
 	private JSONObject json() {
 		JSONObject json = new JSONObject();
@@ -480,19 +500,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return window;
 	}
 
-	public SortedSet<String> tags() {
-		TreeSet<String> list = new TreeSet<String>(tags);
-		for (Locomotive loco : locos) list.addAll(loco.tags());
-		for (Car car:cars) list.addAll(car.tags());
-		return list;
-	}
-
 	public Object quitAutopilot() {
 		if (isSet(autopilot)) {
 			autopilot.stop = true;
 			autopilot = null;
 			return t("{} stopping at next block.",this);
 		} else return t("autopilot not active.");
+	}
+
+	private void reverseTrace() {
+		// TODO Auto-generated method stub
 	}
 
 	public static void saveAll(String filename) throws IOException {
@@ -516,10 +533,31 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return select;
 	}
 
+	public void set(Block newBlock) {
+		block = newBlock;
+		if (isSet(block)) block.set(this);
+	}
+	
 	public void setSpeed(int v) {
 		LOG.debug("Setting speed to {} kmh.",v);
 		for (Locomotive loco : locos) loco.setSpeed(v);
 		this.speed = v;
+	}
+	
+	public void showTrace() {
+ 		int remainingLength = length();
+ 		if (remainingLength<1) remainingLength=1;
+		for (int i=0; i<trace.size(); i++) {
+			Tile tile = trace.get(i);
+			if (remainingLength>0) {
+				remainingLength-=tile.length();
+				tile.set(this);
+			} else {
+				tile.set(null);
+				trace.remove(i);
+				i--; // do not move to next index: remove shifted the next index towards us
+			}
+		}
 	}
 	
 	public String start() throws IOException {
@@ -558,6 +596,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return Translation.get(Application.class, message, fills);
 	}
 	
+
+	public SortedSet<String> tags() {
+		TreeSet<String> list = new TreeSet<String>(tags);
+		for (Locomotive loco : locos) list.addAll(loco.tags());
+		for (Car car:cars) list.addAll(car.tags());
+		return list;
+	}
+	
 	@Override
 	public String toString() {
 		return isSet(name) ? name : locos.firstElement().name();
@@ -567,11 +613,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		LOG.debug("train.turn()");
 		if (isSet(direction)) {
 			direction = direction.inverse();
-			for (Locomotive loco : locos) loco.turn(); 
+			for (Locomotive loco : locos) loco.turn();
+			reverseTrace();
+			if (isSet(block)) plan.place(block);
 		}
 		return t("{} turned.",this);
 	}
-
 
 	public Train update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
@@ -589,47 +636,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 
-	public void set(Block newBlock) {
-		block = newBlock;
-		if (isSet(block)) block.set(this);
-	}
 
-	public Tile headPos() {
-		return trace.getFirst();
-	}
 
-	public void addToTrace(Vector<Tile> newTiles) {
-		boolean active = trace.isEmpty();
-		for (Tile tile : newTiles) {
-			if (active) {
-				trace.addFirst(tile);
-			} else {
-				Tile dummy = trace.getFirst();
-				if (dummy == tile) active = true;
-			}			
-		}
-		showTrace();
-	}
-
-	public void showTrace() {
- 		int remainingLength = length();
- 		if (remainingLength<1) remainingLength=1;
-		for (int i=0; i<trace.size(); i++) {
-			Tile tile = trace.get(i);
-			if (remainingLength>0) {
-				remainingLength-=tile.length();
-				tile.set(this);
-			} else {
-				tile.set(null);
-				trace.remove(i);
-				i--; // do not move to next index: remove shifted the next index towards us
-			}
-		}
-	}
-
-	public void dropTrace() {
-		while (!trace.isEmpty()) trace.removeFirst().set(null);
-	}
 
 	public void removeFromTrace(Tile tile) {
 		trace.remove(tile);

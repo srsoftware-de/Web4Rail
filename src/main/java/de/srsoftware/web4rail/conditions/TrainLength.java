@@ -33,7 +33,7 @@ public class TrainLength extends Condition {
 
 	@Override
 	public Tag propForm(HashMap<String, String> params) {
-		return new Input(MAX_LENGTH, maxLength).addTo(new Label(t("Maximum train length:")+NBSP)).addTo(super.propForm(params));
+		return new Input(MAX_LENGTH, maxLength).numeric().addTo(new Label(t("Maximum train length:")+NBSP)).addTo(super.propForm(params));
 	}
 
 	@Override

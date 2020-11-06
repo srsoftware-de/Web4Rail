@@ -39,7 +39,7 @@ public class ConditionalAction extends Action {
 		if (!conditions.isEmpty()) {
 			Tag list = new Tag("ul");
 			for (Condition condition : conditions) {
-				link("li", Map.of(REALM,REALM_CONDITION,ID,id,ACTION,ACTION_PROPS,CONTEXT,params.get(CONTEXT)), condition).addTo(list);
+				link("li", Map.of(REALM,REALM_CONDITION,ID,condition.id(),ACTION,ACTION_PROPS,CONTEXT,params.get(CONTEXT)), condition).addTo(list);
 			}
 			list.addTo(fieldset);
 		}
