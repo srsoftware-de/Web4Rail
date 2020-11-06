@@ -102,7 +102,7 @@ public class ConditionalAction extends Action {
 			if (i>0) sb.append(t(" or "));
 			sb.append(conditions.get(i).toString());
 		}
-		return t("if ({}):",sb);
+		return t("if ({}): {}",sb,actions);
 	}
 
 	@Override

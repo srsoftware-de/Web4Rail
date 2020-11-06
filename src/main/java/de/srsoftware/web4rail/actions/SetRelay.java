@@ -78,7 +78,7 @@ public class SetRelay extends Action {
 
 	public String toString() {
 		if (isNull(relay)) return "["+t("click here to setup relay")+"]";
-		return t("Set "+relay+" to "+(state?relay.stateLabelA:relay.stateLabelB));
+		return t("Set {} to {}",relay,state?relay.stateLabelA:relay.stateLabelB);
 	};
 	
 	@Override

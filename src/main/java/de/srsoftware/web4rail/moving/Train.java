@@ -335,7 +335,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Tag link(String tagClass) {
-		return link(tagClass, Map.of(REALM, REALM_TRAIN,ID,id,ACTION,ACTION_PROPS),name());
+		return link(tagClass, Map.of(REALM, REALM_TRAIN,ID,id,ACTION,ACTION_PROPS),name()+NBSP);
 	}
 	
 	public static TreeSet<Train> list() {
@@ -539,7 +539,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void setSpeed(int v) {
-		LOG.debug("Setting speed to {} kmh.",v);
 		for (Locomotive loco : locos) loco.setSpeed(v);
 		this.speed = v;
 	}

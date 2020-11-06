@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -79,6 +80,7 @@ public class Route extends BaseClass{
 	private ActionList                     setupActions = new ActionList();
 	private Block                          startBlock = null;
 	public  Direction 					   startDirection;
+	private HashSet<Contact>			   triggeredContacts = new HashSet<>();               
 	
 	/**
 	 * process commands from the client
@@ -145,6 +147,20 @@ public class Route extends BaseClass{
 			triggers.put(trigger, actions);
 		}
 		actions.add(action);
+	}
+	
+	public void addActionsFrom(Route existingRoute) {
+		LOG.debug("addActionsFrom({})",existingRoute);
+		setupActions.addActionsFrom(existingRoute.setupActions);
+		for (Entry<String, ActionList> entry : triggers.entrySet()) {
+			String trigger = entry.getKey();
+			ActionList existingActionList = existingRoute.triggers.get(trigger);
+			if (isSet(existingActionList)) {
+				LOG.debug("found action list for {} on existing route {}: {}",trigger,existingRoute,existingActionList);
+				ActionList newActionList = entry.getValue();
+				newActionList.addActionsFrom(existingActionList);
+			}			
+		}
 	}
 	
 	private void addBasicPropertiesTo(Window win) {
@@ -298,8 +314,10 @@ public class Route extends BaseClass{
 	 * @param trainHead
 	 */
 	public void contact(Contact contact) {
-		traceTrainFrom(contact);
+		if (triggeredContacts.contains(contact)) return; // don't trigger contact a second time
+		triggeredContacts.add(contact);
 		LOG.debug("{} on {} activated {}.",train,this,contact);
+		traceTrainFrom(contact);
 		ActionList actions = triggers.get(contact.trigger());
 		if (isNull(actions)) return;
 		Context context = new Context(contact);
@@ -312,6 +330,10 @@ public class Route extends BaseClass{
 	
 	public String context() {
 		return REALM_ROUTE+":"+id();
+	}
+	
+	public boolean isDisabled() {
+		return disabled;
 	}
 	
 	private Object dropCodition(HashMap<String, String> params) {
@@ -344,7 +366,7 @@ public class Route extends BaseClass{
 		train.heading(endDirection.inverse());
 		if (train.route == this) train.route = null;
 		train = null;
-		
+		triggeredContacts.clear();
 	}
 	
 	public boolean fireSetupActions(Context context) {
@@ -522,7 +544,7 @@ public class Route extends BaseClass{
 			name = generateName();
 			name(name);
 		}
-		return name + (disabled?" ["+t("disabled")+"]" : "");
+		return name;
 	}
 
 	public void name(String name) {
@@ -559,6 +581,7 @@ public class Route extends BaseClass{
 			train.heading(startDirection);
 			if (train.route == this) train.route = null;
 		}	
+		triggeredContacts.clear();
 		return true;
 	}
 

@@ -80,6 +80,10 @@ public abstract class Action extends BaseClass {
 		}
 		return null;
 	}
+	
+	public boolean equals(Action other) {
+		return this.toString().equals(other.toString());
+	}
 
 	public abstract boolean fire(Context context) throws IOException;
 	

@@ -74,6 +74,29 @@ public class ActionList extends Vector<Action> implements Constants{
 		return win;			
 	}
 	
+	public void addActionsFrom(ActionList other) {
+		for (Action otherAction : other) {
+			LOG.debug("old action: {}",otherAction);
+			boolean exists = false;
+			int len = this.size();
+			for (int i=0; i<len; i++) {
+				Action thisAction = this.get(i);
+				LOG.debug("→ {} ?",thisAction);
+				if (thisAction.equals(otherAction)) {
+					LOG.debug("Action already existing!");
+					exists = true;
+					break;
+				}
+			}
+			if (exists) {
+				LOG.debug("action not added.");
+			} else {
+				this.add(otherAction);
+				LOG.debug("action added.");
+			}
+		}
+	}
+	
 	public void addTo(Tag link, String context) {
 		Map<String, Object> props = new HashMap<String, Object>(Map.of(
 				REALM,REALM_ACTIONS,
@@ -121,7 +144,7 @@ public class ActionList extends Vector<Action> implements Constants{
 	}
 	
 	public boolean fire(Context context) {
-		LOG.debug("Firing {}",this);
+		LOG.debug(t("Firing {}"),this);
 		boolean success = true;
 		for (Action action : this) {
 			try {

@@ -41,7 +41,7 @@ public class DelayedAction extends Action {
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
 
-		new Input(DELAY,delay).numeric().addTo(new Label(t("Delay")+NBSP)).content(" ms").addTo(form);
+		new Input(DELAY,delay).numeric().addTo(new Label(t("Delay")+NBSP)).content(NBSP+"ms").addTo(form);
 		return new Button(t("Apply"),form).addTo(form).addTo(fieldset);
 	}
 		
@@ -59,8 +59,6 @@ public class DelayedAction extends Action {
 		}.start();
 		return true;		
 	}
-
-
 	
 	@Override
 	public JSONObject json() {
@@ -87,7 +85,7 @@ public class DelayedAction extends Action {
 
 	@Override
 	public String toString() {	
-		return t("Wait {} ms, then:",delay);
+		return t("Wait {} ms, then: {}",delay,actions);
 	}
 
 	@Override

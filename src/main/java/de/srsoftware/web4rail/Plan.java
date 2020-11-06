@@ -70,7 +70,7 @@ import de.srsoftware.web4rail.tiles.TurnoutRW;
  * @author Stephan Richter, SRSoftware
  *
  */
-public class Plan implements Constants{
+public class Plan extends BaseClass{
 	/**
 	 * The four directions Trains can be within blocks
 	 */
@@ -240,7 +240,6 @@ public class Plan implements Constants{
 		for (Block block : blocks) {
 			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
 		}
-		this.routes.clear();
 		for (Tile tile : tiles.values()) tile.routes().clear();
 		for (Route route : routes) {
 			route.complete();
@@ -571,13 +570,16 @@ public class Plan implements Constants{
 
 	/**
 	 * adds a new route to the plan
-	 * @param route
+	 * @param newRoute
 	 * @return
 	 */
-	Route registerRoute(Route route) {
-		for (Tile tile: route.path()) tile.add(route);
-		routes.put(route.id(), route);
-		return route;
+	Route registerRoute(Route newRoute) {
+		for (Tile tile: newRoute.path()) tile.add(newRoute);
+		int routeId = newRoute.id();
+		Route existingRoute = routes.get(routeId);
+		if (isSet(existingRoute)) newRoute.addActionsFrom(existingRoute);
+		routes.put(routeId, newRoute);
+		return newRoute;
 	}
 	
 	/**
@@ -668,10 +670,8 @@ public class Plan implements Constants{
 	}
 	
 	public void sensor(int addr, boolean active) {
-		LOG.debug("contact({},{})",addr,active);
 		Contact contact = Contact.get(addr);
 		LOG.debug("contact: {}",contact);
-		LOG.debug("learning: {}",learningContact);
 		if (contact != null) {
 			contact.activate(active);
 		} else {
@@ -682,7 +682,6 @@ public class Plan implements Constants{
 			}
 		}
 	}
-
 
 	/**
 	 * shows the properties of an entity specified in the params.context value
