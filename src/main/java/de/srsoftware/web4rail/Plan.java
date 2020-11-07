@@ -161,21 +161,6 @@ public class Plan extends BaseClass{
 	}
 	
 	/**
-	 * generates the action menu that is appended to the plan
-	 * @return
-	 * @throws IOException
-	 */
-	private Tag actionMenu() throws IOException {
-		Tag actionMenu = new Tag("div").clazz("actions").content(t("Actions"));		
-		Tag actions = new Tag("div").clazz("list").content("");
-		new Div(ACTION_POWER).clazz(REALM_CU).content(t("Toggle power")).addTo(actions);
-		new Div(ACTION_SAVE).clazz(REALM_PLAN).content(t("Save plan")).addTo(actions);
-		new Div(ACTION_ANALYZE).clazz(REALM_PLAN).content(t("Analyze plan")).addTo(actions);
-		new Div(ACTION_QR).clazz(REALM_PLAN).content(t("QR-Code")).addTo(actions);
-		return actions.addTo(actionMenu);
-	}
-	
-	/**
 	 * attaches a new client to the event stream of the plan
 	 * @param client
 	 */
@@ -335,6 +320,7 @@ public class Plan extends BaseClass{
 	private Tag hardwareMenu() throws IOException {
 		Tag tileMenu = new Tag("div").clazz("hardware").content(t("Hardware"));
 		Tag list = new Tag("div").clazz("list").content("");
+		new Div(ACTION_POWER).clazz(REALM_CU).content(t("Toggle power")).addTo(list);
 		new Div(ACTION_PROPS).clazz(REALM_CU).content(t("Control unit")).addTo(list);
 		return list.addTo(tileMenu);
 	}
@@ -435,11 +421,11 @@ public class Plan extends BaseClass{
 	private Tag menu() throws IOException {
 		Tag menu = new Tag("div").clazz("menu");
 		new Tag("div").clazz("emergency").content(t("Emergency")).attr("onclick","return request({realm:'"+REALM_CU+"',action:'"+ACTION_EMERGENCY+"'});").addTo(menu);
-		actionMenu().addTo(menu);
 		moveMenu().addTo(menu);		
+		planMenu().addTo(menu);
+		hardwareMenu().addTo(menu);
 		tileMenu().addTo(menu);
 		trainMenu().addTo(menu);
-		hardwareMenu().addTo(menu);
 		help().addTo(menu);
 		return menu;
 	}
@@ -557,6 +543,20 @@ public class Plan extends BaseClass{
 			e.printStackTrace();
 		}
 		return tile;
+	}
+	
+	/**
+	 * generates the action menu that is appended to the plan
+	 * @return
+	 * @throws IOException
+	 */
+	private Tag planMenu() throws IOException {
+		Tag actionMenu = new Tag("div").clazz("actions").content(t("Plan"));		
+		Tag actions = new Tag("div").clazz("list").content("");
+		new Div(ACTION_SAVE).clazz(REALM_PLAN).content(t("Save")).addTo(actions);
+		new Div(ACTION_ANALYZE).clazz(REALM_PLAN).content(t("Analyze")).addTo(actions);
+		new Div(ACTION_QR).clazz(REALM_PLAN).content(t("QR-Code")).addTo(actions);
+		return actions.addTo(actionMenu);
 	}
 
 	/**
@@ -754,6 +754,8 @@ public class Plan extends BaseClass{
 		Tag tileMenu = new Tag("div").clazz("addtile").title(t("Add tile")).content("╦");
 		
 		Tag tiles = new Tag("div").clazz("list").content("");
+		new CrossV().tag(null).addTo(tiles);
+		new CrossH().tag(null).addTo(tiles);
 		new StraightH().tag(null).addTo(tiles);
 		new StraightV().tag(null).addTo(tiles);
 		new ContactH().tag(null).addTo(tiles);
@@ -781,8 +783,6 @@ public class Plan extends BaseClass{
 		new TurnoutLW().tag(null).addTo(tiles);
 		new TurnoutLE().tag(null).addTo(tiles);
 		new Turnout3E().tag(null).addTo(tiles);
-		new CrossH().tag(null).addTo(tiles);
-		new CrossV().tag(null).addTo(tiles);
 		new Relay().setLabel(true,"RL").tag(null).addTo(tiles);
 		new Eraser().tag(null).addTo(tiles);
 		return tiles.addTo(tileMenu);

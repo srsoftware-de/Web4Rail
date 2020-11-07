@@ -113,10 +113,11 @@ svg circle{
 
 .menu > div > .list{
 	position: fixed;
-	height: 30px;
+	left: 5%;	
 	bottom: 50px;
-	width: 100%;
+	width: 90%;
 	z-index: 10;
+	padding-top: 50px;
 }
 
 .menu > div > .list > *{
@@ -152,6 +153,17 @@ h2{
 	font-size: 30px;
 	background: red;
 	color: white;
+	width: 40px;
+	height: 40px;
+	text-align: center;
+}
+
+.actions .list > div,
+.hardware .list > div,
+.help .list > div,
+.trains .list > div{
+	padding: 5px;
+	height: unset;
 }
 
 .closebtn{
