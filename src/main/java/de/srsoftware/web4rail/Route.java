@@ -149,20 +149,6 @@ public class Route extends BaseClass{
 		actions.add(action);
 	}
 	
-	public void addActionsFrom(Route existingRoute) {
-		LOG.debug("addActionsFrom({})",existingRoute);
-		setupActions.addActionsFrom(existingRoute.setupActions);
-		for (Entry<String, ActionList> entry : triggers.entrySet()) {
-			String trigger = entry.getKey();
-			ActionList existingActionList = existingRoute.triggers.get(trigger);
-			if (isSet(existingActionList)) {
-				LOG.debug("found action list for {} on existing route {}: {}",trigger,existingRoute,existingActionList);
-				ActionList newActionList = entry.getValue();
-				newActionList.addActionsFrom(existingActionList);
-			}			
-		}
-	}
-	
 	private void addBasicPropertiesTo(Window win) {
 		if (isSet(train)) link("span",Map.of(REALM,REALM_TRAIN,ID,train.id,ACTION,ACTION_PROPS),t("Train: {}",train)).addTo(win);
 		new Tag("h4").content(t("Origin and destination")).addTo(win);
@@ -235,6 +221,21 @@ public class Route extends BaseClass{
 		new Checkbox(DISABLED, t("disabled"), disabled).addTo(form);
 		
 		new Button(t("Apply"),form).addTo(form).addTo(win);
+	}
+	
+	public void addPropertiesFrom(Route existingRoute) {
+		LOG.debug("addPropertiesFrom({})",existingRoute);
+		disabled = existingRoute.disabled;
+		setupActions.addActionsFrom(existingRoute.setupActions);
+		for (Entry<String, ActionList> entry : triggers.entrySet()) {
+			String trigger = entry.getKey();
+			ActionList existingActionList = existingRoute.triggers.get(trigger);
+			if (isSet(existingActionList)) {
+				LOG.debug("found action list for {} on existing route {}: {}",trigger,existingRoute,existingActionList);
+				ActionList newActionList = entry.getValue();
+				newActionList.addActionsFrom(existingActionList);
+			}			
+		}
 	}
 	
 	void addSignal(Signal signal) {

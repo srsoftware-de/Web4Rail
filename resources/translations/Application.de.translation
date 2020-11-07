@@ -24,6 +24,7 @@ Current location\: : Aktueller Ort:
 Actions and contacts : Aktionen und Kontakte
 click here to setup contact : Hier klicken, um Kontakt auszuwählen
 click here to setup relay : Hier klicken, um Relais einzurichten
+Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werden soll:
 Create action : Aktion erzeugen
 DelayedAction : verzögerte Aktion
 delete : entfernen
@@ -81,6 +82,8 @@ Route will only be available to trains fulfilling all conditions. : Route ist nu
 Save : speichern
 Select contact\: : Kotakt auswählen:
 Select relay\: : Relais auswählen:
+SendCommand : Kommando senden
+Send command \"{}\" to control unit : Kommando „{}“ an Zentrale senden
 SetRelay : Relais schalten
 SetSignalsToStop : Signale auf Halt stellen
 SetSpeed : Geschwindigkeit ändern

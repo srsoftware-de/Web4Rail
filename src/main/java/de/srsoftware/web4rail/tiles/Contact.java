@@ -70,6 +70,7 @@ public class Contact extends Tile{
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (addr > 0) json.put(ADDRESS, addr);
+		if (!actions.isEmpty()) json.put(REALM_ACTIONS, actions.json());
 		return json;
 	}
 	
@@ -82,6 +83,7 @@ public class Contact extends Tile{
 	protected Tile load(JSONObject json) throws IOException {
 		super.load(json);
 		if (json.has(ADDRESS)) addr(json.getInt(ADDRESS));
+		if (json.has(REALM_ACTIONS)) actions = ActionList.load(json.getJSONArray(REALM_ACTIONS));
 		return this;
 	}
 	

@@ -576,7 +576,7 @@ public class Plan extends BaseClass{
 		for (Tile tile: newRoute.path()) tile.add(newRoute);
 		int routeId = newRoute.id();
 		Route existingRoute = routes.get(routeId);
-		if (isSet(existingRoute)) newRoute.addActionsFrom(existingRoute);
+		if (isSet(existingRoute)) newRoute.addPropertiesFrom(existingRoute);
 		routes.put(routeId, newRoute);
 		return newRoute;
 	}

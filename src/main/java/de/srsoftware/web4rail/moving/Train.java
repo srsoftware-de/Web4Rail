@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -263,6 +264,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return locoList.addTo(locoProp);
 	}
 	
+	public List<Car> cars(){
+		return new Vector<Car>(cars);
+	}
+	
 	private static Object create(HashMap<String, String> params, Plan plan) {
 		Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
 		if (isNull(loco)) return t("unknown locomotive: {}",params.get(ID));
@@ -399,6 +404,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return locoList.addTo(locoProp);
 	}
+	
+	public List<Car> locos(){
+		return new Vector<Car>(locos);
+	}
+
 	
 	public static Object manager() {
 		Window win = new Window("train-manager", t("Train manager"));

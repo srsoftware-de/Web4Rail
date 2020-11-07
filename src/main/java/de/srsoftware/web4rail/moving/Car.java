@@ -162,6 +162,10 @@ public class Car extends BaseClass {
 		return name;
 	}
 	
+	public Plan plan() {
+		return plan;
+	}
+	
 	public Car plan(Plan plan) {
 		this.plan = plan;
 		return this;

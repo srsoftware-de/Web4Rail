@@ -41,6 +41,7 @@ public abstract class Action extends BaseClass {
 		
 		public Context(Contact c) {			
 			contact = c;
+			plan = contact.plan();
 			route = contact.route();
 			if (route == null) return;
 			train = route.train;
@@ -48,10 +49,12 @@ public abstract class Action extends BaseClass {
 
 		public Context(Train train) {
 			this.train = train;
+			if (isSet(train)) plan = train.locos().get(0).plan();
 		}
 
 		public Context(Route route) {
 			this.route = route;
+			if (isSet(route)) plan = route.path().firstElement().plan();
 			train = route.train;
 		}
 		
@@ -101,6 +104,7 @@ public abstract class Action extends BaseClass {
 	
 	public static List<Class<? extends Action>> list() {
 		return List.of(
+			SendCommand.class,
 			ConditionalAction.class,
 			SetSpeed.class,
 			SetSignalsToStop.class,
