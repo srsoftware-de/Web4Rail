@@ -5,37 +5,51 @@ import java.util.HashMap;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.ControlUnit;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Radio;
 
-public class SetSpeed extends Action{
-
-	public static final String MAX_SPEED = "max_speed";
-	private int maxSpeed = 0;
+public class SetPower extends Action{
+	
+	private static final String STATE = "state";
+	private POWERCHANGE pc = POWERCHANGE.OFF;
+	
+	enum POWERCHANGE {
+		ON, OFF, TOGGLE;
+	}
 
 	@Override
 	public boolean fire(Context context) {
-		if (context.train != null && context.train.speed > maxSpeed) {
-			context.train.setSpeed(maxSpeed);
-			return true;
+		ControlUnit cu = context.contact.plan().controlUnit();
+		switch (pc) {
+		case ON:
+			cu.set(true);	
+			break;
+		case TOGGLE:
+			cu.togglePower();
+			break;
+		default:
+			cu.set(false);
+			break;
 		}
-		return false;
+		
+		return true;
 	}
 	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
-		json.put(MAX_SPEED, maxSpeed);
+		json.put(STATE, pc);
 		return json;
 	}
 	
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		maxSpeed = json.getInt(MAX_SPEED);
+		pc = POWERCHANGE.valueOf(json.getString(STATE));
 		return this;	
 	}
 	
@@ -47,42 +61,33 @@ public class SetSpeed extends Action{
 		new Input(ID,params.get(ID)).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
-		Label label = new Label(t("Set speed to")+NBSP);
-		new Input(MAX_SPEED, maxSpeed).numeric().addTo(label).content(NBSP+t("km/h"));
-		label.addTo(form);
+
+		new Radio(STATE, POWERCHANGE.ON, t("On"), pc == POWERCHANGE.ON).addTo(form);
+		new Radio(STATE, POWERCHANGE.OFF, t("Off"), pc == POWERCHANGE.OFF).addTo(form);
+		new Radio(STATE, POWERCHANGE.TOGGLE, t("Toggle"), pc == POWERCHANGE.TOGGLE).addTo(form);
+		
 		new Button(t("Apply"),form).addTo(form).addTo(win);		
 		return win;
 	}
 	
 	@Override
 	public String toString() {
-		return t("Reduce speed to {} km/h",maxSpeed);
+		switch (pc) {
+		case ON:
+			return t("Switch power on");
+		case OFF:
+			return t("Switch power off");
+		default:
+			return t("Toggle power");
+		}
 	}
 	
-	public SetSpeed speed(int kmh) {
-		maxSpeed = kmh;
-		return this;
-	}
-
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
 		String error = null;
-		String ms = params.get(MAX_SPEED);
-		if (ms == null) {
-			ms = ""+128;
-		} else {
-			try {
-				int s = Integer.parseInt(ms);
-				if (s<0) error = t("Speed must not be less than zero!");
-				if (error == null) {
-					this.maxSpeed = s;
-					return t("Action updated!");
-				}
-			} catch (NumberFormatException e) {
-				error = t("Not a valid number!");
-			}
-		}
+		String newState = params.get(STATE);
+		if (isSet(newState)) pc = POWERCHANGE.valueOf(newState);
 		Window win = properties(params);
 		return new Tag("span").content(error).addTo(win);
 	}

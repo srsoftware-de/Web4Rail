@@ -10,13 +10,16 @@ import java.util.TreeMap;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.actions.Action.Context;
+import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
-public abstract class Contact extends Tile{
+public class Contact extends Tile{
 	
 	private static final String ADDRESS = "address";
 	private static final HashMap<String, Contact> contactsById = new HashMap<String, Contact>();
@@ -24,27 +27,17 @@ public abstract class Contact extends Tile{
 	private boolean active = false;
 	private String trigger = null;
 	private int addr = 0;
-	
-	public void trigger(int duration) throws IOException {
-		activate(true);
-		new Thread() {
-			public void run() {
-				try {
-					sleep(duration);
-					activate(false);
-				} catch (Exception e) {}
-			}
-		}.start();
-	}
+	private ActionList actions = new ActionList();
 	
 	public void activate(boolean active) {		
 		this.active = active;		
 		if (active) {
-			if (route == null) {
-				plan.warn(this);
-			} else {
+			if (isSet(route)) {
 				route.contact(this);
+			} else if (getClass() != Contact.class) {
+				plan.warn(this);	
 			}
+			actions.fire(new Context(this));
 		}
 		try {
 			stream();
@@ -129,6 +122,26 @@ public abstract class Contact extends Tile{
 		return form;
 	}
 	
+	@Override
+	public Window propMenu() {
+		Window win = super.propMenu();
+		new Tag("h4").content(t("Actions")).addTo(win);
+		actions.addTo(win, REALM_PLAN+":"+id());
+		return win;
+	}
+	
+	public static Select selector(Contact preselect) {
+		TreeMap<String,Contact> sortedSet = new TreeMap<String, Contact>(); // Map from Name to Contact
+		for (Contact contact : contactsById.values()) sortedSet.put(contact.toString(), contact);
+		Select select = new Select(CONTACT);
+		for (Entry<String, Contact> entry : sortedSet.entrySet()) {
+			Contact contact = entry.getValue();
+			Tag option = select.addOption(contact.id(),contact);
+			if (contact == preselect) option.attr("selected", "selected");
+		}
+		return select;
+	}
+	
 	public void stream() throws IOException {
 		Tag tag = super.tag(null);
 		if (active) tag.clazz(tag.get("class")+" active");
@@ -146,21 +159,20 @@ public abstract class Contact extends Tile{
 		return trigger;
 	}
 	
+	public void trigger(int duration) throws IOException {
+		activate(true);
+		new Thread() {
+			public void run() {
+				try {
+					sleep(duration);
+					activate(false);
+				} catch (Exception e) {}
+			}
+		}.start();
+	}
 	@Override
 	public Tile update(HashMap<String, String> params) throws IOException {
 		if (params.containsKey(ADDRESS)) addr(Integer.parseInt(params.get(ADDRESS)));
 		return super.update(params);
-	}
-
-	public static Select selector(Contact preselect) {
-		TreeMap<String,Contact> sortedSet = new TreeMap<String, Contact>(); // Map from Name to Contact
-		for (Contact contact : contactsById.values()) sortedSet.put(contact.toString(), contact);
-		Select select = new Select(CONTACT);
-		for (Entry<String, Contact> entry : sortedSet.entrySet()) {
-			Contact contact = entry.getValue();
-			Tag option = select.addOption(contact.id(),contact);
-			if (contact == preselect) option.attr("selected", "selected");
-		}
-		return select;
 	}
 }

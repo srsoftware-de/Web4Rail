@@ -783,6 +783,7 @@ public class Plan extends BaseClass{
 		new TurnoutLE().tag(null).addTo(tiles);
 		new Turnout3E().tag(null).addTo(tiles);
 		new Relay().setLabel(true,"RL").tag(null).addTo(tiles);
+		new Contact().tag(null).addTo(tiles);
 		new Eraser().tag(null).addTo(tiles);
 		return tiles.addTo(tileMenu);
 	}

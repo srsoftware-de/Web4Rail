@@ -212,7 +212,7 @@ public abstract class Tile extends BaseClass{
 		return form;
 	}
 	
-	public Tag propMenu() {	
+	public Window propMenu() {	
 		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",title(),x,y));
 		
 		if (isSet(train)) {

@@ -59,13 +59,14 @@ new train : neuer Zug
 No : keine
 No free routes from {} : keine Route von {} frei
 NORTH : Norden
+Off : Aus
+On : An
 One way\: : Richtung:
 Online Documentation : Online-Dokumentation
 other train properties : andere Zug-Eigenschaften
 Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
 Plan saved as "{}". : Plan als „{}“ gespeichert.
-PowerOff : Strom abschalten
 Properties : Eigenschaften
 Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
@@ -84,6 +85,7 @@ SetRelay : Relais schalten
 SetSignalsToStop : Signale auf Halt stellen
 SetSpeed : Geschwindigkeit ändern
 Set {} to {} : {} auf {} setzen
+SetPower : Strom schalten
 Set speed to : Geschwindigkeit setzen
 Setup actions : Aktivierungs-Aktionen
 Signals : Signale
@@ -92,8 +94,11 @@ Started {} : {} gestartet
 StopAuto : Automatikmodus abschalten
 Straight port\: : Port für gerade
 STRAIGHT : gerade
+Switch power off : Strom ausschalten
+Switch power on : Strom anschalten
 Tags : Markierungen
-Toggle power : Stom an/ausschalten
+Toggle : umschalten
+Toggle power : Stom umschalten
 Train\: : Zug:
 train does not have tag "{}" : Zug hat keine Markierung „{}“
 train has tag "{}" : Zug hat Markierung „{}“

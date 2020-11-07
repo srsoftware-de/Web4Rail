@@ -108,7 +108,7 @@ public abstract class Action extends BaseClass {
 			TriggerContact.class,
 			TurnTrain.class,
 			StopAuto.class,
-			PowerOff.class,
+			SetPower.class,
 			SetRelay.class,
 			DelayedAction.class
 		);

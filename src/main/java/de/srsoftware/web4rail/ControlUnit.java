@@ -157,7 +157,7 @@ public class ControlUnit extends Thread implements Constants{
 			restart();
 			return t("Control unit (re)started.");
 		case ACTION_EMERGENCY:
-			return emergency();
+			return set(false);
 		case ACTION_POWER:
 			return togglePower();
 		case ACTION_PROPS:
@@ -169,15 +169,6 @@ public class ControlUnit extends Thread implements Constants{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
-	/**
-	 * turn of power immediately
-	 * @return
-	 */
-	public Object emergency() {
-		power = true;
-		return togglePower();
-	}
-
 	/**
 	 * generate a properties view for the client
 	 * @return
@@ -269,6 +260,15 @@ public class ControlUnit extends Thread implements Constants{
 	}
 	
 	/**
+	 * set power state
+	 * @return
+	 */
+	public Object set(boolean on) {
+		power = !on;
+		return togglePower();
+	}
+	
+	/**
 	 * set up the connection endpoint
 	 * @param newHost
 	 * @param newPort
@@ -352,7 +352,7 @@ public class ControlUnit extends Thread implements Constants{
 	 * togge power on/off at the SRCP daemon
 	 * @return
 	 */
-	private Command togglePower() {
+	public Command togglePower() {
 		power = !power;
 		String PW = power?"ON":"OFF";
 		Command command = new Command("SET {} POWER "+PW) {
