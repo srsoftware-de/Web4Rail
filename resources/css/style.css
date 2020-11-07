@@ -7,7 +7,7 @@ html{
 }
 body{
   min-height: 100%;  
-  background: #c6dbd2;
+  background: rgb(198,219,210);
 }
 button{
 	border: 1px solid blue;
@@ -85,20 +85,22 @@ svg circle{
 }
 
 .menu{
-	position: fixed;
-	width: 100%;
+	position: absolute;
 	height: 30px;
-	bottom: 20px;
+	padding: 10px;
+	bottom: 0;
+	background: rgba(0,0,0,0.1);	
+	width: 100%;
 }
 
 .menu > div{
-	position: relative;
 	float: left;
 	border: 1px solid black;
 	height: 30px;
 	min-width: 30px;
 	background: white;
 	padding: 3px;
+	
 	text-align: center;
 }
 
@@ -112,12 +114,13 @@ svg circle{
 }
 
 .menu > div > .list{
-	position: fixed;
+	position: absolute;
 	left: 5%;	
-	bottom: 50px;
+	bottom: 40px;
 	width: 90%;
 	z-index: 10;
-	padding-top: 50px;
+	background: rgb(198,219,210,0.8);	
+	padding: 20px 5px 0 5px;
 }
 
 .menu > div > .list > *{

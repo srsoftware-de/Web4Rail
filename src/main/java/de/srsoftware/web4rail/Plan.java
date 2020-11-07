@@ -109,7 +109,6 @@ public class Plan extends BaseClass{
 	private static final String ACTION_QR = "qrcode";
 	public  static final String DEFAULT_NAME = "default";
 	private static final String DIRECTION = "direction";
-	private static final String HELP = "help";
 	private static final Logger LOG = LoggerFactory.getLogger(Plan.class);
 	private static final String TILE = "tile";
 	private static final String X = "x";
@@ -343,8 +342,8 @@ public class Plan extends BaseClass{
 	private Tag help() {
 		Tag help = new Tag("div").clazz("help").content(t("Help"));
 		Tag list = new Tag("div").clazz("list").content("");
-		new Tag(HELP).content(t("Online Documentation")).attr("onclick", "window.open('"+GITHUB_URL+"')").addTo(list);
-		new Tag(HELP).content(t("Report Issue")).attr("onclick", "window.open('"+GITHUB_URL+"/issues')").addTo(list);
+		new Tag("div").content(t("Online Documentation")).attr("onclick", "window.open('"+GITHUB_URL+"')").addTo(list);
+		new Tag("div").content(t("Report Issue")).attr("onclick", "window.open('"+GITHUB_URL+"/issues')").addTo(list);
 		return list.addTo(help);
 	}
 	

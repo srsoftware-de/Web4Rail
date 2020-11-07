@@ -11,7 +11,7 @@ add new locomotive : neue Lok anlegen
 add new train : neuen Zug anlegen
 Add tile : Kachel hinzufügen
 Address\: : Adresse:
-Analyze plan : Plan analysieren
+Analyze : analysieren
 Apply : Übernehmen
 Availability : Verfügbarkeit
 Block properties : Block-Eigenschaften
@@ -77,8 +77,7 @@ RIGHT : rechts
 Right port\: : Port für rechts
 Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
 Route will only be available to trains fulfilling all conditions. : Route ist nur für Züge verfügbar, die alle Bedingungen erfüllen.
-save : speichern
-Save plan : Plan speichern
+Save : speichern
 Select contact\: : Kotakt auswählen:
 Select relay\: : Relais auswählen:
 SetRelay : Relais schalten
