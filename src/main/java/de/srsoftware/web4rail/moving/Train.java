@@ -44,9 +44,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 
 	private static final String CAR_ID  = "carId";
-	public  static final String HEAD    = "train_head";
 	public  static final String LOCO_ID = "locoId";
-	public  static final String TAIL    = "train_tile";
 	private static final String TRACE   = "trace";
 	private static final HashMap<Integer, Train> trains = new HashMap<>();
 	
@@ -179,7 +177,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				}
 			}
 			if (!rt.isFreeFor(this)) { // keine belegten Routen wählen
-				LOG.debug("{} is not free!",rt);
+//				LOG.debug("{} is not free!",rt);
 				continue;
 			}
 			if (!rt.allowed(context)) continue;
@@ -533,7 +531,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public static Select selector(Train preselected,Collection<Train> exclude) {
 		if (isNull(exclude)) exclude = new Vector<Train>();
-		Select select = new Select(Train.HEAD);
+		Select select = new Select(Train.class.getSimpleName());
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
 		for (Train train : Train.list()) {			
 			if (exclude.contains(train)) continue;
@@ -594,7 +592,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return t("Started {}",this);
 	}
 	
-	private Object stopNow() {
+	public Object stopNow() {
 		quitAutopilot();
 		setSpeed(0);
 		if (isSet(route)) route.reset();

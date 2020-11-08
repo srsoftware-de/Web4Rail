@@ -111,6 +111,7 @@ public abstract class Action extends BaseClass {
 			FinishRoute.class,
 			TriggerContact.class,
 			TurnTrain.class,
+			StopAllTrains.class,
 			StopAuto.class,
 			SetPower.class,
 			SetRelay.class,

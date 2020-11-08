@@ -90,8 +90,8 @@ public abstract class Block extends StretchableTile{
 	@Override
 	public Tile update(HashMap<String, String> params) throws IOException {		
 		if (params.containsKey(NAME)) name=params.get(NAME);
-		if (params.containsKey(Train.HEAD)) {
-			int trainId = Integer.parseInt(params.get(Train.HEAD));
+		if (params.containsKey(Train.class.getSimpleName())) {
+			int trainId = Integer.parseInt(params.get(Train.class.getSimpleName()));
 			if (trainId == 0) {
 				if (isSet(train)) train.dropTrace();
 				train = null;

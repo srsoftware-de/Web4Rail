@@ -361,11 +361,13 @@ public class Route extends BaseClass{
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Contact) {
 			lastTile.set(null);
-			train.removeFromTrace(lastTile);
+			if (isSet(train)) train.removeFromTrace(lastTile);
 		}
-		train.set(endBlock);
-		train.heading(endDirection.inverse());
-		if (train.route == this) train.route = null;
+		if (isSet(train)) { 
+			train.set(endBlock);
+			train.heading(endDirection.inverse());
+			if (train.route == this) train.route = null;
+		}
 		train = null;
 		triggeredContacts.clear();
 	}

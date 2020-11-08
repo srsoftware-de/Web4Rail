@@ -94,6 +94,7 @@ Setup actions : Aktivierungs-Aktionen
 Signals : Signale
 SOUTH : Süden
 Started {} : {} gestartet
+StopAllTrains : Alle Züge stoppen
 StopAuto : Automatikmodus abschalten
 Straight port\: : Port für gerade
 STRAIGHT : gerade

@@ -2,14 +2,13 @@ package de.srsoftware.web4rail.actions;
 
 import java.io.IOException;
 
-import de.srsoftware.web4rail.Route;
+import de.srsoftware.web4rail.moving.Train;
 
-public class FinishRoute extends Action {
+public class StopAllTrains extends Action {
 
 	@Override
 	public boolean fire(Context context) throws IOException {
-		Route route = context.route;
-		if (isSet(route)) route.finish();
+		Train.list().forEach(train -> train.stopNow());
 		return true;
 	}
 }
