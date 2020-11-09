@@ -251,3 +251,12 @@ svg.disabled rect{
 	stroke-width:5;
 	stroke: red;
 }
+
+#train-wait-form input{
+	text-align: right;
+	width: 100px;
+}
+
+#train-wait-form td{
+	text-align: right;
+}

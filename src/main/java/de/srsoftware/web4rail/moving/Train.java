@@ -71,11 +71,24 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Vector<Locomotive> locos = new Vector<Locomotive>();
 	
 	private static final String TAGS = "tags";
+	private static final String WAIT_TIMES = "wait_times";
+	private static final String MAX = "max";
+	private static final String MIN = "min";
+	
 	private HashSet<String> tags = new HashSet<String>();
+	private HashMap<String, WaitTime> waitTimes = new HashMap<String, WaitTime>();
 
 
 	private Block block = null;
 	LinkedList<Tile> trace = new LinkedList<Tile>();
+	
+	public class WaitTime{
+		public int min =0,max=10000;
+		@Override
+		public String toString() {
+			return min+"..."+max+" s";
+		}
+	}
 		
 	private class Autopilot extends Thread{
 		boolean stop = false;
@@ -327,6 +340,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		json.put(TRACE, tileIds);
 		
 		if (!tags.isEmpty()) json.put(TAGS, tags);
+		JSONObject jWaitTimes = new JSONObject();
+		for (Entry<String, WaitTime> entry: waitTimes.entrySet()) {
+			jWaitTimes.put(entry.getKey(), Map.of(MIN,entry.getValue().min,MAX,entry.getValue().max));
+		}
+		json.put(WAIT_TIMES, jWaitTimes);
 		return json;
 	}
 		
@@ -370,7 +388,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(BLOCK)) block = (Block) plan.get(json.getString(BLOCK), false).set(this); // do not move this up! during set, other fields will be referenced!
 		for (Object id : json.getJSONArray(CARS)) add(Car.get(id));
 		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get(id));
-		
+		if (json.has(WAIT_TIMES)) {
+			JSONObject jWaitTimes = json.getJSONObject(WAIT_TIMES);
+			for (String key : jWaitTimes.keySet()) {
+				JSONObject wt = jWaitTimes.getJSONObject(key);
+			    setWaitTime(key, wt.getInt(MIN), true);
+			    setWaitTime(key, wt.getInt(MAX), false);
+			}
+		}
 		return this;
 	}
 	
@@ -551,6 +576,22 @@ public class Train extends BaseClass implements Comparable<Train> {
 		this.speed = v;
 	}
 	
+	public void setWaitTime(String key,int time, boolean min) {
+		WaitTime wt = waitTime(key);
+		if (time < 0) time = 0;
+		if (min) {
+			wt.min = time;
+			if (wt.max < time) wt.max = time; 
+		} else {
+			wt.max = time;
+			if (wt.min > time) wt.min = time;
+		}		
+	}
+	
+	public void setWaitTime(Block block, Direction dir, int time, boolean min) {
+		setWaitTime(block.id()+":"+dir, time, min);
+	}
+	
 	public void showTrace() {
  		int remainingLength = length();
  		if (remainingLength<1) remainingLength=1;
@@ -643,11 +684,21 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 
-
-
-
 	public void removeFromTrace(Tile tile) {
 		trace.remove(tile);
 		
+	}
+
+	public WaitTime waitTime(String key) {
+		WaitTime wt = waitTimes.get(key);
+		if (wt == null) {
+			wt = new WaitTime();
+			waitTimes.put(key, wt);
+		}
+		return wt;
+	}
+	
+	public WaitTime waitTime(Block block, Direction dir) {
+		return waitTime(block.id()+":"+dir);		
 	}
 }

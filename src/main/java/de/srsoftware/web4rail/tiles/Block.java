@@ -4,12 +4,17 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.moving.Train.WaitTime;
+import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
@@ -33,6 +38,9 @@ public abstract class Block extends StretchableTile{
 		config.put(NAME, name);
 		return config;
 	}
+	
+	public abstract Direction directionA();
+	public abstract Direction directionB();
 		
 	@Override
 	public JSONObject json() {
@@ -64,6 +72,52 @@ public abstract class Block extends StretchableTile{
 		
 		return form;
 	}
+	
+	@Override
+		public Window propMenu() {
+			Window win = super.propMenu();
+			Form form = new Form("train-wait-form");
+			new Tag("h4").content(t("Stop settings")).addTo(win);
+			new Input(REALM,REALM_PLAN).hideIn(form);
+			new Input(ID,id()).hideIn(form);
+			new Input(ACTION,ACTION_UPDATE).hideIn(form);
+			
+			Tag table = new Tag("table");
+			Tag row = new Tag("tr");
+			new Tag("td").content(t("Direction")).addTo(row);
+			new Tag("th").attr("colspan", 2).content(directionA().toString()).addTo(row);
+			new Tag("th").attr("colspan", 2).content(directionB().toString()).addTo(row);
+			
+			row.addTo(table);
+			
+			row = new Tag("tr");
+			new Tag("th").content(t("Train")).addTo(row);
+			new Tag("th").content(t("min")).addTo(row);
+			new Tag("th").content(t("max")).addTo(row);
+			new Tag("th").content(t("min")).addTo(row);
+			new Tag("th").content(t("max")).addTo(row);
+			row.addTo(table);
+
+			for (Train train : Train.list()) {
+				row = new Tag("tr");
+				new Tag("td").content(train.name()).addTo(row);
+				Direction a = directionA();
+				WaitTime wtA = train.waitTime(this, a);
+				Direction b = directionB();
+				WaitTime wtB = train.waitTime(this, b);
+				new Input("train."+train.id+"."+directionA()+".min",wtA.min).numeric().addTo(new Tag("td")).addTo(row);
+				new Input("train."+train.id+"."+directionA()+".max",wtA.max).numeric().addTo(new Tag("td")).addTo(row);
+				new Input("train."+train.id+"."+directionB()+".min",wtB.min).numeric().addTo(new Tag("td")).addTo(row);
+				new Input("train."+train.id+"."+directionB()+".max",wtB.max).numeric().addTo(new Tag("td")).addTo(row);
+				row.addTo(table);
+			}
+			
+			table.addTo(form);
+			
+			new Button(t("Apply")).addTo(form).addTo(win);
+			
+			return win;
+		}
 		
 	public abstract List<Connector> startPoints();
 
@@ -107,6 +161,26 @@ public abstract class Block extends StretchableTile{
 			}
 		}
 		turnAllowed = params.containsKey(ALLOW_TURN) && params.get(ALLOW_TURN).equals("on");
+		
+		for (Entry<String, String> entry :  params.entrySet()) {
+			String key = entry.getKey();
+			if (key.startsWith("train.")) {
+				String[] parts = key.split("\\.");
+				int trainId = Integer.parseInt(parts[1]);
+				Train t = Train.get(trainId);
+				if (t == null) continue;
+
+				Direction dir = Direction.valueOf(parts[2]);
+				boolean min = parts[3].equals("min");
+				int time = Integer.parseInt(entry.getValue());
+				
+				t.setWaitTime(this,dir,time,min);
+				
+				LOG.debug("{} / {} : {}",t,dir,t.waitTime(this, dir));
+				
+			}
+		}
+		
 		return super.update(params);
 	}
 }

@@ -25,6 +25,16 @@ public class BlockV extends Block{
 	}
 	
 	@Override
+	public Direction directionA() {
+		return Direction.NORTH;
+	}
+		
+	@Override
+	public Direction directionB() {
+		return Direction.SOUTH;
+	}
+	
+	@Override
 	public int height() {
 		return stretch;
 	}

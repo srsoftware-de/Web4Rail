@@ -23,6 +23,16 @@ public class BlockH extends Block{
 				return new HashMap<>();
 		}
 	}
+	
+	@Override
+	public Direction directionA() {
+		return Direction.WEST;
+	}
+		
+	@Override
+	public Direction directionB() {
+		return Direction.EAST;
+	}
 		
 	@Override
 	public int width() {
