@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Vector;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
@@ -13,7 +15,6 @@ import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
-import de.srsoftware.web4rail.moving.Train.WaitTime;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Form;
@@ -29,8 +30,111 @@ import de.srsoftware.web4rail.tags.Select;
 public abstract class Block extends StretchableTile{
 	private static final String ALLOW_TURN = "allowTurn";
 	private static final String NAME       = "name";
+	private static final String NO_TAG = "[default]";
+	private static final String NEW_TAG = "new_tag";
+	private static final String TAG = "tag";
+	private static final String MAX = "max";
+	private static final String MIN = "min";
+	private static final String WAIT_TIMES = "wait_times";
+
 	public String  name        = "Block";
 	public boolean turnAllowed = false;
+	
+	public Block() {
+		super();
+		WaitTime defaultWT = new WaitTime(NO_TAG);
+		defaultWT.setMin(directionA(), 0);
+		defaultWT.setMax(directionA(), 10000);
+		defaultWT.setMin(directionB(), 0);
+		defaultWT.setMax(directionB(), 10000);
+		waitTimes.add(defaultWT);
+	}
+	
+	/**
+	 * class for min-max range
+	 */
+	public class Range{
+		public int min=0,max=10000;
+		
+		public JSONObject json() {
+			return new JSONObject(Map.of(MIN,min,MAX,max));
+		}
+		
+		public Range load(JSONObject json) {
+			min = json.getInt(MIN);
+			max = json.getInt(MAX);
+			return this;
+		}
+
+		@Override
+		public String toString() {
+			return min+"…"+max;
+		}
+	}
+	
+	/**
+	 * aggregates all (directional) wait times for one tag
+	 */
+	public class WaitTime{		
+		public String tag = "";
+		private HashMap<Direction,Range> dirs = new HashMap<Direction, Range>();
+		
+		public WaitTime(String tag) {
+			this.tag = tag;
+		}
+
+		public Range get(Direction dir) {
+			Range range = dirs.get(dir);
+			if (range == null) {
+				range = new Range();
+				dirs.put(dir, range);
+			}
+			return range;
+		}		
+		
+		public JSONObject json() {
+			JSONObject json = new JSONObject();
+			json.put(TAG, tag);
+			for (Entry<Direction, Range> entry : dirs.entrySet()) json.put(entry.getKey().toString(), entry.getValue().json());
+			return json;
+		}
+
+		public WaitTime load(JSONObject json) {
+			for (String key : json.keySet()) {
+				if (key.equals(TAG)) {
+					tag = json.getString(key);
+				} else {
+					Direction dir = Direction.valueOf(key);
+					Range range = new Range().load(json.getJSONObject(key));
+					dirs.put(dir, range);
+				}
+			}
+			return this;
+		}
+
+		public WaitTime setMax(Direction dir,int max) {
+			get(dir).max = max;
+			return this;
+		}
+
+		public WaitTime setMin(Direction dir,int min) {
+			get(dir).min = min;
+			return this;
+		}
+		
+		public WaitTime setTag(String newTag){
+			tag = newTag;
+			return this;
+		}
+
+		@Override
+		public String toString() {
+			return "WaitTime("+tag+", "+dirs+")";
+		}
+	}
+
+	
+	private Vector<WaitTime> waitTimes = new Vector<WaitTime>();
 		
 	@Override
 	public JSONObject config() {
@@ -47,6 +151,9 @@ public abstract class Block extends StretchableTile{
 		JSONObject json = super.json();
 		json.put(NAME, name);
 		json.put(ALLOW_TURN, turnAllowed);
+		JSONArray jWaitTimes = new JSONArray();
+		for (WaitTime wt : waitTimes) jWaitTimes.put(wt.json());
+		json.put(WAIT_TIMES, jWaitTimes);
 		return json;
 	}
 	
@@ -55,6 +162,13 @@ public abstract class Block extends StretchableTile{
 		super.load(json);
 		name = json.has(NAME) ? json.getString(NAME) : "Block";
 		turnAllowed = json.has(ALLOW_TURN) && json.getBoolean(ALLOW_TURN);
+		if (json.has(WAIT_TIMES)) {
+			waitTimes.clear();
+			JSONArray wtArr = json.getJSONArray(WAIT_TIMES);
+			wtArr.forEach(object -> {
+				if (object instanceof JSONObject) waitTimes.add(new WaitTime(null).load((JSONObject) object));
+			});
+		}
 		return this;
 	}
 	
@@ -82,39 +196,44 @@ public abstract class Block extends StretchableTile{
 			new Input(ID,id()).hideIn(form);
 			new Input(ACTION,ACTION_UPDATE).hideIn(form);
 			
+			Direction dA = directionA();
+			Direction dB = directionB();
+			
 			Tag table = new Tag("table");
-			Tag row = new Tag("tr");
+			Tag row = new Tag("tr");			
 			new Tag("td").content(t("Direction")).addTo(row);
-			new Tag("th").attr("colspan", 2).content(directionA().toString()).addTo(row);
-			new Tag("th").attr("colspan", 2).content(directionB().toString()).addTo(row);
+			new Tag("th").content(t("{}",dA)).attr("colspan", 2).addTo(row);
+			new Tag("th").content(t("{}",dB)).attr("colspan", 2).addTo(row).addTo(table);
 			
-			row.addTo(table);
-			
-			row = new Tag("tr");
-			new Tag("th").content(t("Train")).addTo(row);
+			row = new Tag("tr");			
+			new Tag("th").content(t("Tag")).addTo(row);
 			new Tag("th").content(t("min")).addTo(row);
 			new Tag("th").content(t("max")).addTo(row);
 			new Tag("th").content(t("min")).addTo(row);
-			new Tag("th").content(t("max")).addTo(row);
-			row.addTo(table);
-
-			for (Train train : Train.list()) {
+			new Tag("th").content(t("max")).addTo(row).addTo(table);
+			
+			for (WaitTime wt : waitTimes) {
 				row = new Tag("tr");
-				new Tag("td").content(train.name()).addTo(row);
-				Direction a = directionA();
-				WaitTime wtA = train.waitTime(this, a);
-				Direction b = directionB();
-				WaitTime wtB = train.waitTime(this, b);
-				new Input("train."+train.id+"."+directionA()+".min",wtA.min).numeric().addTo(new Tag("td")).addTo(row);
-				new Input("train."+train.id+"."+directionA()+".max",wtA.max).numeric().addTo(new Tag("td")).addTo(row);
-				new Input("train."+train.id+"."+directionB()+".min",wtB.min).numeric().addTo(new Tag("td")).addTo(row);
-				new Input("train."+train.id+"."+directionB()+".max",wtB.max).numeric().addTo(new Tag("td")).addTo(row);
-				row.addTo(table);
+				new Tag("td").content(wt.tag).addTo(row);
+				new Input("min."+wt.tag+"."+dA,wt.get(dA).min).numeric().addTo(new Tag("td")).addTo(row);
+				new Input("max."+wt.tag+"."+dA,wt.get(dA).max).numeric().addTo(new Tag("td")).addTo(row);
+				new Input("min."+wt.tag+"."+dB,wt.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
+				new Input("max."+wt.tag+"."+dB,wt.get(dB).max).numeric().addTo(new Tag("td")).addTo(row).addTo(table);
+				
 			}
+
+			WaitTime defaultWT = getWaitTime(NO_TAG);
+
+			row = new Tag("tr");
+			new Input(NEW_TAG,"").attr("placeholder", t("new tag")).addTo(new Tag("td")).addTo(row);
+			new Input("min."+NEW_TAG+"."+dA,defaultWT.get(dA).min).numeric().addTo(new Tag("td")).addTo(row);
+			new Input("max."+NEW_TAG+"."+dA,defaultWT.get(dA).max).numeric().addTo(new Tag("td")).addTo(row);
+			new Input("min."+NEW_TAG+"."+dB,defaultWT.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
+			new Input("max."+NEW_TAG+"."+dB,defaultWT.get(dB).max).numeric().addTo(new Tag("td")).addTo(row).addTo(table);
 			
 			table.addTo(form);
 			
-			new Button(t("Apply")).addTo(form).addTo(win);
+			new Button(t("Apply"),form).addTo(form).addTo(win);
 			
 			return win;
 		}
@@ -162,25 +281,36 @@ public abstract class Block extends StretchableTile{
 		}
 		turnAllowed = params.containsKey(ALLOW_TURN) && params.get(ALLOW_TURN).equals("on");
 		
-		for (Entry<String, String> entry :  params.entrySet()) {
+		String newTag = params.get(NEW_TAG);
+		for (Entry<String, String> entry:params.entrySet()) {
 			String key = entry.getKey();
-			if (key.startsWith("train.")) {
+			String val = entry.getValue();
+			
+			if (key.startsWith("max.") || key.startsWith("min.")) {
 				String[] parts = key.split("\\.");
-				int trainId = Integer.parseInt(parts[1]);
-				Train t = Train.get(trainId);
-				if (t == null) continue;
-
+				boolean isMin = parts[0].equals("min");
+				String tag = parts[1].equals("new_tag") ? newTag : parts[1];
 				Direction dir = Direction.valueOf(parts[2]);
-				boolean min = parts[3].equals("min");
-				int time = Integer.parseInt(entry.getValue());
 				
-				t.setWaitTime(this,dir,time,min);
-				
-				LOG.debug("{} / {} : {}",t,dir,t.waitTime(this, dir));
-				
-			}
+				WaitTime wt = getWaitTime(tag);
+				if (wt == null) {
+					wt = new WaitTime(tag);
+					waitTimes.add(wt);
+				}
+				if (isMin) {
+					wt.setMin(dir, Integer.parseInt(val));
+				} else wt.setMax(dir, Integer.parseInt(val));
+			}			
 		}
-		
+				
 		return super.update(params);
+	}
+
+	private WaitTime getWaitTime(String tag) {
+		if (tag == null) return null;
+		for (WaitTime wt : waitTimes) {
+			if (wt.tag.equals(tag)) return wt;
+		}
+		return null;
 	}
 }
