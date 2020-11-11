@@ -71,10 +71,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Vector<Locomotive> locos = new Vector<Locomotive>();
 	
 	private static final String TAGS = "tags";
+
+	private static final String DESTINATION = "destination";
 	
 	private HashSet<String> tags = new HashSet<String>();
 
-	private Block block = null;
+	private Block block,destination = null;
 	LinkedList<Tile> trace = new LinkedList<Tile>();
 			
 	private class Autopilot extends Thread{
@@ -139,6 +141,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 				return train.automatic();
 			case ACTION_DROP:
 				return train.dropCar(params);
+			case ACTION_MOVE:
+				return train.setDestination(params);
 			case ACTION_PROPS:
 				return train.props();
 			case ACTION_QUIT:
@@ -154,7 +158,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
-	
+
 	public void addToTrace(Vector<Tile> newTiles) {
 		boolean active = trace.isEmpty();
 		for (Tile tile : newTiles) {
@@ -239,7 +243,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	private Tag carList() {
 		Tag locoProp = new Tag("li").content(t("Cars:"));
-		Tag locoList = new Tag("ul").clazz("carlist");
+		Tag locoList = new Tag("ul").clazz("carlist").content("");
 
 		for (Car car : this.cars) {
 			Tag li = new Tag("li");
@@ -482,6 +486,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 			ul.addTo(li).addTo(propList);
 		}
 		
+		Tag dest = new Tag("li").content(t("Destination: "));
+		if (isNull(destination)) {
+			new Button(t("Select from plan"),"return selectDest("+id+");").addTo(dest);			
+		} else {
+			link("span",Map.of(REALM,REALM_PLAN,ID,destination.id(),ACTION,ACTION_CLICK),destination.toString()).addTo(dest);
+		}
+		dest.addTo(propList);
+		
 		if (isSet(block)) {
 			link("li",Map.of(REALM,REALM_PLAN,ID,block.id(),ACTION,ACTION_CLICK),t("Current location: {}",block)).addTo(propList);
 			Tag actions = new Tag("li").clazz().content(t("Actions:")+NBSP);
@@ -546,6 +558,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void set(Block newBlock) {
 		block = newBlock;
 		if (isSet(block)) block.set(this);
+	}
+	
+	private String setDestination(HashMap<String, String> params) {
+		String dest = params.get(DESTINATION);
+		if (isNull(dest)) return t("No destination supplied!");
+		Tile tile = plan.get(dest, true);
+		if (isNull(tile)) return t("Tile {} not known!",dest);
+		if (tile instanceof Block) {
+			destination = (Block) tile;
+			return t("{} now heading for {}",this,destination);
+		}
+		return t("{} is not a block!",tile);
 	}
 	
 	public void setSpeed(int v) {

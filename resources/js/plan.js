@@ -13,6 +13,7 @@ var selected = null;
 var mode = null;
 var messageTimer = null;
 var messageOpacity = 0;
+var trainAwaitingDestination = null;
 
 function addClass(data){
 	parts = data.split(" ");
@@ -32,7 +33,16 @@ function addTile(x,y){
 
 function clickTile(x,y){
 	var id = x+"-"+y;
-	if ($('#'+id).length > 0) request({realm:'plan',action:'click',id:id});
+	var tiles = $('#'+id);
+	if (tiles.length > 0) {
+		if (trainAwaitingDestination != null && tiles.hasClass("Block")) {
+			request({realm:'train',id:trainAwaitingDestination,action:MOVE,destination:id});
+			trainAwaitingDestination = null;
+			$(PLAN).css('cursor','');
+			return false;
+		}
+		request({realm:'plan',action:'click',id:id});
+	}
 	return false;
 }
 
@@ -177,6 +187,13 @@ function runAction(ev){
 		window.open("https://api.qrserver.com/v1/create-qr-code/?data="+window.location.href,'_blank');
 		return false;
 	} else return request({action:ev.target.id,realm:realm}); // TODO: ask for name
+}
+
+function selectDest(trainId){
+	trainAwaitingDestination = trainId;
+	closeWindows();
+	$(PLAN).css('cursor','help');
+	return false;
 }
 
 function stream(ev){

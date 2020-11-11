@@ -282,7 +282,7 @@ public abstract class Block extends StretchableTile{
 		replacements.put("%text%",name);
 		if (isSet(train)) replacements.put("%text%",train.directedName());
 		Tag tag = super.tag(replacements);
-		if (isSet(train)) tag.clazz(tag.get("class")+" occupied");
+		tag.clazz(tag.get("class")+" Block");
 		return tag;
 	}
 	
