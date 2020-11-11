@@ -33,8 +33,9 @@ public abstract class Block extends StretchableTile{
 	private static final String NAME       = "name";
 	private static final String NO_TAG = "[default]";
 	private static final String NEW_TAG = "new_tag";
-	private static final String TAG = "tag";
+	public static final String TAG = "tag";
 	private static final String WAIT_TIMES = "wait_times";
+	private static final String RAISE = "raise";
 
 	public String  name        = "Block";
 	public boolean turnAllowed = false;
@@ -122,6 +123,33 @@ public abstract class Block extends StretchableTile{
 	
 	public abstract Direction directionA();
 	public abstract Direction directionB();
+	
+	private Tile drop(String tag) {
+		for (int i=0; i<waitTimes.size(); i++) {
+			if (waitTimes.get(i).tag.equals(tag)) {
+				waitTimes.remove(i);
+				break;
+			}
+		}
+		return this;
+	}
+	
+	private WaitTime getWaitTime(String tag) {
+		if (tag == null) return null;
+		for (WaitTime wt : waitTimes) {
+			if (wt.tag.equals(tag)) return wt;
+		}
+		return null;
+	}
+
+	public Range getWaitTime(Train train) {
+		for (WaitTime wt : waitTimes) {
+			if (train.tags().contains(wt.tag)) {
+				return wt.get(train.direction());
+			}
+		}
+		return getWaitTime(NO_TAG).get(train.direction());
+	}
 		
 	@Override
 	public JSONObject json() {
@@ -165,56 +193,87 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
-		public Window propMenu() {
-			Window win = super.propMenu();
-			Form form = new Form("train-wait-form");
-			new Tag("h4").content(t("Stop settings")).addTo(win);
-			new Input(REALM,REALM_PLAN).hideIn(form);
-			new Input(ID,id()).hideIn(form);
-			new Input(ACTION,ACTION_UPDATE).hideIn(form);
-			
-			Direction dA = directionA();
-			Direction dB = directionB();
-			
-			Tag table = new Tag("table");
-			Tag row = new Tag("tr");			
-			new Tag("td").content(t("Direction")).addTo(row);
-			new Tag("th").content(t("{}",dA)).attr("colspan", 2).addTo(row);
-			new Tag("th").content(t("{}",dB)).attr("colspan", 2).addTo(row).addTo(table);
-			
-			row = new Tag("tr");			
-			new Tag("th").content(t("Tag")).addTo(row);
-			new Tag("th").content(t("min")).addTo(row);
-			new Tag("th").content(t("max")).addTo(row);
-			new Tag("th").content(t("min")).addTo(row);
-			new Tag("th").content(t("max")).addTo(row).addTo(table);
-			
-			for (WaitTime wt : waitTimes) {
-				row = new Tag("tr");
-				new Tag("td").content(wt.tag).addTo(row);
-				new Input("min."+wt.tag+"."+dA,wt.get(dA).min).numeric().addTo(new Tag("td")).addTo(row);
-				new Input("max."+wt.tag+"."+dA,wt.get(dA).max).numeric().addTo(new Tag("td")).addTo(row);
-				new Input("min."+wt.tag+"."+dB,wt.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
-				new Input("max."+wt.tag+"."+dB,wt.get(dB).max).numeric().addTo(new Tag("td")).addTo(row).addTo(table);
-				
-			}
-
-			WaitTime defaultWT = getWaitTime(NO_TAG);
-
-			row = new Tag("tr");
-			new Input(NEW_TAG,"").attr("placeholder", t("new tag")).addTo(new Tag("td")).addTo(row);
-			new Input("min."+NEW_TAG+"."+dA,defaultWT.get(dA).min).numeric().addTo(new Tag("td")).addTo(row);
-			new Input("max."+NEW_TAG+"."+dA,defaultWT.get(dA).max).numeric().addTo(new Tag("td")).addTo(row);
-			new Input("min."+NEW_TAG+"."+dB,defaultWT.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
-			new Input("max."+NEW_TAG+"."+dB,defaultWT.get(dB).max).numeric().addTo(new Tag("td")).addTo(row).addTo(table);
-			
-			table.addTo(form);
-			
-			new Button(t("Apply"),form).addTo(form).addTo(win);
-			
-			return win;
-		}
+	public Window propMenu() {
+		Window win = super.propMenu();
+		Form form = new Form("train-wait-form");
+		new Tag("h4").content(t("Stop settings")).addTo(win);
+		new Input(REALM,REALM_PLAN).hideIn(form);
+		new Input(ID,id()).hideIn(form);
+		new Input(ACTION,ACTION_TIMES).hideIn(form);
 		
+		new Tag("div").content(t("Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block.")).addTo(form);
+		
+		Direction dA = directionA();
+		Direction dB = directionB();
+		
+		Tag table = new Tag("table");
+		Tag row = new Tag("tr");			
+		new Tag("td").content(t("Direction")).addTo(row);
+		new Tag("th").content(t("{}bound",dA)).attr("colspan", 2).addTo(row);
+		new Tag("th").content(t("{}bound",dB)).attr("colspan", 2).addTo(row);
+		new Tag("td").content("").addTo(row).addTo(table);
+		
+		row = new Tag("tr");			
+		new Tag("th").content(t("Tag")).addTo(row);
+		new Tag("th").content(t("min")).addTo(row);
+		new Tag("th").content(t("max")).addTo(row);
+		new Tag("th").content(t("min")).addTo(row);
+		new Tag("th").content(t("max")).addTo(row);
+		new Tag("th").content(t("Actions")).addTo(row).addTo(table);
+		
+		int count = 0;
+		for (WaitTime wt : waitTimes) {
+			count++;
+			row = new Tag("tr");				
+			new Tag("td").content(wt.tag).addTo(row);
+			new Input("min."+wt.tag+"."+dA,wt.get(dA).min).numeric().addTo(new Tag("td")).addTo(row);
+			new Input("max."+wt.tag+"."+dA,wt.get(dA).max).numeric().addTo(new Tag("td")).addTo(row);
+			new Input("min."+wt.tag+"."+dB,wt.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
+			new Input("max."+wt.tag+"."+dB,wt.get(dB).max).numeric().addTo(new Tag("td")).addTo(row);
+			Tag actions = new Tag("td");
+			Map<String, String> props = Map.of(REALM,REALM_PLAN,ID,id(),ACTION,ACTION_TIMES);
+			switch (count) {
+				case 1: 
+					actions.content(""); break;
+				case 2: 
+					new Button("-",merged(props,Map.of(ACTION_DROP,wt.tag))).addTo(actions);
+					break;
+				default: 
+					new Button("↑",merged(props,Map.of(RAISE,wt.tag))).addTo(actions);
+					new Button("-",merged(props,Map.of(ACTION_DROP,wt.tag))).addTo(actions);
+			}
+			actions.addTo(row).addTo(table);
+			
+		}
+
+		WaitTime defaultWT = getWaitTime(NO_TAG);
+
+		row = new Tag("tr");
+		new Input(NEW_TAG,"").attr("placeholder", t("new tag")).addTo(new Tag("td")).addTo(row);
+		new Input("min."+NEW_TAG+"."+dA,defaultWT.get(dA).min).numeric().addTo(new Tag("td")).addTo(row);
+		new Input("max."+NEW_TAG+"."+dA,defaultWT.get(dA).max).numeric().addTo(new Tag("td")).addTo(row);
+		new Input("min."+NEW_TAG+"."+dB,defaultWT.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
+		new Input("max."+NEW_TAG+"."+dB,defaultWT.get(dB).max).numeric().addTo(new Tag("td")).addTo(row).addTo(table);
+		
+		table.addTo(form);
+		
+		new Button(t("Apply"),form).addTo(form).addTo(win);
+		
+		return win;
+	}
+	
+	public Tile raise(String tag) {
+		for (int i=1; i<waitTimes.size(); i++) {
+			WaitTime wt = waitTimes.get(i);
+			if (wt.tag.equals(tag)) {
+				waitTimes.remove(i);
+				waitTimes.insertElementAt(wt, i-1);
+				break;
+			}
+		}
+		return this;
+	}
+
 	public abstract List<Connector> startPoints();
 
 	@Override
@@ -258,7 +317,20 @@ public abstract class Block extends StretchableTile{
 		}
 		turnAllowed = params.containsKey(ALLOW_TURN) && params.get(ALLOW_TURN).equals("on");
 		
+		return super.update(params);
+	}
+		
+	public Tile updateTimes(HashMap<String, String> params) throws IOException {
+		String tag = params.get(ACTION_DROP);
+		if (isSet(tag)) return drop(tag);
+		tag = params.get(RAISE);
+		if (isSet(tag)) return raise(tag);
 		String newTag = params.get(NEW_TAG);
+		if (isSet(newTag)) {
+			newTag = newTag.replace(" ", "_").trim();
+			if (newTag.isEmpty()) newTag = null;
+		}
+		
 		for (Entry<String, String> entry:params.entrySet()) {
 			String key = entry.getKey();
 			String val = entry.getValue();
@@ -266,7 +338,8 @@ public abstract class Block extends StretchableTile{
 			if (key.startsWith("max.") || key.startsWith("min.")) {
 				String[] parts = key.split("\\.");
 				boolean isMin = parts[0].equals("min");
-				String tag = parts[1].equals("new_tag") ? newTag : parts[1];
+				tag = parts[1].equals("new_tag") ? newTag : parts[1];
+				if (isNull(tag)) continue;
 				Direction dir = Direction.valueOf(parts[2]);
 				
 				WaitTime wt = getWaitTime(tag);
@@ -280,23 +353,6 @@ public abstract class Block extends StretchableTile{
 			}			
 		}
 				
-		return super.update(params);
-	}
-
-	private WaitTime getWaitTime(String tag) {
-		if (tag == null) return null;
-		for (WaitTime wt : waitTimes) {
-			if (wt.tag.equals(tag)) return wt;
-		}
-		return null;
-	}
-
-	public Range getWaitTime(Train train) {
-		for (WaitTime wt : waitTimes) {
-			if (train.tags().contains(wt.tag)) {
-				return wt.get(train.direction());
-			}
-		}
-		return getWaitTime(NO_TAG).get(train.direction());
+		return this;
 	}
 }

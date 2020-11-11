@@ -1,5 +1,6 @@
 package de.srsoftware.web4rail;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONObject;
@@ -19,5 +20,11 @@ public class BaseClass implements Constants{
 
 	public static boolean isSet(Object o) {
 		return o != null;
+	}
+	
+	public static HashMap<String, String> merged(Map<String, String> base, Map<String, String> overlay) {
+		HashMap<String,String> merged = new HashMap<>(base);
+		overlay.entrySet().stream().forEach(entry -> merged.put(entry.getKey(), entry.getValue()));
+		return merged;
 	}
 }

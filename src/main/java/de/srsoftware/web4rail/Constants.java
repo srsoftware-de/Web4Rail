@@ -28,6 +28,7 @@ public interface Constants {
 	public static final String ACTION_SLOWER10 = "slower10";
 	public static final String ACTION_START = "start";
 	public static final String ACTION_STOP = "stop";
+	public static final String ACTION_TIMES = "update_times";
 	public static final String ACTION_TOGGLE_F1 = "f1";
 	public static final String ACTION_TOGGLE_F2 = "f2";
 	public static final String ACTION_TOGGLE_F3 = "f3";

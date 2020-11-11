@@ -46,7 +46,6 @@ public abstract class Tile extends BaseClass{
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);	
 	private static int DEFAUT_LENGTH = 5;
 	
-	public    static final String ID         = "id";
 	private   static final String LENGTH     = "length";
 	private   static final String LOCKED     = "locked";
 	private   static final String OCCUPIED   = "occupied";

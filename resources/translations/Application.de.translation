@@ -15,6 +15,7 @@ Analyze : analysieren
 Apply : Übernehmen
 Availability : Verfügbarkeit
 Block properties : Block-Eigenschaften
+{}bound : nach {}
 Cars\: : Waggons:
 ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
@@ -30,6 +31,7 @@ DelayedAction : verzögerte Aktion
 delete : entfernen
 delete route : Route löschen
 Destination\: {} from {} : Ziel: {} von {}
+Direction : Richtung
 disabled : deaktiviert
 EAST : Osten
 editable train properties : veränderliche Zug-Eigenschaften
@@ -53,9 +55,11 @@ Manage cars : Waggons verwalten
 Manage locos : Lokomotiven verwalten
 Manage trains : Züge verwalten
 Maximum train length\: : maximale Zug-Länge
+Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block. : Minamle und maximale Block-Haltezeit (in Millisekunden) für Züge mit der entsprchender Markierung.
 Move tiles : Kacheln verschieben
 name\: : Name:
 new locomotive : neue Lok
+new tag : neue Markierung
 new train : neuer Zug
 No : keine
 No free routes from {} : keine Route von {} frei
@@ -96,10 +100,12 @@ SOUTH : Süden
 Started {} : {} gestartet
 StopAllTrains : Alle Züge stoppen
 StopAuto : Automatikmodus abschalten
+Stopsettings : Halte-Einstellungen
 Straight port\: : Port für gerade
 STRAIGHT : gerade
 Switch power off : Strom ausschalten
 Switch power on : Strom anschalten
+Tag : Markierung
 Tags : Markierungen
 Toggle : umschalten
 Toggle power : Stom umschalten

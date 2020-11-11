@@ -148,17 +148,19 @@ public class Plan extends BaseClass{
 		case ACTION_ANALYZE:
 			return analyze();
 		case ACTION_CLICK:
-			return click(get(params.get(Tile.ID),true));
+			return click(get(params.get(ID),true));
 		case ACTION_MOVE:
-			return moveTile(params.get(DIRECTION),params.get(Tile.ID));
+			return moveTile(params.get(DIRECTION),params.get(ID));						
 		case ACTION_SAVE:
 			return saveTo(DEFAULT_NAME);
+		case ACTION_TIMES:
+			return updateTimes(params);
 		case ACTION_UPDATE:
-			return update(get(params.get(Tile.ID),true),params);
+			return update(get(params.get(ID),true),params);
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
-	
+
 	/**
 	 * attaches a new client to the event stream of the plan
 	 * @param client
@@ -811,6 +813,16 @@ public class Plan extends BaseClass{
 	 */
 	private Tile update(Tile tile, HashMap<String, String> params) throws IOException {
 		return tile == null ? null : tile.update(params);
+	}
+	
+	private Object updateTimes(HashMap<String, String> params) throws IOException {
+		Tile tile = get(params.get(ID),false);
+		if (tile instanceof Block) {
+			Block block = (Block) tile;
+			place(block.updateTimes(params));
+			return tile.propMenu();
+		}
+		return t("updateTimes called on non-block tile!");
 	}
 
 	/**
