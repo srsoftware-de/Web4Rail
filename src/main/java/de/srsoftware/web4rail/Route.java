@@ -365,6 +365,7 @@ public class Route extends BaseClass{
 		}
 		if (isSet(train)) { 
 			train.set(endBlock);
+			train.setWaitTime(endBlock.getWaitTime(train));
 			train.heading(endDirection.inverse());
 			if (train.route == this) train.route = null;
 		}

@@ -27,6 +27,7 @@ import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.Action.Context;
@@ -47,7 +48,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public  static final String LOCO_ID = "locoId";
 	private static final String TRACE   = "trace";
 	private static final HashMap<Integer, Train> trains = new HashMap<>();
-	
 	public static final String ID = "id";
 	public int id;
 
@@ -79,6 +79,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			
 	private class Autopilot extends Thread{
 		boolean stop = false;
+		int waitTime = 100;
 		
 		@Override
 		public void run() {
@@ -86,7 +87,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 				stop = false;
 				while (true) {
 					if (isNull(route)) {
-						Thread.sleep(1000);
+						LOG.debug("Waiting {} secs...",waitTime/1000d);
+						Thread.sleep(waitTime);
+						if (waitTime > 100) waitTime /=2;
 						if (stop) return;
 						Train.this.start();
 					}
@@ -644,5 +647,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public void removeFromTrace(Tile tile) {
 		trace.remove(tile);		
+	}
+
+	public void setWaitTime(Range waitTime) {
+		if (autopilot != null) autopilot.waitTime = waitTime.random();
 	}
 }

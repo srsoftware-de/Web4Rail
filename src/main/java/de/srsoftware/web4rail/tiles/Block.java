@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
@@ -33,8 +34,6 @@ public abstract class Block extends StretchableTile{
 	private static final String NO_TAG = "[default]";
 	private static final String NEW_TAG = "new_tag";
 	private static final String TAG = "tag";
-	private static final String MAX = "max";
-	private static final String MIN = "min";
 	private static final String WAIT_TIMES = "wait_times";
 
 	public String  name        = "Block";
@@ -48,28 +47,6 @@ public abstract class Block extends StretchableTile{
 		defaultWT.setMin(directionB(), 0);
 		defaultWT.setMax(directionB(), 10000);
 		waitTimes.add(defaultWT);
-	}
-	
-	/**
-	 * class for min-max range
-	 */
-	public class Range{
-		public int min=0,max=10000;
-		
-		public JSONObject json() {
-			return new JSONObject(Map.of(MIN,min,MAX,max));
-		}
-		
-		public Range load(JSONObject json) {
-			min = json.getInt(MIN);
-			max = json.getInt(MAX);
-			return this;
-		}
-
-		@Override
-		public String toString() {
-			return min+"…"+max;
-		}
 	}
 	
 	/**
@@ -312,5 +289,14 @@ public abstract class Block extends StretchableTile{
 			if (wt.tag.equals(tag)) return wt;
 		}
 		return null;
+	}
+
+	public Range getWaitTime(Train train) {
+		for (WaitTime wt : waitTimes) {
+			if (train.tags().contains(wt.tag)) {
+				return wt.get(train.direction());
+			}
+		}
+		return getWaitTime(NO_TAG).get(train.direction());
 	}
 }
