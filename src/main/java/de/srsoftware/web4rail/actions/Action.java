@@ -20,6 +20,7 @@ import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 
 /**
@@ -38,25 +39,48 @@ public abstract class Action extends BaseClass {
 		public Contact contact = null;
 		public Route route = null;
 		public Train train = null;
+		public Block block = null;
 		
 		public Context(Contact c) {			
 			contact = c;
-			plan = contact.plan();
-			route = contact.route();
-			if (route == null) return;
-			train = route.train;
+			setPlan(contact.plan());
+			setRoute(contact.route());
 		}
-
+		
 		public Context(Train train) {
-			this.train = train;
-			if (isSet(train)) plan = train.locos().get(0).plan();
+			setTrain(train);
+		}
+		
+		public Context(Route route) {
+			setRoute(route);
 		}
 
-		public Context(Route route) {
+		private void setRoute(Route route) {
 			this.route = route;
-			if (isSet(route)) plan = route.path().firstElement().plan();
-			train = route.train;
+			if (isSet(route)) setTrain(route.train);
+			
 		}
+
+		private void setTrain(Train train) {
+			this.train = train;
+			if (isSet(train)) {
+				if (isNull(route)) route = train.route;
+				setBlock(train.currentBlock());
+			}
+			
+		}
+
+		private void setBlock(Block block) {
+			this.block = block;
+		}
+
+		private void setPlan(Plan plan) {
+			this.plan = plan;
+		}
+
+
+
+
 		
 		@Override
 		public String toString() {

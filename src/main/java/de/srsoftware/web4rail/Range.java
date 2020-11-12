@@ -1,7 +1,6 @@
 package de.srsoftware.web4rail;
 
 import java.util.Map;
-import java.util.Random;
 
 import org.json.JSONObject;
 
@@ -9,8 +8,7 @@ import org.json.JSONObject;
  * Class for integer ranges (min…max)
  * @author Stephan Richter
  */
-public class Range {
-	private static final Random random = new Random();
+public class Range extends BaseClass{
 	private static final String MAX = "max";
 	private static final String MIN = "min";
 	

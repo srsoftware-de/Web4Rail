@@ -44,7 +44,7 @@ import de.srsoftware.web4rail.tags.Radio;
  */
 public abstract class Tile extends BaseClass{
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);	
-	private static int DEFAUT_LENGTH = 5;
+	private static int DEFAUT_LENGTH = 100; // 10cm
 	
 	private   static final String LENGTH     = "length";
 	private   static final String LOCKED     = "locked";

@@ -2,12 +2,15 @@ package de.srsoftware.web4rail;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 
-public class BaseClass implements Constants{
+public abstract class BaseClass implements Constants{
+	
+	public static final Random random = new Random();
 	
 	public static Tag link(String tagClass,Map<String,Object> params,Object caption) {
 		String json = new JSONObject(params).toString().replace("\"", "'");

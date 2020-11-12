@@ -12,8 +12,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -76,7 +76,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	private HashSet<String> tags = new HashSet<String>();
 
-	private Block block,destination = null;
+	private Block currentBlock,destination = null;
 	LinkedList<Tile> trace = new LinkedList<Tile>();
 			
 	private class Autopilot extends Thread{
@@ -171,28 +171,55 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		showTrace();
 	}
-
-	private Route chooseRoute(Context context) {		
-		HashSet<Route> routes = block.routes();
-		Vector<Route> availableRoutes = new Vector<Route>();
-		for (Route rt : routes) {
-			if (rt == route) continue; // andere Route als zuvor wählen
-			if (rt.path().firstElement() != block) continue; // keine Route wählen, die nicht vom aktuellen Block des Zuges startet
-			if (isSet(direction) && rt.startDirection != direction) { // Route ist entgegen der Startrichtung des Zuges
-				if (!pushPull || !block.turnAllowed) { // Zug ist kein Wendezug oder Block erlaubt kein Wenden
-					continue;
-				}
-			}
-			if (!rt.isFreeFor(this)) { // keine belegten Routen wählen
-//				LOG.debug("{} is not free!",rt);
-				continue;
-			}
-			if (!rt.allowed(context)) continue;
-			availableRoutes.add(rt);
-		}
-		Random rand = new Random();
+	
+	private static Route chooseRoute(Context context) {
+		TreeMap<Integer, List<Route>> availableRoutes = availableRoutes(context);
 		if (availableRoutes.isEmpty()) return null;
-		return availableRoutes.get(rand.nextInt(availableRoutes.size()));
+		Entry<Integer, List<Route>> entry = availableRoutes.firstEntry();
+		List<Route> preferredRoutes = entry.getValue();
+		Route selectetRoute = preferredRoutes.get(random.nextInt(preferredRoutes.size())); 
+		LOG.debug("Chose \"{}\" with priority {}.",selectetRoute,entry.getKey());
+		
+		return selectetRoute;
+	}
+	
+	private static TreeMap<Integer,List<Route>> availableRoutes(Context context){
+		TreeMap<Integer,List<Route>> availableRoutes = new TreeMap<Integer, List<Route>>();
+		
+		boolean error = false;
+		if (isNull(context.block)) {
+			LOG.warn("{}.availableRoutes called without context.block!",Train.class.getSimpleName());
+			error = true;			
+		}
+		if (isNull(context.train)) {
+			LOG.warn("{}.availableRoutes called without context.train!",Train.class.getSimpleName());
+			error = true;
+		}
+		if (error) return availableRoutes;
+		
+		Collection<Route> routes = context.block.routes();		
+		
+		for (Route rt : routes) {
+			if (rt.path().firstElement() != context.block) continue; // routen, die nicht vom aktuellen Block starten sind bubu
+			int priority = 0;
+			if (rt == context.route) priority-=10; // möglichst andere Route als zuvor wählen // TODO: den Routen einen "last-used" Zeitstempel hinzufügen, und diesen mit in die Priorisierung einbeziehen
+			if (isSet(context.train.direction) && rt.startDirection != context.train.direction) { // Route startet entgegen der aktuellen Fahrtrichtung des Zuges 
+				if (!context.train.pushPull) continue; // Zug kann nicht wenden
+				if (!context.block.turnAllowed) continue; // Wenden im Block nicht gestattet
+				priority -= 5;
+			}
+			if (!rt.isFreeFor(context.train)) continue; // Route ist nicht frei
+			if (!rt.allowed(context)) continue; // Zug darf auf Grund einer nicht erfüllten Bedingung nicht auf die Route
+			
+			List<Route> routeSet = availableRoutes.get(priority);
+			if (isNull(routeSet)) {
+				routeSet = new Vector<Route>();
+				availableRoutes.put(priority, routeSet);
+			}
+			routeSet.add(rt);
+		}
+		
+		return availableRoutes;
 	}
 
 	@Override
@@ -303,7 +330,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public Train heading(Direction dir) {
 		direction = dir;
-		if (isSet(block)) plan.place(block);
+		if (isSet(currentBlock)) plan.place(currentBlock);
 		return this;
 	}	
 	
@@ -316,7 +343,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		json.put(ID, id);
 		json.put(PUSH_PULL, pushPull);
 
-		if (isSet(block)) json.put(BLOCK, block.id());
+		if (isSet(currentBlock)) json.put(BLOCK, currentBlock.id());
 		if (isSet(name))json.put(NAME, name);
 		if (isSet(route)) json.put(ROUTE, route.id());
 		if (isSet(direction)) json.put(DIRECTION, direction);
@@ -374,7 +401,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(NAME)) name = json.getString(NAME);
 		if (json.has(TAGS))  json.getJSONArray(TAGS ).forEach(elem -> {  tags.add(elem.toString()); });
 		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(elem.toString(), false).set(this)); });
-		if (json.has(BLOCK)) block = (Block) plan.get(json.getString(BLOCK), false).set(this); // do not move this up! during set, other fields will be referenced!
+		if (json.has(BLOCK)) currentBlock = (Block) plan.get(json.getString(BLOCK), false).set(this); // do not move this up! during set, other fields will be referenced!
 		for (Object id : json.getJSONArray(CARS)) add(Car.get(id));
 		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get(id));
 		return this;
@@ -494,8 +521,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		dest.addTo(propList);
 		
-		if (isSet(block)) {
-			link("li",Map.of(REALM,REALM_PLAN,ID,block.id(),ACTION,ACTION_CLICK),t("Current location: {}",block)).addTo(propList);
+		if (isSet(currentBlock)) {
+			link("li",Map.of(REALM,REALM_PLAN,ID,currentBlock.id(),ACTION,ACTION_CLICK),t("Current location: {}",currentBlock)).addTo(propList);
 			Tag actions = new Tag("li").clazz().content(t("Actions:")+NBSP);
 			props.put(ACTION, ACTION_START);
 			new Button(t("start"),props).addTo(actions);
@@ -556,8 +583,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public void set(Block newBlock) {
-		block = newBlock;
-		if (isSet(block)) block.set(this);
+		currentBlock = newBlock;
+		if (isSet(currentBlock)) currentBlock.set(this);
 	}
 	
 	private String setDestination(HashMap<String, String> params) {
@@ -594,13 +621,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public String start() throws IOException {
-		if (isNull(block)) return t("{} not in a block",this);
+		if (isNull(currentBlock)) return t("{} not in a block",this);
 		Context context = isSet(route) ? new Context( route ) : new Context( this);
-		
 		if (isSet(context.route)) context.route.reset(); // reset route previously chosen
 		
 		route = chooseRoute(context);
-		if (isNull(route)) return t("No free routes from {}",block);		
+		if (isNull(route)) return t("No free routes from {}",currentBlock);		
 		if (!route.lock()) return t("Was not able to lock {}",route);
 		
 		if (direction != route.startDirection) turn();
@@ -648,7 +674,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			direction = direction.inverse();
 			for (Locomotive loco : locos) loco.turn();
 			reverseTrace();
-			if (isSet(block)) plan.place(block);
+			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
 		return t("{} turned.",this);
 	}
@@ -675,5 +701,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public void setWaitTime(Range waitTime) {
 		if (autopilot != null) autopilot.waitTime = waitTime.random();
+	}
+
+	public Block currentBlock() {
+		return currentBlock;
 	}
 }
