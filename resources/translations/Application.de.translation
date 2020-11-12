@@ -36,6 +36,8 @@ Destination\: {} from {} : Ziel: {} von {}
 Direction : Richtung
 Direction\: heading {} : Richtung: nach {}
 disabled : deaktiviert
+Drop : Verwerfen
+Dropped destination of {}. : Ziel von {} verworfen.
 EAST : Osten
 editable train properties : veränderliche Zug-Eigenschaften
 Emergency : Notfall

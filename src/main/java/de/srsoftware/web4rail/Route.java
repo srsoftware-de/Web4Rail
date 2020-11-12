@@ -635,6 +635,11 @@ public class Route extends BaseClass{
 		}
 		return true;
 	}
+	
+	public String shortName() {
+		String[] parts = name().split("-");
+		return parts[0].trim()+"–"+parts[parts.length-1].trim();
+	}
 
 	public Block startBlock() {
 		return startBlock;
@@ -687,10 +692,5 @@ public class Route extends BaseClass{
 			return plan.showContext(params);
 		}
 		return message;
-	}
-
-	public String shortName() {
-		String[] parts = name().split("-");
-		return parts[0].trim()+"–"+parts[parts.length-1].trim();
 	}
 }

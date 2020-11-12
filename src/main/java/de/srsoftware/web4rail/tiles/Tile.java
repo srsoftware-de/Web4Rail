@@ -216,10 +216,13 @@ public abstract class Tile extends BaseClass{
 		
 		if (isSet(train)) {
 			HashMap<String, Object> props = new HashMap<String,Object>(Map.of(REALM,REALM_TRAIN,ID,train.id));
-			props.put(ACTION, ACTION_STOP);
-			window.children().insertElementAt(new Button(t("stop"),props), 1);
-			props.put(ACTION, ACTION_START);
-			window.children().insertElementAt(new Button(t("start"),props), 1);
+			if (isSet(train.route)) {
+				props.put(ACTION, ACTION_STOP);
+				window.children().insertElementAt(new Button(t("stop"),props), 1);
+			} else {
+				props.put(ACTION, ACTION_START);
+				window.children().insertElementAt(new Button(t("start"),props), 1);
+			}
 			window.children().insertElementAt(train.link("span"), 1);
 			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
 		}
@@ -240,7 +243,7 @@ public abstract class Tile extends BaseClass{
 			Tag routeList = new Tag("ol");
 			for (Route route : routes) {
 				String json = new JSONObject(Map.of(REALM,ROUTE,ID,route.id(),ACTION,ACTION_PROPS,CONTEXT,REALM_PLAN+":"+id())).toString().replace("\"", "'");
-				Tag li = new Tag("span").attr("onclick","return request("+json+");").content(route.shortName()+(route.isDisabled()?" ["+t("disabled")+"]" : "")+NBSP).addTo(new Tag("li").clazz("link"));
+				Tag li = new Tag("span").attr("onclick","return request("+json+");").content(route.name()+(route.isDisabled()?" ["+t("disabled")+"]" : "")+NBSP).addTo(new Tag("li").clazz("link"));
 				Map<String, Object> params = Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_DROP,Tile.class.getSimpleName(),id());
 				new Button(t("delete route"),params).addTo(li);
 				li.addTo(routeList);

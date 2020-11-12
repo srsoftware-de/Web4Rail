@@ -485,6 +485,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			new Button(t("Select from plan"),"return selectDest("+id+");").addTo(dest);			
 		} else {
 			link("span",Map.of(REALM,REALM_PLAN,ID,destination.id(),ACTION,ACTION_CLICK),destination.toString()).addTo(dest);
+			new Button(t("Drop"),Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_MOVE,DESTINATION,"")).addTo(dest);
 		}
 		
 		dest.addTo(propList);		
@@ -553,6 +554,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private String setDestination(HashMap<String, String> params) {
 		String dest = params.get(DESTINATION);
 		if (isNull(dest)) return t("No destination supplied!");
+		if (dest.isEmpty()) {
+			destination = null;
+			return t("Dropped destination of {}.",this);
+		}
 		Tile tile = plan.get(dest, true);
 		if (isNull(tile)) return t("Tile {} not known!",dest);
 		if (tile instanceof Block) {
