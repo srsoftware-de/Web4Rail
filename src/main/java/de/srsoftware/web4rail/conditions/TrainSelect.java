@@ -40,7 +40,7 @@ public class TrainSelect extends Condition {
 	@Override
 	public String toString() {
 		if (train == null) return t("[Click here to select train!]");
-		return t(inverted?"Train ≠ {}":"Train = {}",train);
+		return t("Train")+ (inverted?"≠":"=") + train;
 	}
 	
 	private TrainSelect train(Train train) {

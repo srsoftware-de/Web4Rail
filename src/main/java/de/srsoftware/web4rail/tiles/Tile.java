@@ -119,7 +119,7 @@ public abstract class Tile extends BaseClass{
 	public boolean isFreeFor(Train newTrain) {
 		if (disabled) return false;
 		if (isSet(route)) return false;
-		if (isSet(train) && newTrain != train) return false;
+		if (isSet(train) && train != newTrain) return false;
 		return true;
 	}
 		

@@ -38,11 +38,11 @@ public class PathFinder extends BaseClass{
 		
 		Block destination = train.destination();
 		Direction direction = context.direction;
-		if (isSet(direction)) {
+/*		if (isSet(direction)) {
 			LOG.debug("{}Looking for {}-bound routes from {}",inset,direction,block);
 		} else {
 			LOG.debug("{}Looking for all routes from {}",inset,block);
-		}
+		}*/
 		if (isSet(destination) && visitedRoutes.isEmpty())	LOG.debug("{}- Destination: {}",inset,destination);
 
 		Route currentRoute = context.route;

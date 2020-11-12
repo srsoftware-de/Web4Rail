@@ -172,14 +172,14 @@ public class Route extends BaseClass{
 			Tag list = new Tag("ul");
 			for (Condition condition : conditions) {
 				Tag li = new Tag("li");
-				link("span",Map.of(REALM,REALM_CONDITION,ID,id,ACTION,ACTION_PROPS,CONTEXT,REALM_ROUTE+":"+id),condition).addTo(li);
+				link("span",Map.of(REALM,REALM_CONDITION,ID,condition.id(),ACTION,ACTION_PROPS,CONTEXT,REALM_ROUTE+":"+id),condition).addTo(li);
 				Map<String, Object> params = Map.of(REALM,REALM_ROUTE,ID,id(),ACTION,DROP_CONDITION,REALM_CONDITION,condition.id());
 				new Button(t("delete"), params).addTo(li.content(NBSP)).addTo(list);
 			}
 			list.addTo(win);
 		}
 
-		new Tag("div").content(t("Route will only be available to trains fulfilling all conditions.")).addTo(win);
+		new Tag("div").content(t("Route will only be available, if all conditions are fulfilled.")).addTo(win);
 		Form form = new Form("action-prop-form-"+id);
 		Fieldset fieldset = new Fieldset(t("Add condition"));
 		new Input(REALM,REALM_ROUTE).hideIn(form);

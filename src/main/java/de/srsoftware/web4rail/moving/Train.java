@@ -89,7 +89,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 				stop = false;
 				while (true) {
 					if (isNull(route)) {
-						LOG.debug("Waiting {} secs...",waitTime/1000d);
 						Thread.sleep(waitTime);
 						if (waitTime > 100) waitTime /=2;
 						if (stop) return;
@@ -587,6 +586,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public void setWaitTime(Range waitTime) {
 		if (autopilot != null) autopilot.waitTime = waitTime.random();
+		LOG.debug("{} waiting {} secs...",this,autopilot.waitTime/1000d);
+
 	}
 	
 	public void showTrace() {

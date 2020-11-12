@@ -117,7 +117,7 @@ public class Contact extends Tile{
 	public Form propForm(String formId) {
 		Form form = super.propForm(formId);
 		new Tag("h4").content(t("Hardware settings")).addTo(form);
-		Tag label = new Input(ADDRESS, addr).addTo(new Label(t("Address:")+NBSP));
+		Tag label = new Input(ADDRESS, addr).numeric().addTo(new Label(t("Address:")+NBSP));
 		Map<String, String> props = Map.of(REALM,REALM_CONTACT,ID,id(),ACTION,ACTION_ANALYZE);
 		new Button(t("learn"), props).addTo(label).addTo(form);
 		
