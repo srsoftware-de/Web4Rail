@@ -293,7 +293,7 @@ public abstract class Block extends StretchableTile{
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName()+"("+name+") @ ("+x+","+y+")";
+		return name + " @ ("+x+","+y+")";
 	}
 	
 	@Override

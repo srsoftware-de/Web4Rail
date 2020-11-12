@@ -70,7 +70,7 @@ public class Route extends BaseClass{
 	private Vector<Contact>                contacts;
 	private boolean                        disabled = false;
 	private Block                          endBlock = null;
-	private Direction					   endDirection;
+	public  Direction					   endDirection;
 	private int                            id;
 	private Vector<Tile>                   path;
 	private Vector<Signal>                 signals;
@@ -682,5 +682,10 @@ public class Route extends BaseClass{
 			return plan.showContext(params);
 		}
 		return message;
+	}
+
+	public String shortName() {
+		String[] parts = name().split("-");
+		return parts[0].trim()+"–"+parts[parts.length-1].trim();
 	}
 }

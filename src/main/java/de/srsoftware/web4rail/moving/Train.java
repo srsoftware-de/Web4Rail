@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -25,6 +24,7 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.PathFinder;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Range;
@@ -172,56 +172,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		showTrace();
 	}
 	
-	private static Route chooseRoute(Context context) {
-		TreeMap<Integer, List<Route>> availableRoutes = availableRoutes(context);
-		if (availableRoutes.isEmpty()) return null;
-		Entry<Integer, List<Route>> entry = availableRoutes.firstEntry();
-		List<Route> preferredRoutes = entry.getValue();
-		Route selectetRoute = preferredRoutes.get(random.nextInt(preferredRoutes.size())); 
-		LOG.debug("Chose \"{}\" with priority {}.",selectetRoute,entry.getKey());
-		
-		return selectetRoute;
-	}
-	
-	private static TreeMap<Integer,List<Route>> availableRoutes(Context context){
-		TreeMap<Integer,List<Route>> availableRoutes = new TreeMap<Integer, List<Route>>();
-		
-		boolean error = false;
-		if (isNull(context.block)) {
-			LOG.warn("{}.availableRoutes called without context.block!",Train.class.getSimpleName());
-			error = true;			
-		}
-		if (isNull(context.train)) {
-			LOG.warn("{}.availableRoutes called without context.train!",Train.class.getSimpleName());
-			error = true;
-		}
-		if (error) return availableRoutes;
-		
-		Collection<Route> routes = context.block.routes();		
-		
-		for (Route rt : routes) {
-			if (rt.path().firstElement() != context.block) continue; // routen, die nicht vom aktuellen Block starten sind bubu
-			int priority = 0;
-			if (rt == context.route) priority-=10; // möglichst andere Route als zuvor wählen // TODO: den Routen einen "last-used" Zeitstempel hinzufügen, und diesen mit in die Priorisierung einbeziehen
-			if (isSet(context.train.direction) && rt.startDirection != context.train.direction) { // Route startet entgegen der aktuellen Fahrtrichtung des Zuges 
-				if (!context.train.pushPull) continue; // Zug kann nicht wenden
-				if (!context.block.turnAllowed) continue; // Wenden im Block nicht gestattet
-				priority -= 5;
-			}
-			if (!rt.isFreeFor(context.train)) continue; // Route ist nicht frei
-			if (!rt.allowed(context)) continue; // Zug darf auf Grund einer nicht erfüllten Bedingung nicht auf die Route
-			
-			List<Route> routeSet = availableRoutes.get(priority);
-			if (isNull(routeSet)) {
-				routeSet = new Vector<Route>();
-				availableRoutes.put(priority, routeSet);
-			}
-			routeSet.add(rt);
-		}
-		
-		return availableRoutes;
-	}
-
 	@Override
 	public int compareTo(Train o) {
 		return name().compareTo(o.toString());
@@ -622,10 +572,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public String start() throws IOException {
 		if (isNull(currentBlock)) return t("{} not in a block",this);
-		Context context = isSet(route) ? new Context( route ) : new Context( this);
-		if (isSet(context.route)) context.route.reset(); // reset route previously chosen
+		if (isSet(route)) route.reset(); // reset route previously chosen
 		
-		route = chooseRoute(context);
+		Context context = new Context(this);
+		route = PathFinder.chooseRoute(context);
 		if (isNull(route)) return t("No free routes from {}",currentBlock);		
 		if (!route.lock()) return t("Was not able to lock {}",route);
 		
@@ -705,5 +655,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public Block currentBlock() {
 		return currentBlock;
+	}
+
+	public Block destination() {
+		return destination;
 	}
 }
