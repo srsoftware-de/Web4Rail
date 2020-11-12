@@ -23,7 +23,7 @@ public class SetPower extends Action{
 
 	@Override
 	public boolean fire(Context context) {
-		ControlUnit cu = context.contact.plan().controlUnit();
+		ControlUnit cu = plan.controlUnit();
 		switch (pc) {
 		case ON:
 			cu.set(true);	

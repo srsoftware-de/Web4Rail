@@ -38,8 +38,7 @@ import de.srsoftware.web4rail.tiles.Contact;
  * @author Stephan Richter, SRSoftware
  *
  */
-public class Application implements Constants{
-	private static Plan plan; // the track layout in use
+public class Application extends BaseClass{
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 	
 	/**
@@ -67,7 +66,7 @@ public class Application implements Constants{
         server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
         server.start();
         try {
-        	plan = Plan.load(Plan.DEFAULT_NAME);
+        	Plan.load(Plan.DEFAULT_NAME);
         } catch (FileNotFoundException e) {
         	plan = new Plan();
 		}
@@ -124,7 +123,7 @@ public class Application implements Constants{
 			case REALM_PLAN:
 				return plan.action(params);
 			case REALM_ROUTE:
-				return Route.action(params,plan);
+				return Route.action(params);
 			case REALM_TRAIN:				
 				return Train.action(params,plan);
 		}

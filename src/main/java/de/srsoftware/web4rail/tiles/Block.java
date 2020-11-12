@@ -1,10 +1,12 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -28,7 +30,7 @@ import de.srsoftware.web4rail.tags.Select;
  * @author Stephan Richter, SRSoftware
  *
  */
-public abstract class Block extends StretchableTile{
+public abstract class Block extends StretchableTile implements Comparable<Block>{
 	private static final String ALLOW_TURN = "allowTurn";
 	private static final String NAME       = "name";
 	private static final String NO_TAG = "[default]";
@@ -113,6 +115,11 @@ public abstract class Block extends StretchableTile{
 
 	
 	private Vector<WaitTime> waitTimes = new Vector<WaitTime>();
+	
+	@Override
+	public int compareTo(Block other) {
+		return name.compareTo(other.name);
+	}
 		
 	@Override
 	public JSONObject config() {
@@ -132,6 +139,12 @@ public abstract class Block extends StretchableTile{
 			}
 		}
 		return this;
+	}
+	
+	public static Block get(String blockId) {
+		Tile tile = plan.get(blockId, false);
+		if (tile instanceof Block) return (Block) tile;
+		return null;
 	}
 	
 	private WaitTime getWaitTime(String tag) {
@@ -272,6 +285,22 @@ public abstract class Block extends StretchableTile{
 			}
 		}
 		return this;
+	}
+	
+	public static Tag selector(Block preselected,Collection<Block> exclude) {
+		if (isNull(exclude)) exclude = new Vector<Block>();
+		Select select = new Select(Block.class.getSimpleName());
+		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
+		TreeSet<Block> blocks = new TreeSet<Block>(); 
+		for (Tile tile : plan.tiles.values()) {
+			if (tile instanceof Block) blocks.add((Block) tile);
+		}
+		for (Block block : blocks) {
+			if (exclude.contains(block)) continue;
+			Tag opt = select.addOption(block.id(), block);
+			if (block == preselected) opt.attr("selected", "selected");
+		}
+		return select;
 	}
 
 	public abstract List<Connector> startPoints();

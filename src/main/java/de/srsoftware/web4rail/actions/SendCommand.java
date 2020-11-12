@@ -19,12 +19,12 @@ public class SendCommand extends Action{
 
 	@Override
 	public boolean fire(Context context) {
-		context.plan.queue(new Command(command) {
+		plan.queue(new Command(command) {
 			
 			@Override
 			public void onResponse(Reply reply) {
 				super.onResponse(reply);
-				context.plan.stream(reply.message());
+				plan.stream(reply.message());
 			}
 		});
 	

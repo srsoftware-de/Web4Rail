@@ -92,7 +92,7 @@ public class PathFinder extends BaseClass{
 			routeSet.add(routeCandidate);
 			if (routeCandidate.endBlock() == destination) break; // direct connection to destination discovered, quit search
 		}
-		LOG.debug("{}→ Routes from {}: {}",inset,block,availableRoutes.isEmpty()?"none":"");
+		if (!availableRoutes.isEmpty())	LOG.debug("{}→ Routes from {}: {}",inset,block,availableRoutes.isEmpty()?"none":"");
 		for (Entry<Integer, List<Route>> entry : availableRoutes.entrySet()) {
 			LOG.debug("{} - Priority {}:",inset,entry.getKey());
 			for (Route r : entry.getValue()) {

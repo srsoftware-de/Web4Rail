@@ -2,7 +2,6 @@ package de.srsoftware.web4rail.actions;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -15,7 +14,6 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
@@ -37,7 +35,6 @@ public abstract class Action extends BaseClass {
 	protected int id;
 	
 	public static class Context {
-		public Plan plan = null;
 		public Contact contact = null;
 		public Route route = null;
 		public Train train = null;
@@ -46,7 +43,6 @@ public abstract class Action extends BaseClass {
 		
 		public Context(Contact c) {			
 			contact = c;
-			setPlan(contact.plan());
 			setRoute(contact.route());
 		}
 		
@@ -80,14 +76,6 @@ public abstract class Action extends BaseClass {
 		private void setBlock(Block block) {
 			this.block = block;
 		}
-
-		private void setPlan(Plan plan) {
-			this.plan = plan;
-		}
-
-
-
-
 		
 		@Override
 		public String toString() {

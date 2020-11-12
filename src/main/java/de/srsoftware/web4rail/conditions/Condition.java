@@ -88,6 +88,7 @@ public abstract class Condition extends BaseClass {
 	
 	private static List<Class<? extends Condition>> list() {
 		return List.of(
+				BlockFree.class,
 				PushPullTrain.class,
 				TrainHasTag.class,
 				TrainSelect.class,

@@ -9,7 +9,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 
 public abstract class BaseClass implements Constants{
-	
+	protected static Plan plan; // the track layout in use
 	public static final Random random = new Random();
 	
 	public static Tag link(String tagClass,Map<String,Object> params,Object caption) {

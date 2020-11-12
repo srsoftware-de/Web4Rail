@@ -383,8 +383,8 @@ public class Plan extends BaseClass{
 	 * @throws NoSuchMethodException
 	 * @throws SecurityException
 	 */
-	public static Plan load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		Plan plan = new Plan();
+	public static void load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		plan = new Plan();
 		try {
 			Car.loadAll(filename+".cars",plan);
 		} catch (Exception e) {
@@ -411,7 +411,6 @@ public class Plan extends BaseClass{
 		} catch (Exception e) {
 			LOG.warn("Was not able to establish connection to control unit!");
 		}
-		return plan;
 	}
 	
 	/**
@@ -666,7 +665,7 @@ public class Plan extends BaseClass{
 	 * @param tile
 	 */
 	private void setIntern(int x, int y, Tile tile) {
-		tile.position(x, y).plan(this);
+		tile.position(x, y);
 		tiles.put(tile.id(),tile);
 	}
 	

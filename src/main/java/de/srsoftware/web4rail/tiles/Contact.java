@@ -106,7 +106,7 @@ public class Contact extends Tile{
 				if (contact == null) return t("No contact with id {} found!",id);
 				Tag propMenu = contact.propMenu();
 				propMenu.children().insertElementAt(new Tag("div").content(t("Trigger a feedback sensor to assign it with this contact!")), 1);
-				contact.plan.learn(contact);
+				plan.learn(contact);
 				return propMenu;
 		}
 		return t("Unknown action: {}",action);

@@ -88,7 +88,7 @@ public class Route extends BaseClass{
 	 * @return
 	 * @throws IOException 
 	 */
-	public static Object action(HashMap<String, String> params,Plan plan) throws IOException {
+	public static Object action(HashMap<String, String> params) throws IOException {
 		Route route = plan.route(Integer.parseInt(params.get(ID)));
 		if (isNull(route)) return t("Unknown route: {}",params.get(ID));
 		switch (params.get(ACTION)) {
@@ -367,7 +367,7 @@ public class Route extends BaseClass{
 			train.set(endBlock);
 			if (endBlock == train.destination()) {
 				train.destination(null).quitAutopilot();
-				endBlock.plan().stream(t("{} reached it`s destination!",train));
+				plan.stream(t("{} reached it`s destination!",train));
 			} else {
 				train.setWaitTime(endBlock.getWaitTime(train));
 			}

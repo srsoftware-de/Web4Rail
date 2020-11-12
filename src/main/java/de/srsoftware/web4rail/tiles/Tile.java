@@ -59,7 +59,6 @@ public abstract class Tile extends BaseClass{
 	private   boolean         disabled  = false;
 	private   int             length    = DEFAUT_LENGTH;
 	protected Direction       oneWay    = null;
-	protected Plan            plan      = null;;
 	protected Route           route     = null;
 	private   HashSet<Route>  routes    = new HashSet<>();
 	protected HashSet<Shadow> shadows   = new HashSet<>();
@@ -113,7 +112,6 @@ public abstract class Tile extends BaseClass{
 	private static void inflate(String clazz, JSONObject json, Plan plan) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, IOException {
 		clazz = Tile.class.getName().replace(".Tile", "."+clazz);
 		Tile tile = (Tile) Tile.class.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
-		tile.plan(plan);
 		tile.load(json);
 		plan.set(tile.x, tile.y, tile);
 	}
@@ -175,15 +173,6 @@ public abstract class Tile extends BaseClass{
 		return this;
 	}
 		
-	public Plan plan() {
-		return plan;
-	}
-	
-	public Tile plan(Plan plan) {
-		this.plan = plan;
-		return this;
-	}
-
 	public Tile position(int x, int y) {
 		this.x = x;
 		this.y = y;

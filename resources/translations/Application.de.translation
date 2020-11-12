@@ -14,6 +14,9 @@ Address\: : Adresse:
 Analyze : analysieren
 Apply : Übernehmen
 Availability : Verfügbarkeit
+BlockFree : Blockbelegung
+Block {} is free : Block {} ist frei
+Block {} is occupied : Block {} ist belegt
 Block properties : Block-Eigenschaften
 {}bound : nach {}
 Cars\: : Waggons:
@@ -23,6 +26,8 @@ Condition type\: : Bedingungs-Typ:
 Control unit : Zentrale
 Current location\: : Aktueller Ort:
 Actions and contacts : Aktionen und Kontakte
+[Click here to select block!] : [Hier klicken, um Block auszuwählen!]
+[Click here to select train!] : [Hier klicken, um Zug auszuwählen!]
 click here to setup contact : Hier klicken, um Kontakt auszuwählen
 click here to setup relay : Hier klicken, um Relais einzurichten
 Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werden soll:
@@ -90,11 +95,13 @@ Report Issue : Problem melden
 RIGHT : rechts
 Right port\: : Port für rechts
 Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
-Route will only be available to trains fulfilling all conditions. : Route ist nur für Züge verfügbar, die alle Bedingungen erfüllen.
+Route will only be available, if all conditions are fulfilled. : Route ist nur verfügbar, wenn alle Bedingungen erfüllt sind.
 Save : speichern
+Select block\: : Block auswählen:
 Select contact\: : Kotakt auswählen:
 Select from plan : Auf Plan auswählen
 Select relay\: : Relais auswählen:
+Select train\: : Zug auswählen:
 SendCommand : Kommando senden
 Send command \"{}\" to control unit : Kommando „{}“ an Zentrale senden
 SetRelay : Relais schalten
@@ -118,6 +125,7 @@ Tag : Markierung
 Tags : Markierungen
 Toggle : umschalten
 Toggle power : Stom umschalten
+Train : Zug
 Train\: : Zug:
 train does not have tag "{}" : Zug hat keine Markierung „{}“
 train has tag "{}" : Zug hat Markierung „{}“
