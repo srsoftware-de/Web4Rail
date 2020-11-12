@@ -585,7 +585,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void setWaitTime(Range waitTime) {
-		if (autopilot != null) autopilot.waitTime = waitTime.random();
+		if (isNull(autopilot)) return; 
+		autopilot.waitTime = waitTime.random();
 		LOG.debug("{} waiting {} secs...",this,autopilot.waitTime/1000d);
 
 	}
@@ -633,7 +634,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Object stopNow() {
 		quitAutopilot();
 		setSpeed(0);
-		if (isSet(route)) route.reset();
+		if (isSet(route)) {
+			route.reset();
+			route = null;
+		}
 		return t("Stopped {}.",this);
 	}
 	

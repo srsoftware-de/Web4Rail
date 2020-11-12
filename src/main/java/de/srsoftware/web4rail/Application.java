@@ -234,7 +234,7 @@ public class Application extends BaseClass{
 			}
 			
 			Object response = handle(params);
-			LOG.debug("response ({}): {}",response.getClass().getSimpleName(),response);
+			if (isSet(response)) LOG.debug("response ({}): {}",response.getClass().getSimpleName(),response);
 			send(client,response instanceof String || response instanceof Tag ? response : plan.html());
 			
 		} catch (Exception e) {

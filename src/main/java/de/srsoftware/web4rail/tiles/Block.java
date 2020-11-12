@@ -337,9 +337,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 				Train newTrain = Train.get(trainId);
 				if (isSet(newTrain) && newTrain != train) {
 					newTrain.dropTrace();
-					if (connections(newTrain.direction()).isEmpty()) {
-						newTrain.heading(null);
-					}
+					if (connections(newTrain.direction()).isEmpty()) newTrain.heading(null);
 					newTrain.set(this);
 				}
 			}

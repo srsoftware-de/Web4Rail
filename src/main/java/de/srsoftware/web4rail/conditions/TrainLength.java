@@ -17,6 +17,7 @@ public class TrainLength extends Condition {
 	
 	@Override
 	public boolean fulfilledBy(Context context) {
+		if (isNull(context.train)) return false;
 		return (context.train.length() < maxLength) != inverted;
 	}
 	

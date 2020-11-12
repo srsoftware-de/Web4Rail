@@ -365,13 +365,13 @@ public class Route extends BaseClass{
 		}
 		if (isSet(train)) { 
 			train.set(endBlock);
+			train.heading(endDirection.inverse());
 			if (endBlock == train.destination()) {
 				train.destination(null).quitAutopilot();
 				plan.stream(t("{} reached it`s destination!",train));
 			} else {
 				train.setWaitTime(endBlock.getWaitTime(train));
 			}
-			train.heading(endDirection.inverse());
 			if (train.route == this) train.route = null;
 		}
 		train = null;
@@ -589,6 +589,7 @@ public class Route extends BaseClass{
 			train.set(startBlock);
 			train.heading(startDirection);
 			if (train.route == this) train.route = null;
+			train = null;
 		}	
 		triggeredContacts.clear();
 		return true;

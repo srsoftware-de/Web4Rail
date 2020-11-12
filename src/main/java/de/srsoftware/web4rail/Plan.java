@@ -587,6 +587,7 @@ public class Plan extends BaseClass{
 	 * @param tile
 	 */
 	private void remove(Tile tile) {
+		if (isNull(tile)) return;
 		removeTile(tile.x,tile.y);
 		if (tile instanceof Block) blocks.remove(tile);
 		for (int i=1; i<tile.width(); i++) removeTile(tile.x+i, tile.y); // remove shadow tiles
