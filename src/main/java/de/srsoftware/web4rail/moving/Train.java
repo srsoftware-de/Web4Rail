@@ -245,6 +245,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return train;
 	}
 	
+	public Block currentBlock() {
+		return currentBlock;
+	}
+	
 	public Block destination() {
 		return destination;
 	}
@@ -468,8 +472,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(currentBlock)) {
 			link("li",Map.of(REALM,REALM_PLAN,ID,currentBlock.id(),ACTION,ACTION_CLICK),t("Current location: {}",currentBlock)).addTo(propList);
 			Tag actions = new Tag("li").clazz().content(t("Actions:")+NBSP);
-			props.put(ACTION, ACTION_START);
-			new Button(t("start"),props).addTo(actions);
+			if (isSet(route)) {
+				props.put(ACTION, ACTION_STOP);
+				new Button(t("stop"),props).addTo(actions);
+			} else {
+				props.put(ACTION, ACTION_START);
+				new Button(t("start"),props).addTo(actions);
+			}
 			if (isNull(autopilot)) {
 				props.put(ACTION, ACTION_AUTO);
 				new Button(t("auto"),props).addTo(actions);
@@ -521,6 +530,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		} else return t("autopilot not active.");
 	}
 
+	public void removeFromTrace(Tile tile) {
+		trace.remove(tile);		
+	}
+	
 	private void reverseTrace() {
 		// TODO Auto-generated method stub
 	}
@@ -570,6 +583,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void setSpeed(int v) {
 		for (Locomotive loco : locos) loco.setSpeed(v);
 		this.speed = v;
+	}
+	
+	public void setWaitTime(Range waitTime) {
+		if (autopilot != null) autopilot.waitTime = waitTime.random();
 	}
 	
 	public void showTrace() {
@@ -662,16 +679,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		return this;
 	}
-
-	public void removeFromTrace(Tile tile) {
-		trace.remove(tile);		
-	}
-
-	public void setWaitTime(Range waitTime) {
-		if (autopilot != null) autopilot.waitTime = waitTime.random();
-	}
-
-	public Block currentBlock() {
-		return currentBlock;
+	
+	public boolean usesAutopilot() {
+		return isSet(autopilot);
 	}
 }

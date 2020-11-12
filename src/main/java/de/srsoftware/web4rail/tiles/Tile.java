@@ -223,6 +223,14 @@ public abstract class Tile extends BaseClass{
 				props.put(ACTION, ACTION_START);
 				window.children().insertElementAt(new Button(t("start"),props), 1);
 			}
+			if (train.usesAutopilot()) {
+				props.put(ACTION, ACTION_QUIT);
+				window.children().insertElementAt(new Button(t("quit autopilot"),props),2);
+			} else {
+				props.put(ACTION, ACTION_AUTO);
+				window.children().insertElementAt(new Button(t("auto"),props),2);
+			}
+
 			window.children().insertElementAt(train.link("span"), 1);
 			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
 		}
