@@ -365,7 +365,12 @@ public class Route extends BaseClass{
 		}
 		if (isSet(train)) { 
 			train.set(endBlock);
-			train.setWaitTime(endBlock.getWaitTime(train));
+			if (endBlock == train.destination()) {
+				train.destination(null).quitAutopilot();
+				endBlock.plan().stream(t("{} reached it`s destination!",train));
+			} else {
+				train.setWaitTime(endBlock.getWaitTime(train));
+			}
 			train.heading(endDirection.inverse());
 			if (train.route == this) train.route = null;
 		}

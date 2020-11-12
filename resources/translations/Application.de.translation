@@ -27,11 +27,14 @@ click here to setup contact : Hier klicken, um Kontakt auszuwählen
 click here to setup relay : Hier klicken, um Relais einzurichten
 Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werden soll:
 Create action : Aktion erzeugen
+Current location\: {} : Aufenthaltsort: {}
 DelayedAction : verzögerte Aktion
 delete : entfernen
 delete route : Route löschen
+Destination\: : Ziel:
 Destination\: {} from {} : Ziel: {} von {}
 Direction : Richtung
+Direction\: heading {} : Richtung: nach {}
 disabled : deaktiviert
 EAST : Osten
 editable train properties : veränderliche Zug-Eigenschaften
@@ -64,6 +67,7 @@ new train : neuer Zug
 No : keine
 No free routes from {} : keine Route von {} frei
 NORTH : Norden
+Occupied area\: : Belegte Abschnitte:
 Off : Aus
 On : An
 One way\: : Richtung:
@@ -77,6 +81,7 @@ Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
 PushPullTrain : Wendezug
 Push-pull train : Wendezug
+{} reached it`s destination! : {} ist am Ziel angekommen!
 Reduce speed to {} km/h : Geschwindigkeit auf {} km/h reduzieren
 Report Issue : Problem melden
 RIGHT : rechts
@@ -85,6 +90,7 @@ Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
 Route will only be available to trains fulfilling all conditions. : Route ist nur für Züge verfügbar, die alle Bedingungen erfüllen.
 Save : speichern
 Select contact\: : Kotakt auswählen:
+Select from plan : Auf Plan auswählen
 Select relay\: : Relais auswählen:
 SendCommand : Kommando senden
 Send command \"{}\" to control unit : Kommando „{}“ an Zentrale senden

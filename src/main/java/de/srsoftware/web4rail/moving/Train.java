@@ -94,6 +94,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 						if (waitTime > 100) waitTime /=2;
 						if (stop) return;
 						Train.this.start();
+						if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
 					}
 					Thread.sleep(250);
 				}
@@ -171,25 +172,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		showTrace();
 	}
-	
-	@Override
-	public int compareTo(Train o) {
-		return name().compareTo(o.toString());
-	}
-
-	public String directedName() {
-		String result = name();
-		if (isNull(direction)) return result;
-		switch (direction) {
-		case NORTH:
-		case WEST:
-			return '←'+result;
-		case SOUTH:
-		case EAST:
-			return result+'→';
-		}
-		return result;
-	}
 
 	private Object addCar(HashMap<String, String> params) {
 		LOG.debug("addCar({})",params);
@@ -250,6 +232,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return new Vector<Car>(cars);
 	}
 	
+	@Override
+	public int compareTo(Train o) {
+		return name().compareTo(o.toString());
+	}
+	
 	private static Object create(HashMap<String, String> params, Plan plan) {
 		Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
 		if (isNull(loco)) return t("unknown locomotive: {}",params.get(ID));
@@ -258,10 +245,33 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return train;
 	}
 	
+	public Block destination() {
+		return destination;
+	}
+	
+	public Train destination(Block dest) {
+		destination = dest;
+		return this;
+	}
+
+	public String directedName() {
+		String result = name();
+		if (isNull(direction)) return result;
+		switch (direction) {
+		case NORTH:
+		case WEST:
+			return '←'+result;
+		case SOUTH:
+		case EAST:
+			return result+'→';
+		}
+		return result;
+	}
+
 	public Direction direction() {
 		return direction;
 	}
-
+		
 	private Object dropCar(HashMap<String, String> params) {
 		String carId = params.get(CAR_ID);
 		if (isSet(carId)) cars.remove(Car.get(carId));
@@ -454,22 +464,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		locoList().addTo(propList);
 		carList().addTo(propList);
-		new Tag("li").content(t("length: {}",length())).addTo(propList);
-		
-		if (!trace.isEmpty()) {
-			Tag li = new Tag("li").content(t("Occupied area:"));
-			Tag ul = new Tag("ul");
-			for (Tile tile : trace) new Tag("li").content(tile.toString()).addTo(ul);
-			ul.addTo(li).addTo(propList);
-		}
-		
-		Tag dest = new Tag("li").content(t("Destination: "));
-		if (isNull(destination)) {
-			new Button(t("Select from plan"),"return selectDest("+id+");").addTo(dest);			
-		} else {
-			link("span",Map.of(REALM,REALM_PLAN,ID,destination.id(),ACTION,ACTION_CLICK),destination.toString()).addTo(dest);
-		}
-		dest.addTo(propList);
 		
 		if (isSet(currentBlock)) {
 			link("li",Map.of(REALM,REALM_PLAN,ID,currentBlock.id(),ACTION,ACTION_CLICK),t("Current location: {}",currentBlock)).addTo(propList);
@@ -486,14 +480,33 @@ public class Train extends BaseClass implements Comparable<Train> {
 			actions.addTo(propList);
 		}
 		
+		Tag dest = new Tag("li").content(t("Destination:")+NBSP);
+		if (isNull(destination)) {
+			new Button(t("Select from plan"),"return selectDest("+id+");").addTo(dest);			
+		} else {
+			link("span",Map.of(REALM,REALM_PLAN,ID,destination.id(),ACTION,ACTION_CLICK),destination.toString()).addTo(dest);
+		}
+		
+		dest.addTo(propList);		
 		if (isSet(route)) {
 			link("li", Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_PROPS), route).addTo(propList);
 		}
 		if (isSet(direction)) new Tag("li").content(t("Direction: heading {}",direction)).addTo(propList);
 		
-		Tag tagList = new Tag("ul");
-		for (String tag : tags()) new Tag("li").content(tag).addTo(tagList);
-		tagList.addTo(new Tag("li").content(t("Tags"))).addTo(propList);
+		SortedSet<String> allTags = tags();
+		if (!allTags.isEmpty()) {
+			Tag tagList = new Tag("ul");
+			for (String tag : allTags) new Tag("li").content(tag).addTo(tagList);
+			tagList.addTo(new Tag("li").content(t("Tags"))).addTo(propList);
+		}
+		new Tag("li").content(t("length: {}",length())).addTo(propList);
+		
+		if (!trace.isEmpty()) {
+			Tag li = new Tag("li").content(t("Occupied area:"));
+			Tag ul = new Tag("ul");
+			for (Tile tile : trace) new Tag("li").content(tile.toString()).addTo(ul);
+			ul.addTo(li).addTo(propList);
+		}
 		
 		propList.addTo(fieldset).addTo(window);
 		return window;
@@ -655,9 +668,5 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public Block currentBlock() {
 		return currentBlock;
-	}
-
-	public Block destination() {
-		return destination;
 	}
 }
