@@ -129,13 +129,13 @@ function moveTile(x,y){
 function place(data){
 	var tag = $(data);
 	$('#'+tag.attr('id')).remove();
-	$(PLAN).append(tag);
+	$('#scroll').append(tag);
 	return false;
 }
 
 function planClick(ev){
 	//console.log('planClick:',ev);
-	var plan=$(PLAN).get(0);
+	var plan=$('#scroll').get(0);
 	var x = Math.floor((plan.scrollLeft+ev.clientX)/SQUARE);
 	var y = Math.floor((plan.scrollTop+ev.clientY)/SQUARE);
 
@@ -246,4 +246,5 @@ window.onload = function () {
 	$(PLAN).click(planClick);
 	$(document).keyup(keypress);
 	(new EventSource("stream")).onmessage = stream;
+	$('#plan').click(function(){ document.documentElement.requestFullscreen(); });
 }

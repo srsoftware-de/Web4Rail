@@ -355,12 +355,13 @@ public class Plan extends BaseClass{
 	 * @throws IOException
 	 */
 	public Page html() throws IOException {
-		Page page = new Page().append("<div id=\"plan\">");
+		Page page = new Page().append("<div id=\"plan\"><div id=\"scroll\">");
 		for (Tile tile: tiles.values()) {
 			if (tile == null) continue;
 			page.append("\t\t"+tile.tag(null)+"\n");
 		}
 		return page
+				.append("</div>")
 				.append(menu())
 				.append(messages())
 				.append(heartbeat())

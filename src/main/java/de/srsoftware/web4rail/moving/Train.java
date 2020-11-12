@@ -207,7 +207,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			Tag li = new Tag("li");
 			car.link("span").addTo(li).content(NBSP);
 			Map<String, Object> params = Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_DROP,CAR_ID,car.id());
-			new Button("delete",params).addTo(li);
+			new Button(t("delete"),params).addTo(li);
 			li.addTo(locoList);
 		}
 
@@ -380,7 +380,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			Map<String, Object> props = Map.of(REALM,REALM_LOCO,ID,loco.id(),ACTION,ACTION_TURN);
 			new Button(t("turn within train"),props).addTo(li).addTo(locoList);
 			Map<String, Object> params = Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_DROP,LOCO_ID,loco.id());
-			new Button("delete",params).addTo(li);
+			new Button(t("delete"),params).addTo(li);
 		}
 
 		Tag addLocoForm = new Form().content(t("add locomotive:")+"&nbsp;");

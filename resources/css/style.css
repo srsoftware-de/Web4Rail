@@ -15,7 +15,13 @@ button{
 	margin: 2px;
 }
 
-#plan,
+#plan{
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+}
+#scroll,
 .window{
 	height: 100%;
 	width: 100%;
@@ -87,9 +93,9 @@ svg circle{
 .menu{
 	position: absolute;
 	height: 30px;
-	padding: 10px;
-	bottom: 0;
-	background: rgba(0,0,0,0.1);	
+	padding: 10px 0;
+	bottom: 10px;
+	background: rgba(0,0,0,0.5);	
 	width: 100%;
 }
 
@@ -241,6 +247,12 @@ h4,ul{
 
 .menu div.emergency{
 	background: #ffb561;
+}
+
+.window .disabled{
+	background: red;
+	padding: 3px;
+	display: table;
 }
 
 svg.disabled circle,

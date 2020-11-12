@@ -89,7 +89,7 @@ public class DelayedAction extends Action {
 
 	@Override
 	public String toString() {	
-		return t("Wait {} ms, then: ",delay);
+		return t("Wait {} ms, then:",delay);
 	}
 
 	@Override

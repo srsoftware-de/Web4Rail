@@ -230,7 +230,9 @@ public abstract class Tile extends BaseClass{
 		new Tag("h4").content(t("Length")).addTo(form);
 		new Input(LENGTH,length).numeric().addTo(new Label(t("Length")+":"+NBSP)).addTo(form);
 		new Tag("h4").content(t("Availability")).addTo(form);
-		new Checkbox(DISABLED, t("disabled"), disabled).addTo(form);
+		Checkbox cb = new Checkbox(DISABLED, t("disabled"), disabled);
+		if (disabled) cb.clazz("disabled");
+		cb.addTo(form);
 		new Button(t("Apply"),form).addTo(form);
 		form.addTo(window);
 		

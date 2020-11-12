@@ -1,7 +1,9 @@
 Actions : Aktionen
 Actions\: : Aktionen:
+Actions and contacts : Aktionen und Kontakte
 Action type\: : Aktions-Typ
 ActivateRoute : Route aktivieren
+add : hinzufügen
 Added {} : {} hinzugefügt
 add action : Aktion hinzufügen
 add car\: : Waggon hinzufügen:
@@ -25,7 +27,6 @@ Conditions : Bedingungen
 Condition type\: : Bedingungs-Typ:
 Control unit : Zentrale
 Current location\: : Aktueller Ort:
-Actions and contacts : Aktionen und Kontakte
 [Click here to select block!] : [Hier klicken, um Block auszuwählen!]
 [Click here to select train!] : [Hier klicken, um Zug auszuwählen!]
 click here to setup contact : Hier klicken, um Kontakt auszuwählen
@@ -33,6 +34,7 @@ click here to setup relay : Hier klicken, um Relais einzurichten
 Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werden soll:
 Create action : Aktion erzeugen
 Current location\: {} : Aufenthaltsort: {}
+Delay : Verzögerung
 DelayedAction : verzögerte Aktion
 delete : entfernen
 delete route : Route löschen
@@ -52,7 +54,7 @@ FreeStartBlock : Start-Block freigeben
 Hardware settings : Hardware-Einstellungen
 Height : Höhe
 Help : Hilfe
-if ({})\: {} : falls ({}): {}
+if ({})\: : falls ({}):
 inverted : invertiert
 learn : lernen
 LEFT : links
@@ -116,6 +118,7 @@ SOUTH : Süden
 Started {} : {} gestartet
 StopAllTrains : Alle Züge stoppen
 StopAuto : Automatikmodus abschalten
+{} stopping at next block. : {} hält im nächsten Block.
 Stopsettings : Halte-Einstellungen
 Straight port\: : Port für gerade
 STRAIGHT : gerade
@@ -145,9 +148,11 @@ Turn allowed : Wenden erlaubt
 {} turned. : {} gewendet.
 Turnouts : Weichen
 TurnTrain : Fahrtrichtung umkehren
+turn within train : innerhalb des Zugs drehen
 Unknown action\: {} : Unbekannte Aktion: {}
 unset : ungesetzt
-Wait {} ms, then\: {} : {} ms warten, dann: {}
+Wait {} ms, then\: : {} ms warten, dann:
+{} waiting {} secs... : {} wartet {} Sekunden...
 Was not able to assign {} to {}! : Konnte {} nicht an {} zuweisen!
 Was not able to lock {} : Konnte {} nicht reservieren
 Was not able to set all signals! : Konnte nicht alle Signale stellen!
