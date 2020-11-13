@@ -208,10 +208,11 @@ public class Application extends BaseClass{
 		if (file.exists()) {
 			LOG.debug("found...");
 			String ct = Files.probeContentType(file.toPath());
-			client.getResponseHeaders().add("Content-Type", ct);
 			LOG.debug("Content-Type: {}",ct);
-			client.sendResponseHeaders(200, file.length());
+			client.getResponseHeaders().add("Content-Type", ct);
 			LOG.debug("Length: {}",file.length());
+			client.sendResponseHeaders(200, file.length());
+			LOG.debug("Sent headers...");
 			OutputStream out = client.getResponseBody();
 			FileInputStream in = new FileInputStream(file);
 			in.transferTo(out);
