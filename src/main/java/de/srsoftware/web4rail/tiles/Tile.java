@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.json.JSONObject;
@@ -60,7 +61,7 @@ public abstract class Tile extends BaseClass{
 	private   int             length    = DEFAUT_LENGTH;
 	protected Direction       oneWay    = null;
 	protected Route           route     = null;
-	private   HashSet<Route>  routes    = new HashSet<>();
+	private   TreeSet<Route>  routes    = new TreeSet<>();
 	protected HashSet<Shadow> shadows   = new HashSet<>();
 	protected Train           train     = null;	
 	public    Integer         x         = null;
@@ -277,7 +278,7 @@ public abstract class Tile extends BaseClass{
 		return route;
 	}
 	
-	public HashSet<Route> routes() {
+	public TreeSet<Route> routes() {
 		return routes;
 	}
 	

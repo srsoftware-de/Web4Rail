@@ -259,6 +259,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String directedName() {
 		String result = name();
+		if (isSet(autopilot)) result="•"+result;
 		if (isNull(direction)) return result;
 		switch (direction) {
 		case NORTH:

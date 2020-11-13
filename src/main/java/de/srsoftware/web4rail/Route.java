@@ -48,7 +48,7 @@ import de.srsoftware.web4rail.tiles.Turnout.State;
  * @author Stephan Richter, SRSoftware
  *
  */
-public class Route extends BaseClass{
+public class Route extends BaseClass implements Comparable<Route>{
 	private static final Logger LOG             = LoggerFactory.getLogger(Route.class);
 
 	private static final String ACTION_LISTS = "action_lists";
@@ -294,6 +294,11 @@ public class Route extends BaseClass{
 		clone.turnouts = new HashMap<>(turnouts);
 		clone.path = new Vector<>(path);
 		return clone;
+	}
+
+	@Override
+	public int compareTo(Route other) {
+		return name().compareTo(other.name());
 	}
 	
 	public void complete() {
