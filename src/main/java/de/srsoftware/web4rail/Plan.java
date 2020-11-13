@@ -11,7 +11,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedSet;
 import java.util.Stack;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.slf4j.Logger;
@@ -41,6 +43,7 @@ import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.Eraser;
 import de.srsoftware.web4rail.tiles.Relay;
 import de.srsoftware.web4rail.tiles.Shadow;
+import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.SignalE;
 import de.srsoftware.web4rail.tiles.SignalN;
 import de.srsoftware.web4rail.tiles.SignalS;
@@ -117,6 +120,7 @@ public class Plan extends BaseClass{
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>(); // The list of tiles of this plan, i.e. the Track layout
 	private HashSet<Block> blocks = new HashSet<Block>(); // the list of tiles, that are blocks
+	private HashSet<Signal> signals = new HashSet<Signal>(); // the list of tiles, that are signals
 	private HashMap<Integer, Route> routes = new HashMap<Integer, Route>(); // the list of routes of the track layout
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
 	private Contact learningContact;
@@ -235,10 +239,10 @@ public class Plan extends BaseClass{
 	}
 
 	/**
-	 * @return the list of blocks known to the plan
+	 * @return the list of blocks known to the plan, ordered by name
 	 */
 	public Collection<Block> blocks() {
-		return blocks;
+		return new TreeSet<Block>(blocks);
 	}
 	
 	/**
@@ -307,6 +311,7 @@ public class Plan extends BaseClass{
 	 * @return the tile belonging to the id, or the overlaying tile if the respective tile is a shadow tile.
 	 */
 	public Tile get(String tileId,boolean resolveShadows) {
+		if (isNull(tileId)) return null;
 		Tile tile = tiles.get(tileId);
 		if (resolveShadows && tile instanceof Shadow) tile = ((Shadow)tile).overlay();
 		return tile;
@@ -369,6 +374,11 @@ public class Plan extends BaseClass{
 				.style("css/style.css")
 				.js("js/jquery-3.5.1.min.js")
 				.js("js/plan.js");
+	}
+	
+	public void learn(Contact contact) {
+		learningContact = contact;
+		LOG.debug("learning contact {}",learningContact);
 	}
 	
 	/**
@@ -576,10 +586,7 @@ public class Plan extends BaseClass{
 	 */
 	Route registerRoute(Route newRoute) {
 		for (Tile tile: newRoute.path()) {
-			if (isNull(tile)) {
-				System.err.println("--");
-			}
-			tile.add(newRoute);
+			if (isSet(tile)) tile.add(newRoute);
 		}
 		int routeId = newRoute.id();
 		Route existingRoute = routes.get(routeId);
@@ -659,6 +666,7 @@ public class Plan extends BaseClass{
 	public void set(int x,int y,Tile tile) throws IOException {
 		if (tile == null) return;
 		if (tile instanceof Block) blocks.add((Block) tile);
+		if (tile instanceof Signal) signals .add((Signal) tile);
 		for (int i=1; i<tile.width(); i++) set(x+i,y,new Shadow(tile));
 		for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
 		setIntern(x,y,tile);
@@ -678,10 +686,11 @@ public class Plan extends BaseClass{
 	
 	public void sensor(int addr, boolean active) {
 		Contact contact = Contact.get(addr);
-		LOG.debug("contact: {}",isSet(contact) ? addr+" / "+contact : addr);
-		if (contact != null) {
+		
+		if (isSet(contact)) {
 			contact.activate(active);
 		} else {
+			LOG.debug("contact: {}", addr);
 			if (active && learningContact != null) {
 				LOG.debug("learned: {} = {}",addr,learningContact);
 				stream(learningContact.addr(addr).propMenu().toString());
@@ -710,6 +719,10 @@ public class Plan extends BaseClass{
 		return null;
 	}
 	
+	public SortedSet<Signal> signals() {
+		return new TreeSet<Signal>(signals);
+	}
+	
 	/**
 	 * sends some data to the clients
 	 * @param data
@@ -728,7 +741,7 @@ public class Plan extends BaseClass{
 				int errorCount = entry.getValue()+1;
 				LOG.info("Error #{} on client: {}",errorCount,e.getMessage());
 				if (errorCount > 4) {
-					if (badClients == null) badClients = new Vector<OutputStreamWriter>();
+					if (isNull(badClients)) badClients = new Vector<OutputStreamWriter>();
 					try {
 						client.close();
 					} catch (IOException e1) {}
@@ -837,11 +850,5 @@ public class Plan extends BaseClass{
 	 */
 	public void warn(Contact contact) {
 		stream(t("Warning: {}",t("Ghost train @ {}",contact)));
-	}
-
-	public void learn(Contact contact) {
-		learningContact = contact;
-		LOG.debug("learning contact {}",learningContact);
-		
 	}
 }

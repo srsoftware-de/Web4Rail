@@ -23,7 +23,7 @@ function addClass(data){
 function addMessage(txt){
 	$('#messages').html(txt);
 	if (messageTimer != null) window.clearInterval(messageTimer);
-	messageOpacity = 300;
+	messageOpacity = 3000;
 	messageTimer = setInterval(fadeMessage,100);		
 }
 

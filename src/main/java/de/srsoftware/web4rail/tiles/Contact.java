@@ -24,25 +24,59 @@ public class Contact extends Tile{
 	private static final String ADDRESS = "address";
 	private static final HashMap<String, Contact> contactsById = new HashMap<String, Contact>();
 	private static final HashMap<Integer, Contact> contactsByAddr = new HashMap<Integer, Contact>();
-	private boolean active = false;
+	private boolean state = false;
 	private String trigger = null;
 	private int addr = 0;
 	private ActionList actions = new ActionList();
+	private OffTimer timer = null;
 	
-	public void activate(boolean active) {		
-		this.active = active;		
-		if (active) {
+	/**
+	 * Dieser Timer dient dazu, Merhfachauslösungen eines Kontakes innerhalb einer Sekunde zu unterbinden
+	 *
+	 */
+	private class OffTimer extends Thread {
+		
+		boolean aborted = false;
+		
+		public OffTimer() {
+			start();
+		}
+		
+		@Override
+		public void run() {
+			try {
+				for (int ticks = 0; ticks<10; ticks++) {
+					if (!aborted) sleep(100);
+				}
+				timer = null;
+				if (aborted) return;
+				state = false;
+				stream();
+			} catch (InterruptedException e) {}
+		}
+
+		private void abort() {
+			aborted = true;
+		}
+	}
+	
+	public void activate(boolean newState) {
+		if (newState == state) return;
+		
+		if (newState == false) {
+			if (isSet(timer)) return;
+			timer = new OffTimer();
+		} else {
+			LOG.debug("{} activated.",this);
+			state = true;
+			if (isSet(timer)) timer.abort();
 			if (isSet(route)) {
 				route.contact(this);
 			} else if (getClass() != Contact.class) {
 				plan.warn(this);	
 			}
 			actions.fire(new Context(this));
-		}
-		try {
 			stream();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -145,10 +179,14 @@ public class Contact extends Tile{
 		return select;
 	}
 	
-	public void stream() throws IOException {
-		Tag tag = super.tag(null);
-		if (active) tag.clazz(tag.get("class")+" active");
-		plan.stream("place "+tag);
+	public void stream() {
+		try {
+			Tag tag = super.tag(null);
+			if (state) tag.clazz(tag.get("class")+" active");
+			plan.stream("place "+tag);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 

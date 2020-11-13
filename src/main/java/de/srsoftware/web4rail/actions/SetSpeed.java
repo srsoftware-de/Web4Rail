@@ -54,10 +54,10 @@ public class SetSpeed extends Action{
 	
 	@Override
 	public String toString() {
-		return t("Reduce speed to {} km/h",maxSpeed);
+		return t("Set speed to {} km/h",maxSpeed);
 	}
 	
-	public SetSpeed speed(int kmh) {
+	public SetSpeed to(int kmh) {
 		maxSpeed = kmh;
 		return this;
 	}

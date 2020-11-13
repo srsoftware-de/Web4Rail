@@ -144,7 +144,7 @@ public class ActionList extends Vector<Action> implements Constants{
 	}
 	
 	public boolean fire(Context context) {
-		LOG.debug(t("Firing {}"),this);
+		if (!isEmpty())	LOG.debug(t("Firing {}"),this);
 		boolean success = true;
 		for (Action action : this) {
 			try {

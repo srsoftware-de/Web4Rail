@@ -587,13 +587,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public void setSpeed(int v) {
 		for (Locomotive loco : locos) loco.setSpeed(v);
+		plan.stream(t("Set {} to {} km/h",this,v));
 		this.speed = v;
 	}
 	
 	public void setWaitTime(Range waitTime) {
 		if (isNull(autopilot)) return; 
 		autopilot.waitTime = waitTime.random();
-		LOG.debug("{} waiting {} secs...",this,autopilot.waitTime/1000d);
+		String msg = t("{} waiting {} secs...",this,autopilot.waitTime/1000d);
+		LOG.debug(msg);
+		plan.stream(msg);
 
 	}
 	
@@ -627,14 +630,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		String error = null;
 		if (!route.setTurnouts()) error = t("Was not able to set all turnouts!");
 		if (isNull(error) && !route.fireSetupActions(context)) error = t("Was not able to fire all setup actions of route!");
-		if (isNull(error) && !route.setSignals(null)) error = t("Was not able to set all signals!");
 		if (isNull(error) && !route.train(this)) error = t("Was not able to assign {} to {}!",this,route);
 		if (isSet(error)) {
 			route.reset();
 			route = null;
 			return error;
 		}
-		setSpeed(128);
 		return t("Started {}",this);
 	}
 	

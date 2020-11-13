@@ -123,18 +123,18 @@ public abstract class Action extends BaseClass {
 	
 	public static List<Class<? extends Action>> list() {
 		return List.of(
-			SendCommand.class,
 			ConditionalAction.class,
-			SetSpeed.class,
-			SetSignalsToStop.class,
+			DelayedAction.class,
 			FinishRoute.class,
-			TriggerContact.class,
-			TurnTrain.class,
-			StopAllTrains.class,
-			StopAuto.class,
+			SendCommand.class,
 			SetPower.class,
 			SetRelay.class,
-			DelayedAction.class
+			SetSignal.class,
+			SetSpeed.class,
+			StopAllTrains.class,
+			StopAuto.class,
+			TriggerContact.class,
+			TurnTrain.class
 		);
 	}
 	

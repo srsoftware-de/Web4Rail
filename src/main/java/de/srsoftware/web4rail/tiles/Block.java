@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TreeSet;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -291,11 +290,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		if (isNull(exclude)) exclude = new Vector<Block>();
 		Select select = new Select(Block.class.getSimpleName());
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
-		TreeSet<Block> blocks = new TreeSet<Block>(); 
-		for (Tile tile : plan.tiles.values()) {
-			if (tile instanceof Block) blocks.add((Block) tile);
-		}
-		for (Block block : blocks) {
+		for (Block block : plan.blocks()) {
 			if (exclude.contains(block)) continue;
 			Tag opt = select.addOption(block.id(), block);
 			if (block == preselected) opt.attr("selected", "selected");
