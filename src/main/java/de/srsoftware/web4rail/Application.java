@@ -211,6 +211,8 @@ public class Application extends BaseClass{
 			OutputStream out = client.getResponseBody();
 			FileInputStream in = new FileInputStream(file);
 			in.transferTo(out);
+			out.flush();
+			LOG.debug("transferred file");
 			in.close();
 			out.close();
 			return;
