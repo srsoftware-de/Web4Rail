@@ -575,7 +575,12 @@ public class Plan extends BaseClass{
 	 * @return
 	 */
 	Route registerRoute(Route newRoute) {
-		for (Tile tile: newRoute.path()) tile.add(newRoute);
+		for (Tile tile: newRoute.path()) {
+			if (isNull(tile)) {
+				System.err.println("--");
+			}
+			tile.add(newRoute);
+		}
 		int routeId = newRoute.id();
 		Route existingRoute = routes.get(routeId);
 		if (isSet(existingRoute)) newRoute.addPropertiesFrom(existingRoute);

@@ -9,5 +9,6 @@
 
   <root level="debug">
     <appender-ref ref="STDOUT" />
+    <logger name="de.srsoftware.web4rail.ControlUnit" level="WARN"/>
   </root>
 </configuration>

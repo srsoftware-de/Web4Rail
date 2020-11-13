@@ -39,6 +39,7 @@ public class ControlUnit extends Thread implements Constants{
 	private static final String MODE_INFO = "INFO";
 	private static final String MODE_COMMAND = "COMMAND";
 	protected static final String FEEDBACK = "FB";
+	protected static final String ACESSORY = "GA";
 	
 	private String host = DEFAULT_HOST;
 	private int port = DEFAULT_PORT;
@@ -315,6 +316,7 @@ public class ControlUnit extends Thread implements Constants{
 								int addr = Integer.parseInt(parts[5]);
 								boolean active = !parts[6].equals("0");
 								ControlUnit.this.plan.sensor(addr,active);
+							case ACESSORY:
 								break;
 							default:
 								LOG.debug("Info thread received: {}",line);

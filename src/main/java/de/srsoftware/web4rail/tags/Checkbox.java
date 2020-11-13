@@ -11,8 +11,7 @@ public class Checkbox extends Tag {
 		Tag checkbox = new Tag("input").attr("type", "checkbox").attr("name", name);
 		if (preCheck) checkbox.attr("checked", "checked");
 		checkbox.addTo(this);
-		content(label);
-		
+		content(label);		
 	}
 
 }

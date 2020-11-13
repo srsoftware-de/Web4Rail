@@ -534,7 +534,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	private void reverseTrace() {
-		// TODO Auto-generated method stub
+		LinkedList<Tile> reversed = new LinkedList<Tile>();
+		LOG.debug("Trace: {}",trace);
+		while (!trace.isEmpty()) reversed.addFirst(trace.removeFirst());
+		trace = reversed;
+		LOG.debug("reversed: {}",trace);
+		reversed = null;
 	}
 
 	public static void saveAll(String filename) throws IOException {

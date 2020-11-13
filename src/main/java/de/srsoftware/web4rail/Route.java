@@ -461,11 +461,15 @@ public class Route extends BaseClass{
 	
 	private Route load(JSONObject json,Plan plan) {
 		if (json.has(ID)) id = json.getInt(ID);
+		if (json.has(NAME)) name(json.getString(NAME));
 		JSONArray pathIds = json.getJSONArray(PATH);
 		startDirection = Direction.valueOf(json.getString(START_DIRECTION));
 		endDirection = Direction.valueOf(json.getString(END_DIRECTION));
 		for (Object tileId : pathIds) {
 			Tile tile = plan.get((String) tileId,false);
+			if (isNull(tile)) {
+				continue;
+			}
 			if (isNull(startBlock)) {
 				begin((Block) tile, startDirection);
 			} else if (tile instanceof Block) { // make sure, endDirection is set on last block
@@ -474,7 +478,10 @@ public class Route extends BaseClass{
 				add(tile, null);
 			}
 		}
-		if (json.has(NAME)) name(json.getString(NAME));
+		if (isNull(path) || path.isEmpty()) {
+			LOG.warn("{} has no tiles. It will be ignored.",this);
+			return null;
+		}
 		if (json.has(TURNOUTS)) {
 			JSONArray turnouts = json.getJSONArray(TURNOUTS);
 			for (int i=0; i<turnouts.length();i++) {
