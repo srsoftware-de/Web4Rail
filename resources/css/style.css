@@ -105,8 +105,7 @@ svg circle{
 	height: 30px;
 	min-width: 30px;
 	background: white;
-	padding: 3px;
-	
+	padding: 3px;	
 	text-align: center;
 }
 
@@ -121,12 +120,12 @@ svg circle{
 
 .menu > div > .list{
 	position: absolute;
-	left: 5%;	
+	left: 0;	
 	bottom: 40px;
 	width: 90%;
 	z-index: 10;
 	background: rgb(198,219,210,0.8);	
-	padding: 20px 5px 0 5px;
+	padding: 20px 40px 0;
 }
 
 .menu > div > .list > *{
