@@ -206,6 +206,7 @@ public class Application extends BaseClass{
 		File file = new File(System.getProperty("user.dir")+"/resources"+uri);
 		LOG.debug("requesting file: {}",file);
 		if (file.exists()) {
+			LOG.debug("found...");
 			client.getResponseHeaders().add("Content-Type", Files.probeContentType(file.toPath()));
 			client.sendResponseHeaders(200, file.length());
 			OutputStream out = client.getResponseBody();
@@ -217,6 +218,7 @@ public class Application extends BaseClass{
 			out.close();
 			return;
 		}
+		LOG.debug("not found...");
 		sendError(client,404,t("Could not find \"{}\"",uri));
 	}
 	
