@@ -7,7 +7,7 @@
   </appender>
   
   <logger name="de.srsoftware.web4rail" level="DEBUG"/>
-  <logger name="de.srsoftware.web4rail.Application" level="INFO"/>
+  <logger name="de.srsoftware.web4rail.Application" level="DEBUG"/>
   <logger name="de.srsoftware.web4rail.Command" level="INFO"/>
   <logger name="de.srsoftware.web4rail.ControlUnit" level="INFO"/>
   
