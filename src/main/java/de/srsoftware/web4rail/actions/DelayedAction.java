@@ -55,6 +55,7 @@ public class DelayedAction extends Action {
 			public void run() {
 				try {
 					Thread.sleep(delay);
+					LOG.debug("{} ms passed by, firing actions:",delay);
 				} catch (InterruptedException e) {
 					LOG.warn("Interrupted Exception thrown while waiting:",e);
 				}

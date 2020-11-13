@@ -18,11 +18,9 @@ public class SetSpeed extends Action{
 
 	@Override
 	public boolean fire(Context context) {
-		if (context.train != null && context.train.speed > maxSpeed) {
-			context.train.setSpeed(maxSpeed);
-			return true;
-		}
-		return false;
+		if (isNull(context.train)) return false;
+		context.train.setSpeed(maxSpeed);
+		return true;
 	}
 	
 	@Override

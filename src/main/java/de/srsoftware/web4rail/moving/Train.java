@@ -631,6 +631,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(error) && !route.train(this)) error = t("Was not able to assign {} to {}!",this,route);
 		if (isSet(error)) {
 			route.reset();
+			route = null;
 			return error;
 		}
 		setSpeed(128);

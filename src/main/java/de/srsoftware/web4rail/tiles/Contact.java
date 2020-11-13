@@ -47,8 +47,9 @@ public class Contact extends Tile{
 	}
 	
 	public Contact addr(int address) {
+		contactsByAddr.remove(addr); // alte ID aus der Map löschen
 		addr = address;
-		contactsByAddr.put(addr, this);
+		if (addr != 0) contactsByAddr.put(addr, this); // neue ID setzen
 		return this;
 	}
 

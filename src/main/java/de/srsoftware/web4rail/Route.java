@@ -525,7 +525,6 @@ public class Route extends BaseClass implements Comparable<Route>{
 			if (o instanceof JSONObject) new Route().load((JSONObject)o, plan);
 		}
 		fis.close();
-		LOG.debug("json: {}",json.getClass());
 	}
 	
 	private void loadConditions(JSONArray arr) {
