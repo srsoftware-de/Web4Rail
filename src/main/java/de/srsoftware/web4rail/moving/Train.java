@@ -180,7 +180,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (car instanceof Locomotive) {
 			locos.add((Locomotive) car);
 		} else cars.add(car);
-		return this;
+		return props();
 	}
 
 	public void add(Car car) {
@@ -211,7 +211,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 			li.addTo(locoList);
 		}
 
-		Tag addCarForm = new Form().content(t("add car:")+"&nbsp;");
+		Form addCarForm = new Form("append-car-form");
+		addCarForm.content(t("add car:")+"&nbsp;");
 		new Input(REALM, REALM_TRAIN).hideIn(addCarForm);
 		new Input(ACTION, ACTION_ADD).hideIn(addCarForm);
 		new Input(ID,id).hideIn(addCarForm);
@@ -221,7 +222,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		if (!select.children().isEmpty()) {
 			select.addTo(addCarForm);
-			new Button(t("add")).addTo(addCarForm);
+			new Button(t("add"),addCarForm).addTo(addCarForm);
 			addCarForm.addTo(new Tag("li")).addTo(locoList);
 		}
 		return locoList.addTo(locoProp);
@@ -384,7 +385,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 			new Button(t("delete"),params).addTo(li);
 		}
 
-		Tag addLocoForm = new Form().content(t("add locomotive:")+"&nbsp;");
+		Form addLocoForm = new Form("append-loco-form");
+		addLocoForm.content(t("add locomotive:")+"&nbsp;");
 		new Input(REALM, REALM_TRAIN).hideIn(addLocoForm);
 		new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
 		new Input(ID,id).hideIn(addLocoForm);
@@ -394,7 +396,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		if (!select.children().isEmpty()) {
 			select.addTo(addLocoForm);
-			new Button(t("add")).addTo(addLocoForm);
+			new Button(t("add"),addLocoForm).addTo(addLocoForm);
 			addLocoForm.addTo(new Tag("li")).addTo(locoList);
 		}
 		return locoList.addTo(locoProp);

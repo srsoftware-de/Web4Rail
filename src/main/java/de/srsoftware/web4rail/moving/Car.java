@@ -67,12 +67,13 @@ public class Car extends BaseClass implements Comparable<Car>{
 
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
-				return new Car(params.get(Car.NAME)).plan(plan);
-
+				new Car(params.get(Car.NAME)).plan(plan);
+				return Car.manager();
 			case ACTION_PROPS:
 				return car == null ? Car.manager() : car.properties();
 			case ACTION_UPDATE:
-				return car.update(params); 
+				car.update(params);
+				return Car.manager();
 		}
 		if (car instanceof Locomotive) return Locomotive.action(params,plan);
 		return t("Unknown action: {}",params.get(ACTION));
@@ -150,12 +151,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 		}
 		list.addTo(win);
 		
-		Form form = new Form();
+		Form form = new Form("add-car-form");
 		new Input(ACTION, ACTION_ADD).hideIn(form);
 		new Input(REALM,REALM_CAR).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("add new car"));
 		new Input(Locomotive.NAME, t("new car")).addTo(new Label(t("Name:")+NBSP)).addTo(fieldset);
-		new Button(t("Apply")).addTo(fieldset);
+		new Button(t("Apply"),form).addTo(fieldset);
 		fieldset.addTo(form).addTo(win);
 		return win;
 	}
@@ -173,8 +174,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return this;
 	}
 	
-	public Tag propertyForm() {
-		Form form = new Form();
+	public Form propertyForm() {
+		Form form = new Form("car-prop-form");
 		new Input(ACTION, ACTION_UPDATE).hideIn(form);
 		new Input(REALM,REALM_CAR).hideIn(form);
 		new Input(ID,id()).hideIn(form);
@@ -193,10 +194,9 @@ public class Car extends BaseClass implements Comparable<Car>{
 		Tag cockpit = cockpit();
 		if (cockpit != null) cockpit.addTo(win);
 		
-		Tag form = propertyForm();
+		Form form = propertyForm();
 		if (form!=null && form.children().size()>2) {
-			new Button(t("Apply")).addTo(form);
-			form.addTo(win);
+			new Button(t("Apply"),form).addTo(form).addTo(win);
 		} else {
 			win.content(t("This tile ({}) has no editable properties",getClass().getSimpleName()));
 		}

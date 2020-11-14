@@ -46,7 +46,8 @@ public class Locomotive extends Car implements Constants,Device{
 		Locomotive loco = id == null ? null : Locomotive.get(id);
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
-				return new Locomotive(params.get(Locomotive.NAME)).plan(plan);
+				new Locomotive(params.get(Locomotive.NAME)).plan(plan);
+				return Locomotive.manager();
 			case ACTION_FASTER10:
 				return loco.faster(10);
 			case ACTION_PROPS:
@@ -65,6 +66,9 @@ public class Locomotive extends Car implements Constants,Device{
 				return loco.toggleFunction(4);
 			case ACTION_TURN:
 				return loco.turn();
+			case ACTION_UPDATE:
+				loco.update(params);
+				return Locomotive.manager();
 		}
 		
 		return t("Unknown action: {}",params.get(ACTION));
@@ -198,7 +202,7 @@ public class Locomotive extends Car implements Constants,Device{
 		return this;
 	}	
 
-	public static Object manager() {
+	public static Window manager() {
 		Window win = new Window("loco-manager", t("Locomotive manager"));
 		new Tag("h4").content(t("known locomotives")).addTo(win);
 		Tag list = new Tag("ul");
@@ -213,22 +217,22 @@ public class Locomotive extends Car implements Constants,Device{
 		}
 		list.addTo(win);
 		
-		Form form = new Form();
+		Form form = new Form("add-loco-form");
 		new Input(ACTION, ACTION_ADD).hideIn(form);
 		new Input(REALM,REALM_LOCO).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("add new locomotive"));
 		new Input(Locomotive.NAME, t("new locomotive")).addTo(new Label(t("Name:")+NBSP)).addTo(fieldset);
-		new Button(t("Apply")).addTo(fieldset);
+		new Button(t("Apply"),form).addTo(fieldset);
 		fieldset.addTo(form).addTo(win);
 		return win;
 	}
 	
 	@Override
-	public Tag propertyForm() {
-		Tag form = super.propertyForm();
+	public Form propertyForm() {
+		Form form = super.propertyForm();
 		for (Tag tag : form.children()) {
 			if (REALM.equals(tag.get(Input.NAME)) && REALM_CAR.equals(tag.get(Input.VALUE))) {
-				tag.attr(REALM, REALM_LOCO);
+				tag.attr("value", REALM_LOCO);
 				break;
 			}
 		}
