@@ -71,7 +71,6 @@ public class Application extends BaseClass{
         } catch (FileNotFoundException e) {
         	plan = new Plan();
 		}
-        Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)+"/plan"));
         for (String arg : args) {
         	switch (arg) {
         		case START_TRAINS:
@@ -79,6 +78,7 @@ public class Application extends BaseClass{
         			break;
         	}
         }
+        Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)+"/plan"));
 	}
 	
 	/**
