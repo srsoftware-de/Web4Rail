@@ -642,6 +642,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return t("Started {}",this);
 	}
 	
+	public static void startAll() {
+		for (Train train : list()) train.automatic(); 
+	}
+	
 	private void startSimulation() {
 		for (Contact contact : route.contacts()) {
 			if (contact.addr() != 0) return; // simulate train only when all contacts are non-physical

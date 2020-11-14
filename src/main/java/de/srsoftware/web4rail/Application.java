@@ -40,6 +40,7 @@ import de.srsoftware.web4rail.tiles.Contact;
  */
 public class Application extends BaseClass{
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
+	private static final String START_TRAINS = "--start-trains";
 	
 	/**
 	 * entry point for the application:<br/>
@@ -71,6 +72,13 @@ public class Application extends BaseClass{
         	plan = new Plan();
 		}
         Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)+"/plan"));
+        for (String arg : args) {
+        	switch (arg) {
+        		case START_TRAINS:
+        			Train.startAll();
+        			break;
+        	}
+        }
 	}
 	
 	/**
