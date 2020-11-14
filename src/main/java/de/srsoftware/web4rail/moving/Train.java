@@ -217,7 +217,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Input(ID,id).hideIn(addCarForm);
 		Select select = new Select(CAR_ID);
 		for (Car car : Car.list()) {
-			if (!this.cars.contains(car)) select.addOption(car.id(), car);
+			if (!this.cars.contains(car)) select.addOption(car.id(), car+(car.stockId.isEmpty()?"":" ("+car.stockId+")"));
 		}
 		if (!select.children().isEmpty()) {
 			select.addTo(addCarForm);
@@ -380,7 +380,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			loco.link("span").addTo(li);
 			Map<String, Object> props = Map.of(REALM,REALM_LOCO,ID,loco.id(),ACTION,ACTION_TURN);
 			new Button(t("turn within train"),props).addTo(li).addTo(locoList);
-			Map<String, Object> params = Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_DROP,LOCO_ID,loco.id());
+			Map<String, Object> params = Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_DROP,LOCO_ID,loco.id()+(loco.stockId.isEmpty()?"":" ("+loco.stockId+")"));
 			new Button(t("delete"),params).addTo(li);
 		}
 
