@@ -99,6 +99,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 
 		public WaitTime setMin(Direction dir,int min) {
 			get(dir).min = min;
+			if (get(dir).max > min) setMax(dir,min);
 			return this;
 		}
 		
