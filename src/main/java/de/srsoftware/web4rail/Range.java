@@ -33,4 +33,12 @@ public class Range extends BaseClass{
 	public String toString() {
 		return min+"…"+max;
 	}
+
+	public void validate() {
+		if (min>max) {
+			int dummy = min;
+			min = max;
+			max = dummy;
+		}
+	}
 }

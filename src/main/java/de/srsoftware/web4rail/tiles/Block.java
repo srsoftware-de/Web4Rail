@@ -93,13 +93,11 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 
 		public WaitTime setMax(Direction dir,int max) {
 			get(dir).max = max;
-			if (get(dir).min > max) setMin(dir,max);
 			return this;
 		}
 
 		public WaitTime setMin(Direction dir,int min) {
 			get(dir).min = min;
-			if (get(dir).max > min) setMax(dir,min);
 			return this;
 		}
 		
@@ -111,6 +109,11 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		@Override
 		public String toString() {
 			return "WaitTime("+tag+", "+dirs+")";
+		}
+
+		public void validate() {
+			for (Entry<Direction, Range> entry: dirs.entrySet()) entry.getValue().validate();
+			
 		}
 	}
 
@@ -376,6 +379,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 				} else wt.setMax(dir, Integer.parseInt(val));
 			}			
 		}
+		for (WaitTime wt: waitTimes) wt.validate();
 				
 		return this;
 	}
