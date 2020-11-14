@@ -8,17 +8,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
-import java.net.FileNameMap;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Vector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,6 +159,18 @@ public class Application extends BaseClass{
 		return inflate(new String(data,UTF8));
 	}
 	
+	private static String mimeOf(File file) throws IOException {
+		String[] parts = file.toString().split("\\.");
+		switch (parts[parts.length-1].toLowerCase()) {
+		case "js":
+			return "application/javascript";
+		case "css":
+			return "text/css";
+		}
+		LOG.warn("No conten type stored for {}!",file);
+		return Files.probeContentType(file.toPath());
+	}
+	
 	/**
 	 * sends a response generated from the application to a given client
 	 * @param client
@@ -210,37 +218,19 @@ public class Application extends BaseClass{
 		File file = new File(System.getProperty("user.dir")+"/resources"+uri);
 		LOG.debug("requesting file: {}",file);
 		if (file.exists()) {
-			String mime = mimeOf(file);
-			LOG.debug("Mime type: {}",mime);
-			client.getResponseHeaders().add("Content-Type", mime);
-			LOG.debug("Length: {}",file.length());
+			client.getResponseHeaders().add("Content-Type", mimeOf(file));
 			client.sendResponseHeaders(200, file.length());
-			LOG.debug("Sent headers...");
 			OutputStream out = client.getResponseBody();
 			FileInputStream in = new FileInputStream(file);
 			in.transferTo(out);
 			out.flush();
-			LOG.debug("transferred file");
 			in.close();
 			out.close();
 			return;
 		}
-		LOG.debug("not found...");
 		sendError(client,404,t("Could not find \"{}\"",uri));
 	}
 	
-	private static String mimeOf(File file) throws IOException {
-		String[] parts = file.toString().split("\\.");
-		switch (parts[parts.length-1].toLowerCase()) {
-		case "js":
-			return "application/javascript";
-		case "css":
-			return "text/css";
-		}
-		LOG.warn("No conten type stored for {}!",file);
-		return Files.probeContentType(file.toPath());
-	}
-
 	/**
 	 * sends a response to a given client
 	 * @param client

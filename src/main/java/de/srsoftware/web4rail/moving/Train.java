@@ -39,6 +39,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
 
 public class Train extends BaseClass implements Comparable<Train> {
@@ -94,8 +95,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 						if (stop) return;
 						Train.this.start();
 						if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
-					}
-					Thread.sleep(250);
+					} else Thread.sleep(250);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -636,9 +636,39 @@ public class Train extends BaseClass implements Comparable<Train> {
 			route = null;
 			return error;
 		}
+		startSimulation();
 		return t("Started {}",this);
 	}
 	
+	private void startSimulation() {
+		for (Contact contact : route.contacts()) {
+			if (contact.addr() != 0) return; // simulate train only when all contacts are non-physical
+		}
+		try {
+			Thread.sleep(1000);
+			plan.stream(t("Simulating movement of {}..."));
+			new Thread() {
+				public void run() {
+					for (Tile tile : route.path()) {
+						try {
+							if (tile instanceof Contact) {
+								Contact contact = (Contact) tile;
+								contact.activate(true);
+								sleep(200);
+								contact.activate(false);
+							}
+							sleep(1000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				};
+			}.start();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public Object stopNow() {
 		quitAutopilot();
 		setSpeed(0);

@@ -80,6 +80,10 @@ public class Contact extends Tile{
 		}
 	}
 	
+	public int addr() {
+		return addr;
+	}
+	
 	public Contact addr(int address) {
 		contactsByAddr.remove(addr); // alte ID aus der Map löschen
 		addr = address;
