@@ -643,7 +643,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public static void startAll() {
-		for (Train train : list()) train.automatic(); 
+		for (Train train : list()) {
+			String response = train.automatic();
+			LOG.info(response);
+		}
 	}
 	
 	private void startSimulation() {
