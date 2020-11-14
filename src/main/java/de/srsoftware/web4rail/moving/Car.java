@@ -41,7 +41,7 @@ public class Car extends BaseClass {
 	private int id;
 	private String name;
 	public int length;
-	private String stockId = "";
+	protected String stockId = "";
 	private Train train;
 	protected Plan plan;
 	
@@ -84,7 +84,9 @@ public class Car extends BaseClass {
 		Tag list = new Tag("ul");
 		for (Car car : cars.values()) {
 			if (!(car instanceof Locomotive)) {
-				car.link("li").addTo(list);	
+				Tag tag = car.link("li");
+				if (isSet(car.stockId) && !car.stockId.isEmpty()) tag.content(NBSP+t("(id: {}, length: {})",car.stockId,car.length));
+				tag.addTo(list);	
 			}			
 		}
 		list.addTo(win);

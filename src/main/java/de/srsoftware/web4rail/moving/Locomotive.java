@@ -204,7 +204,10 @@ public class Locomotive extends Car implements Constants,Device{
 		for (Car car : cars.values()) {
 			if (car instanceof Locomotive) {
 				Locomotive loco = (Locomotive) car;
-				loco.link("li").addTo(list);	
+				Tag tag = loco.link("li");
+				if (isSet(loco.stockId) && !loco.stockId.isEmpty()) tag.content(NBSP+t("(id: {}, length: {})",loco.stockId,loco.length));
+				tag.addTo(list);	
+
 			}			
 		}
 		list.addTo(win);

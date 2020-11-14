@@ -55,6 +55,7 @@ FreeStartBlock : Start-Block freigeben
 Hardware settings : Hardware-Einstellungen
 Height : Höhe
 Help : Hilfe
+(id: {}, length: {}) : (Id: {}, Länge: {})
 if ({})\: : falls ({}):
 inverted : invertiert
 learn : lernen
