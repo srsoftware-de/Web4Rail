@@ -103,7 +103,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 	
 	public Tag link(String tagClass) {
-		return link(tagClass, Map.of(REALM,REALM_CAR,ID,id,ACTION,ACTION_PROPS), name());
+		return link(tagClass, Map.of(REALM,REALM_CAR,ID,id,ACTION,ACTION_PROPS), name()+(stockId.isEmpty()?"":" "+t("(id: {}, length: {})",stockId,length)));
 	}
 	
 	static Vector<Car> list() {
@@ -143,11 +143,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Tag("h4").content(t("known cars")).addTo(win);
 		Tag list = new Tag("ul");
 		for (Car car : new TreeSet<Car>(cars.values())) {
-			if (!(car instanceof Locomotive)) {
-				Tag tag = car.link("li");
-				if (isSet(car.stockId) && !car.stockId.isEmpty()) tag.content(NBSP+t("(id: {}, length: {})",car.stockId,car.length));
-				tag.addTo(list);	
-			}			
+			if (!(car instanceof Locomotive)) car.link("li").addTo(list);
 		}
 		list.addTo(win);
 		
