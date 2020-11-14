@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.moving;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.json.JSONObject;
@@ -201,7 +202,7 @@ public class Locomotive extends Car implements Constants,Device{
 		Window win = new Window("loco-manager", t("Locomotive manager"));
 		new Tag("h4").content(t("known locomotives")).addTo(win);
 		Tag list = new Tag("ul");
-		for (Car car : cars.values()) {
+		for (Car car : new TreeSet<Car>(cars.values())) {
 			if (car instanceof Locomotive) {
 				Locomotive loco = (Locomotive) car;
 				Tag tag = loco.link("li");

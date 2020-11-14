@@ -28,7 +28,7 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
-public class Car extends BaseClass {
+public class Car extends BaseClass implements Comparable<Car>{
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
 	static HashMap<Integer,Car> cars = new HashMap<Integer, Car>();
 	
@@ -76,29 +76,6 @@ public class Car extends BaseClass {
 		}
 		if (car instanceof Locomotive) return Locomotive.action(params,plan);
 		return t("Unknown action: {}",params.get(ACTION));
-	}
-	
-	public static Object manager() {
-		Window win = new Window("car-manager", t("Car manager"));
-		new Tag("h4").content(t("known cars")).addTo(win);
-		Tag list = new Tag("ul");
-		for (Car car : cars.values()) {
-			if (!(car instanceof Locomotive)) {
-				Tag tag = car.link("li");
-				if (isSet(car.stockId) && !car.stockId.isEmpty()) tag.content(NBSP+t("(id: {}, length: {})",car.stockId,car.length));
-				tag.addTo(list);	
-			}			
-		}
-		list.addTo(win);
-		
-		Form form = new Form();
-		new Input(ACTION, ACTION_ADD).hideIn(form);
-		new Input(REALM,REALM_CAR).hideIn(form);
-		Fieldset fieldset = new Fieldset(t("add new car"));
-		new Input(Locomotive.NAME, t("new car")).addTo(new Label(t("Name:")+NBSP)).addTo(fieldset);
-		new Button(t("Apply")).addTo(fieldset);
-		fieldset.addTo(form).addTo(win);
-		return win;
 	}
 
 	protected Tag cockpit() {
@@ -158,6 +135,29 @@ public class Car extends BaseClass {
 		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
 		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
 		return this;
+	}
+	
+	public static Object manager() {
+		Window win = new Window("car-manager", t("Car manager"));
+		new Tag("h4").content(t("known cars")).addTo(win);
+		Tag list = new Tag("ul");
+		for (Car car : new TreeSet<Car>(cars.values())) {
+			if (!(car instanceof Locomotive)) {
+				Tag tag = car.link("li");
+				if (isSet(car.stockId) && !car.stockId.isEmpty()) tag.content(NBSP+t("(id: {}, length: {})",car.stockId,car.length));
+				tag.addTo(list);	
+			}			
+		}
+		list.addTo(win);
+		
+		Form form = new Form();
+		new Input(ACTION, ACTION_ADD).hideIn(form);
+		new Input(REALM,REALM_CAR).hideIn(form);
+		Fieldset fieldset = new Fieldset(t("add new car"));
+		new Input(Locomotive.NAME, t("new car")).addTo(new Label(t("Name:")+NBSP)).addTo(fieldset);
+		new Button(t("Apply")).addTo(fieldset);
+		fieldset.addTo(form).addTo(win);
+		return win;
 	}
 	
 	String name(){
@@ -245,5 +245,10 @@ public class Car extends BaseClass {
 			}
 		}
 		return this;
+	}
+
+	@Override
+	public int compareTo(Car o) {
+		return (stockId+":"+name).compareTo(o.stockId+":"+o.name);
 	}
 }

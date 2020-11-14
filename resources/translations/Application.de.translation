@@ -9,6 +9,7 @@ add action : Aktion hinzufügen
 add car\: : Waggon hinzufügen:
 Add condition : Bedingung hinzufügen
 add locomotive\: : Lok hinzufügen:
+add new car : neuen Waggon anlegen
 add new locomotive : neue Lok anlegen
 add new train : neuen Zug anlegen
 Add tile : Kachel hinzufügen
@@ -55,9 +56,11 @@ FreeStartBlock : Start-Block freigeben
 Hardware settings : Hardware-Einstellungen
 Height : Höhe
 Help : Hilfe
-(id: {}, length: {}) : (Id: {}, Länge: {})
+(id\: {}, length\: {}) : (Id: {}, Länge: {})
 if ({})\: : falls ({}):
 inverted : invertiert
+known cars : bekannte Waggons
+known locomotives : bekannte Lokomotiven
 learn : lernen
 LEFT : links
 Left port\: : Port für links
@@ -72,6 +75,7 @@ Maximum train length\: : maximale Zug-Länge
 Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block. : Minamle und maximale Block-Haltezeit (in Millisekunden) für Züge mit der entsprchender Markierung.
 Move tiles : Kacheln verschieben
 name\: : Name:
+new car : neuer Waggon
 new locomotive : neue Lok
 new tag : neue Markierung
 new train : neuer Zug
