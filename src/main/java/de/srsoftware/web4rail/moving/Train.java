@@ -646,7 +646,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		try {
 			Thread.sleep(1000);
-			plan.stream(t("Simulating movement of {}..."));
+			plan.stream(t("Simulating movement of {}...",this));
 			new Thread() {
 				public void run() {
 					for (Tile tile : route.path()) {
