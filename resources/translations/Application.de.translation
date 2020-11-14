@@ -50,6 +50,7 @@ editable train properties : veränderliche Zug-Eigenschaften
 Emergency : Notfall
 Firing {} : starte {}
 FinishRoute : Route abschließen
+Found {} routes. : {} Routen gefunden.
 FreeStartBlock : Start-Block freigeben
 Hardware settings : Hardware-Einstellungen
 Height : Höhe

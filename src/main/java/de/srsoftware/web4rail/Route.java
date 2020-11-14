@@ -309,7 +309,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		return name().compareTo(other.name());
 	}
 	
-	public void complete() {
+	public Route complete() {
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
 			Contact nextToLastContact = contacts.get(contacts.size()-2);
 			String trigger = nextToLastContact.trigger();
@@ -323,6 +323,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		}
 		for (Signal signal : signals) setupActions.add(new SetSignal().set(signal).to(Signal.GO));
 		startActions.add(new SetSpeed().to(100));
+		return this;
 	}
 
 	/**

@@ -231,10 +231,7 @@ public class Plan extends BaseClass{
 			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
 		}
 		for (Tile tile : tiles.values()) tile.routes().clear();
-		for (Route route : routes) {
-			route.complete();
-			registerRoute(route);
-		}
+		for (Route route : routes) registerRoute(route.complete());
 		return t("Found {} routes.",routes.size());
 	}
 
