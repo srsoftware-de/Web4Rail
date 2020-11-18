@@ -234,6 +234,9 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public void addPropertiesFrom(Route existingRoute) {
 		LOG.debug("addPropertiesFrom({})",existingRoute);
 		disabled = existingRoute.disabled;
+		
+		conditions.addAll(existingRoute.conditions);
+		
 		setupActions.addActionsFrom(existingRoute.setupActions);
 		for (Entry<String, ActionList> entry : triggers.entrySet()) {
 			String trigger = entry.getKey();
