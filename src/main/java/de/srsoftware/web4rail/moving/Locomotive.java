@@ -1,8 +1,8 @@
 package de.srsoftware.web4rail.moving;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.TreeSet;
 import java.util.Vector;
 
 import org.json.JSONObject;
@@ -20,6 +20,7 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
+import de.srsoftware.web4rail.tags.Table;
 
 public class Locomotive extends Car implements Constants,Device{
 	
@@ -205,14 +206,19 @@ public class Locomotive extends Car implements Constants,Device{
 	public static Window manager() {
 		Window win = new Window("loco-manager", t("Locomotive manager"));
 		new Tag("h4").content(t("known locomotives")).addTo(win);
-		Tag list = new Tag("ul");
-		for (Car car : new TreeSet<Car>(cars.values())) {
-			if (car instanceof Locomotive) {
-				Locomotive loco = (Locomotive) car;
-				loco.link("li").addTo(list);
-			}			
-		}
-		list.addTo(win);
+		
+		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
+		
+		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Protocol"),t("Address"),t("Length"),t("Tags"));
+		cars.values()
+			.stream()
+			.filter(car -> car instanceof Locomotive)
+			.map(car -> (Locomotive)car)
+			.sorted(Comparator.comparing(loco -> loco.address))
+			.sorted(Comparator.comparing(loco -> loco.stockId))
+			.forEach(loco -> table.addRow(loco.stockId,loco.link(),loco.proto,loco.address,loco.length,String.join(", ", loco.tags())));
+		table.addTo(win);
+
 		
 		Form form = new Form("add-loco-form");
 		new Input(ACTION, ACTION_ADD).hideIn(form);

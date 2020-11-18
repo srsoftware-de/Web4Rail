@@ -27,6 +27,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Table;
 
 public class Car extends BaseClass implements Comparable<Car>{
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
@@ -102,8 +103,17 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return json;
 	}
 	
-	public Tag link(String tagClass) {
-		return link(tagClass, Map.of(REALM,REALM_CAR,ID,id,ACTION,ACTION_PROPS), name()+(stockId.isEmpty()?"":" "+t("(id: {}, length: {})",stockId,length)));
+	/**
+	 * If arguments are given, the first is taken as content, the second as tag type.
+	 * If no content is supplied, name is set as content.
+	 * If no type is supplied, "span" is preset.
+	 * @param args
+	 * @return
+	 */
+	public Tag link(String...args) {
+		String tx = args.length<1 ? name()+NBSP : args[0];
+		String type = args.length<2 ? "span" : args[1];
+		return link(type, Map.of(REALM,REALM_CAR,ID,id,ACTION,ACTION_PROPS), tx);
 	}
 	
 	static Vector<Car> list() {
@@ -141,11 +151,11 @@ public class Car extends BaseClass implements Comparable<Car>{
 	public static Object manager() {
 		Window win = new Window("car-manager", t("Car manager"));
 		new Tag("h4").content(t("known cars")).addTo(win);
-		Tag list = new Tag("ul");
-		for (Car car : new TreeSet<Car>(cars.values())) {
-			if (!(car instanceof Locomotive)) car.link("li").addTo(list);
-		}
-		list.addTo(win);
+		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
+		
+		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Length"),t("Tags"));
+		cars.values().stream().filter(car -> !(car instanceof Locomotive)).forEach(car -> table.addRow(car.stockId,car.link(),car.length,String.join(", ", car.tags())));
+		table.addTo(win);
 		
 		Form form = new Form("add-car-form");
 		new Input(ACTION, ACTION_ADD).hideIn(form);

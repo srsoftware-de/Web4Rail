@@ -38,6 +38,7 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -205,7 +206,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		for (Car car : this.cars) {
 			Tag li = new Tag("li");
-			car.link("span").addTo(li).content(NBSP);
+			car.link(car.name()+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")")).addTo(li).content(NBSP);
 			Map<String, Object> params = Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_DROP,CAR_ID,car.id());
 			new Button(t("delete"),params).addTo(li);
 			li.addTo(locoList);
@@ -336,8 +337,17 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return result;
 	}
 	
-	public Tag link(String tagClass) {
-		return link(tagClass, Map.of(REALM, REALM_TRAIN,ID,id,ACTION,ACTION_PROPS),name()+NBSP);
+	/**
+	 * If arguments are given, the first is taken as content, the second as tag type.
+	 * If no content is supplied, name is set as content.
+	 * If no type is supplied, "span" is preset.
+	 * @param args
+	 * @return
+	 */
+	public Tag link(String...args) {
+		String tx = args.length<1 ? name()+NBSP : args[0];
+		String type = args.length<2 ? "span" : args[1];
+		return link(type, Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_PROPS), tx);
 	}
 	
 	public static TreeSet<Train> list() {
@@ -378,7 +388,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		for (Locomotive loco : this.locos) {
 			Tag li = new Tag("li");
-			loco.link("span").addTo(li);
+			loco.link(loco.name()+(loco.stockId.isEmpty() ? "" : " ("+loco.stockId+")")).addTo(li);
 			Map<String, Object> props = Map.of(REALM,REALM_LOCO,ID,loco.id(),ACTION,ACTION_TURN);
 			new Button(t("turn within train"),props).addTo(li).addTo(locoList);
 			Map<String, Object> params = Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_DROP,LOCO_ID,loco.id()+(loco.stockId.isEmpty()?"":" ("+loco.stockId+")"));
@@ -410,11 +420,21 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public static Object manager() {
 		Window win = new Window("train-manager", t("Train manager"));
 		new Tag("h4").content(t("known trains")).addTo(win);
-		Tag list = new Tag("ul");
-		for (Train train : trains.values()) {
-			train.link("li").addTo(list);
-		}
-		list.addTo(win);
+
+		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
+		
+		Table table = new Table().addHead(t("Name"),t("Length"),t("Tags"),t("Route"),t("Current location"),t("Destination"),t("Auto pilot"));
+		list().forEach(train -> table.addRow(
+				train.link(),
+				train.length(),
+				String.join(", ", train.tags()),
+				train.route,
+				isSet(train.currentBlock) ? train.currentBlock.link() : null,
+				train.destination(),
+				t(isSet(train.autopilot)?"On":"Off")
+			));
+		table.addTo(win);
+
 		
 		Form form = new Form();
 		new Input(ACTION, ACTION_ADD).hideIn(form);

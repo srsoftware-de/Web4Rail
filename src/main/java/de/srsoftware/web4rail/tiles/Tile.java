@@ -146,6 +146,20 @@ public abstract class Tile extends BaseClass{
 		return this;
 	}
 	
+	/**
+	 * If arguments are given, the first is taken as content, the second as tag type.
+	 * If no content is supplied, id() is set as content.
+	 * If no type is supplied, "span" is preset.
+	 * @param args
+	 * @return
+	 */
+	public Tag link(String...args) {
+		String tx = args.length<1 ? id()+NBSP : args[0];
+		String type = args.length<2 ? "span" : args[1];
+		return link(type, Map.of(REALM,REALM_PLAN,ID,id(),ACTION,ACTION_CLICK), tx);
+	}
+	
+	
 	public static void loadAll(String filename, Plan plan) throws IOException {		
 		BufferedReader file = new BufferedReader(new FileReader(filename));
 		String line = file.readLine();

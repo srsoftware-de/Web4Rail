@@ -16,6 +16,7 @@ Add tile : Kachel hinzufügen
 Address\: : Adresse:
 Analyze : analysieren
 Apply : Übernehmen
+Auto pilot : Autopilot
 Availability : Verfügbarkeit
 BlockFree : Blockbelegung
 Block {} is free : Block {} ist frei
@@ -23,6 +24,7 @@ Block {} is occupied : Block {} ist belegt
 Block properties : Block-Eigenschaften
 {}bound : nach {}
 Cars\: : Waggons:
+Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
 ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
 Condition type\: : Bedingungs-Typ:
@@ -34,11 +36,13 @@ click here to setup contact : Hier klicken, um Kontakt auszuwählen
 click here to setup relay : Hier klicken, um Relais einzurichten
 Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werden soll:
 Create action : Aktion erzeugen
+Current location : Aufenthaltsort
 Current location\: {} : Aufenthaltsort: {}
 Delay : Verzögerung
 DelayedAction : verzögerte Aktion
 delete : entfernen
 delete route : Route löschen
+Destination : Ziel
 Destination\: : Ziel:
 Destination\: {} from {} : Ziel: {} von {}
 Direction : Richtung
@@ -61,6 +65,7 @@ if ({})\: : falls ({}):
 inverted : invertiert
 known cars : bekannte Waggons
 known locomotives : bekannte Lokomotiven
+knwon trains : bekannte Züge
 learn : lernen
 LEFT : links
 Left port\: : Port für links
@@ -125,6 +130,7 @@ Signals : Signale
 Simulating movement of {}... : Simuliere Fahrt von {}...
 SOUTH : Süden
 Start actions : Start-Aktionen
+Stock ID : Inventarnummer
 Started {} : {} gestartet
 StopAllTrains : Alle Züge stoppen
 StopAuto : Automatikmodus abschalten

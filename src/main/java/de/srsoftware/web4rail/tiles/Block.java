@@ -179,6 +179,19 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		return json;
 	}
 	
+	/**
+	 * If arguments are given, the first is taken as content, the second as tag type.
+	 * If no content is supplied, name is set as content.
+	 * If no type is supplied, "span" is preset.
+	 * @param args
+	 * @return
+	 */
+	public Tag link(String...args) {
+		String tx = args.length<1 ? name+NBSP : args[0];
+		String type = args.length<2 ? "span" : args[1];
+		return link(type, Map.of(REALM,REALM_PLAN,ID,id(),ACTION,ACTION_CLICK), tx);
+	}
+	
 	@Override
 	protected Tile load(JSONObject json) throws IOException {
 		super.load(json);
