@@ -23,6 +23,7 @@ Block {} is free : Block {} ist frei
 Block {} is occupied : Block {} ist belegt
 Block properties : Block-Eigenschaften
 {}bound : nach {}
+Car manager : Waggon-Verwaltung
 Cars\: : Waggons:
 Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
 ConditionalAction : bedingte Aktion
@@ -72,6 +73,7 @@ Left port\: : Port für links
 Length : Länge
 length\: : Länge:
 length\: {} : Länge: {}
+Locomotive manager : Lok-Verwaltung
 Locomotives\: : Lokomotiven:
 Manage cars : Waggons verwalten
 Manage locos : Lokomotiven verwalten
@@ -152,6 +154,7 @@ train is a push-pull train : Zug ist ein Wendezug
 train is longer than {} : Zug ist länger als {}
 train is not a push-pull train : Zug ist kein Wendezug
 train is shorter than {} : Zug ist kürzer als {}
+Train manager : Zug-Verwaltung
 Trains : Züge
 Trains\: : Züge:
 TrainHasTag : Zug mit Tag
