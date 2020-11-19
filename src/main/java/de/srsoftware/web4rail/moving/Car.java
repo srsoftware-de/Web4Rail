@@ -80,10 +80,6 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 
-	protected Tag cockpit() {
-		return null;
-	}
-	
 	public static Car get(Object id) {
 		return cars.get(Integer.parseInt(""+id)); // try to get by id
 	}
@@ -194,11 +190,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return form;
 	}
 	
-	public Object properties() {
+	public Window properties() {
 		Window win = new Window("car-props", t("Properties of {}",this));
-		
-		Tag cockpit = cockpit();
-		if (cockpit != null) cockpit.addTo(win);
 		
 		Form form = propertyForm();
 		if (form!=null && form.children().size()>2) {
@@ -208,9 +201,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		}
 		
 		Tag list = new Tag("ul");
-		if (train != null) {
-			train.link("span").addTo(new Tag("li").content(t("Train:")+NBSP)).addTo(list);
-		}
+		if (train != null) train.link().addTo(new Tag("li").content(t("Train:")+NBSP)).addTo(list);
 		list.addTo(win);
 		return win;
 	}

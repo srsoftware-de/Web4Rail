@@ -3,6 +3,7 @@ package de.srsoftware.web4rail.moving;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 import org.json.JSONObject;
@@ -12,10 +13,10 @@ import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Plan;
-import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
@@ -75,46 +76,49 @@ public class Locomotive extends Car implements Constants,Device{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
-	private Object toggleFunction(int f) {
-		boolean active; 
-		switch (f) {
-		case 1:
-			f1 =! f1;	
-			active = f1;
-			break;
-		case 2:
-			f2 =! f2;	
-			active = f2;
-			break;
-		case 3:
-			f3 =! f3;	
-			active = f3;
-			break;
-		case 4:
-			f4 =! f4;	
-			active = f4;
-			break;
-		default:
-			return t("Unknown function: {}",f);
+	public static Tag cockpit(Object locoOrTrain) {
+		String realm = null;
+		int id = 0;
+		int speed = 0;
+		if (locoOrTrain instanceof Locomotive) {
+			Locomotive loco = (Locomotive) locoOrTrain; 
+			realm = REALM_LOCO;
+			id = loco.id();
+			speed = loco.speed;
+		} else if (locoOrTrain instanceof Train) {
+			Train train = (Train)locoOrTrain;
+			realm = REALM_TRAIN;			
+			id = train.id;
+			speed = train.speed;
 		}
-		queue();
-		return t("{} F{}",t(active?"Activated":"Deavtivated"),f);
-	}
-
-	protected Tag cockpit() {
+		
+		HashMap<String,Object> params = new HashMap<String, Object>(Map.of(REALM,realm,ID,id));
+		
 		Fieldset fieldset = new Fieldset(t("Control"));
-		String request = "return request({realm:'"+REALM_LOCO+"',id:"+id()+",action:'{}'})";
-		new Button(t("Turn"), request.replace("{}", ACTION_TURN)).addTo(fieldset);
-		new Button(t("Faster (10 steps)"), request.replace("{}", ACTION_FASTER10)).addTo(fieldset);
-		new Button(t("Slower (10 steps)"), request.replace("{}", ACTION_SLOWER10)).addTo(fieldset);
-		new Button(t("Stop"), request.replace("{}", ACTION_STOP)).addTo(fieldset);
-		Tag span = new Tag("p");
-		new Button(t("F1"),request.replace("{}", ACTION_TOGGLE_F1)).addTo(span);
-		new Button(t("F2"),request.replace("{}", ACTION_TOGGLE_F2)).addTo(span);
-		new Button(t("F3"),request.replace("{}", ACTION_TOGGLE_F3)).addTo(span);
-		new Button(t("F4"),request.replace("{}", ACTION_TOGGLE_F4)).addTo(span);
-		span.addTo(fieldset);
-		return fieldset;
+		
+		new Tag("span").content(t("Current velocity: {} km/h",speed)).addTo(fieldset);
+		
+		Tag par = new Tag("p");
+		Map.of("Slower (10 steps)",ACTION_SLOWER10,"Faster (10 steps)",ACTION_FASTER10).entrySet().forEach(e -> {
+			params.put(ACTION, e.getValue());
+			new Button(t(e.getKey()),params).addTo(par);			
+		});
+		par.addTo(fieldset);
+
+		Tag direction = new Tag("p");
+		Map.of("Turn",ACTION_TURN,"Stop",ACTION_STOP).entrySet().forEach(e -> {
+			params.put(ACTION, e.getValue());
+			new Button(t(e.getKey()),params).clazz(e.getValue()).addTo(direction);			
+		});
+		direction.addTo(fieldset);
+		
+		Tag functions = new Tag("p");
+		Map.of("F1",ACTION_TOGGLE_F1,"F2",ACTION_TOGGLE_F2,"F3",ACTION_TOGGLE_F3,"F4",ACTION_TOGGLE_F4).entrySet().forEach(e -> {
+			params.put(ACTION, e.getValue());
+			new Button(t(e.getKey()),params).addTo(functions);			
+		});
+		functions.addTo(fieldset);
+		return fieldset.clazz("cockpit");
 	}
 	
 	private String detail() {
@@ -231,6 +235,14 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	@Override
+	public Window properties() {
+		Window win = super.properties();
+		Tag cockpit = cockpit(this);
+		win.children().insertElementAt(cockpit, 2);
+		return win;
+	}
+	
+	@Override
 	public Form propertyForm() {
 		Form form = super.propertyForm();
 		for (Tag tag : form.children()) {
@@ -275,6 +287,32 @@ public class Locomotive extends Car implements Constants,Device{
 	public Object stop() {
 		setSpeed(0);
 		return t("Stopped {}",this);
+	}
+	
+	private Object toggleFunction(int f) {
+		boolean active; 
+		switch (f) {
+		case 1:
+			f1 =! f1;	
+			active = f1;
+			break;
+		case 2:
+			f2 =! f2;	
+			active = f2;
+			break;
+		case 3:
+			f3 =! f3;	
+			active = f3;
+			break;
+		case 4:
+			f4 =! f4;	
+			active = f4;
+			break;
+		default:
+			return t("Unknown function: {}",f);
+		}
+		queue();
+		return t("{} F{}",t(active?"Activated":"Deavtivated"),f);
 	}
 	
 	public Object turn() {

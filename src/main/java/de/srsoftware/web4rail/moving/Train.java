@@ -142,12 +142,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 				return train.automatic();
 			case ACTION_DROP:
 				return train.dropCar(params);
+			case ACTION_FASTER10:
+				return train.faster(10);
 			case ACTION_MOVE:
 				return train.setDestination(params);
 			case ACTION_PROPS:
 				return train.props();
 			case ACTION_QUIT:
 				return train.quitAutopilot();
+			case ACTION_SLOWER10:
+				return train.slower(10);
 			case ACTION_START:
 				return train.start();
 			case ACTION_STOP:
@@ -290,6 +294,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		while (!trace.isEmpty()) trace.removeFirst().set(null);
 	}
 	
+	private Tag faster(int steps) {
+		setSpeed(speed+steps);
+		return props();
+	}
+		
 	public static Train get(int id) {
 		return trains.get(id);
 	}
@@ -470,6 +479,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Tag props() {
 		Window window = new Window("train-properties",t("Properties of {}",this));
 		
+		Locomotive.cockpit(this).addTo(window);
+		
 		Fieldset fieldset = new Fieldset(t("editable train properties"));
 		Form form = new Form();
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
@@ -607,10 +618,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return t("{} is not a block!",tile);
 	}
 	
-	public void setSpeed(int v) {
-		for (Locomotive loco : locos) loco.setSpeed(v);
-		plan.stream(t("Set {} to {} km/h",this,v));
-		this.speed = v;
+	public void setSpeed(int newSpeed) {
+		speed = newSpeed;
+		if (speed > 128) speed = 128;
+		if (speed < 0) speed = 0;
+		for (Locomotive loco : locos) loco.setSpeed(speed);
+		plan.stream(t("Set {} to {} km/h",this,speed));
 	}
 	
 	public void setWaitTime(Range waitTime) {
@@ -638,6 +651,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 	}
 	
+	private Tag slower(int steps) {
+		setSpeed(speed-steps);
+		return props();
+	}
+
 	public String start() throws IOException {
 		if (isNull(currentBlock)) return t("{} not in a block",this);
 		if (isSet(route)) route.reset(); // reset route previously chosen
@@ -705,7 +723,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			route.reset();
 			route = null;
 		}
-		return t("Stopped {}.",this);
+		return props();
 	}
 	
 	private static String t(String message, Object...fills) {
@@ -725,7 +743,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return isSet(name) ? name : locos.firstElement().name();
 	}
 	
-	public Object turn() {
+	public Tag turn() {
 		LOG.debug("train.turn()");
 		if (isSet(direction)) {
 			direction = direction.inverse();
@@ -733,7 +751,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			reverseTrace();
 			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
-		return t("{} turned.",this);
+		return props();
 	}
 
 	public Train update(HashMap<String, String> params) {

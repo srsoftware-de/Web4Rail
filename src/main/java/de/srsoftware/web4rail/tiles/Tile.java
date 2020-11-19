@@ -235,7 +235,7 @@ public abstract class Tile extends BaseClass{
 				window.children().insertElementAt(new Button(t("auto"),props),2);
 			}
 
-			window.children().insertElementAt(train.link("span"), 1);
+			window.children().insertElementAt(train.link(), 1);
 			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
 		}
 

@@ -18,6 +18,7 @@ Analyze : analysieren
 Apply : Übernehmen
 Auto pilot : Autopilot
 Availability : Verfügbarkeit
+Basic properties : Grundlegende Eigenschaften
 BlockFree : Blockbelegung
 Block {} is free : Block {} ist frei
 Block {} is occupied : Block {} ist belegt
@@ -29,6 +30,7 @@ Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu
 ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
 Condition type\: : Bedingungs-Typ:
+Control : Steuerung
 Control unit : Zentrale
 Current location\: : Aktueller Ort:
 [Click here to select block!] : [Hier klicken, um Block auszuwählen!]
@@ -39,6 +41,7 @@ Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werd
 Create action : Aktion erzeugen
 Current location : Aufenthaltsort
 Current location\: {} : Aufenthaltsort: {}
+Current velocity\: {} km/h : Aktuelle Geschwindigkeit: {} km/h 
 Delay : Verzögerung
 DelayedAction : verzögerte Aktion
 delete : entfernen

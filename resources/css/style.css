@@ -271,3 +271,12 @@ svg.disabled rect{
 #train-wait-form td{
 	text-align: right;
 }
+
+.cockpit button{
+	padding: 15px;
+	font-weight: bold;
+}
+
+.cockpit .stop{
+	min-width: 150px;
+}
