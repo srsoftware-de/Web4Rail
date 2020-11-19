@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import org.json.JSONObject;
@@ -18,7 +17,7 @@ public class DetermineTrainInBlock extends Action {
 	private Block block = null;
 	
 	@Override
-	public boolean fire(Context context) throws IOException {
+	public boolean fire(Context context) {
 		context.block = block;
 		context.train = block.train();		
 		return true;

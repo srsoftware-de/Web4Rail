@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import org.json.JSONObject;
@@ -21,12 +20,10 @@ public class SetRelay extends Action {
 	private boolean state = false;
 
 	@Override
-	public boolean fire(Context context) throws IOException {
-		if (relay != null) {
-			relay.state(state);
-			return true;
-		}
-		return false;
+	public boolean fire(Context context) {
+		if (isNull(relay)) return false;
+		relay.state(state);
+		return true;
 	}
 	
 	@Override

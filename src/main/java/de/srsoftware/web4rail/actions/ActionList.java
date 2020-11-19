@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,16 +144,10 @@ public class ActionList extends Vector<Action> implements Constants{
 	
 	public boolean fire(Context context) {
 		if (!isEmpty())	LOG.debug(t("Firing {}"),this);
-		boolean success = true;
 		for (Action action : this) {
-			try {
-				success &= action.fire(context);
-			} catch (IOException e) {
-				LOG.warn("Action did not fire properly: {}",action,e);
-				success = false;
-			}
+			if (!action.fire(context)) return false;			
 		}
-		return success;
+		return true;
 	}
 
 	public int id() {

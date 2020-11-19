@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -107,7 +106,7 @@ public abstract class Action extends BaseClass {
 		return this.toString().equals(other.toString());
 	}
 
-	public abstract boolean fire(Context context) throws IOException;
+	public abstract boolean fire(Context context);
 	
 	public static Action get(int actionId) {
 		return actions.get(actionId);

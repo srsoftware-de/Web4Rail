@@ -171,7 +171,7 @@ public class Relay extends Tile implements Device{
 		return state;
 	}
 	
-	public Reply state(boolean newState) throws IOException {
+	public Reply state(boolean newState) {
 		Reply reply = init();
 		if (reply != null && !reply.succeeded()) return reply;
 		LOG.debug("Setting {} to {}",this,newState);
@@ -196,9 +196,7 @@ public class Relay extends Tile implements Device{
 		} catch (TimeoutException e) {
 			LOG.warn(e.getMessage());			
 		}
-		return new Reply(417,t("Timeout while trying to switch {}.",this));
-	
-		
+		return new Reply(417,t("Timeout while trying to switch {}.",this));		
 	}
 	
 	public void success() {

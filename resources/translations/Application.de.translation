@@ -2,6 +2,7 @@ Actions : Aktionen
 Actions\: : Aktionen:
 Actions and contacts : Aktionen und Kontakte
 Action type\: : Aktions-Typ
+Actions will only fire, if all conditions are fullfilled. : Aktionen werden nur ausgeführt, wenn alle Bedingungen erfüllt sind.
 ActivateRoute : Route aktivieren
 add : hinzufügen
 Added {} : {} hinzugefügt

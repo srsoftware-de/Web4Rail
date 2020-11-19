@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -36,7 +35,7 @@ public class ConditionalAction extends Action {
 	private StringBuffer conditions() {
 		StringBuffer sb = new StringBuffer();		
 		for (int i = 0; i<conditions.size(); i++) {
-			if (i>0) sb.append(t(" or "));
+			if (i>0) sb.append(t(" and "));
 			sb.append(conditions.get(i).toString());
 		}
 		return sb;
@@ -45,6 +44,7 @@ public class ConditionalAction extends Action {
 	private Tag conditionForm(HashMap<String, String> params) {
 		Fieldset fieldset = new Fieldset(t("Conditions"));
 
+		new Tag("p").content(t("Actions will only fire, if all conditions are fullfilled.")).addTo(fieldset);
 		if (!conditions.isEmpty()) {
 			Tag list = new Tag("ul");
 			for (Condition condition : conditions) {
@@ -68,11 +68,11 @@ public class ConditionalAction extends Action {
 	}
 		
 	@Override
-	public boolean fire(Context context) throws IOException {
+	public boolean fire(Context context) {
 		for (Condition condition : conditions) {
-			if (condition.fulfilledBy(context)) return actions.fire(context);
+			if (!condition.fulfilledBy(context)) return true;
 		}
-		return false;		
+		return actions.fire(context);
 	}
 	
 	@Override

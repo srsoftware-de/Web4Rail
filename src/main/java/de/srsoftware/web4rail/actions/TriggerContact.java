@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import org.json.JSONObject;
@@ -18,7 +17,7 @@ public class TriggerContact extends Action {
 	private Contact contact = null;
 	
 	@Override
-	public boolean fire(Context context) throws IOException {
+	public boolean fire(Context context) {
 		if (isSet(contact)) return contact.trigger(200);
 		return false;
 	}

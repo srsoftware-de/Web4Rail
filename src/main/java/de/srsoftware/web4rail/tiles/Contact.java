@@ -204,7 +204,7 @@ public class Contact extends Tile{
 		return trigger;
 	}
 	
-	public boolean trigger(int duration) throws IOException {
+	public boolean trigger(int duration) {
 		activate(true);
 		new Thread() {
 			public void run() {

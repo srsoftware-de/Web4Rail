@@ -87,7 +87,7 @@ svg .block{
 }
 
 svg circle{
-	fill: gray;
+	fill: #d3d7cf;
 }
 
 .menu{
@@ -223,7 +223,7 @@ svg.straight .right{
 }
 
 .active circle{
-	fill: #ffcc88;
+	fill: #f57900;
 }
 
 polygon.oneway{

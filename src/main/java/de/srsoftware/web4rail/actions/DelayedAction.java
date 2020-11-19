@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import org.json.JSONObject;
@@ -50,7 +49,7 @@ public class DelayedAction extends Action {
 	}
 		
 	@Override
-	public boolean fire(Context context) throws IOException {
+	public boolean fire(Context context) {
 		new Thread() {
 			public void run() {
 				try {
