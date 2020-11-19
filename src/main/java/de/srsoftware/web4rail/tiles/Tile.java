@@ -58,6 +58,7 @@ public abstract class Tile extends BaseClass{
 	private   static final String Y          = "y";
 	
 	private   boolean         disabled  = false;
+	private   boolean         isTrack   = true;
 	private   int             length    = DEFAUT_LENGTH;
 	protected Direction       oneWay    = null;
 	protected Route           route     = null;
@@ -142,7 +143,7 @@ public abstract class Tile extends BaseClass{
 	}
 	
 	public Tile length(int newLength) {
-		length = newLength;
+		length = Math.max(0, newLength);
 		return this;
 	}
 	
@@ -186,6 +187,10 @@ public abstract class Tile extends BaseClass{
 		if (json.has(LENGTH))	   length    = json.getInt(LENGTH);
 		if (json.has(ONEW_WAY))    oneWay    = Direction.valueOf(json.getString(ONEW_WAY));
 		return this;
+	}
+	
+	protected void noTrack() {
+		isTrack  = false;
 	}
 		
 	public Tile position(int x, int y) {
@@ -242,12 +247,14 @@ public abstract class Tile extends BaseClass{
 		if (isSet(route)) link("p",Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_PROPS),t("Locked by {}",route)).addTo(window);
 
 		Form form = propForm("tile-properties-"+id());
-		new Tag("h4").content(t("Length")).addTo(form);
-		new Input(LENGTH,length).numeric().addTo(new Label(t("Length")+":"+NBSP)).addTo(form);
-		new Tag("h4").content(t("Availability")).addTo(form);
-		Checkbox cb = new Checkbox(DISABLED, t("disabled"), disabled);
-		if (disabled) cb.clazz("disabled");
-		cb.addTo(form);
+		if (isTrack) {
+			new Tag("h4").content(t("Length")).addTo(form);		
+			new Input(LENGTH,length).numeric().addTo(new Label(t("Length")+":"+NBSP)).addTo(form);
+			new Tag("h4").content(t("Availability")).addTo(form);
+			Checkbox cb = new Checkbox(DISABLED, t("disabled"), disabled);
+			if (disabled) cb.clazz("disabled");
+			cb.addTo(form);
+		}
 		new Button(t("Apply"),form).addTo(form);
 		form.addTo(window);
 		

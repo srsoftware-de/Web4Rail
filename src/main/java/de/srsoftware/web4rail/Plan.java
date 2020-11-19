@@ -50,6 +50,7 @@ import de.srsoftware.web4rail.tiles.SignalS;
 import de.srsoftware.web4rail.tiles.SignalW;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
+import de.srsoftware.web4rail.tiles.TextDisplay;
 import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.Turnout.State;
 import de.srsoftware.web4rail.tiles.Turnout3E;
@@ -804,6 +805,7 @@ public class Plan extends BaseClass{
 		new Turnout3E().tag(null).addTo(tiles);
 		new Relay().setLabel(true,"RL").tag(null).addTo(tiles);
 		new Contact().tag(null).addTo(tiles);
+		new TextDisplay().text("tx").tag(null).addTo(tiles);
 		new Eraser().tag(null).addTo(tiles);
 		return tiles.addTo(tileMenu);
 	}

@@ -1,41 +1,45 @@
 package de.srsoftware.web4rail.actions;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import org.json.JSONObject;
 
+import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
-import de.srsoftware.web4rail.tags.Select;
-import de.srsoftware.web4rail.tiles.Contact;
 
-public class TriggerContact extends Action {
-		
-	private Contact contact = null;
+public abstract class TextAction extends Action {
 	
-	@Override
-	public boolean fire(Context context) throws IOException {
-		if (isSet(contact)) return contact.trigger(200);
-		return false;
+	public static final String TEXT = "text";
+	protected String text = "Hello, world!";
+
+
+	public String fill(String tx,Context context) {
+		if (isSet(context.block)) tx = tx.replace("%block%", context.block.name);
+		if (isSet(context.contact)) tx = tx.replace("%contact%", context.contact.id());
+		if (isSet(context.direction)) tx = tx.replace("%dir%", context.direction.name());
+		if (isSet(context.route)) tx = tx.replace("%route%", context.route.name());
+		if (isSet(context.train)) tx = tx.replace("%train%", context.train.name());		
+		return tx;
 	}
 	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
-		if (isSet(contact)) json.put(CONTACT, contact.id());
+		json.put(TEXT, text);
 		return json;
 	}
 	
+	protected abstract Label label();
+
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		String contactId = json.getString(CONTACT);
-		if (isSet(contactId)) contact = Contact.get(contactId);
-		return this;
+		text = json.getString(TEXT);
+		return this;	
 	}
 	
 	@Override
@@ -46,24 +50,17 @@ public class TriggerContact extends Action {
 		new Input(ID,params.get(ID)).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
-		
-		Select select = Contact.selector(contact);
-		select.addTo(new Label(t("Select contact:")+NBSP)).addTo(form);
-		
+		new Input(TEXT, text).addTo(label()).addTo(form);
 		new Button(t("Apply"),form).addTo(form).addTo(win);		
 		return win;
 	}
 	
-	public String toString() {
-		return isSet(contact) ? t("Trigger {}",contact) : "["+t("click here to setup contact")+"]";
-	};
-	
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		String contactId = params.get(CONTACT);
-		if (isSet(contactId)) contact = Contact.get(contactId);
-		return properties(params);
+		String error = null;
+		text = params.get(TEXT);
+		Window win = properties(params);
+		return new Tag("span").content(error).addTo(win);
 	}
-
 }

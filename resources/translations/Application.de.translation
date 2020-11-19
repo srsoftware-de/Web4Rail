@@ -49,9 +49,11 @@ delete route : Route löschen
 Destination : Ziel
 Destination\: : Ziel:
 Destination\: {} from {} : Ziel: {} von {}
+DetermineTrainInBlock : Zug im Block bestimmen
 Direction : Richtung
 Direction\: heading {} : Richtung: nach {}
 disabled : deaktiviert
+Display "{}" on clients. : „{}“ auf den Clients anzeigen.
 Drop : Verwerfen
 Dropped destination of {}. : Ziel von {} verworfen.
 EAST : Osten
@@ -120,7 +122,7 @@ Select from plan : Auf Plan auswählen
 Select relay\: : Relais auswählen:
 Select train\: : Zug auswählen:
 SendCommand : Kommando senden
-Send command \"{}\" to control unit : Kommando „{}“ an Zentrale senden
+Send command "{}" to control unit : Kommando „{}“ an Zentrale senden
 SetRelay : Relais schalten
 SetSignal : Signal stellen
 SetSignalsToStop : Signale auf Halt stellen
@@ -131,6 +133,7 @@ Set {} to {} : {} auf {} setzen
 SetPower : Strom schalten
 Set speed to : Geschwindigkeit setzen
 Setup actions : Aktivierungs-Aktionen
+ShowText : Text anzeigen
 Signals : Signale
 Simulating movement of {}... : Simuliere Fahrt von {}...
 SOUTH : Süden
@@ -147,6 +150,7 @@ Switch power off : Strom ausschalten
 Switch power on : Strom anschalten
 Tag : Markierung
 Tags : Markierungen
+Text to display on clients\: : Text, welcher auf den Clients angezeigt werden soll:
 Toggle : umschalten
 Toggle power : Stom umschalten
 Train : Zug

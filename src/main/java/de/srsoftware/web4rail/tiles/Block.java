@@ -304,7 +304,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		return this;
 	}
 	
-	public static Tag selector(Block preselected,Collection<Block> exclude) {
+	public static Select selector(Block preselected,Collection<Block> exclude) {
 		if (isNull(exclude)) exclude = new Vector<Block>();
 		Select select = new Select(Block.class.getSimpleName());
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);

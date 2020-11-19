@@ -11,30 +11,31 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
-import de.srsoftware.web4rail.tiles.Contact;
+import de.srsoftware.web4rail.tiles.Block;
 
-public class TriggerContact extends Action {
+public class DetermineTrainInBlock extends Action {
 		
-	private Contact contact = null;
+	private Block block = null;
 	
 	@Override
 	public boolean fire(Context context) throws IOException {
-		if (isSet(contact)) return contact.trigger(200);
-		return false;
+		context.block = block;
+		context.train = block.train();		
+		return true;
 	}
 	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
-		if (isSet(contact)) json.put(CONTACT, contact.id());
+		if (isSet(block)) json.put(BLOCK, block.id());
 		return json;
 	}
 	
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		String contactId = json.getString(CONTACT);
-		if (isSet(contactId)) contact = Contact.get(contactId);
+		String blockId = json.getString(BLOCK);
+		if (isSet(blockId)) block = Block.get(blockId);
 		return this;
 	}
 	
@@ -47,22 +48,22 @@ public class TriggerContact extends Action {
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
 		
-		Select select = Contact.selector(contact);
-		select.addTo(new Label(t("Select contact:")+NBSP)).addTo(form);
+		Select select = Block.selector(block, null);
+		select.addTo(new Label(t("Select block:")+NBSP)).addTo(form);
 		
 		new Button(t("Apply"),form).addTo(form).addTo(win);		
 		return win;
 	}
 	
 	public String toString() {
-		return isSet(contact) ? t("Trigger {}",contact) : "["+t("click here to setup contact")+"]";
+		return isSet(block) ? t("Determine, which train is in {}",block) : "["+t("click here to setup block")+"]";
 	};
 	
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		String contactId = params.get(CONTACT);
-		if (isSet(contactId)) contact = Contact.get(contactId);
+		String blockId = params.get(Block.class.getSimpleName());
+		if (isSet(blockId)) block = Block.get(blockId);
 		return properties(params);
 	}
 

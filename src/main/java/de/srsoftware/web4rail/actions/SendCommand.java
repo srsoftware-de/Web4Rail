@@ -28,7 +28,7 @@ public class SendCommand extends Action{
 			}
 		});
 	
-		return false;
+		return true;
 	}
 	
 	@Override

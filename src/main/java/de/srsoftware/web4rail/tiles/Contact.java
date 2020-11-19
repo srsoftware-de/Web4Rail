@@ -204,7 +204,7 @@ public class Contact extends Tile{
 		return trigger;
 	}
 	
-	public void trigger(int duration) throws IOException {
+	public boolean trigger(int duration) throws IOException {
 		activate(true);
 		new Thread() {
 			public void run() {
@@ -214,6 +214,7 @@ public class Contact extends Tile{
 				} catch (Exception e) {}
 			}
 		}.start();
+		return true;
 	}
 	@Override
 	public Tile update(HashMap<String, String> params) throws IOException {
