@@ -117,6 +117,7 @@ public class Plan extends BaseClass{
 	private static final String X = "x";
 	private static final String Y = "y";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
+	private static final String FULLSCREEN = "fullscreen";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>(); // The list of tiles of this plan, i.e. the Track layout
 	private HashSet<Block> blocks = new HashSet<Block>(); // the list of tiles, that are blocks
@@ -564,6 +565,7 @@ public class Plan extends BaseClass{
 		new Div(ACTION_SAVE).clazz(REALM_PLAN).content(t("Save")).addTo(actions);
 		new Div(ACTION_ANALYZE).clazz(REALM_PLAN).content(t("Analyze")).addTo(actions);
 		new Div(ACTION_QR).clazz(REALM_PLAN).content(t("QR-Code")).addTo(actions);
+		new Div(FULLSCREEN).clazz(REALM_PLAN).content(t("Fullscreen")).addTo(actions);
 		return actions.addTo(actionMenu);
 	}
 

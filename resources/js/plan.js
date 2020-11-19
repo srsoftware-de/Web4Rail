@@ -185,8 +185,12 @@ function runAction(ev){
 	console.log("runAction: ",{action: clicked.id, realm:realm});
 	if (clicked.id == 'qrcode'){
 		window.open("https://api.qrserver.com/v1/create-qr-code/?data="+window.location.href,'_blank');
-		return false;
-	} else return request({action:ev.target.id,realm:realm}); // TODO: ask for name
+	} else if (clicked.id == 'fullscreen'){
+		toggleFullscreen();
+	} else {
+		return request({action:ev.target.id,realm:realm}); // TODO: ask for name
+	}
+	return false;
 }
 
 function selectDest(trainId){
@@ -235,6 +239,12 @@ function tileWindow(){
 	$('.swapbtn').text(vertical ? '⇩' : '⇨');
 }
 
+function toggleFullscreen(){
+	if (document.fullscreenElement == null){
+		document.documentElement.requestFullscreen();
+	} else document.exitFullscreen();
+}
+
 window.onload = function () {
 	var isDragging = false;
 	$('.menu > div').click(closeMenu);
@@ -246,5 +256,4 @@ window.onload = function () {
 	$(PLAN).click(planClick);
 	$(document).keyup(keypress);
 	(new EventSource("stream")).onmessage = stream;
-	$('#plan').click(function(){ document.documentElement.requestFullscreen(); });
 }
