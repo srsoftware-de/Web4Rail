@@ -185,6 +185,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (car instanceof Locomotive) {
 			locos.add((Locomotive) car);
 		} else cars.add(car);
+		car.train(this);
 		return props();
 	}
 
@@ -223,7 +224,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Input(ID,id).hideIn(addCarForm);
 		Select select = new Select(CAR_ID);
 		for (Car car : Car.list()) {
-			if (!this.cars.contains(car)) select.addOption(car.id(), car+(car.stockId.isEmpty()?"":" ("+car.stockId+")"));
+			if (isNull(car.train())) select.addOption(car.id(), car+(car.stockId.isEmpty()?"":" ("+car.stockId+")"));
 		}
 		if (!select.children().isEmpty()) {
 			select.addTo(addCarForm);
@@ -283,10 +284,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 		
 	private Object dropCar(HashMap<String, String> params) {
-		String carId = params.get(CAR_ID);
-		if (isSet(carId)) cars.remove(Car.get(carId));
-		String locoId = params.get(LOCO_ID);
-		if (isSet(locoId)) locos.remove(Car.get(locoId));
+		Car car = Car.get(params.get(CAR_ID));
+		if (isSet(car)) {
+			cars.remove(car);
+			car.train(null);
+		}
+		Locomotive loco = Locomotive.get(params.get(LOCO_ID));
+		if (isSet(loco)) {
+			locos.remove(loco);
+			loco.train(null);
+		}
 		return props();
 	}
 	
@@ -411,7 +418,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Input(ID,id).hideIn(addLocoForm);
 		Select select = new Select(CAR_ID);
 		for (Car loco : Locomotive.list()) {
-			if (!this.locos.contains(loco)) select.addOption(loco.id(), loco);
+			if (isNull(loco.train())) select.addOption(loco.id(), loco);
 		}
 		if (!select.children().isEmpty()) {
 			select.addTo(addLocoForm);

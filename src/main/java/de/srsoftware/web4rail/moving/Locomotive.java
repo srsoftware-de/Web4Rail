@@ -127,7 +127,8 @@ public class Locomotive extends Car implements Constants,Device{
 
 	
 	public Object faster(int steps) {
-		return setSpeed(speed + steps);
+		setSpeed(speed + steps);
+		return properties();
 	}
 	
 	public static Locomotive get(Object id) {		
@@ -286,7 +287,7 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	public Object stop() {
 		setSpeed(0);
-		return t("Stopped {}",this);
+		return properties();
 	}
 	
 	private Object toggleFunction(int f) {

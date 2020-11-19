@@ -80,8 +80,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 
-	public static Car get(Object id) {
-		return cars.get(Integer.parseInt(""+id)); // try to get by id
+	public static Car get(Object id) {		
+		return isNull(id) ? null : cars.get(Integer.parseInt(""+id)); // try to get by id
 	}
 
 	
@@ -223,6 +223,10 @@ public class Car extends BaseClass implements Comparable<Car>{
 	@Override
 	public String toString() {
 		return name;
+	}
+	
+	public Train train() {
+		return train;
 	}
 
 	public void train(Train train) {
