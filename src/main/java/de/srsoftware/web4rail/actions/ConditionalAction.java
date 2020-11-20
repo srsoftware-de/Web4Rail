@@ -72,7 +72,7 @@ public class ConditionalAction extends Action {
 		for (Condition condition : conditions) {
 			if (!condition.fulfilledBy(context)) return true;
 		}
-		return actions.fire(context);
+		return actions.fire(context.clone()); // actions, that happen within the conditional action list must not modify the global context.
 	}
 	
 	@Override

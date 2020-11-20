@@ -1,8 +1,10 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 import java.util.Map.Entry;
 
 import org.json.JSONObject;
@@ -11,6 +13,7 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Select;
 
 public class TextDisplay extends StretchableTile {
 	private static final String TEXT = "text";
@@ -44,6 +47,19 @@ public class TextDisplay extends StretchableTile {
 		new Input(TEXT, text).addTo(new Label(t("Text")+":"+NBSP)).addTo(new Tag("p")).addTo(form);
 		
 		return form;
+	}
+
+	public static Select selector(TextDisplay preselected,Collection<TextDisplay> exclude) {
+		if (isNull(exclude)) exclude = new Vector<TextDisplay>();
+		Select select = new Select(TextDisplay.class.getSimpleName());
+		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
+		for (Tile tile : plan.tiles.values()) {
+			if (!(tile instanceof TextDisplay)) continue;
+			if (exclude.contains(tile)) continue;
+			Tag opt = select.addOption(tile.id(), tile);
+			if (tile == preselected) opt.attr("selected", "selected");
+		}
+		return select;
 	}
 
 	@Override

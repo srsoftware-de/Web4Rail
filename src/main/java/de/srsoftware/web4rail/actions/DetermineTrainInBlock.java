@@ -55,7 +55,7 @@ public class DetermineTrainInBlock extends Action {
 	}
 	
 	public String toString() {
-		return isSet(block) ? t("Determine, which train is in {}",block) : "["+t("click here to setup block")+"]";
+		return isSet(block) ? t("Determine, which train is in {}",block) : t("[Click here to select block!]");
 	};
 	
 	@Override

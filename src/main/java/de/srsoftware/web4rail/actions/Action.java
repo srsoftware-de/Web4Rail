@@ -40,6 +40,14 @@ public abstract class Action extends BaseClass {
 		public Block block = null;
 		public Direction direction = null;
 		
+		private Context(Contact c, Route r, Train t, Block b, Direction d) {
+			contact = c;
+			route = r;
+			train = t;
+			block = b;
+			direction = d;
+		}
+		
 		public Context(Contact c) {			
 			contact = c;
 			setRoute(contact.route());
@@ -51,6 +59,10 @@ public abstract class Action extends BaseClass {
 		
 		public Context(Route route) {
 			setRoute(route);
+		}
+		
+		protected Context clone() {
+			return new Context(contact, route, train, block, direction);
 		}
 
 		private void setRoute(Route route) {
@@ -127,6 +139,7 @@ public abstract class Action extends BaseClass {
 			DetermineTrainInBlock.class,
 			FinishRoute.class,
 			SendCommand.class,
+			SetDisplayText.class,
 			SetPower.class,
 			SetRelay.class,
 			SetSignal.class,
