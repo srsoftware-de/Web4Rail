@@ -686,17 +686,18 @@ public class Plan extends BaseClass{
 	
 	public void sensor(int addr, boolean active) {
 		Contact contact = Contact.get(addr);
-		
-		if (isSet(contact)) {
-			contact.activate(active);
-		} else {
-			LOG.debug("contact: {}", addr);
-			if (active && learningContact != null) {
-				LOG.debug("learned: {} = {}",addr,learningContact);
-				stream(learningContact.addr(addr).propMenu().toString());
-				learningContact = null;
+		if (active && learningContact != null) {
+			if (isSet(contact)) {
+				contact.addr(0);
+				LOG.debug("unsibscribed {} from {}",contact,addr);
 			}
+			stream(learningContact.addr(addr).propMenu().toString());
+			learningContact = null;
+			LOG.debug("learned: {} = {}",addr,learningContact);			
+			return;
 		}
+		
+		if (isSet(contact)) contact.activate(active);
 	}
 
 	/**
