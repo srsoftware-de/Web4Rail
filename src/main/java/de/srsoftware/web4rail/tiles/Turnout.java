@@ -199,7 +199,13 @@ public abstract class Turnout extends Tile implements Device{
 	@Override
 	public Tile update(HashMap<String, String> params) throws IOException {
 		if (params.containsKey(PROTOCOL)) protocol = Protocol.valueOf(params.get(PROTOCOL));
-		if (params.containsKey(ADDRESS)) address = Integer.parseInt(params.get(ADDRESS));
+		if (params.containsKey(ADDRESS)) {
+			int newAddress = Integer.parseInt(params.get(ADDRESS));
+			if (newAddress != address) {
+				initialized = false;
+				address = newAddress;
+			}
+		}
 		if (params.containsKey(PORT_A)) portA = Integer.parseInt(params.get(PORT_A));
 		if (params.containsKey(PORT_B)) portB = Integer.parseInt(params.get(PORT_B));
 		return super.update(params);
