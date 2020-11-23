@@ -43,12 +43,17 @@ public class ConditionalAction extends Action {
 	
 	private Tag conditionForm(HashMap<String, String> params) {
 		Fieldset fieldset = new Fieldset(t("Conditions"));
+		String context = params.get(CONTEXT);
 
 		new Tag("p").content(t("Actions will only fire, if all conditions are fullfilled.")).addTo(fieldset);
 		if (!conditions.isEmpty()) {
 			Tag list = new Tag("ul");
 			for (Condition condition : conditions) {
-				link("li", Map.of(REALM,REALM_CONDITION,ID,condition.id(),ACTION,ACTION_PROPS,CONTEXT,params.get(CONTEXT)), condition).addTo(list);
+				HashMap<String,Object> props = new HashMap<String, Object>(Map.of(REALM,REALM_CONDITION,ID,condition.id(),ACTION,ACTION_PROPS,CONTEXT, context));
+				Tag li = link("span", props, condition+NBSP).addTo(new Tag("li"));
+				props.put(ACTION, ACTION_DROP);
+				props.put(CONTEXT,REALM_ACTIONS+":"+id());
+				new Button(t("delete"), props).addTo(li).addTo(list);
 			}
 			list.addTo(fieldset);
 		}
@@ -57,12 +62,14 @@ public class ConditionalAction extends Action {
 		new Input(REALM,REALM_ACTIONS).hideIn(form);
 		new Input(ID,params.get(ID)).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
+		new Input(CONTEXT,context).hideIn(form);
 
 		Condition.selector().addTo(form);
-		return new Button(t("Add condition"),form).addTo(form).addTo(fieldset);
+		
+		new Button(t("Add condition"),form).addTo(form);
+		return contextButton(context,t("Back")).addTo(form).addTo(fieldset);
 	}
-	
+
 	public boolean equals(ConditionalAction other) {
 		return (conditions()+":"+actions).equals(other.conditions()+":"+other.actions);
 	}
@@ -92,7 +99,7 @@ public class ConditionalAction extends Action {
 			if (o instanceof JSONObject) {
 				JSONObject j = (JSONObject) o;
 				Condition condition = Condition.create(j.getString(TYPE));
-				if (condition != null) conditions.add(condition.load(j));
+				if (isSet(condition)) conditions.add(condition.parent(this).load(j));
 			}
 		}
 		actions = ActionList.load(json.getJSONArray(ACTIONS));
@@ -107,6 +114,11 @@ public class ConditionalAction extends Action {
 		return win;
 	}
 
+	public ConditionalAction remove(Condition condition) {
+		conditions.remove(condition);
+		return this;
+	}
+
 	@Override
 	public String toString() {
 		if (conditions.isEmpty()) return t("[Click here to add condition]");
@@ -117,8 +129,8 @@ public class ConditionalAction extends Action {
 	protected Object update(HashMap<String, String> params) {
 		String conditionClass = params.get(REALM_CONDITION);
 		Condition condition = Condition.create(conditionClass);
-		if (condition == null) return t("Unknown type of condition: {}",conditionClass);
-		conditions.add(condition);
+		if (isNull(condition)) return t("Unknown type of condition: {}",conditionClass);
+		conditions.add(condition.parent(this));
 		return super.update(params);
 	}
 }

@@ -546,7 +546,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		for (int i=0; i<arr.length(); i++) {
 			JSONObject json = arr.getJSONObject(i);
 			Condition condition = Condition.create(json.getString(TYPE));
-			if (isSet(condition)) conditions.add(condition.load(json));
+			if (isSet(condition)) conditions.add(condition.parent(this).load(json));
 		}
 	}
 	
@@ -601,6 +601,11 @@ public class Route extends BaseClass implements Comparable<Route>{
 		addContactsTo(win);
 
 		return win;
+	}
+
+	public Route remove(Condition condition) {
+		conditions.remove(condition);	
+		return this;
 	}
 	
 	public boolean reset() {
@@ -710,7 +715,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		
 		Condition condition = Condition.create(params.get(REALM_CONDITION));
 		if (isSet(condition)) {
-			conditions.add(condition);
+			conditions.add(condition.parent(this));
 			return properties(params);
 		}
 		String message = t("{} updated.",this); 

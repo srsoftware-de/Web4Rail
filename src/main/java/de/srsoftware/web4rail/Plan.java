@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Div;
@@ -714,7 +715,10 @@ public class Plan extends BaseClass{
 				return route(Integer.parseInt(id)).properties(params);
 			case REALM_PLAN:
 				Tile tile = get(id, false);
-				return tile == null? null : tile.propMenu();
+				return isNull(tile) ? null : tile.propMenu();
+			case REALM_ACTIONS:
+				Action action = Action.get(Integer.parseInt(id));
+				return (isSet(action)) ? action.properties(params) : null;
 				
 		}
 		return null;

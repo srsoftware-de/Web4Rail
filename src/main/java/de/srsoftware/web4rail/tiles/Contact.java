@@ -46,7 +46,7 @@ public class Contact extends Tile{
 		public void run() {
 			try {
 				for (int ticks = 0; ticks<10; ticks++) {
-					if (!aborted) sleep(100);
+					if (!aborted) sleep(10);
 				}
 				timer = null;
 				if (aborted) return;

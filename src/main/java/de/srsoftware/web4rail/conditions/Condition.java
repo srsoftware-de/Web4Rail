@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.conditions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -14,8 +15,10 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
+import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.Action.Context;
+import de.srsoftware.web4rail.actions.ConditionalAction;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Form;
@@ -30,6 +33,7 @@ public abstract class Condition extends BaseClass {
 	private static HashMap<Integer, Condition> conditions = new HashMap<Integer, Condition>();
 	public boolean inverted = false;
 	protected int id;
+	private Object parent;
 
 	public Condition() {
 		this(Application.createId());
@@ -55,6 +59,9 @@ public abstract class Condition extends BaseClass {
 			case ACTION_UPDATE:
 				condition.update(params);
 				return plan.showContext(params);
+			case ACTION_DROP:
+				condition.drop();
+				return plan.showContext(params);
 		}
 		return t("Unknown action: {}",action);
 	}
@@ -69,6 +76,18 @@ public abstract class Condition extends BaseClass {
 		return null;
 	}
 	
+	private void drop() {
+		if (parent instanceof ConditionalAction) {
+			ConditionalAction ca = (ConditionalAction) parent;
+			ca.remove(this);
+		}
+		if (parent instanceof Route) {
+			Route route = (Route) parent;
+			route.remove(this);
+		}
+		conditions.remove(this.id());
+	}
+
 	public abstract boolean fulfilledBy(Context context);
 
 	public int id() {
@@ -81,11 +100,20 @@ public abstract class Condition extends BaseClass {
 		return json;
 	}
 	
-	public Condition load(JSONObject json) {
-		inverted = json.has(INVERTED) && json.getBoolean(INVERTED);
-		return this;
+	/**
+	 * If arguments are given, the first is taken as content, the second as tag type.
+	 * If no content is supplied, name is set as content.
+	 * If no type is supplied, "span" is preset.
+	 * @param args
+	 * @return
+	 */
+	public Tag link(String...args) {
+		String tx = args.length<1 ? toString()+NBSP : args[0];
+		String type = args.length<2 ? "span" : args[1];
+		String context = args.length<3 ? null : args[2];
+		return link(type, Map.of(REALM,REALM_CONDITION,ID,id(),ACTION,ACTION_PROPS,CONTEXT,context), tx);
 	}
-	
+		
 	private static List<Class<? extends Condition>> list() {
 		return List.of(
 				BlockFree.class,
@@ -95,12 +123,18 @@ public abstract class Condition extends BaseClass {
 				TrainLength.class);
 	}
 	
+	public Condition load(JSONObject json) {
+		inverted = json.has(INVERTED) && json.getBoolean(INVERTED);
+		return this;
+	}
+
 	public Tag propForm(HashMap<String, String> params) {
 		Form form = new Form("condition-props-"+id);
 		new Input(REALM,REALM_CONDITION).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(ID,id).hideIn(form);
-		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
+		String context = params.get(CONTEXT);
+		if (isSet(context)) new Input(CONTEXT,context).hideIn(form);
 		return form;
 	}
 
@@ -137,5 +171,10 @@ public abstract class Condition extends BaseClass {
 	protected Object update(HashMap<String, String> params) {
 		inverted = "on".equals(params.get(INVERTED));
 		return t("updated {}.",this);
+	}
+
+	public Condition parent(Object parent) {
+		this.parent = parent;
+		return this;
 	}
 }
