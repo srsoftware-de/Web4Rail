@@ -143,13 +143,13 @@ public abstract class Turnout extends Tile implements Device{
 	
 	public Reply state(State newState) throws IOException {
 		if (train != null && newState != state) return new Reply(415, t("{} locked by {}!",this,train));
-		Reply reply = init();
-		if (reply != null && !reply.succeeded()) return reply;
 		if (address == 0) { 
 			state = newState;
 			plan.place(this);
 			return new Reply(200,"OK");
 		}
+		Reply reply = init();
+		if (reply != null && !reply.succeeded()) return reply;
 		try {
 			return plan.queue(new Command(commandFor(newState)) {
 				
@@ -206,8 +206,22 @@ public abstract class Turnout extends Tile implements Device{
 				address = newAddress;
 			}
 		}
-		if (params.containsKey(PORT_A)) portA = Integer.parseInt(params.get(PORT_A));
-		if (params.containsKey(PORT_B)) portB = Integer.parseInt(params.get(PORT_B));
+		String newPort = params.get(PORT_A);
+		if (isSet(newPort)) {
+			int npa = Integer.parseInt(newPort);
+			if (npa != portA) {
+				portA = npa;
+				initialized = false;
+			}
+		}
+		newPort = params.get(PORT_B);
+		if (isSet(newPort)) {
+			int npb = Integer.parseInt(newPort);
+			if (npb != portB) {
+				portB = npb;
+				initialized = false;
+			}
+		}
 		return super.update(params);
 	}
 }
