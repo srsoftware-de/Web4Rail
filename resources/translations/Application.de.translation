@@ -45,7 +45,7 @@ Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werd
 Create action : Aktion erzeugen
 Current location : Aufenthaltsort
 Current location\: {} : Aufenthaltsort: {}
-Current velocity\: {} km/h : Aktuelle Geschwindigkeit: {} km/h 
+Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {} 
 Delay : Verzögerung
 DelayedAction : verzögerte Aktion
 delete : entfernen
@@ -76,7 +76,7 @@ if ({})\: : falls ({}):
 inverted : invertiert
 known cars : bekannte Waggons
 known locomotives : bekannte Lokomotiven
-knwon trains : bekannte Züge
+known trains : bekannte Züge
 learn : lernen
 LEFT : links
 Left port\: : Port für links
@@ -134,8 +134,8 @@ SetRelay : Relais schalten
 SetSignal : Signal stellen
 SetSignalsToStop : Signale auf Halt stellen
 SetSpeed : Geschwindigkeit ändern
-Set {} to {} km/h : {} auf {} km/h gesetzt
-Set speed to {} km/h : Geschwindigkeit auf {} km/h setzen
+Set {} to {} {} : {} auf {} {} gesetzt
+Set speed to {} {} : Geschwindigkeit auf {} {} setzen
 Set {} to {} : {} auf {} setzen
 SetPower : Strom schalten
 Set speed to : Geschwindigkeit setzen

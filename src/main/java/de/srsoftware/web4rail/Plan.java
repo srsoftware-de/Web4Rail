@@ -1,8 +1,12 @@
 package de.srsoftware.web4rail;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.Date;
@@ -16,6 +20,8 @@ import java.util.Stack;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +30,11 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Div;
+import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.BlockV;
@@ -120,6 +130,7 @@ public class Plan extends BaseClass{
 	private static final String Y = "y";
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	private static final String FULLSCREEN = "fullscreen";
+	private static final String SPEED_UNIT = "speed_unit";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>(); // The list of tiles of this plan, i.e. the Track layout
 	private HashSet<Block> blocks = new HashSet<Block>(); // the list of tiles, that are blocks
@@ -157,13 +168,15 @@ public class Plan extends BaseClass{
 		case ACTION_CLICK:
 			return click(get(params.get(ID),true));
 		case ACTION_MOVE:
-			return moveTile(params.get(DIRECTION),params.get(ID));						
+			return moveTile(params.get(DIRECTION),params.get(ID));
+		case ACTION_PROPS:
+			return properties(params);
 		case ACTION_SAVE:
 			return saveTo(DEFAULT_NAME);
 		case ACTION_TIMES:
 			return updateTimes(params);
 		case ACTION_UPDATE:
-			return update(get(params.get(ID),true),params);
+			return update(params);
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
@@ -401,7 +414,13 @@ public class Plan extends BaseClass{
 		} catch (Exception e) {
 			LOG.warn("Was not able to load cars!",e);
 		}
-		Tile.loadAll(filename+".plan",plan);
+
+		String content = new String(Files.readAllBytes(new File(filename+".plan").toPath()),UTF8);
+		JSONObject json = new JSONObject(content);
+		JSONArray jTiles = json.getJSONArray(TILE);
+		jTiles.forEach(object -> Tile.load(object, plan));
+		speedUnit = json.getString(SPEED_UNIT);
+			
 		try {
 			Train.loadAll(filename+".trains",plan);
 		} catch (Exception e) {
@@ -568,7 +587,19 @@ public class Plan extends BaseClass{
 		new Div(ACTION_ANALYZE).clazz(REALM_PLAN).content(t("Analyze")).addTo(actions);
 		new Div(ACTION_QR).clazz(REALM_PLAN).content(t("QR-Code")).addTo(actions);
 		new Div(FULLSCREEN).clazz(REALM_PLAN).content(t("Fullscreen")).addTo(actions);
+		new Div(ACTION_PROPS).clazz(REALM_PLAN).content(t("Properties")).addTo(actions);
 		return actions.addTo(actionMenu);
+	}
+	
+	private Window properties(HashMap<String, String> params) {
+		Window win = new Window("plan-properties", t("Properties"));
+		Form form = new Form("plan-properties-form");
+		new Input(REALM,REALM_PLAN).hideIn(form);
+		new Input(ACTION,ACTION_UPDATE).hideIn(form);
+		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+":"+NBSP)).addTo(form);
+		new Button(t("Save"), form).addTo(form);
+		form.addTo(win);
+		return win;
 	}
 
 	/**
@@ -649,14 +680,32 @@ public class Plan extends BaseClass{
 	 */
 	private String saveTo(String name) throws IOException {
 		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
-		Car.saveAll(name+".cars");
+		Car.saveAll(name+".cars");		
 		Tile.saveAll(tiles,name+".plan");
 		Train.saveAll(name+".trains"); // refers to cars, blocks
 		Route.saveAll(routes.values(),name+".routes"); // refers to tiles
 		controlUnit.save(name+".cu");
+		
+		BufferedWriter file = new BufferedWriter(new FileWriter(name+".plan"));
+		file.write(json().toString());
+		file.close();
+		
 		return t("Plan saved as \"{}\".",name);
 	}
 	
+	private Object json() {
+		JSONArray jTiles = new JSONArray();
+		tiles.values().stream()
+			.filter(tile -> isSet(tile))
+			.filter(tile -> !(tile instanceof Shadow))
+			.map(tile -> tile.json())
+			.forEach(jTiles::put);
+		
+		return new JSONObject()
+				.put(TILE, jTiles)
+				.put(SPEED_UNIT, speedUnit);
+	}
+
 	/**
 	 * adds a tile to the plan at a specific position
 	 * @param x
@@ -836,8 +885,14 @@ public class Plan extends BaseClass{
 	 * @return
 	 * @throws IOException
 	 */
-	private Tile update(Tile tile, HashMap<String, String> params) throws IOException {
-		return tile == null ? null : tile.update(params);
+	private Object update(HashMap<String, String> params) throws IOException {
+		Tile tile = get(params.get(ID),true);
+		if (isSet(tile)) return tile.update(params);
+		
+		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);
+		
+		return t("Plan updated.");
+		
 	}
 	
 	private Object updateTimes(HashMap<String, String> params) throws IOException {

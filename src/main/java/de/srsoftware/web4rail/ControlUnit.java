@@ -114,7 +114,7 @@ public class ControlUnit extends Thread implements Constants{
 	 * @throws IOException
 	 */
 	public void load(String filename) throws IOException {
-		BufferedReader file = new BufferedReader(new FileReader(filename));
+		BufferedReader file = new BufferedReader(new FileReader(filename, UTF8));
 		JSONObject json = new JSONObject(file.readLine());
 		file.close();
 		if (json.has(PORT)) port = json.getInt(PORT);

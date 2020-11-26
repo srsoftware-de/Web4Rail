@@ -1,9 +1,7 @@
 package de.srsoftware.web4rail.tiles;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -161,22 +159,16 @@ public abstract class Tile extends BaseClass{
 	}
 	
 	
-	public static void loadAll(String filename, Plan plan) throws IOException {		
-		BufferedReader file = new BufferedReader(new FileReader(filename));
-		String line = file.readLine();
-		while (isSet(line)) {
-			JSONObject json = new JSONObject(line);
+	public static void load(Object object, Plan plan) {
+		if (object instanceof JSONObject) {
+			JSONObject json = (JSONObject) object;
 			String clazz = json.getString(TYPE);
-			
 			try {
 				Tile.inflate(clazz,json,plan);
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException | IOException e) {
 				e.printStackTrace();
 			}			
-			
-			line = file.readLine();
 		}
-		file.close();
 	}
 
 	protected Tile load(JSONObject json) throws IOException {

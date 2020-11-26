@@ -118,7 +118,7 @@ function heartbeat(data){
 }
 
 function keypress(ev){
-	if (ev.code === 'Enter') request({realm:"cu",action:"emergency"});
+	if (ev.code === 'Escape') request({realm:"cu",action:"emergency"});
 }
 
 function moveTile(x,y){	

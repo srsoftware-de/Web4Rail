@@ -37,6 +37,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	private static final String LENGTH = "length";
 	private static final String STOCK_ID = "stock-id";
 	private static final String TAGS = "tags";
+	private static final String MAX_SPEED = "max_speed";
 	protected HashSet<String> tags = new HashSet<String>();
 	
 	private int id;
@@ -45,6 +46,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	protected String stockId = "";
 	private Train train;
 	protected Plan plan;
+	protected int maxSpeed = 0;
 	
 	public Car(String name) {
 		this(name,null);
@@ -94,6 +96,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		json.put(ID,id);
 		json.put(NAME, name);
 		json.put(LENGTH, length);
+		if (maxSpeed != 0) json.put(MAX_SPEED, maxSpeed);
 		json.put(STOCK_ID, stockId);
 		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;
@@ -122,7 +125,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	
 	public static void loadAll(String filename, Plan plan) throws IOException {
 		cars.clear();
-		BufferedReader file = new BufferedReader(new FileReader(filename));
+		BufferedReader file = new BufferedReader(new FileReader(filename, UTF8));
 		String line = file.readLine();
 		while (line != null) {
 			JSONObject json = new JSONObject(line);
@@ -139,6 +142,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	protected Car load(JSONObject json) {
 		if (json.has(ID)) id = json.getInt(ID);
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
+		if (json.has(MAX_SPEED)) maxSpeed = json.getInt(MAX_SPEED);
 		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
 		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
 		return this;
@@ -149,8 +153,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Tag("h4").content(t("known cars")).addTo(win);
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
-		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Length"),t("Tags"));
-		cars.values().stream().filter(car -> !(car instanceof Locomotive)).forEach(car -> table.addRow(car.stockId,car.link(),car.length,String.join(", ", car.tags())));
+		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Length"),t("Tags"));
+		cars.values().stream().filter(car -> !(car instanceof Locomotive)).forEach(car -> table.addRow(car.stockId,car.maxSpeed == 0 ? "–":(car.maxSpeed+NBSP+speedUnit),car.link(),car.length,String.join(", ", car.tags())));
 		table.addTo(win);
 		
 		Form form = new Form("add-car-form");
@@ -161,6 +165,10 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Button(t("Apply"),form).addTo(fieldset);
 		fieldset.addTo(form).addTo(win);
 		return win;
+	}
+	
+	public int maxSpeed() {
+		return maxSpeed;
 	}
 	
 	String name(){
@@ -186,6 +194,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Input(STOCK_ID,stockId).addTo(new Label(t("Stock ID")+NBSP)).addTo(fieldset);
 		new Input(LENGTH,length).attr("type", "number").addTo(new Label(t("Length")+NBSP)).addTo(fieldset);
 		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(fieldset);
+		new Input(MAX_SPEED, maxSpeed).numeric().addTo(new Label(t("Maximum speed")+":"+NBSP)).content(NBSP+speedUnit).addTo(fieldset);
 		fieldset.addTo(form);
 		return form;
 	}
@@ -235,8 +244,9 @@ public class Car extends BaseClass implements Comparable<Car>{
 
 	public Car update(HashMap<String, String> params) {
 		if (params.containsKey(NAME)) name = params.get(NAME);
-		if (params.containsKey(STOCK_ID)) stockId  = params.get(STOCK_ID);
 		if (params.containsKey(LENGTH)) length = Integer.parseInt(params.get(LENGTH));
+		if (params.containsKey(MAX_SPEED)) maxSpeed  = Integer.parseInt(params.get(MAX_SPEED));
+		if (params.containsKey(STOCK_ID)) stockId  = params.get(STOCK_ID);
 		if (params.containsKey(TAGS)) {
 			String[] parts = params.get(TAGS).replace(",", " ").split(" ");
 			tags.clear();

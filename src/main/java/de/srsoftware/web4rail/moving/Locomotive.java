@@ -27,7 +27,6 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	private static final String REVERSE = "reverse";
 	public static final String LOCOMOTIVE = "locomotive";
-	private static final int VMAX = 128;
 	private boolean reverse = false;
 	private Protocol proto = Protocol.DCC128;
 	private int address = 3;
@@ -96,7 +95,7 @@ public class Locomotive extends Car implements Constants,Device{
 		
 		Fieldset fieldset = new Fieldset(t("Control"));
 		
-		new Tag("span").content(t("Current velocity: {} km/h",speed)).addTo(fieldset);
+		new Tag("span").content(t("Current velocity: {} {}",speed)).addTo(fieldset);
 		
 		Tag par = new Tag("p");
 		Map.of("Slower (10 steps)",ACTION_SLOWER10,"Faster (10 steps)",ACTION_FASTER10).entrySet().forEach(e -> {
@@ -146,17 +145,12 @@ public class Locomotive extends Car implements Constants,Device{
 		case MOTO:
 			proto = "M 2 100 0"; break; // TODO: make configurable
 		case DCC14:
-			proto = "N 1 14 5"; break; // TODO: make configurable
 		case DCC27:
-			proto = "N 1 27 5"; break; // TODO: make configurable
 		case DCC28:
-			proto = "N 1 28 5"; break; // TODO: make configurable
 		case DCC128:
-			proto = "N 1 128 5"; break; // TODO: make configurable
+			proto = "N 1 "+this.proto.steps+" 5"; break; // TODO: make configurable
 		case SELECTRIX:
 			proto = "S"; break;
-		case ZIMO:
-			proto = "Z"; break;
 		}
 		plan.queue(new Command("INIT {} GL "+address+" "+proto) {
 			
@@ -182,8 +176,7 @@ public class Locomotive extends Car implements Constants,Device{
 		JSONObject loco = new JSONObject();
 		loco.put(REVERSE, reverse);
 		loco.put(PROTOCOL, proto);
-		loco.put(ADDRESS, address);
-		
+		loco.put(ADDRESS, address);		
 		json.put(LOCOMOTIVE, loco);
 		return json;
 	}
@@ -214,14 +207,14 @@ public class Locomotive extends Car implements Constants,Device{
 		
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
-		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Protocol"),t("Address"),t("Length"),t("Tags"));
+		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Protocol"),t("Address"),t("Length"),t("Tags"));
 		cars.values()
 			.stream()
 			.filter(car -> car instanceof Locomotive)
 			.map(car -> (Locomotive)car)
 			.sorted(Comparator.comparing(loco -> loco.address))
 			.sorted(Comparator.comparing(loco -> loco.stockId))
-			.forEach(loco -> table.addRow(loco.stockId,loco.link(),loco.proto,loco.address,loco.length,String.join(", ", loco.tags())));
+			.forEach(loco -> table.addRow(loco.stockId,loco.link(),loco.maxSpeed == 0 ? "–":loco.maxSpeed+NBSP+speedUnit,loco.proto,loco.address,loco.length,String.join(", ", loco.tags())));
 		table.addTo(win);
 
 		
@@ -246,6 +239,7 @@ public class Locomotive extends Car implements Constants,Device{
 	@Override
 	public Form propertyForm() {
 		Form form = super.propertyForm();
+
 		for (Tag tag : form.children()) {
 			if (REALM.equals(tag.get(Input.NAME)) && REALM_CAR.equals(tag.get(Input.VALUE))) {
 				tag.attr("value", REALM_LOCO);
@@ -264,7 +258,8 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	private void queue() {
-		plan.queue(new Command("SET {} GL "+address+" "+(reverse?1:0)+" "+speed+" "+VMAX+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
+		int step = proto.steps * speed / maxSpeed; 
+		plan.queue(new Command("SET {} GL "+address+" "+(reverse?1:0)+" "+step+" "+proto.steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
 
 			@Override
 			public void onFailure(Reply reply) {
@@ -274,11 +269,16 @@ public class Locomotive extends Car implements Constants,Device{
 		});
 	}
 
+	/**
+	 * Sets the speed of the locomotive to the given velocity in [plan.speedUnit]s
+	 * @param newSpeed
+	 * @return
+	 */
 	public String setSpeed(int newSpeed) {
 		LOG.debug(this.detail()+".setSpeed({})",newSpeed);
 		init();
 		speed = newSpeed;
-		if (speed > 128) speed = 128;
+		if (speed > maxSpeed()) speed = maxSpeed();
 		if (speed < 0) speed = 0;
 		
 		queue();

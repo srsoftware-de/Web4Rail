@@ -371,7 +371,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public static void loadAll(String filename, Plan plan) throws IOException {
-		BufferedReader file = new BufferedReader(new FileReader(filename));
+		BufferedReader file = new BufferedReader(new FileReader(filename, UTF8));
 		String line = file.readLine();
 		while (isSet(line)) {
 			JSONObject json = new JSONObject(line);
@@ -439,18 +439,21 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
-		Table table = new Table().addHead(t("Name"),t("Length"),t("Tags"),t("Route"),t("Current location"),t("Destination"),t("Auto pilot"));
-		list().forEach(train -> table.addRow(
+		Table table = new Table().addHead(t("Name"),t("Length"),t("Max. Speed"),t("Tags"),t("Route"),t("Current location"),t("Destination"),t("Auto pilot"));
+		list().forEach(train -> {
+			int ms = train.maxSpeed();
+			table.addRow(		
 				train.link(),
 				train.length(),
+				ms == Integer.MAX_VALUE ? "–" : ms+NBSP+speedUnit,
 				String.join(", ", train.tags()),
 				train.route,
 				isSet(train.currentBlock) ? train.currentBlock.link() : null,
 				train.destination(),
 				t(isSet(train.autopilot)?"On":"Off")
-			));
+			);
+		});
 		table.addTo(win);
-
 		
 		Form form = new Form();
 		new Input(ACTION, ACTION_ADD).hideIn(form);
@@ -467,6 +470,22 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 
 		return win;
+	}
+	
+	
+	private int maxSpeed() {
+		int maxSpeed = Integer.MAX_VALUE;
+		for (Locomotive loco : locos) {
+			int max = loco.maxSpeed();
+			if (max == 0) continue;
+			maxSpeed = Math.min(max, maxSpeed);
+		}
+		for (Car car : cars) {
+			int max = car.maxSpeed();
+			if (max == 0) continue;
+			maxSpeed = Math.min(max, maxSpeed);
+		}
+		return maxSpeed;
 	}
 
 	public String name() {
@@ -498,9 +517,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(form);
 		new Button(t("Apply")).addTo(form).addTo(fieldset);
 		
-		HashMap<String, Object> props = new HashMap<String,Object>(Map.of(REALM,REALM_TRAIN,ID,id));
-		props.put(ACTION, ACTION_TURN);
-		new Button(t("Turn"), props).addTo(fieldset).addTo(window);
+		fieldset.addTo(window);
 		
 		fieldset = new Fieldset(t("other train properties"));
 		
@@ -509,6 +526,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		locoList().addTo(propList);
 		carList().addTo(propList);
 		
+		int ms = maxSpeed();
+		if (ms < Integer.MAX_VALUE) new Tag("li").content(t("Max. Speed")+": "+maxSpeed()+NBSP+speedUnit).addTo(propList);
+		
+		HashMap<String, Object> props = new HashMap<String,Object>(Map.of(REALM,REALM_TRAIN,ID,id));
 		if (isSet(currentBlock)) {
 			link("li",Map.of(REALM,REALM_PLAN,ID,currentBlock.id(),ACTION,ACTION_CLICK),t("Current location: {}",currentBlock)).addTo(propList);
 			Tag actions = new Tag("li").clazz().content(t("Actions:")+NBSP);
@@ -626,13 +647,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void setSpeed(int newSpeed) {
-		speed = newSpeed;
-		if (speed > 128) speed = 128;
+		speed = Math.min(newSpeed,maxSpeed());
 		if (speed < 0) speed = 0;
 		for (Locomotive loco : locos) loco.setSpeed(speed);
-		plan.stream(t("Set {} to {} km/h",this,speed));
+		plan.stream(t("Set {} to {} {}",this,speed,speedUnit));
 	}
-	
+
 	public void setWaitTime(Range waitTime) {
 		if (isNull(autopilot)) return; 
 		autopilot.waitTime = waitTime.random();

@@ -14,26 +14,26 @@ import de.srsoftware.web4rail.tags.Label;
 public class SetSpeed extends Action{
 
 	public static final String MAX_SPEED = "max_speed";
-	private int maxSpeed = 0;
+	private int speed = 0;
 
 	@Override
 	public boolean fire(Context context) {
 		if (isNull(context.train)) return false;
-		context.train.setSpeed(maxSpeed);
+		context.train.setSpeed(speed);
 		return true;
 	}
 	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
-		json.put(MAX_SPEED, maxSpeed);
+		json.put(MAX_SPEED, speed);
 		return json;
 	}
 	
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		maxSpeed = json.getInt(MAX_SPEED);
+		speed = json.getInt(MAX_SPEED);
 		return this;	
 	}
 	
@@ -46,7 +46,7 @@ public class SetSpeed extends Action{
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
 		Label label = new Label(t("Set speed to")+NBSP);
-		new Input(MAX_SPEED, maxSpeed).numeric().addTo(label).content(NBSP+t("km/h"));
+		new Input(MAX_SPEED, speed).numeric().addTo(label).content(NBSP+speedUnit);
 		label.addTo(form);
 		new Button(t("Apply"),form).addTo(form).addTo(win);		
 		return win;
@@ -54,11 +54,11 @@ public class SetSpeed extends Action{
 	
 	@Override
 	public String toString() {
-		return t("Set speed to {} km/h",maxSpeed);
+		return t("Set speed to {} {}",speed,speedUnit);
 	}
 	
-	public SetSpeed to(int kmh) {
-		maxSpeed = kmh;
+	public SetSpeed to(int newSpeed) {
+		speed = newSpeed;
 		return this;
 	}
 
@@ -74,7 +74,7 @@ public class SetSpeed extends Action{
 				int s = Integer.parseInt(ms);
 				if (s<0) error = t("Speed must not be less than zero!");
 				if (error == null) {
-					this.maxSpeed = s;
+					this.speed = s;
 					return t("Action updated!");
 				}
 			} catch (NumberFormatException e) {
