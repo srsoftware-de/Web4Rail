@@ -25,6 +25,7 @@ import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.actions.FinishRoute;
+import de.srsoftware.web4rail.actions.PreserveRoute;
 import de.srsoftware.web4rail.actions.SetSignal;
 import de.srsoftware.web4rail.actions.SetSpeed;
 import de.srsoftware.web4rail.conditions.Condition;
@@ -157,7 +158,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		new Tag("h4").content(t("Origin and destination")).addTo(win);
 		Tag list = new Tag("ul");
 		Plan.addLink(startBlock, t("Origin: {} to {}",startBlock.name,startDirection), list);
-		Plan.addLink(endBlock, t("Destination: {} from {}",endBlock.name,endDirection), list);
+		Plan.addLink(endBlock, t("Destination: {} from {}",endBlock.name,endDirection.inverse()), list);
 		list.addTo(win);
 		
 
@@ -316,7 +317,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
 			Contact nextToLastContact = contacts.get(contacts.size()-2);
 			String trigger = nextToLastContact.trigger();
-			add(trigger,new SetSpeed().to(30));
+			add(trigger,new SetSpeed().to(50));
+			add(trigger,new PreserveRoute());
 			for (Signal signal : signals) add(trigger,new SetSignal().set(signal).to(Signal.STOP));
 		}
 		if (!contacts.isEmpty()) {
@@ -385,12 +387,12 @@ public class Route extends BaseClass implements Comparable<Route>{
 		}
 		if (isSet(train)) { 
 			train.set(endBlock);
-			train.heading(endDirection.inverse());
+			train.heading(endDirection);
 			if (endBlock == train.destination()) {
 				train.destination(null).quitAutopilot();
 				plan.stream(t("{} reached it`s destination!",train));
 			} else {
-				train.setWaitTime(endBlock.getWaitTime(train));
+				train.setWaitTime(endBlock.getWaitTime(train,train.direction()));
 			}
 			if (train.route == this) train.route = null;
 		}
@@ -408,13 +410,13 @@ public class Route extends BaseClass implements Comparable<Route>{
 			Tile tile = path.get(i);
 			if (i>0) sb.append("-");
 			if (tile instanceof Block) {
-				sb.append(((Block)tile).name);
+				sb.append(" ").append(((Block)tile).name).append(" ");
 				if (i>0) break; // Kontakt nach dem Ziel-Block nicht mitnehmen
 			} else {
-				sb.append(tile.id());
+				sb.append("("+tile.x+","+tile.y+")");
 			}
 		}
-		return sb.toString();
+		return sb.toString().trim();
 	}
 	
 	public int id() {
@@ -551,9 +553,16 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	public boolean lock() {
+		return lockIgnoring(null);
+	}
+	
+	public boolean lockIgnoring(Route ignoredRoute) {
 		Vector<Tile> alreadyLocked = new Vector<Tile>();
+		HashSet<Tile> ignoredPath = new HashSet<Tile>();
+		if (isSet(ignoredRoute)) ignoredPath.addAll(ignoredRoute.path);
 		boolean success = true;
 		for (Tile tile : path) {
+			if (ignoredPath.contains(tile)) continue;
 			try {
 				tile.setRoute(this);
 			} catch (IllegalStateException e) {
@@ -583,7 +592,9 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 
 	public void name(String name) {
-		names.put(id(),name);
+		if (name.isEmpty()) {
+			names.remove(id());
+		} else names.put(id(),name);
 	}
 	
 	public Vector<Tile> path() {

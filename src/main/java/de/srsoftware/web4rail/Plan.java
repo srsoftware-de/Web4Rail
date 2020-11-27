@@ -244,7 +244,9 @@ public class Plan extends BaseClass{
 	private String analyze() {
 		Vector<Route> routes = new Vector<Route>();
 		for (Block block : blocks) {
-			for (Connector con : block.startPoints()) routes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
+			for (Connector con : block.startPoints()) {
+				routes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
+			}
 		}
 		for (Tile tile : tiles.values()) tile.routes().clear();
 		for (Route route : routes) registerRoute(route.complete());
@@ -287,7 +289,7 @@ public class Plan extends BaseClass{
 		Tile tile = get(Tile.id(connector.x,connector.y),false);
 		Vector<Route> results = new Vector<>();
 		if (tile == null) return results;
-		Tile addedTile = route.add(tile,connector.from);
+		Tile addedTile = route.add(tile,connector.from.inverse());
 		if (addedTile instanceof Block) {
 			Map<Connector, State> cons = addedTile.connections(connector.from);
 			LOG.debug("Found {}, coming from {}.",addedTile,connector.from);
@@ -296,7 +298,7 @@ public class Plan extends BaseClass{
 				Tile nextTile = get(Tile.id(con.x,con.y),false);
 				if (nextTile instanceof Contact) {
 					LOG.debug("{} is followed by {}",addedTile,nextTile);
-					route.add(nextTile, con.from);
+					route.add(nextTile, con.from.inverse());
 				}
 				break;
 			}
@@ -622,13 +624,11 @@ public class Plan extends BaseClass{
 	 * @return
 	 */
 	Route registerRoute(Route newRoute) {
-		for (Tile tile: newRoute.path()) {
-			if (isSet(tile)) tile.add(newRoute);
-		}
-		int routeId = newRoute.id();
-		Route existingRoute = routes.get(routeId);
+		newRoute.path().stream().filter(Tile::isSet).forEach(tile -> tile.add(newRoute));
+		int newRouteId = newRoute.id();
+		Route existingRoute = routes.get(newRouteId);
 		if (isSet(existingRoute)) newRoute.addPropertiesFrom(existingRoute);
-		routes.put(routeId, newRoute);
+		routes.put(newRouteId, newRoute);
 		return newRoute;
 	}
 	

@@ -13,15 +13,16 @@ import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Plan;
+import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
-import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Table;
+import de.srsoftware.web4rail.tiles.Block;
 
 public class Locomotive extends Car implements Constants,Device{
 	
@@ -76,16 +77,18 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	public static Tag cockpit(Object locoOrTrain) {
-		String realm = null;
 		int id = 0;
 		int speed = 0;
+		String realm = null;
+		Train train = null;
+		Locomotive loco = null;
 		if (locoOrTrain instanceof Locomotive) {
-			Locomotive loco = (Locomotive) locoOrTrain; 
+			loco = (Locomotive) locoOrTrain; 
 			realm = REALM_LOCO;
 			id = loco.id();
 			speed = loco.speed;
 		} else if (locoOrTrain instanceof Train) {
-			Train train = (Train)locoOrTrain;
+			train = (Train)locoOrTrain;
 			realm = REALM_TRAIN;			
 			id = train.id;
 			speed = train.speed;
@@ -95,7 +98,7 @@ public class Locomotive extends Car implements Constants,Device{
 		
 		Fieldset fieldset = new Fieldset(t("Control"));
 		
-		new Tag("span").content(t("Current velocity: {} {}",speed)).addTo(fieldset);
+		new Tag("span").content(t("Current velocity: {} {}",speed,speedUnit)).addTo(fieldset);
 		
 		Tag par = new Tag("p");
 		Map.of("Slower (10 steps)",ACTION_SLOWER10,"Faster (10 steps)",ACTION_FASTER10).entrySet().forEach(e -> {
@@ -105,10 +108,30 @@ public class Locomotive extends Car implements Constants,Device{
 		par.addTo(fieldset);
 
 		Tag direction = new Tag("p");
-		Map.of("Turn",ACTION_TURN,"Stop",ACTION_STOP).entrySet().forEach(e -> {
-			params.put(ACTION, e.getValue());
-			new Button(t(e.getKey()),params).clazz(e.getValue()).addTo(direction);			
-		});
+		if ((isSet(train) && train.speed > 0) || (isSet(loco) && loco.speed > 0)) {
+			params.put(ACTION, ACTION_STOP);
+			new Button(t("Stop"),params).clazz(ACTION_STOP).addTo(direction);			
+		}
+
+		params.put(ACTION, ACTION_TURN);
+		new Button(t("Turn"),params).clazz(ACTION_TURN).addTo(direction);			
+
+		if (isSet(train)) {
+			Block currentBlock = train.currentBlock();
+			if (isSet(currentBlock)) {
+				if (isNull(train.route)) {
+					params.put(ACTION, ACTION_START);
+					new Button(t("start"),params).addTo(direction);
+				}
+				if (train.usesAutopilot()) {
+					params.put(ACTION, ACTION_QUIT);
+					new Button(t("quit autopilot"),params).addTo(direction);
+				} else {
+					params.put(ACTION, ACTION_AUTO);
+					new Button(t("auto"),params).addTo(direction);
+				}
+			}
+		}
 		direction.addTo(fieldset);
 		
 		Tag functions = new Tag("p");
@@ -117,6 +140,8 @@ public class Locomotive extends Car implements Constants,Device{
 			new Button(t(e.getKey()),params).addTo(functions);			
 		});
 		functions.addTo(fieldset);
+		
+
 		return fieldset.clazz("cockpit");
 	}
 	

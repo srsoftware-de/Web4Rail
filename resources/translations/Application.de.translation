@@ -108,6 +108,7 @@ other train properties : andere Zug-Eigenschaften
 Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
 Plan saved as "{}". : Plan als „{}“ gespeichert.
+PreserveRoute : Anschlußroute vorwählen
 Properties : Eigenschaften
 Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})

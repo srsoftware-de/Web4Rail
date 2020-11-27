@@ -122,7 +122,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 	
 	@Override
 	public Object click() throws IOException {
-		if (isSet(train)) return train.props();
+		if (isSet(train)) return train.properties();
 		return super.click();
 	}
 	
@@ -165,13 +165,13 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		return null;
 	}
 
-	public Range getWaitTime(Train train) {
+	public Range getWaitTime(Train train,Direction dir) {
 		for (WaitTime wt : waitTimes) {
 			if (train.tags().contains(wt.tag)) {
 				return wt.get(train.direction());
 			}
 		}
-		return getWaitTime(NO_TAG).get(train.direction());
+		return getWaitTime(NO_TAG).get(dir);
 	}
 		
 	@Override

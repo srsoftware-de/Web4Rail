@@ -80,6 +80,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private Block currentBlock,destination = null;
 	LinkedList<Tile> trace = new LinkedList<Tile>();
+	
+	private String brakeId = null; 
 			
 	private class Autopilot extends Thread{
 		boolean stop = false;
@@ -108,6 +110,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Autopilot autopilot = null;
 
 	private Plan plan;
+
+	private Route nextRoute;
 	
 	public Train(Locomotive loco) {
 		this(loco,null);
@@ -147,7 +151,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_MOVE:
 				return train.setDestination(params);
 			case ACTION_PROPS:
-				return train.props();
+				return train.properties();
 			case ACTION_QUIT:
 				return train.quitAutopilot();
 			case ACTION_SLOWER10:
@@ -182,11 +186,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (!params.containsKey(CAR_ID)) return t("No car id passed to Train.addCar!");
 		Car car = Car.get(params.get(CAR_ID));
 		if (isNull(car)) return t("No car with id \"{}\" known!",params.get(CAR_ID));
-		if (car instanceof Locomotive) {
-			locos.add((Locomotive) car);
-		} else cars.add(car);
-		car.train(this);
-		return props();
+		add(car);
+		return properties();
 	}
 
 	public void add(Car car) {
@@ -194,6 +195,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (car instanceof Locomotive) {
 			locos.add((Locomotive) car);
 		} else cars.add(car);
+		brakeId = null;
 		car.train(this);
 	}
 	
@@ -203,6 +205,17 @@ public class Train extends BaseClass implements Comparable<Train> {
 			autopilot.start();
 		}
 		return t("{} now in auto-mode",this);
+	}
+	
+	public String brakeId() {
+		if (isNull(brakeId)) {
+			TreeSet<Integer> carIds = new TreeSet<Integer>();
+			locos.stream().map(loco -> loco.id()).forEach(carIds::add);
+			cars.stream().map(car -> car.id()).forEach(carIds::add);
+			brakeId = md5sum(carIds);
+			LOG.debug("generated new brake id for {}: {}",brakeId,this);
+		}
+		return brakeId;
 	}
 	
 	private Tag carList() {
@@ -291,10 +304,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		Locomotive loco = Locomotive.get(params.get(LOCO_ID));
 		if (isSet(loco)) {
-			locos.remove(loco);
+			locos.remove(loco);			
 			loco.train(null);
 		}
-		return props();
+		brakeId = null;
+		return properties();
 	}
 	
 	public void dropTrace() {
@@ -303,7 +317,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	private Tag faster(int steps) {
 		setSpeed(speed+steps);
-		return props();
+		return properties();
 	}
 		
 	public static Train get(int id) {
@@ -502,7 +516,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 	
-	public Tag props() {
+	public Tag properties() {
 		Window window = new Window("train-properties",t("Properties of {}",this));
 		
 		Locomotive.cockpit(this).addTo(window);
@@ -595,6 +609,22 @@ public class Train extends BaseClass implements Comparable<Train> {
 		trace.remove(tile);		
 	}
 	
+	public void reserveNext() {
+		Context context = new Context(null, route, this, route.endBlock(), route.endDirection);
+		Route nextRoute = PathFinder.chooseRoute(context);
+		
+		boolean error = !nextRoute.lockIgnoring(route);
+		error = error || !nextRoute.setTurnouts();
+		error = error || !route.fireSetupActions(context);
+
+		if (error) {
+			nextRoute.reset(); // may unlock tiles belonging to the current route. 
+			route.lock(); // corrects unlocked tiles of nextRoute
+		} else {
+			this.nextRoute = nextRoute;
+		}
+	}
+	
 	private void reverseTrace() {
 		LinkedList<Tile> reversed = new LinkedList<Tile>();
 		LOG.debug("Trace: {}",trace);
@@ -680,23 +710,28 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	private Tag slower(int steps) {
 		setSpeed(speed-steps);
-		return props();
+		return properties();
 	}
 
 	public String start() throws IOException {
 		if (isNull(currentBlock)) return t("{} not in a block",this);
 		if (isSet(route)) route.reset(); // reset route previously chosen
-		
+
 		Context context = new Context(this);
-		route = PathFinder.chooseRoute(context);
-		if (isNull(route)) return t("No free routes from {}",currentBlock);		
-		if (!route.lock()) return t("Was not able to lock {}",route);
-		
+		String error = null;
+		if (isSet(nextRoute)) {
+			route = nextRoute;
+			if (!route.lock()) return t("Was not able to lock {}",route);
+			nextRoute = null;
+		} else {
+			route = PathFinder.chooseRoute(context);
+			if (isNull(route)) return t("No free routes from {}",currentBlock);
+			if (!route.lock()) return t("Was not able to lock {}",route);
+			if (!route.setTurnouts()) error = t("Was not able to set all turnouts!");
+			if (isNull(error) && !route.fireSetupActions(context)) error = t("Was not able to fire all setup actions of route!");
+		}
 		if (direction != route.startDirection) turn();
 		
-		String error = null;
-		if (!route.setTurnouts()) error = t("Was not able to set all turnouts!");
-		if (isNull(error) && !route.fireSetupActions(context)) error = t("Was not able to fire all setup actions of route!");
 		if (isNull(error) && !route.train(this)) error = t("Was not able to assign {} to {}!",this,route);
 		if (isSet(error)) {
 			route.reset();
@@ -746,11 +781,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Object stopNow() {
 		quitAutopilot();
 		setSpeed(0);
+		if (isSet(nextRoute)) {
+			nextRoute.reset();
+			nextRoute = null;
+		}
 		if (isSet(route)) {
 			route.reset();
 			route = null;
 		}
-		return props();
+		
+		return properties();
 	}
 	
 	private static String t(String message, Object...fills) {
@@ -778,7 +818,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			reverseTrace();
 			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
-		return props();
+		return properties();
 	}
 
 	public Train update(HashMap<String, String> params) {

@@ -40,7 +40,7 @@ public abstract class Action extends BaseClass {
 		public Block block = null;
 		public Direction direction = null;
 		
-		private Context(Contact c, Route r, Train t, Block b, Direction d) {
+		public Context(Contact c, Route r, Train t, Block b, Direction d) {
 			contact = c;
 			route = r;
 			train = t;
@@ -138,6 +138,7 @@ public abstract class Action extends BaseClass {
 			DelayedAction.class,
 			DetermineTrainInBlock.class,
 			FinishRoute.class,
+			PreserveRoute.class,
 			SendCommand.class,
 			SetDisplayText.class,
 			SetPower.class,

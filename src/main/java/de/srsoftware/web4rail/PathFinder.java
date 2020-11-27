@@ -71,7 +71,7 @@ public class PathFinder extends BaseClass{
 					LOG.debug("{}- Candidate: {}",inset,routeCandidate.shortName());
 					Context forwardContext = new Context(train);
 					forwardContext.block = routeCandidate.endBlock();
-					forwardContext.direction = routeCandidate.endDirection.inverse();
+					forwardContext.direction = routeCandidate.endDirection;
 					forwardContext.route = null;
 					visitedRoutes.add(routeCandidate);
 					TreeMap<Integer, List<Route>> forwardRoutes = availableRoutes(forwardContext,visitedRoutes);
