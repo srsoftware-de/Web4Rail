@@ -96,8 +96,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 						Thread.sleep(waitTime);
 						if (waitTime > 100) waitTime /=2;
 						if (stop) return;
-						Train.this.start();
-						if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
+						if (isNull(route)) { // may have been set by start action in between
+							Train.this.start();
+							if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
+						}						
 					} else Thread.sleep(250);
 				}
 			} catch (Exception e) {
