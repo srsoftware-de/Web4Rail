@@ -245,7 +245,7 @@ public class Plan extends BaseClass{
 		Vector<Route> routes = new Vector<Route>();
 		for (Block block : blocks) {
 			for (Connector con : block.startPoints()) {
-				routes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
+				routes.addAll(follow(new Route().begin(block,con.from),con));
 			}
 		}
 		for (Tile tile : tiles.values()) tile.routes().clear();

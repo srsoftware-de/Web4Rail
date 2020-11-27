@@ -598,9 +598,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public Object quitAutopilot() {
+		if (isSet(nextRoute)) {
+			nextRoute.reset();
+			nextRoute = null;
+		}
 		if (isSet(autopilot)) {
 			autopilot.stop = true;
-			autopilot = null;
+			autopilot = null;			
 			return t("{} stopping at next block.",this);
 		} else return t("autopilot not active.");
 	}
@@ -615,7 +619,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		boolean error = !nextRoute.lockIgnoring(route);
 		error = error || !nextRoute.setTurnouts();
-		error = error || !route.fireSetupActions(context);
+		error = error || !nextRoute.fireSetupActions(context);
 
 		if (error) {
 			nextRoute.reset(); // may unlock tiles belonging to the current route. 
