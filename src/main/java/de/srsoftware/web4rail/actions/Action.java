@@ -134,12 +134,16 @@ public abstract class Action extends BaseClass {
 	
 	public static List<Class<? extends Action>> list() {
 		return List.of(
+			BrakeStart.class,
+			BrakeStop.class,
+			BrakeCancel.class,
 			ConditionalAction.class,
 			DelayedAction.class,
 			DetermineTrainInBlock.class,
 			FinishRoute.class,
 			PreserveRoute.class,
 			SendCommand.class,
+			SetContextTrain.class,
 			SetDisplayText.class,
 			SetPower.class,
 			SetRelay.class,

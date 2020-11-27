@@ -26,23 +26,27 @@ Block {} is free : Block {} ist frei
 Block {} is occupied : Block {} ist belegt
 Block properties : Block-Eigenschaften
 {}bound : nach {}
+BrakeCancel : Bremsvorgang abbrechen
+BrakeStart : Bremsvorgang starten
+BrakeStop : Zug anhalten
 Car manager : Waggon-Verwaltung
 Cars\: : Waggons:
-Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
-ConditionalAction : bedingte Aktion
-Conditions : Bedingungen
-Condition type\: : Bedingungs-Typ:
-Control : Steuerung
-Control unit : Zentrale
-Current location\: : Aktueller Ort:
+Click here to select train! : HIer klicken, um Zug auszuwählen!
 [Click here to select block!] : [Hier klicken, um Block auszuwählen!]
 [Click here to add condition] : [Hier klicken, um Bedingung hinzuzufügen]
 [Click here to select display!] : [Hier klicken, um Anzeige auszuwählen!]
 [Click here to select train!] : [Hier klicken, um Zug auszuwählen!]
 click here to setup contact : Hier klicken, um Kontakt auszuwählen
 click here to setup relay : Hier klicken, um Relais einzurichten
+Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
 Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werden soll:
+ConditionalAction : bedingte Aktion
+Conditions : Bedingungen
+Condition type\: : Bedingungs-Typ:
+Control : Steuerung
+Control unit : Zentrale
 Create action : Aktion erzeugen
+Current location\: : Aktueller Ort:
 Current location : Aufenthaltsort
 Current location\: {} : Aufenthaltsort: {}
 Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {} 
@@ -64,6 +68,7 @@ Dropped destination of {}. : Ziel von {} verworfen.
 EAST : Osten
 editable train properties : veränderliche Zug-Eigenschaften
 Emergency : Notfall
+Faster (10 {}) : 10 {} schneller
 Firing {} : starte {}
 FinishRoute : Route abschließen
 Found {} routes. : {} Routen gefunden.
@@ -101,6 +106,7 @@ No : keine
 No free routes from {} : keine Route von {} frei
 NORTH : Norden
 {} now heading for {} : {} ist nun unterweg nach {}
+{} now in auto-mode : {} ist nun im Automatikmodus
 Occupied area\: : Belegte Abschnitte:
 Off : Aus
 On : An
@@ -132,6 +138,8 @@ Select relay\: : Relais auswählen:
 Select train\: : Zug auswählen:
 SendCommand : Kommando senden
 Send command "{}" to control unit : Kommando „{}“ an Zentrale senden
+Set {} as context : {} als Kontext setzen
+SetContextTrain : Zug für Folgeaktionen festlegen
 SetDisplayText : Anzeige-Text setzen
 SetRelay : Relais schalten
 SetSignal : Signal stellen
@@ -146,6 +154,7 @@ Setup actions : Vorbereitung-Aktionen
 ShowText : Text anzeigen
 Signals : Signale
 Simulating movement of {}... : Simuliere Fahrt von {}...
+Slower (10 {}) : 10 {} langsamer
 SOUTH : Süden
 Start actions : Start-Aktionen
 Stock ID : Inventarnummer

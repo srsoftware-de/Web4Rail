@@ -214,7 +214,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			TreeSet<Integer> carIds = new TreeSet<Integer>();
 			locos.stream().map(loco -> loco.id()).forEach(carIds::add);
 			cars.stream().map(car -> car.id()).forEach(carIds::add);
-			brakeId = md5sum(carIds);
+			brakeId = md5sum(carIds+":"+direction);
 			LOG.debug("generated new brake id for {}: {}",brakeId,this);
 		}
 		return brakeId;
@@ -598,6 +598,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void reserveNext() {
 		Context context = new Context(null, route, this, route.endBlock(), route.endDirection);
 		Route nextRoute = PathFinder.chooseRoute(context);
+		if (isNull(nextRoute)) return;
 		
 		boolean error = !nextRoute.lockIgnoring(route);
 		error = error || !nextRoute.setTurnouts();
@@ -608,6 +609,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			route.lock(); // corrects unlocked tiles of nextRoute
 		} else {
 			this.nextRoute = nextRoute;
+			this.route.brakeCancel();
 		}
 	}
 	
@@ -775,6 +777,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		if (isSet(route)) {
 			route.reset();
+			route.brakeCancel();
 			route = null;
 		}
 		

@@ -101,7 +101,7 @@ public class Locomotive extends Car implements Constants,Device{
 		new Tag("span").content(t("Current velocity: {} {}",speed,speedUnit)).addTo(fieldset);
 		
 		Tag par = new Tag("p");
-		Map.of("Slower (10 steps)",ACTION_SLOWER10,"Faster (10 steps)",ACTION_FASTER10).entrySet().forEach(e -> {
+		Map.of(t("Slower (10 {})",speedUnit),ACTION_SLOWER10,t("Faster (10 {})",speedUnit),ACTION_FASTER10).entrySet().forEach(e -> {
 			params.put(ACTION, e.getValue());
 			new Button(t(e.getKey()),params).addTo(par);			
 		});

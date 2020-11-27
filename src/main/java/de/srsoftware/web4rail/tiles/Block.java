@@ -122,7 +122,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 	
 	@Override
 	public Object click() throws IOException {
-		if (isSet(train)) return train.properties();
+		if (isSet(train) && train.currentBlock() == this) return train.properties();
 		return super.click();
 	}
 	

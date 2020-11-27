@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +25,8 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ActionList;
+import de.srsoftware.web4rail.actions.BrakeStart;
+import de.srsoftware.web4rail.actions.BrakeStop;
 import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.PreserveRoute;
 import de.srsoftware.web4rail.actions.SetSignal;
@@ -54,6 +57,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 
 	private static final String ACTIONS = "actions";
 	private static final String ACTION_LISTS = "action_lists";
+	private static final String BRAKE_TIMES = "brake_times";
 	private static final String CONDITIONS = "conditions";
 	private static final String DROP_CONDITION = "drop_condition";
   	private static final String END_DIRECTION   = "direction_end";
@@ -66,9 +70,68 @@ public class Route extends BaseClass implements Comparable<Route>{
 	static final String PATH     = "path";
 	static final String SIGNALS  = "signals";
 	static final String TURNOUTS = "turnouts";
-
+	
 	private static HashMap<Integer, String> names = new HashMap<Integer, String>(); // maps id to name. needed to keep names during plan.analyze()
+	
+	private class BrakeProcessor extends Thread {
+		private int startSpeed;
+		private long timestamp;
+		private int timeStep;
+		private Route route;
+		private Train train;
+		private boolean aborted = false;
+		private static final int ENDSPEED = 5;
+		
+		public BrakeProcessor(Route route, Train train, Integer timestep) {
+			startSpeed = train.speed;			
+			this.timeStep = isNull(timestep) ? 100 : timestep;
+			this.route = route;
+			this.train = train;
+			start();
+		}
 
+		public void abort() {
+			aborted = true;
+			train.setSpeed(startSpeed);
+		}
+		
+		public void finish() {
+			long timestamp2 = new Date().getTime();
+			//int remainingSpeed = train.speed;
+			train.setSpeed(0);
+			if (aborted) return;
+			long runtime = timestamp2 - timestamp;
+			int newTimeStep = 5*(int) runtime/(startSpeed - ENDSPEED);
+			
+			int diff = newTimeStep - timeStep;
+			int absDiff = diff < 0 ? -diff : diff;
+			if (absDiff > timeStep/4) absDiff=timeStep/4;
+			newTimeStep = diff < 0 ? timeStep - absDiff : timeStep + absDiff;			
+			
+			if (newTimeStep != timeStep) {
+				route.brakeTimes.put(train.brakeId(),newTimeStep);
+				LOG.debug("Corrected brake timestep for {} @ {} from {} to {} ms.",train,route,timeStep,newTimeStep);
+			}
+		}
+
+		@Override
+		public void run() {
+			timestamp = new Date().getTime();
+			if (train.speed == 0) aborted = true;
+			while (train.speed > ENDSPEED) {
+				if (aborted) break;
+				train.setSpeed(train.speed - 5);
+				try {
+					sleep(timeStep);
+				} catch (InterruptedException e) {
+					LOG.warn("BrakeProcessor interrupted!", e);
+				}
+			}
+		}
+	}
+
+	private BrakeProcessor				   brakeProcessor = null;
+	private HashMap<String,Integer>        brakeTimes = new HashMap<String, Integer>();
 	private Vector<Condition>              conditions = new Vector<Condition>();
 	private Vector<Contact>                contacts;
 	private boolean                        disabled = false;
@@ -248,6 +311,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 				newActionList.addActionsFrom(existingActionList);
 			}			
 		}
+		brakeTimes = new HashMap<String, Integer>(existingRoute.brakeTimes);
 	}
 	
 	void addSignal(Signal signal) {
@@ -295,6 +359,20 @@ public class Route extends BaseClass implements Comparable<Route>{
 		return this;
 	}
 	
+	public void brakeCancel() {
+		if (isSet(brakeProcessor)) brakeProcessor.abort();		
+	}
+
+	public void brakeStart() {
+		if (isNull(train)) return;
+		Integer brakeTime = brakeTimes.get(train.brakeId());
+		brakeProcessor = new BrakeProcessor(this,train,brakeTime);
+	}
+	
+	public void brakeStop() {
+		if (isSet(brakeProcessor)) brakeProcessor.finish();
+	}
+
 	protected Route clone() {
 		Route clone = new Route();
 		clone.startBlock = startBlock;
@@ -305,6 +383,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		clone.signals = new Vector<Signal>(signals);
 		clone.turnouts = new HashMap<>(turnouts);
 		clone.path = new Vector<>(path);
+		clone.brakeTimes = new HashMap<String, Integer>(brakeTimes);
 		return clone;
 	}
 
@@ -317,17 +396,17 @@ public class Route extends BaseClass implements Comparable<Route>{
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
 			Contact nextToLastContact = contacts.get(contacts.size()-2);
 			String trigger = nextToLastContact.trigger();
-			add(trigger,new SetSpeed().to(50));
+			add(trigger,new BrakeStart());
 			add(trigger,new PreserveRoute());
 			for (Signal signal : signals) add(trigger,new SetSignal().set(signal).to(Signal.STOP));
 		}
 		if (!contacts.isEmpty()) {
 			Contact lastContact = contacts.lastElement(); 
-			add(lastContact.trigger(), new SetSpeed()); 
+			add(lastContact.trigger(), new BrakeStop()); 
 			add(lastContact.trigger(), new FinishRoute());
 		}
 		for (Signal signal : signals) setupActions.add(new SetSignal().set(signal).to(Signal.GO));
-		startActions.add(new SetSpeed().to(100));
+		startActions.add(new SetSpeed().to(999));
 		return this;
 	}
 
@@ -456,6 +535,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 		json.put(START_DIRECTION, startDirection);
 		json.put(END_DIRECTION, endDirection);
 		
+		json.put(BRAKE_TIMES, brakeTimes);
+		
 		JSONArray jConditions = new JSONArray();
 		for (Condition condition : conditions) jConditions.put(condition.json());
 		if (!jConditions.isEmpty()) json.put(CONDITIONS, jConditions);
@@ -521,6 +602,10 @@ public class Route extends BaseClass implements Comparable<Route>{
 		if (json.has(SETUP_ACTIONS)) setupActions = ActionList.load(json.getJSONArray(SETUP_ACTIONS));
 		if (json.has(START_ACTIONS)) startActions = ActionList.load(json.getJSONArray(START_ACTIONS));
 		if (json.has(DISABLED)) disabled = json.getBoolean(DISABLED);
+		if (json.has(BRAKE_TIMES)) {
+			JSONObject dummy = json.getJSONObject(BRAKE_TIMES);
+			dummy.keySet().forEach(key -> brakeTimes.put(key, dummy.getInt(key)));
+		}
 		return plan.registerRoute(this);
 	}
 	
