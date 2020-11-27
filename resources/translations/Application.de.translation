@@ -100,6 +100,7 @@ new train : neuer Zug
 No : keine
 No free routes from {} : keine Route von {} frei
 NORTH : Norden
+{} now heading for {} : {} ist nun unterweg nach {}
 Occupied area\: : Belegte Abschnitte:
 Off : Aus
 On : An

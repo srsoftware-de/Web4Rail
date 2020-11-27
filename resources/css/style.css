@@ -280,3 +280,10 @@ svg.disabled rect{
 .cockpit .stop{
 	min-width: 150px;
 }
+
+fieldset.notes{
+	min-width: 50%
+}
+fieldset.notes textarea{
+	min-width: 100%;
+}

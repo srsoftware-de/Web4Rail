@@ -28,6 +28,7 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Table;
+import de.srsoftware.web4rail.tags.TextArea;
 
 public class Car extends BaseClass implements Comparable<Car>{
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
@@ -47,6 +48,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	private Train train;
 	protected Plan plan;
 	protected int maxSpeed = 0;
+	private String notes;
 	
 	public Car(String name) {
 		this(name,null);
@@ -70,7 +72,9 @@ public class Car extends BaseClass implements Comparable<Car>{
 
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
-				new Car(params.get(Car.NAME)).plan(plan);
+				if (isSet(car)) {
+					car.clone().plan(plan);
+				} else new Car(params.get(Car.NAME)).plan(plan);
 				return Car.manager();
 			case ACTION_PROPS:
 				return car == null ? Car.manager() : car.properties();
@@ -80,6 +84,19 @@ public class Car extends BaseClass implements Comparable<Car>{
 		}
 		if (car instanceof Locomotive) return Locomotive.action(params,plan);
 		return t("Unknown action: {}",params.get(ACTION));
+	}
+	
+	public Car clone() {
+		Car clone = new Car(name);
+		clone.maxSpeed = maxSpeed;
+		clone.length = length;
+		clone.tags = new HashSet<String>(tags);
+		clone.notes = notes;
+		return clone;
+	}
+
+	private Button cloneButton() {
+		return new Button(t("copy"),Map.of(REALM,REALM_CAR,ID,id(),ACTION,ACTION_ADD));
 	}
 
 	public static Car get(Object id) {		
@@ -97,6 +114,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		json.put(NAME, name);
 		json.put(LENGTH, length);
 		if (maxSpeed != 0) json.put(MAX_SPEED, maxSpeed);
+		if (isSet(notes) && !notes.isEmpty()) json.put(NOTES, notes);
 		json.put(STOCK_ID, stockId);
 		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;
@@ -143,6 +161,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		if (json.has(ID)) id = json.getInt(ID);
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
 		if (json.has(MAX_SPEED)) maxSpeed = json.getInt(MAX_SPEED);
+		if (json.has(NOTES)) notes = json.getString(NOTES);
 		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
 		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
 		return this;
@@ -153,8 +172,18 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Tag("h4").content(t("known cars")).addTo(win);
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
-		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Length"),t("Tags"));
-		cars.values().stream().filter(car -> !(car instanceof Locomotive)).forEach(car -> table.addRow(car.stockId,car.maxSpeed == 0 ? "–":(car.maxSpeed+NBSP+speedUnit),car.link(),car.length,String.join(", ", car.tags())));
+		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Length"),t("Tags"),t("Actions"));
+		cars.values()
+			.stream()
+			.filter(car -> !(car instanceof Locomotive))
+			.forEach(car -> table.addRow(
+					car.stockId,
+					car.link(),
+					car.maxSpeed == 0 ? "–":(car.maxSpeed+NBSP+speedUnit),
+					car.length,
+					String.join(", ", car.tags()),
+					car.cloneButton()
+			));
 		table.addTo(win);
 		
 		Form form = new Form("add-car-form");
@@ -166,7 +195,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		fieldset.addTo(form).addTo(win);
 		return win;
 	}
-	
+
 	public int maxSpeed() {
 		return maxSpeed;
 	}
@@ -196,6 +225,9 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(fieldset);
 		new Input(MAX_SPEED, maxSpeed).numeric().addTo(new Label(t("Maximum speed")+":"+NBSP)).content(NBSP+speedUnit).addTo(fieldset);
 		fieldset.addTo(form);
+		
+		fieldset = new Fieldset(t("Notes"));
+		new TextArea(NOTES,notes).addTo(fieldset.clazz("notes")).addTo(form);
 		return form;
 	}
 	
@@ -243,7 +275,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 
 	public Car update(HashMap<String, String> params) {
-		if (params.containsKey(NAME)) name = params.get(NAME);
+		if (params.containsKey(NAME)) name = params.get(NAME).trim();
+		if (params.containsKey(NOTES)) notes = params.get(NOTES).trim();
 		if (params.containsKey(LENGTH)) length = Integer.parseInt(params.get(LENGTH));
 		if (params.containsKey(MAX_SPEED)) maxSpeed  = Integer.parseInt(params.get(MAX_SPEED));
 		if (params.containsKey(STOCK_ID)) stockId  = params.get(STOCK_ID);

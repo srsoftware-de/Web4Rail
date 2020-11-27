@@ -56,6 +56,7 @@ public interface Constants {
 	public static final String  GITHUB_URL = "https://github.com/srsoftware-de/Web4Rail";
 	public static final String  ID = "id";
 	public static final String  NBSP = "&nbsp;";
+	public static final String  NOTES = "notes";
 	public static final String  PORT = "port";
 	public static final String  TYPE = "type";
 	public static final Charset UTF8 = StandardCharsets.UTF_8;
