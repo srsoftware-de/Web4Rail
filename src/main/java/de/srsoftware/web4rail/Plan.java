@@ -592,6 +592,11 @@ public class Plan extends BaseClass{
 	}
 	
 	private Window properties(HashMap<String, String> params) {
+		if (params.containsKey(ID)) {
+			Tile tile = get(params.get(ID), true);
+			if (isSet(tile)) return tile.propMenu();
+		}
+		
 		Window win = new Window("plan-properties", t("Properties"));
 		Form form = new Form("plan-properties-form");
 		new Input(REALM,REALM_PLAN).hideIn(form);

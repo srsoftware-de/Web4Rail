@@ -121,6 +121,12 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 	private Vector<WaitTime> waitTimes = new Vector<WaitTime>();
 	
 	@Override
+	public Object click() throws IOException {
+		if (isSet(train)) return train.props();
+		return super.click();
+	}
+	
+	@Override
 	public int compareTo(Block other) {
 		return name.compareTo(other.name);
 	}
@@ -189,7 +195,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 	public Tag link(String...args) {
 		String tx = args.length<1 ? name+NBSP : args[0];
 		String type = args.length<2 ? "span" : args[1];
-		return link(type, Map.of(REALM,REALM_PLAN,ID,id(),ACTION,ACTION_CLICK), tx);
+		return link(type, Map.of(REALM,REALM_PLAN,ID,id(),ACTION,ACTION_PROPS), tx).clazz("link","block");
 	}
 	
 	@Override

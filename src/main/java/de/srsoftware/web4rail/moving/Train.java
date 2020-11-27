@@ -531,7 +531,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		HashMap<String, Object> props = new HashMap<String,Object>(Map.of(REALM,REALM_TRAIN,ID,id));
 		if (isSet(currentBlock)) {
-			link("li",Map.of(REALM,REALM_PLAN,ID,currentBlock.id(),ACTION,ACTION_CLICK),t("Current location: {}",currentBlock)).addTo(propList);
+			currentBlock.link(currentBlock.toString(),"span").addTo(new Tag("li").content(t("Current location:")+NBSP)).addTo(propList);
 			Tag actions = new Tag("li").clazz().content(t("Actions:")+NBSP);
 			if (isSet(route)) {
 				props.put(ACTION, ACTION_STOP);
