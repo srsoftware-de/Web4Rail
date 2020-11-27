@@ -542,30 +542,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		locoList().addTo(propList);
 		carList().addTo(propList);
 		
-		int ms = maxSpeed();
-		if (ms < Integer.MAX_VALUE) new Tag("li").content(t("Max. Speed")+": "+maxSpeed()+NBSP+speedUnit).addTo(propList);
-		
-		HashMap<String, Object> props = new HashMap<String,Object>(Map.of(REALM,REALM_TRAIN,ID,id));
-		if (isSet(currentBlock)) {
-			currentBlock.link(currentBlock.toString(),"span").addTo(new Tag("li").content(t("Current location:")+NBSP)).addTo(propList);
-			Tag actions = new Tag("li").clazz().content(t("Actions:")+NBSP);
-			if (isSet(route)) {
-				props.put(ACTION, ACTION_STOP);
-				new Button(t("stop"),props).addTo(actions);
-			} else {
-				props.put(ACTION, ACTION_START);
-				new Button(t("start"),props).addTo(actions);
-			}
-			if (isNull(autopilot)) {
-				props.put(ACTION, ACTION_AUTO);
-				new Button(t("auto"),props).addTo(actions);
-			} else {
-				props.put(ACTION, ACTION_QUIT);
-				new Button(t("quit autopilot"),props).addTo(actions);
-			}
-			actions.addTo(propList);
-		}
-		
+		if (isSet(currentBlock)) currentBlock.link(currentBlock.toString(),"span").addTo(new Tag("li").content(t("Current location:")+NBSP)).addTo(propList);
+		if (isSet(direction)) new Tag("li").content(t("Direction: heading {}",direction)).addTo(propList);
+
 		Tag dest = new Tag("li").content(t("Destination:")+NBSP);
 		if (isNull(destination)) {
 			new Button(t("Select from plan"),"return selectDest("+id+");").addTo(dest);			
@@ -578,7 +557,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(route)) {
 			link("li", Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_PROPS), route).addTo(propList);
 		}
-		if (isSet(direction)) new Tag("li").content(t("Direction: heading {}",direction)).addTo(propList);
+		int ms = maxSpeed();
+		if (ms < Integer.MAX_VALUE) new Tag("li").content(t("Max. Speed")+": "+maxSpeed()+NBSP+speedUnit).addTo(propList);
 		
 		SortedSet<String> allTags = tags();
 		if (!allTags.isEmpty()) {
@@ -677,6 +657,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(tile)) return t("Tile {} not known!",dest);
 		if (tile instanceof Block) {
 			destination = (Block) tile;
+			automatic();
 			return t("{} now heading for {}",this,destination);
 		}
 		return t("{} is not a block!",tile);
@@ -721,6 +702,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String start() throws IOException {
 		if (isNull(currentBlock)) return t("{} not in a block",this);
+		if (maxSpeed() == 0) return t("Train has maximum speed of 0 {}, cannot go!",speedUnit);
 		if (isSet(route)) route.reset(); // reset route previously chosen
 
 		Context context = new Context(this);

@@ -290,7 +290,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		path = new Vector<Tile>();
 		turnouts = new HashMap<>();
 		startBlock = block;
-		startDirection = from.inverse();
+		startDirection = from;
 		path.add(block);
 		return this;
 	}

@@ -283,7 +283,7 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	private void queue() {
-		int step = proto.steps * speed / maxSpeed; 
+		int step = proto.steps * speed / (maxSpeed == 0 ? 100 : maxSpeed); 
 		plan.queue(new Command("SET {} GL "+address+" "+(reverse?1:0)+" "+step+" "+proto.steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
 
 			@Override
@@ -303,7 +303,7 @@ public class Locomotive extends Car implements Constants,Device{
 		LOG.debug(this.detail()+".setSpeed({})",newSpeed);
 		init();
 		speed = newSpeed;
-		if (speed > maxSpeed()) speed = maxSpeed();
+		if (speed > maxSpeed && maxSpeed > 0) speed = maxSpeed();
 		if (speed < 0) speed = 0;
 		
 		queue();
