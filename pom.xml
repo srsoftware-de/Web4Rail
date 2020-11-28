@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.srsoftware</groupId>
 	<artifactId>web4rail</artifactId>
-	<version>1.1.6</version>
+	<version>1.1.7</version>
 	<name>Web4Rail</name>
 	<packaging>jar</packaging>
 	<description>Java Model Railway Control</description>

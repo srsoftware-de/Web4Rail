@@ -39,6 +39,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
@@ -76,17 +77,23 @@ public class Route extends BaseClass implements Comparable<Route>{
 	private class BrakeProcessor extends Thread {
 		private int startSpeed;
 		private long timestamp;
-		private int timeStep;
+		private Integer timeStep;
 		private Route route;
 		private Train train;
 		private boolean aborted = false;
+		private String brakeId;
 		private static final int ENDSPEED = 5;
 		
-		public BrakeProcessor(Route route, Train train, Integer timestep) {
-			startSpeed = train.speed;			
-			this.timeStep = isNull(timestep) ? 100 : timestep;
-			this.route = route;
+		public BrakeProcessor(Route route, Train train) {
 			this.train = train;
+			this.route = route;
+
+			startSpeed = train.speed;			
+			brakeId = train.brakeId();
+			
+			timeStep = brakeTimes.get(brakeId);
+			// if no brake time is available for this train, use the fastest brake time already known for this route:
+			if (isNull(timeStep)) timeStep = route.brakeTimes.values().stream().min(Integer::compare).orElse(100);
 			start();
 		}
 
@@ -109,7 +116,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 			newTimeStep = diff < 0 ? timeStep - absDiff : timeStep + absDiff;			
 			
 			if (newTimeStep != timeStep) {
-				route.brakeTimes.put(train.brakeId(),newTimeStep);
+				route.brakeTimes.put(brakeId,newTimeStep);
 				LOG.debug("Corrected brake timestep for {} @ {} from {} to {} ms.",train,route,timeStep,newTimeStep);
 			}
 		}
@@ -231,6 +238,19 @@ public class Route extends BaseClass implements Comparable<Route>{
 			for (Signal s : signals) Plan.addLink(s,s.toString(),list);
 			list.addTo(win);
 		}
+	}
+	
+	private void addBraketimesTo(Window win) {
+		new Tag("h4").content(t("Brake time table")).addTo(win);
+		Table table = new Table();
+		table.addHead(t("Train"),t("Brake time¹, forward"),t("Brake time¹, reverse"));
+		for (Train t : Train.list()) {
+			Integer fTime = brakeTimes.get(t.brakeId());			 
+			Integer rTime = brakeTimes.get(t.brakeId(true));
+			table.addRow(t,isSet(fTime)? fTime+NBSP+"ms" : "–",isSet(rTime)? fTime+NBSP+"ms" : "–");			
+		}
+		table.clazz("brake-times").addTo(win);
+		new Tag("p").content(t("1) Duration between 5 {} steps during brake process.",speedUnit)).addTo(win);
 	}
 	
 	private void addConditionsTo(Window win) {
@@ -365,8 +385,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 
 	public void brakeStart() {
 		if (isNull(train)) return;
-		Integer brakeTime = brakeTimes.get(train.brakeId());
-		brakeProcessor = new BrakeProcessor(this,train,brakeTime);
+		brakeProcessor = new BrakeProcessor(this,train);
 	}
 	
 	public void brakeStop() {
@@ -695,7 +714,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		addTurnoutsTo(win);
 		addConditionsTo(win);
 		addContactsTo(win);
-
+		addBraketimesTo(win);
 		return win;
 	}
 

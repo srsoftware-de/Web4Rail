@@ -28,7 +28,7 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	private static final String REVERSE = "reverse";
 	public static final String LOCOMOTIVE = "locomotive";
-	private boolean reverse = false;
+	boolean reverse = false;
 	private Protocol proto = Protocol.DCC128;
 	private int address = 3;
 	private int speed = 0;

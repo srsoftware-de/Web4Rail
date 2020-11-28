@@ -80,9 +80,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private Block currentBlock,destination = null;
 	LinkedList<Tile> trace = new LinkedList<Tile>();
-	
-	private String brakeId = null; 
-			
+				
 	private class Autopilot extends Thread{
 		boolean stop = false;
 		int waitTime = 100;
@@ -197,7 +195,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (car instanceof Locomotive) {
 			locos.add((Locomotive) car);
 		} else cars.add(car);
-		brakeId = null;
 		car.train(this);
 	}
 	
@@ -210,13 +207,15 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public String brakeId() {
-		if (isNull(brakeId)) {
-			TreeSet<Integer> carIds = new TreeSet<Integer>();
-			locos.stream().map(loco -> loco.id()).forEach(carIds::add);
-			cars.stream().map(car -> car.id()).forEach(carIds::add);
-			brakeId = md5sum(carIds+":"+direction);
-			LOG.debug("generated new brake id for {}: {}",brakeId,this);
-		}
+		return brakeId(false);
+	}
+	
+	public String brakeId(boolean reversed) {
+		TreeSet<String> carIds = new TreeSet<String>();
+		locos.stream().map(loco -> loco.id()+":"+(reversed != loco.reverse?"r":"f")).forEach(carIds::add);
+		cars.stream().map(car -> ""+car.id()).forEach(carIds::add);
+		String brakeId = md5sum(carIds);
+		LOG.debug("generated new brake id for {}: {}",this,brakeId);
 		return brakeId;
 	}
 	
@@ -309,7 +308,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 			locos.remove(loco);			
 			loco.train(null);
 		}
-		brakeId = null;
 		return properties();
 	}
 	

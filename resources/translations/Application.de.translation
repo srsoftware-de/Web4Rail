@@ -29,6 +29,9 @@ Block properties : Block-Eigenschaften
 BrakeCancel : Bremsvorgang abbrechen
 BrakeStart : Bremsvorgang starten
 BrakeStop : Zug anhalten
+Brake time¹, forward : Bremszeit¹, vorwärts
+Brake time¹, reverse : Bremszeit¹, rückwärts
+Brake time table : Bremszeit-Tabelle
 Car manager : Waggon-Verwaltung
 Cars\: : Waggons:
 Click here to select train! : HIer klicken, um Zug auszuwählen!
@@ -65,6 +68,7 @@ disabled : deaktiviert
 Display "{}" on clients. : „{}“ auf den Clients anzeigen.
 Drop : Verwerfen
 Dropped destination of {}. : Ziel von {} verworfen.
+1) Duration between 5 {} steps during brake process. : 1) Zeit zwischen 5 {}-Schritten beim Bremsvorgang.
 EAST : Osten
 editable train properties : veränderliche Zug-Eigenschaften
 Emergency : Notfall
