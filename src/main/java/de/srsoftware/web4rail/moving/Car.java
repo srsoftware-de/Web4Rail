@@ -180,7 +180,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 					car.stockId,
 					car.link(),
 					car.maxSpeed == 0 ? "–":(car.maxSpeed+NBSP+speedUnit),
-					car.length,
+					car.length+NBSP+lengthUnit,
 					String.join(", ", car.tags()),
 					car.cloneButton()
 			));
@@ -221,7 +221,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		Fieldset fieldset = new Fieldset("Basic properties");
 		new Input(NAME,name).addTo(new Label(t("Name")+NBSP)).addTo(fieldset);
 		new Input(STOCK_ID,stockId).addTo(new Label(t("Stock ID")+NBSP)).addTo(fieldset);
-		new Input(LENGTH,length).attr("type", "number").addTo(new Label(t("Length")+NBSP)).addTo(fieldset);
+		new Input(LENGTH,length).attr("type", "number").addTo(new Label(t("Length")+NBSP)).content(NBSP+lengthUnit).addTo(fieldset);
 		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(fieldset);
 		new Input(MAX_SPEED, maxSpeed).numeric().addTo(new Label(t("Maximum speed")+":"+NBSP)).content(NBSP+speedUnit).addTo(fieldset);
 		fieldset.addTo(form);

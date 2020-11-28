@@ -93,6 +93,7 @@ Left port\: : Port für links
 Length : Länge
 length\: : Länge:
 length\: {} : Länge: {}
+Length unit : Längeneinheit
 Locomotive manager : Lok-Verwaltung
 Locomotives\: : Lokomotiven:
 Manage cars : Waggons verwalten
@@ -160,6 +161,7 @@ Signals : Signale
 Simulating movement of {}... : Simuliere Fahrt von {}...
 Slower (10 {}) : 10 {} langsamer
 SOUTH : Süden
+Speed unit : Geschwindigkeits-Einheit
 Start actions : Start-Aktionen
 Stock ID : Inventarnummer
 Started {} : {} gestartet

@@ -458,7 +458,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			int ms = train.maxSpeed();
 			table.addRow(		
 				train.link(),
-				train.length(),
+				train.length()+NBSP+lengthUnit,
 				ms == Integer.MAX_VALUE ? "–" : ms+NBSP+speedUnit,
 				String.join(", ", train.tags()),
 				train.route,

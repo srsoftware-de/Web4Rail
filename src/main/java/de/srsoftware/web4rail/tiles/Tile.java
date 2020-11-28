@@ -241,7 +241,7 @@ public abstract class Tile extends BaseClass{
 		Form form = propForm("tile-properties-"+id());
 		if (isTrack) {
 			new Tag("h4").content(t("Length")).addTo(form);		
-			new Input(LENGTH,length).numeric().addTo(new Label(t("Length")+":"+NBSP)).addTo(form);
+			new Input(LENGTH,length).numeric().addTo(new Label(t("Length")+":"+NBSP)).content(NBSP+lengthUnit).addTo(form);
 			new Tag("h4").content(t("Availability")).addTo(form);
 			Checkbox cb = new Checkbox(DISABLED, t("disabled"), disabled);
 			if (disabled) cb.clazz("disabled");

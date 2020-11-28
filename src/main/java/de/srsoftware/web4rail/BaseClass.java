@@ -15,6 +15,7 @@ public abstract class BaseClass implements Constants{
 	protected static Plan plan; // the track layout in use
 	public static final Random random = new Random();
 	public static String speedUnit = DEFAULT_SPEED_UNIT;
+	public static String lengthUnit = DEFAULT_LENGTH_UNIT;
 	private static final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
 	public static Button contextButton(String context,String text) {
 		String[] parts = context.split(":");

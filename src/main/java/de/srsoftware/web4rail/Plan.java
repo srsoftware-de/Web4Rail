@@ -131,6 +131,7 @@ public class Plan extends BaseClass{
 	private static final HashMap<OutputStreamWriter,Integer> clients = new HashMap<OutputStreamWriter, Integer>();
 	private static final String FULLSCREEN = "fullscreen";
 	private static final String SPEED_UNIT = "speed_unit";
+	private static final String LENGTH_UNIT = "length_unit";
 	
 	public HashMap<String,Tile> tiles = new HashMap<String,Tile>(); // The list of tiles of this plan, i.e. the Track layout
 	private HashSet<Block> blocks = new HashSet<Block>(); // the list of tiles, that are blocks
@@ -419,9 +420,9 @@ public class Plan extends BaseClass{
 
 		String content = new String(Files.readAllBytes(new File(filename+".plan").toPath()),UTF8);
 		JSONObject json = new JSONObject(content);
-		JSONArray jTiles = json.getJSONArray(TILE);
-		jTiles.forEach(object -> Tile.load(object, plan));
-		speedUnit = json.getString(SPEED_UNIT);
+		if (json.has(TILE)) json.getJSONArray(TILE).forEach(object -> Tile.load(object, plan));
+		if (json.has(LENGTH_UNIT)) lengthUnit = json.getString(LENGTH_UNIT);
+		if (json.has(SPEED_UNIT)) speedUnit = json.getString(SPEED_UNIT);
 			
 		try {
 			Train.loadAll(filename+".trains",plan);
@@ -603,6 +604,7 @@ public class Plan extends BaseClass{
 		Form form = new Form("plan-properties-form");
 		new Input(REALM,REALM_PLAN).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
+		new Input(LENGTH_UNIT, lengthUnit).addTo(new Label(t("Length unit")+":"+NBSP)).addTo(form);
 		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+":"+NBSP)).addTo(form);
 		new Button(t("Save"), form).addTo(form);
 		form.addTo(win);
@@ -708,7 +710,8 @@ public class Plan extends BaseClass{
 		
 		return new JSONObject()
 				.put(TILE, jTiles)
-				.put(SPEED_UNIT, speedUnit);
+				.put(SPEED_UNIT, speedUnit)
+				.put(LENGTH_UNIT, lengthUnit);
 	}
 
 	/**
@@ -894,6 +897,7 @@ public class Plan extends BaseClass{
 		Tile tile = get(params.get(ID),true);
 		if (isSet(tile)) return tile.update(params);
 		
+		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.get(LENGTH_UNIT);
 		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);
 		
 		return t("Plan updated.");

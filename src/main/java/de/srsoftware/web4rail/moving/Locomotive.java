@@ -239,7 +239,7 @@ public class Locomotive extends Car implements Constants,Device{
 			.map(car -> (Locomotive)car)
 			.sorted(Comparator.comparing(loco -> loco.address))
 			.sorted(Comparator.comparing(loco -> loco.stockId))
-			.forEach(loco -> table.addRow(loco.stockId,loco.link(),loco.maxSpeed == 0 ? "–":loco.maxSpeed+NBSP+speedUnit,loco.proto,loco.address,loco.length,String.join(", ", loco.tags())));
+			.forEach(loco -> table.addRow(loco.stockId,loco.link(),loco.maxSpeed == 0 ? "–":loco.maxSpeed+NBSP+speedUnit,loco.proto,loco.address,loco.length+NBSP+lengthUnit,String.join(", ", loco.tags())));
 		table.addTo(win);
 
 		
