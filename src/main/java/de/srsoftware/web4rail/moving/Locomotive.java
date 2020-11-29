@@ -76,6 +76,11 @@ public class Locomotive extends Car implements Constants,Device{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
+	@Override
+	public int address() {
+		return address;
+	}
+	
 	public static Tag cockpit(Object locoOrTrain) {
 		int id = 0;
 		int speed = 0;

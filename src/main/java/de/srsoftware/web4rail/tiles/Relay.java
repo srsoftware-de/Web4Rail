@@ -44,6 +44,10 @@ public class Relay extends Tile implements Device{
 	private static final String LABEL_B = "label_b";
 	private static final String NAME = "name";
 	
+	public int address() {
+		return address;
+	}
+	
 	@Override
 	public Object click() throws IOException {
 		Object o = super.click();

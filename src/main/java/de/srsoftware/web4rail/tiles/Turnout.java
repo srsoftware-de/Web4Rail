@@ -41,6 +41,10 @@ public abstract class Turnout extends Tile implements Device{
 		LEFT,STRAIGHT,RIGHT,UNDEF;
 	}
 	
+	public int address() {
+		return address;
+	}
+	
 	@Override
 	public Object click() throws IOException {
 		LOG.debug(getClass().getSimpleName()+".click()");

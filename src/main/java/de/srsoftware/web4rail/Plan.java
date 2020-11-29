@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.security.InvalidParameterException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ import de.srsoftware.web4rail.tags.Div;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.BlockV;
@@ -601,6 +603,8 @@ public class Plan extends BaseClass{
 		}
 		
 		Window win = new Window("plan-properties", t("Properties"));
+		
+		new Tag("h4").content(t("Editable properties")).addTo(win);
 		Form form = new Form("plan-properties-form");
 		new Input(REALM,REALM_PLAN).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
@@ -608,6 +612,21 @@ public class Plan extends BaseClass{
 		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+":"+NBSP)).addTo(form);
 		new Button(t("Save"), form).addTo(form);
 		form.addTo(win);
+		
+		new Tag("h4").content(t("turnout properties")).addTo(win);
+		Table table = new Table();
+		table.addHead(t("Address"),t("Relay/Turnout"));
+		tiles.values()
+			.stream()
+			.filter(tile -> tile instanceof Device )
+			.map(tile -> (Device) tile)
+			.sorted(Comparator.comparing(Device::address))
+			.forEach(turnout -> {
+				table.addRow(turnout.address(),turnout);
+				if (turnout.address() % 4 == 1) table.children().lastElement().clazz("group");
+			});
+		table.clazz("turnouts").addTo(win);
+		
 		return win;
 	}
 

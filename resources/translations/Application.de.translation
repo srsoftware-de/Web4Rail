@@ -14,6 +14,7 @@ add new car : neuen Waggon anlegen
 add new locomotive : neue Lok anlegen
 add new train : neuen Zug anlegen
 Add tile : Kachel hinzufügen
+Address : Adresse
 Address\: : Adresse:
 Analyze : analysieren
 Apply : Übernehmen
@@ -70,6 +71,7 @@ Drop : Verwerfen
 Dropped destination of {}. : Ziel von {} verworfen.
 1) Duration between 5 {} steps during brake process. : 1) Zeit zwischen 5 {}-Schritten beim Bremsvorgang.
 EAST : Osten
+Editable properties : veränderliche Eigenschaften
 editable train properties : veränderliche Zug-Eigenschaften
 Emergency : Notfall
 Faster (10 {}) : 10 {} schneller
@@ -94,6 +96,7 @@ Length : Länge
 length\: : Länge:
 length\: {} : Länge: {}
 Length unit : Längeneinheit
+Locked by {} : Durch {} besetzt
 Locomotive manager : Lok-Verwaltung
 Locomotives\: : Lokomotiven:
 Manage cars : Waggons verwalten
@@ -129,6 +132,7 @@ PushPullTrain : Wendezug
 Push-pull train : Wendezug
 quit autopilot : Autopilot beenden
 {} reached it`s destination! : {} ist am Ziel angekommen!
+Relay/Turnout : Relais/Weiche
 Report Issue : Problem melden
 RIGHT : rechts
 Right port\: : Port für rechts
@@ -198,6 +202,11 @@ TriggerContact : Kontakt auslösen
 Turn : Richtung wechseln
 Turn allowed : Wenden erlaubt
 {} turned. : {} gewendet.
+Turnout : Weiche
+TurnoutLE : WeicheLE
+TurnoutLW : WeicheLW
+TurnoutRE : WeicheRE
+TurnoutRW : WeicheRW
 Turnouts : Weichen
 TurnTrain : Fahrtrichtung umkehren
 turn within train : innerhalb des Zugs drehen

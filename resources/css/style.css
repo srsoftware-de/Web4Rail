@@ -288,6 +288,7 @@ fieldset.notes textarea{
 	min-width: 100%;
 }
 
+table.turnouts,
 table.brake-times{
 	border-collapse: collapse;
 }
@@ -302,4 +303,10 @@ table.brake-times tr > *{
 
 table.brake-times th{
 	border-width: 0 1px 1px;
+}
+
+.turnouts .group > *{
+	border-color: black;
+	border-style: solid;
+	border-width: 1px 0 0;
 }
