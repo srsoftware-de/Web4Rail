@@ -367,14 +367,14 @@ public class Route extends BaseClass implements Comparable<Route>{
 		return true;
 	}
 	
-	public Route begin(Block block,Direction from) {
+	public Route begin(Block block,Direction to) {
 		// add those fields to clone, too!
 		contacts = new Vector<Contact>();
 		signals = new Vector<Signal>();
 		path = new Vector<Tile>();
 		turnouts = new HashMap<>();
 		startBlock = block;
-		startDirection = from;
+		startDirection = to;
 		path.add(block);
 		return this;
 	}

@@ -310,3 +310,13 @@ table.brake-times th{
 	border-style: solid;
 	border-width: 1px 0 0;
 }
+
+polyline{
+	stroke: black;
+	stroke-width: 5px;
+	fill: none;
+}
+
+svg.disconnected rect{
+	fill: red;
+}

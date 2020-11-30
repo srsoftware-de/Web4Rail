@@ -40,6 +40,11 @@ import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.BlockV;
+import de.srsoftware.web4rail.tiles.Bridge;
+import de.srsoftware.web4rail.tiles.BridgeE;
+import de.srsoftware.web4rail.tiles.BridgeN;
+import de.srsoftware.web4rail.tiles.BridgeS;
+import de.srsoftware.web4rail.tiles.BridgeW;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.ContactH;
 import de.srsoftware.web4rail.tiles.ContactV;
@@ -171,6 +176,10 @@ public class Plan extends BaseClass{
 			return analyze();
 		case ACTION_CLICK:
 			return click(get(params.get(ID),true));
+		case ACTION_CONNECT:
+			Tile tile = get(params.get(ID), false);
+			if (tile instanceof Bridge) return ((Bridge)tile).requestConnect();
+			break;
 		case ACTION_MOVE:
 			return moveTile(params.get(DIRECTION),params.get(ID));
 		case ACTION_PROPS:
@@ -248,6 +257,9 @@ public class Plan extends BaseClass{
 	private String analyze() {
 		Vector<Route> routes = new Vector<Route>();
 		for (Block block : blocks) {
+			if (block.name.equals("Huhu")) {
+				System.err.println("Here we go!");
+			}
 			for (Connector con : block.startPoints()) {
 				routes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
 			}
@@ -859,6 +871,10 @@ public class Plan extends BaseClass{
 		new CrossV().tag(null).addTo(tiles);
 		new CrossH().tag(null).addTo(tiles);
 		new CrossPlus().tag(null).addTo(tiles);
+		new BridgeE().tag(null).addTo(tiles);
+		new BridgeN().tag(null).addTo(tiles);
+		new BridgeS().tag(null).addTo(tiles);
+		new BridgeW().tag(null).addTo(tiles);
 		new StraightH().tag(null).addTo(tiles);
 		new StraightV().tag(null).addTo(tiles);
 		new ContactH().tag(null).addTo(tiles);
