@@ -44,6 +44,7 @@ import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.ContactH;
 import de.srsoftware.web4rail.tiles.ContactV;
 import de.srsoftware.web4rail.tiles.CrossH;
+import de.srsoftware.web4rail.tiles.CrossPlus;
 import de.srsoftware.web4rail.tiles.CrossV;
 import de.srsoftware.web4rail.tiles.DiagES;
 import de.srsoftware.web4rail.tiles.DiagNE;
@@ -857,6 +858,7 @@ public class Plan extends BaseClass{
 		Tag tiles = new Tag("div").clazz("list").content("");
 		new CrossV().tag(null).addTo(tiles);
 		new CrossH().tag(null).addTo(tiles);
+		new CrossPlus().tag(null).addTo(tiles);
 		new StraightH().tag(null).addTo(tiles);
 		new StraightV().tag(null).addTo(tiles);
 		new ContactH().tag(null).addTo(tiles);
