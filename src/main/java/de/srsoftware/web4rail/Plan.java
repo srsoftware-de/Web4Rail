@@ -731,7 +731,7 @@ public class Plan extends BaseClass{
 		return t("Plan saved as \"{}\".",name);
 	}
 	
-	private Object json() {
+	public JSONObject json() {
 		JSONArray jTiles = new JSONArray();
 		tiles.values().stream()
 			.filter(tile -> isSet(tile))
@@ -801,6 +801,7 @@ public class Plan extends BaseClass{
 		switch (realm) {
 			case REALM_ROUTE:
 				return route(id).properties(params);
+			case REALM_CONTACT:
 			case REALM_PLAN:
 				Tile tile = get(id, false);
 				return isNull(tile) ? null : tile.propMenu();

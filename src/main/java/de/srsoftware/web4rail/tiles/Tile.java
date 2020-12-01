@@ -122,7 +122,7 @@ public abstract class Tile extends BaseClass{
 	}
 		
 	public JSONObject json() {
-		JSONObject json = new JSONObject();
+		JSONObject json = super.json();
 		json.put(TYPE, getClass().getSimpleName());
 		JSONObject pos = new JSONObject(Map.of(X,x,Y,y));
 		json.put(POS, pos);
@@ -234,7 +234,7 @@ public abstract class Tile extends BaseClass{
 			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
 		}
 
-		if (isSet(route)) link("p",t("Locked by {}",route)).addTo(window);
+		if (isSet(route)) route.link("p",t("Locked by {}",route)).addTo(window);
 
 		Form form = propForm("tile-properties-"+id());
 		if (isTrack) {
@@ -253,10 +253,8 @@ public abstract class Tile extends BaseClass{
 			new Tag("h4").content(t("Routes using this tile:")).addTo(window);
 			Tag routeList = new Tag("ol");
 			for (Route route : routes) {
-				String json = new JSONObject(Map.of(REALM,ROUTE,ID,route.id(),ACTION,ACTION_PROPS,CONTEXT,REALM_PLAN+":"+id())).toString().replace("\"", "'");
-				Tag li = new Tag("span").attr("onclick","return request("+json+");").content(route.name()+(route.isDisabled()?" ["+t("disabled")+"]" : "")+NBSP).addTo(new Tag("li").clazz("link"));
-				Map<String, Object> params = Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_DROP,Tile.class.getSimpleName(),id());
-				new Button(t("delete route"),params).addTo(li);
+				Tag li = route.link("span", route.name()+(route.isDisabled()?" ["+t("disabled")+"]" : "")+NBSP).addTo(new Tag("li").clazz("link"));
+				route.button(t("delete route"),contextAction(ACTION_DROP)).addTo(li);
 				li.addTo(routeList);
 			}
 			routeList.addTo(window);

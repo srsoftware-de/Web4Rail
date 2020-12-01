@@ -330,9 +330,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return trace.getFirst();
 	}
 	
-	private JSONObject json() {
-		JSONObject json = new JSONObject();
-		json.put(ID, id);
+	public JSONObject json() {
+		JSONObject json = super.json();
 		json.put(PUSH_PULL, pushPull);
 
 		if (isSet(currentBlock)) json.put(BLOCK, currentBlock.id());
@@ -340,16 +339,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(route)) json.put(ROUTE, route.id());
 		if (isSet(direction)) json.put(DIRECTION, direction);
 
-		Vector<Id> locoIds = new Vector<Id>();
-		for (Locomotive loco : locos) locoIds.add(loco.id());
+		Vector<String> locoIds = new Vector<String>();
+		for (Locomotive loco : locos) locoIds.add(loco.id().toString());
 		json.put(LOCOS, locoIds);
 		
-		Vector<Id> carIds = new Vector<Id>();
-		for (Car car : cars) carIds.add(car.id());
+		Vector<String> carIds = new Vector<String>();
+		for (Car car : cars) carIds.add(car.id().toString());
 		json.put(CARS,carIds);
 		
-		Vector<Id> tileIds = new Vector<Id>();
-		for (Tile tile : trace) tileIds.add(tile.id());
+		Vector<String> tileIds = new Vector<String>();
+		for (Tile tile : trace) tileIds.add(tile.id().toString());
 		json.put(TRACE, tileIds);
 		
 		if (!tags.isEmpty()) json.put(TAGS, tags);
@@ -535,7 +534,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		locoList().addTo(propList);
 		carList().addTo(propList);
 		
-		if (isSet(currentBlock)) currentBlock.link(currentBlock.toString(),"span").addTo(new Tag("li").content(t("Current location:")+NBSP)).addTo(propList);
+		if (isSet(currentBlock)) currentBlock.link("span",currentBlock.toString()).addTo(new Tag("li").content(t("Current location:")+NBSP)).addTo(propList);
 		if (isSet(direction)) new Tag("li").content(t("Direction: heading {}",direction)).addTo(propList);
 
 		Tag dest = new Tag("li").content(t("Destination:")+NBSP);
@@ -701,7 +700,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (maxSpeed() == 0) return t("Train has maximum speed of 0 {}, cannot go!",speedUnit);
 		if (isSet(route)) route.reset(); // reset route previously chosen
 
-		Context context = new Context(this);
+		Context context = new Context(this).block(this.currentBlock);
 		String error = null;
 		if (isSet(nextRoute)) {
 			route = nextRoute;
@@ -743,6 +742,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			new Thread() {
 				public void run() {
 					for (Tile tile : route.path()) {
+						if (isNull(route)) break;
 						try {
 							if (tile instanceof Contact) {
 								Contact contact = (Contact) tile;

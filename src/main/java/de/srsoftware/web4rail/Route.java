@@ -167,13 +167,10 @@ public class Route extends BaseClass implements Comparable<Route>{
 		switch (params.get(ACTION)) {
 			case ACTION_DROP:
 				String message = plan.remove(route);
-				Id tileId = Id.from(params,Tile.class.getSimpleName());
-				if (isSet(tileId)) {
-					Tile tile = plan.get(tileId, false);
-					if (isSet(tile)) {
-						plan.stream(message);
-						return tile.propMenu();
-					}
+				String context = params.get(CONTEXT);
+				if (isSet(context)) {
+					plan.stream(message);
+					return plan.showContext(params);
 				}
 				return message;
 			case ACTION_PROPS:
@@ -227,7 +224,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	private void addBasicPropertiesTo(Window win) {
-		if (isSet(train)) link("span",t("Train: {}",train)).addTo(win);
+		if (isSet(train)) train.link("span",t("Train: {}",train)).addTo(win);
 		new Tag("h4").content(t("Origin and destination")).addTo(win);
 		Tag list = new Tag("ul");
 		Plan.addLink(startBlock, t("Origin: {} to {}",startBlock.name,startDirection), list);
@@ -423,7 +420,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		traceTrainFrom(contact);
 		ActionList actions = triggers.get(contact.trigger());
 		if (isNull(actions)) return;
-		Context context = new Context(contact);
+		Context context = new Context(contact).route(this).train(train);
 		actions.fire(context);
 	}
 
@@ -492,7 +489,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	public Id id() {
-		if (id == null) id = new Id(generateName());
+		if (id == null) id = new Id(md5sum(generateName()));
 		return id;
 	}
 		
@@ -507,22 +504,20 @@ public class Route extends BaseClass implements Comparable<Route>{
 	 * creates a json representation of this route
 	 * @return
 	 */
-	public String json() {
-		JSONObject json = new JSONObject();
-		
-		json.put(ID, id());
-		Vector<Id> tileIds = new Vector<Id>();
-		for (Tile t : this.path) tileIds.add(t.id());
+	public JSONObject json() {
+		JSONObject json = super.json();
+		Vector<String> tileIds = new Vector<String>();
+		for (Tile t : this.path) tileIds.add(t.id().toString());
 		json.put(PATH, tileIds);
 		
-		Vector<Id> signalIds = new Vector<Id>(); // list all signals affecting this route 
-		for (Tile t : this.signals) signalIds.add(t.id());
+		Vector<String> signalIds = new Vector<String>(); // list all signals affecting this route 
+		for (Tile t : this.signals) signalIds.add(t.id().toString());
 		json.put(SIGNALS, signalIds);
 		
 		JSONArray turnouts = new JSONArray();
 		for (Entry<Turnout, State> entry : this.turnouts.entrySet()) {
 			Turnout t = entry.getKey();
-			turnouts.put(new JSONObject(Map.of(Turnout.ID,t.id(),Turnout.STATE,entry.getValue())));
+			turnouts.put(new JSONObject(Map.of(Turnout.ID,t.id().toString(),Turnout.STATE,entry.getValue())));
 		}
 		json.put(TURNOUTS, turnouts);
 		json.put(START_DIRECTION, startDirection);
@@ -551,7 +546,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		
 		if (disabled) json.put(DISABLED, true);
 
-		return json.toString();
+		return json;
 	}
 	
 	private Route load(JSONObject json,Plan plan) {
@@ -710,7 +705,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		file.write("{\""+ROUTES+"\":[\n");
 		int count = 0;
 		for (Route route : routes) {			
-			file.write(route.json());
+			file.write(route.json().toString());
 			if (++count < routes.size()) file.write(",");
 			file.write("\n");
 		}
@@ -777,7 +772,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public boolean train(Train newTrain) {
 		if (isSet(train) && newTrain != train) return false;
 		train = newTrain;
-		return isSet(train) ? startActions.fire(new Context(this)) : true;
+		return isSet(train) ? startActions.fire(new Context(this).train(train)) : true;
 	}
 	
 	public Route unlock() throws IOException {

@@ -98,8 +98,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 	
 	public JSONObject json() {
-		JSONObject json = new JSONObject();
-		json.put(ID,id);
+		JSONObject json = super.json();
 		json.put(NAME, name);
 		json.put(LENGTH, length);
 		if (maxSpeed != 0) json.put(MAX_SPEED, maxSpeed);

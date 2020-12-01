@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.tags;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 
@@ -27,6 +28,8 @@ public class Button extends Tag {
 	}
 	
 	public Button(String text, Map<String, ? extends Object> props) {
-		this(text,"request("+(new JSONObject(props).toString().replace("\"", "'"))+")");
+		this(text,"request("+(new JSONObject(
+				props.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue().toString()))
+				).toString().replace("\"", "'"))+")");
 	}
 }

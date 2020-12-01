@@ -349,7 +349,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		if (params.containsKey(NAME)) name=params.get(NAME);
 		if (params.containsKey(Train.class.getSimpleName())) {
 			Id trainId = Id.from(params,Train.class.getSimpleName());
-			if (trainId == null) { // TODO: this is rubbish
+			if (trainId.equals(0)) { // TODO: this is rubbish
 				if (isSet(train)) train.dropTrace();
 				train = null;
 			} else {

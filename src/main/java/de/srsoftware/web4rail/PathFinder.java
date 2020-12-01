@@ -36,7 +36,7 @@ public class PathFinder extends BaseClass{
 		if (error) return availableRoutes;
 		
 		Block destination = train.destination();
-		Direction direction = context.direction();
+		Direction direction = train.direction();
 /*		if (isSet(direction)) {
 			LOG.debug("{}Looking for {}-bound routes from {}",inset,direction,block);
 		} else {

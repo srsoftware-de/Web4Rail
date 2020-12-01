@@ -120,12 +120,13 @@ public abstract class BaseClass implements Constants{
 			return train;
 		}
 
-		public void train(Train newTrain) {
+		public Context train(Train newTrain) {
 			train = newTrain;
+			return this;
 		}
 	}
 	
-	public static class Id implements Comparable<Id>{
+	public static class Id implements CharSequence, Comparable<Id>{
 		private String internalId;
 
 		public Id() {
@@ -141,17 +142,19 @@ public abstract class BaseClass implements Constants{
 		public Id(String id) {
 			internalId = id;
 		}
-				
+		
 		@Override
-		public String toString() {
-			return internalId;
-		}
-
-		@Override
-		public int compareTo(Id other) {
-			return internalId.compareTo(other.internalId);
+		public int hashCode() {
+			return internalId.hashCode();
 		}
 		
+		@Override
+		public boolean equals(Object other) {
+			if (other == null) return false;
+			if (this == other) return true;
+			return internalId.equals(other.toString());
+		}
+
 		public static Id from(JSONObject json) {
 			return Id.from(json,ID);
 		}
@@ -169,6 +172,34 @@ public abstract class BaseClass implements Constants{
 			String sid = params.get(key);
 			return sid == null ? null : new Id(sid);
 		}
+
+		@Override
+		public char charAt(int index) {
+			return internalId.charAt(index);
+		}
+
+
+		@Override
+		public int length() {
+			return internalId.length();
+		}
+
+
+		@Override
+		public CharSequence subSequence(int begin, int end) {
+			return internalId.subSequence(begin, end);
+		}
+		
+		@Override
+		public String toString() {
+			return internalId;
+		}
+
+
+		@Override
+		public int compareTo(Id other) {
+			return internalId.compareTo(other.internalId);
+		}
 	}
 	
 	public Button button(String text,Map<String,String> additionalProps) {
@@ -177,6 +208,22 @@ public abstract class BaseClass implements Constants{
 	
 	public Button button(String text) {		
 		return button(text,null);
+	}
+	
+	public Map<String,String> contextAction(String action){
+		String realm = REALM_PLAN;
+		if (this instanceof Tile) realm = REALM_PLAN;
+		if (this instanceof Contact) realm = REALM_CONTACT;
+
+		if (this instanceof Car) realm = REALM_CAR;
+		if (this instanceof Locomotive) realm = REALM_LOCO;
+		
+		if (this instanceof Action) realm = REALM_ACTIONS;
+		if (this instanceof Condition) realm = REALM_CONDITION;
+		if (this instanceof Route) realm = REALM_ROUTE;
+		if (this instanceof Train) realm = REALM_TRAIN;
+
+		return Map.of(ACTION,action,CONTEXT,realm+":"+id());
 	}
 	
 	public Id id() {
@@ -190,6 +237,10 @@ public abstract class BaseClass implements Constants{
 
 	public static boolean isSet(Object o) {
 		return o != null;
+	}
+	
+	public JSONObject json() {
+		return new JSONObject().put(ID, id().toString());
 	}
 	
 	public Tag link(String tagClass,Object caption) {
