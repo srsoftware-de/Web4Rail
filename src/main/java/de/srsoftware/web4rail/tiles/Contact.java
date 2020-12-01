@@ -11,9 +11,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ActionList;
-import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
@@ -22,7 +20,7 @@ import de.srsoftware.web4rail.tags.Select;
 public class Contact extends Tile{
 	
 	private static final String ADDRESS = "address";
-	private static final HashMap<String, Contact> contactsById = new HashMap<String, Contact>();
+	private static final HashMap<Id, Contact> contactsById = new HashMap<Id, Contact>();
 	private static final HashMap<Integer, Contact> contactsByAddr = new HashMap<Integer, Contact>();
 	private boolean state = false;
 	private String trigger = null;
@@ -101,7 +99,7 @@ public class Contact extends Tile{
 		return contactsByAddr.get(addr);
 	}
 	
-	public static Contact get(String contactId) {
+	public static Contact get(Id contactId) {
 		return contactsById.get(contactId);
 	}
 	
@@ -135,7 +133,7 @@ public class Contact extends Tile{
 	
 	public static Object process(HashMap<String, String> params) {
 		String action = params.get(ACTION);
-		String id = params.get(ID);
+		Id id = Id.from(params);
 		if (action == null) return t("Missing ACTION on call to {}.process()",Contact.class.getSimpleName());
 		Contact contact;
 		switch (action) {
@@ -157,9 +155,7 @@ public class Contact extends Tile{
 		Form form = super.propForm(formId);
 		new Tag("h4").content(t("Hardware settings")).addTo(form);
 		Tag label = new Input(ADDRESS, addr).numeric().addTo(new Label(t("Address:")+NBSP));
-		Map<String, String> props = Map.of(REALM,REALM_CONTACT,ID,id(),ACTION,ACTION_ANALYZE);
-		new Button(t("learn"), props).addTo(label).addTo(form);
-		
+		button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(label).addTo(form);		
 		return form;
 	}
 	

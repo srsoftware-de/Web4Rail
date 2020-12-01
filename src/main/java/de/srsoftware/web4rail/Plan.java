@@ -26,7 +26,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.moving.Car;
@@ -141,10 +140,10 @@ public class Plan extends BaseClass{
 	private static final String SPEED_UNIT = "speed_unit";
 	private static final String LENGTH_UNIT = "length_unit";
 	
-	public HashMap<String,Tile> tiles = new HashMap<String,Tile>(); // The list of tiles of this plan, i.e. the Track layout
+	public HashMap<Id,Tile> tiles = new HashMap<Id,Tile>(); // The list of tiles of this plan, i.e. the Track layout
 	private HashSet<Block> blocks = new HashSet<Block>(); // the list of tiles, that are blocks
 	private HashSet<Signal> signals = new HashSet<Signal>(); // the list of tiles, that are signals
-	private HashMap<Integer, Route> routes = new HashMap<Integer, Route>(); // the list of routes of the track layout
+	private HashMap<Id, Route> routes = new HashMap<Id, Route>(); // the list of routes of the track layout
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
 	private Contact learningContact;
 	
@@ -175,13 +174,13 @@ public class Plan extends BaseClass{
 		case ACTION_ANALYZE:
 			return analyze();
 		case ACTION_CLICK:
-			return click(get(params.get(ID),true));
+			return click(get(Id.from(params),true));
 		case ACTION_CONNECT:
-			Tile tile = get(params.get(ID), false);
+			Tile tile = get(Id.from(params), false);
 			if (tile instanceof Bridge) return ((Bridge)tile).requestConnect();
 			break;
 		case ACTION_MOVE:
-			return moveTile(params.get(DIRECTION),params.get(ID));
+			return moveTile(params.get(DIRECTION),Id.from(params));
 		case ACTION_PROPS:
 			return properties(params);
 		case ACTION_SAVE:
@@ -341,7 +340,7 @@ public class Plan extends BaseClass{
 	 * @param resolveShadows if this is set to true, this function will return the overlaying tiles, if the id belongs to a shadow tile.
 	 * @return the tile belonging to the id, or the overlaying tile if the respective tile is a shadow tile.
 	 */
-	public Tile get(String tileId,boolean resolveShadows) {
+	public Tile get(Id tileId,boolean resolveShadows) {
 		if (isNull(tileId)) return null;
 		Tile tile = tiles.get(tileId);
 		if (resolveShadows && tile instanceof Shadow) tile = ((Shadow)tile).overlay();
@@ -508,7 +507,7 @@ public class Plan extends BaseClass{
 	 * @throws NumberFormatException
 	 * @throws IOException
 	 */
-	private String moveTile(String direction, String tileId) throws NumberFormatException, IOException {
+	private String moveTile(String direction, Id tileId) throws NumberFormatException, IOException {
 		switch (direction) {
 		case "south":
 			return moveTile(get(tileId,false),Direction.SOUTH);
@@ -611,7 +610,7 @@ public class Plan extends BaseClass{
 	
 	private Window properties(HashMap<String, String> params) {
 		if (params.containsKey(ID)) {
-			Tile tile = get(params.get(ID), true);
+			Tile tile = get(Id.from(params), true);
 			if (isSet(tile)) return tile.propMenu();
 		}
 		
@@ -659,7 +658,7 @@ public class Plan extends BaseClass{
 	 */
 	Route registerRoute(Route newRoute) {
 		newRoute.path().stream().filter(Tile::isSet).forEach(tile -> tile.add(newRoute));
-		int newRouteId = newRoute.id();
+		Id newRouteId = newRoute.id();
 		Route existingRoute = routes.get(newRouteId);
 		if (isSet(existingRoute)) newRoute.addPropertiesFrom(existingRoute);
 		routes.put(newRouteId, newRoute);
@@ -707,7 +706,7 @@ public class Plan extends BaseClass{
 	 * @param routeId the id of the route requestd
 	 * @return
 	 */
-	public Route route(int routeId) {
+	public Route route(Id routeId) {
 		return routes.get(routeId);
 	}
 	
@@ -798,15 +797,15 @@ public class Plan extends BaseClass{
 	public Tag showContext(HashMap<String, String> params) {
 		String[] parts = params.get(CONTEXT).split(":");
 		String realm = parts[0];
-		String id = parts.length>1 ? parts[1] : null;
+		Id id = parts.length>1 ? new Id(parts[1]) : null;
 		switch (realm) {
 			case REALM_ROUTE:
-				return route(Integer.parseInt(id)).properties(params);
+				return route(id).properties(params);
 			case REALM_PLAN:
 				Tile tile = get(id, false);
 				return isNull(tile) ? null : tile.propMenu();
 			case REALM_ACTIONS:
-				Action action = Action.get(Integer.parseInt(id));
+				Action action = Action.get(id);
 				return (isSet(action)) ? action.properties(params) : null;
 				
 		}
@@ -847,16 +846,6 @@ public class Plan extends BaseClass{
 			LOG.info("Disconnecting client.");
 			clients.remove(client);			
 		}
-	}
-	
-	/**
-	 * shorthand for Translations.get(message,fills)
-	 * @param message
-	 * @param fills
-	 * @return
-	 */
-	private String t(String message, Object...fills) {
-		return Translation.get(Application.class, message, fills);
 	}
 	
 	/**
@@ -931,7 +920,7 @@ public class Plan extends BaseClass{
 	 * @throws IOException
 	 */
 	private Object update(HashMap<String, String> params) throws IOException {
-		Tile tile = get(params.get(ID),true);
+		Tile tile = get(Id.from(params),true);
 		if (isSet(tile)) return tile.update(params);
 		
 		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.get(LENGTH_UNIT);
@@ -942,7 +931,7 @@ public class Plan extends BaseClass{
 	}
 	
 	private Object updateTimes(HashMap<String, String> params) throws IOException {
-		Tile tile = get(params.get(ID),false);
+		Tile tile = get(Id.from(params),false);
 		if (tile instanceof Block) {
 			Block block = (Block) tile;
 			place(block.updateTimes(params));

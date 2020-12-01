@@ -41,7 +41,7 @@ public class SetRelay extends Action {
 		super.load(json);
 		String relayId = json.getString(RELAY);
 		if (isSet(relayId)) {
-			relay = Relay.get(relayId);
+			relay = Relay.get(new Id(relayId));
 			state = json.getBoolean(Relay.STATE);
 		}
 		return this;
@@ -81,7 +81,7 @@ public class SetRelay extends Action {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		String relayId = params.get(RELAY);
+		Id relayId = new Id(params.get(RELAY));
 		relay = Relay.get(relayId);
 		String st = params.get(Relay.STATE);
 		if (isSet(st)) state = st.equals("true");

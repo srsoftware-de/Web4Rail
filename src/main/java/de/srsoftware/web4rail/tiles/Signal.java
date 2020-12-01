@@ -31,8 +31,8 @@ public abstract class Signal extends Tile implements Comparable<Signal>{
 	
 	@Override
 	public int compareTo(Signal other) {
-		String tid = this.id();
-		String oid = other.id();
+		Id tid = this.id();
+		Id oid = other.id();
 		return tid.compareTo(oid);
 	}
 	

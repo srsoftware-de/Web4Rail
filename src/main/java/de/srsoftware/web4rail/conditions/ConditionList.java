@@ -8,8 +8,9 @@ import org.json.JSONObject;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
+import de.srsoftware.web4rail.BaseClass.Context;
+import de.srsoftware.web4rail.BaseClass.Id;
 import de.srsoftware.web4rail.Constants;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
@@ -39,9 +40,9 @@ public class ConditionList extends Vector<Condition> implements Constants{
 		}
 	}
 
-	public void removeById(int cid) {
+	public void removeById(Id cid) {
 		for (Condition condition : this) {
-			if (condition.id() == cid) {
+			if (condition.id().equals(cid)) {
 				remove(condition);
 				break;
 			}

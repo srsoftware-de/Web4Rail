@@ -18,14 +18,14 @@ public class SetContextTrain extends Action {
 	
 	@Override
 	public boolean fire(Context context) {
-		context.train = train;		
+		context.train(train);		
 		return true;
 	}
 	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
-		if (isSet(train)) json.put(REALM_TRAIN, train.id);
+		if (isSet(train)) json.put(REALM_TRAIN, train.id());
 		return json;
 	}
 	
@@ -37,7 +37,7 @@ public class SetContextTrain extends Action {
 				public void run() {
 					try {
 						sleep(1000);
-						int trainId = json.getInt(REALM_TRAIN);
+						Id trainId = Id.from(json,REALM_TRAIN);
 						if (isSet(trainId)) train = Train.get(trainId);
 					} catch (InterruptedException e) {}						
 				};
@@ -69,8 +69,8 @@ public class SetContextTrain extends Action {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		String trainId = params.get(Train.class.getSimpleName());
-		if (isSet(trainId)) train = Train.get(Integer.parseInt(trainId));
+		Id trainId = Id.from(params,Train.class.getSimpleName());
+		if (isSet(trainId)) train = Train.get(trainId);
 		return properties(params);
 	}
 

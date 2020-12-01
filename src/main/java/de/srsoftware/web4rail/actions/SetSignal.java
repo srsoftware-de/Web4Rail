@@ -39,7 +39,7 @@ public class SetSignal extends Action {
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		Tile tile = plan.get(json.getString(SIGNAL), false);
+		Tile tile = plan.get(new Id(json.getString(SIGNAL)), false);
 		if (tile instanceof Signal) signal = (Signal) tile;
 		state = json.getString(Signal.STATE);
 		return this;
@@ -91,7 +91,7 @@ public class SetSignal extends Action {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		Tile tile = plan.get(params.get(SIGNAL), false);
+		Tile tile = plan.get(new Id(params.get(SIGNAL)), false);
 		if (tile instanceof Signal) signal = (Signal) tile;
 		String st = params.get(Signal.STATE);
 		if (isSet(st)) state = st;

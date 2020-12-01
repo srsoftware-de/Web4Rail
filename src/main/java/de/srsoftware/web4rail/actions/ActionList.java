@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
-import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.BaseClass.Context;
+import de.srsoftware.web4rail.BaseClass.Id;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
@@ -26,25 +26,25 @@ public class ActionList extends Vector<Action> implements Constants{
 	private static final Logger LOG = LoggerFactory.getLogger(ActionList.class);
 	
 	private static final long serialVersionUID = 4862000041987682112L;
-	private static final HashMap<Integer, ActionList> actionLists = new HashMap<Integer, ActionList>();
-	private int id;
+	private static final HashMap<Id, ActionList> actionLists = new HashMap<Id, ActionList>();
+	private Id id;
 	
 	public ActionList() {
-		id = Application.createId();
+		id = new Id();
 		actionLists.put(id,this);
 	}
 	
-	private static Integer actionId(HashMap<String, String> params) {
+	private static Id actionId(HashMap<String, String> params) {
 		if (!params.containsKey(ID)) return null;
 		String[] parts = params.get(ID).split("/");
 		if (parts.length<2) return null;
-		return Integer.parseInt(parts[1]);
+		return new Id(parts[1]);
 	}
 
-	private static Integer actionListId(HashMap<String, String> params) {
+	private static Id actionListId(HashMap<String, String> params) {
 		if (!params.containsKey(ID)) return null;
 		String[] parts = params.get(ID).split("/");
-		return Integer.parseInt(parts[0]);
+		return new Id(parts[0]);
 	}
 	
 	private Object actionTypeForm(Window win, String context) {
@@ -110,7 +110,7 @@ public class ActionList extends Vector<Action> implements Constants{
 			boolean first = true;
 			for (Action action : this) {
 				props.put(ID, id+"/"+action.id());
-				Tag act = BaseClass.link("span", Map.of(REALM,REALM_ACTIONS,ID,id+"/"+action.id(),ACTION,ACTION_PROPS,CONTEXT,context), action+NBSP).addTo(new Tag("li"));; 
+				Tag act = action.link("span", action+NBSP, Map.of(CONTEXT,context,ID,id+"/"+action.id())).addTo(new Tag("li")); 
 				if (!first) {
 					props.put(ACTION, ACTION_MOVE);
 					new Button("↑",props).addTo(act);
@@ -132,9 +132,9 @@ public class ActionList extends Vector<Action> implements Constants{
 		}		
 	}
 	
-	public boolean drop(int actionId) {
+	public boolean drop(Id actionId) {
 		for (Action action : this) {
-			if (action.id() == actionId) {
+			if (action.id().equals(actionId)) {
 				this.remove(action);
 				return true;				
 			}
@@ -150,7 +150,7 @@ public class ActionList extends Vector<Action> implements Constants{
 		return true;
 	}
 
-	public int id() {
+	public Id id() {
 		return id;
 	}
 	
@@ -172,9 +172,9 @@ public class ActionList extends Vector<Action> implements Constants{
 		return actionList;
 	}
 	
-	public boolean moveUp(int actionId) {
+	public boolean moveUp(Id actionId) {
 		for (int i=1; i<size(); i++) {
-			if (actionId == elementAt(i).id()) {
+			if (actionId.equals(elementAt(i).id())) {
 				Action action = remove(i);
 				insertElementAt(action, i-1);
 				return true;
@@ -184,11 +184,11 @@ public class ActionList extends Vector<Action> implements Constants{
 	}
 	
 	public static Object process(HashMap<String, String> params, Plan plan) {
-		Integer listId = actionListId(params);
+		Id listId = actionListId(params);
 		if (listId == null) return t("No action list id passed to ActionList.process()!");
 		ActionList actionList = actionLists.get(listId);
 
-		Integer actionId = actionId(params);
+		Id actionId = actionId(params);
 		String action = params.get(ACTION);
 		if (action == null) return t("No action passed to ActionList.process()!");
 		if (actionList == null && !List.of(ACTION_UPDATE,ACTION_PROPS).contains(action)) return t("No action list with id {} found!",listId);
@@ -209,7 +209,7 @@ public class ActionList extends Vector<Action> implements Constants{
 	}
 	
 	private static Object propsOf(HashMap<String, String> params) {
-		int actionId = actionId(params); 
+		Id actionId = actionId(params); 
 		Action action = Action.get(actionId);
 		if (action != null) return action.properties(params);
 		return t("No action with id {} found!",actionId);
@@ -219,7 +219,7 @@ public class ActionList extends Vector<Action> implements Constants{
 		return Translation.get(Application.class, text, fills);
 	}
 	
-	private static Object update(int actionId, HashMap<String, String> params, Plan plan) {
+	private static Object update(Id actionId, HashMap<String, String> params, Plan plan) {
 		Action action = Action.get(actionId);
 		if (action != null) {
 			plan.stream(action.update(params).toString());

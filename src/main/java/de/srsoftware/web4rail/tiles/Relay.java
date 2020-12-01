@@ -38,7 +38,7 @@ public class Relay extends Tile implements Device{
 	private String name = t("Relay");
 	protected boolean state = true;
 	
-	private static final HashMap<String,Relay> relays = new HashMap<String, Relay>();
+	private static final HashMap<Id,Relay> relays = new HashMap<Id, Relay>();
 	public static final boolean STATE_A = true,STATE_B=false;
 	private static final String LABEL_A = "label_a";
 	private static final String LABEL_B = "label_b";
@@ -242,7 +242,7 @@ public class Relay extends Tile implements Device{
 		return relays.values();
 	}
 
-	public static Relay get(String relayId) {
+	public static Relay get(Id relayId) {
 		return relays.get(relayId);
 	}
 }

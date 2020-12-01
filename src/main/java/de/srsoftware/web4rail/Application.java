@@ -13,7 +13,6 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
-import java.util.Date;
 import java.util.HashMap;
 
 import org.slf4j.Logger;
@@ -23,7 +22,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import de.keawe.localconfig.Configuration;
-import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.conditions.Condition;
@@ -79,19 +77,6 @@ public class Application extends BaseClass{
         	}
         }
         Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)+"/plan"));
-	}
-	
-	/**
-	 * helper class creating unique ids for use throuout the application
-	 * @return
-	 */
-	public static int createId() {
-		try {
-			Thread.sleep(1);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		return new Date().hashCode();
 	}
 	
 	/**
@@ -274,15 +259,5 @@ public class Application extends BaseClass{
 		client.sendResponseHeaders(200, 0);
 		OutputStreamWriter sseWriter = new OutputStreamWriter(client.getResponseBody());
 		plan.addClient(sseWriter);
-	}
-	
-	/**
-	 * shorthand for Translations.get(text,fills)
-	 * @param text
-	 * @param fills
-	 * @return
-	 */
-	private static String t(String text, Object...fills) {
-		return Translation.get(Application.class, text, fills);
 	}
 }

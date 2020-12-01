@@ -5,7 +5,6 @@ import java.util.HashMap;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Label;
 
@@ -16,17 +15,17 @@ public class TrainSelect extends Condition {
 
 	@Override
 	public boolean fulfilledBy(Context context) {
-		return (context.train == train) != inverted;
+		return (context.train() == train) != inverted;
 	}
 	
 	@Override
 	public JSONObject json() {
-		return super.json().put(REALM_TRAIN, train.id);
+		return super.json().put(REALM_TRAIN, train.id());
 	}
 	
 	public Condition load(JSONObject json) {
 		super.load(json);
-		train(Train.get(json.getInt(REALM_TRAIN)));
+		train(Train.get(new Id(json.getString(REALM_TRAIN))));
 		return this;
 	}
 	
@@ -52,7 +51,7 @@ public class TrainSelect extends Condition {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		if (!params.containsKey(TRAIN)) return t("No train id passed to TrainSelect.update()!");
-		int tid = Integer.parseInt(params.get(TRAIN));
+		Id tid = new Id(params.get(TRAIN));
 		Train train = Train.get(tid);
 		if (train == null) return t("No train with id {} found!",tid);
 		this.train = train;

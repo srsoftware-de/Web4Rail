@@ -49,10 +49,8 @@ public class ConditionalAction extends Action {
 		if (!conditions.isEmpty()) {
 			Tag list = new Tag("ul");
 			for (Condition condition : conditions) {
-				HashMap<String,Object> props = new HashMap<String, Object>(Map.of(REALM,REALM_CONDITION,ID,condition.id(),ACTION,ACTION_PROPS,CONTEXT, context));
-				Tag li = link("span", props, condition+NBSP).addTo(new Tag("li"));
-				props.put(ACTION, ACTION_DROP);
-				props.put(CONTEXT,REALM_ACTIONS+":"+id());
+				Tag li = link("span", condition+NBSP,Map.of(CONTEXT,context)).addTo(new Tag("li"));
+				HashMap<String,Object> props = new HashMap<String, Object>(Map.of(REALM,REALM_CONDITION,ID,condition.id(),ACTION,ACTION_DROP,CONTEXT, REALM_ACTIONS+":"+id()));
 				new Button(t("delete"), props).addTo(li).addTo(list);
 			}
 			list.addTo(fieldset);
@@ -67,7 +65,7 @@ public class ConditionalAction extends Action {
 		Condition.selector().addTo(form);
 		
 		new Button(t("Add condition"),form).addTo(form);
-		return contextButton(context,t("Back")).addTo(form).addTo(fieldset);
+		return button(t("Back")).addTo(form).addTo(fieldset);
 	}
 
 	public boolean equals(ConditionalAction other) {

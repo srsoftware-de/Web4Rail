@@ -18,8 +18,8 @@ public class SetSpeed extends Action{
 
 	@Override
 	public boolean fire(Context context) {
-		if (isNull(context.train)) return false;
-		context.train.setSpeed(speed);
+		if (isNull(context.train())) return false;
+		context.train().setSpeed(speed);
 		return true;
 	}
 	

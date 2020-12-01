@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.srsoftware.web4rail.Plan.Direction;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Block;
 
@@ -24,12 +23,12 @@ public class PathFinder extends BaseClass{
 		for (int i=0; i<visitedRoutes.size(); i++) inset+="    ";
 		
 		boolean error = false;
-		Block block = context.block;		
+		Block block = context.block();		
 		if (isNull(block)) {
 			LOG.warn("{} → {}.availableRoutes called without context.block!",inset,Train.class.getSimpleName());
 			error = true;
 		}
-		Train train = context.train;
+		Train train = context.train();
 		if (isNull(train)) {
 			LOG.warn("{}→ {}.availableRoutes called without context.train!",inset,Train.class.getSimpleName());
 			error = true;
@@ -37,7 +36,7 @@ public class PathFinder extends BaseClass{
 		if (error) return availableRoutes;
 		
 		Block destination = train.destination();
-		Direction direction = context.direction;
+		Direction direction = context.direction();
 /*		if (isSet(direction)) {
 			LOG.debug("{}Looking for {}-bound routes from {}",inset,direction,block);
 		} else {
@@ -45,7 +44,7 @@ public class PathFinder extends BaseClass{
 		}*/
 		if (isSet(destination) && visitedRoutes.isEmpty())	LOG.debug("{}- Destination: {}",inset,destination);
 
-		Route currentRoute = context.route;
+		Route currentRoute = context.route();
 		
 		for (Route routeCandidate : block.routes()) {
 			if (routeCandidate.path().firstElement() != block) continue; // Routen, die nicht vom aktuellen Block starten sind bubu
@@ -70,9 +69,10 @@ public class PathFinder extends BaseClass{
 				} else {
 					LOG.debug("{}- Candidate: {}",inset,routeCandidate.shortName());
 					Context forwardContext = new Context(train);
-					forwardContext.block = routeCandidate.endBlock();
-					forwardContext.direction = routeCandidate.endDirection;
-					forwardContext.route = null;
+					forwardContext
+						.block(routeCandidate.endBlock())
+						.direction(routeCandidate.endDirection)
+						.route(null);
 					visitedRoutes.add(routeCandidate);
 					TreeMap<Integer, List<Route>> forwardRoutes = availableRoutes(forwardContext,visitedRoutes);
 					visitedRoutes.remove(routeCandidate);
@@ -112,5 +112,4 @@ public class PathFinder extends BaseClass{
 		
 		return selectetRoute;
 	}
-
 }

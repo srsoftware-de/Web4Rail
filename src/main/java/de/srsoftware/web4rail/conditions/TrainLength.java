@@ -6,7 +6,6 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
@@ -17,8 +16,8 @@ public class TrainLength extends Condition {
 	
 	@Override
 	public boolean fulfilledBy(Context context) {
-		if (isNull(context.train)) return false;
-		return (context.train.length() < maxLength) != inverted;
+		if (isNull(context.train())) return false;
+		return (context.train().length() < maxLength) != inverted;
 	}
 	
 	@Override

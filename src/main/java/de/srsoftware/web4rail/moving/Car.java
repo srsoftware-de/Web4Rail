@@ -32,7 +32,7 @@ import de.srsoftware.web4rail.tags.TextArea;
 
 public class Car extends BaseClass implements Comparable<Car>{
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
-	static HashMap<Integer,Car> cars = new HashMap<Integer, Car>();
+	static HashMap<Id,Car> cars = new HashMap<Id, Car>();
 	
 	public static final String NAME = "name";
 	private static final String LENGTH = "length";
@@ -41,7 +41,6 @@ public class Car extends BaseClass implements Comparable<Car>{
 	private static final String MAX_SPEED = "max_speed";
 	protected HashSet<String> tags = new HashSet<String>();
 	
-	private int id;
 	private String name;
 	public int length;
 	protected String stockId = "";
@@ -54,14 +53,9 @@ public class Car extends BaseClass implements Comparable<Car>{
 		this(name,null);
 	}
 	
-	public Car(String name, Integer id) {
+	public Car(String name, Id id) {
 		this.name = name;
-		if (id == null) {
-			try { // make sure multiple consecutive creations get different ids
-				Thread.sleep(1);
-			} catch (InterruptedException e) {}
-			id = Application.createId();
-		}
+		if (isNull(id)) id = new Id();
 		this.id = id;
 		cars.put(id, this);
 	}	
@@ -100,12 +94,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 
 	public static Car get(Object id) {		
-		return isNull(id) ? null : cars.get(Integer.parseInt(""+id)); // try to get by id
-	}
-
-	
-	public int id() {
-		return id;
+		return isNull(id) ? null : cars.get(new Id(""+id)); // try to get by id
 	}
 	
 	public JSONObject json() {
@@ -130,7 +119,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	public Tag link(String...args) {
 		String tx = args.length<1 ? name()+NBSP : args[0];
 		String type = args.length<2 ? "span" : args[1];
-		return link(type, Map.of(REALM,REALM_CAR,ID,id,ACTION,ACTION_PROPS), tx);
+		return link(type, tx);
 	}
 	
 	static Vector<Car> list() {
@@ -148,7 +137,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		while (line != null) {
 			JSONObject json = new JSONObject(line);
 			String name = json.getString(Car.NAME);
-			int id = json.getInt(ID);
+			Id id = Id.from(json);
 			Car car = json.has(Locomotive.LOCOMOTIVE) ? new Locomotive(name, id) : new Car(name,id);
 			car.load(json).plan(plan);
 			
@@ -158,7 +147,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 	
 	protected Car load(JSONObject json) {
-		if (json.has(ID)) id = json.getInt(ID);
+		if (json.has(ID)) id = Id.from(json);
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
 		if (json.has(MAX_SPEED)) maxSpeed = json.getInt(MAX_SPEED);
 		if (json.has(NOTES)) notes = json.getString(NOTES);
@@ -249,7 +238,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Entry<Integer, Car> entry: cars.entrySet()) file.write(entry.getValue().json()+"\n");
+		for (Entry<Id, Car> entry: cars.entrySet()) file.write(entry.getValue().json()+"\n");
 		file.close();
 	}
 	

@@ -151,7 +151,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		return this;
 	}
 	
-	public static Block get(String blockId) {
+	public static Block get(Id blockId) {
 		Tile tile = plan.get(blockId, false);
 		if (tile instanceof Block) return (Block) tile;
 		return null;
@@ -195,7 +195,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 	public Tag link(String...args) {
 		String tx = args.length<1 ? name+NBSP : args[0];
 		String type = args.length<2 ? "span" : args[1];
-		return link(type, Map.of(REALM,REALM_PLAN,ID,id(),ACTION,ACTION_PROPS), tx).clazz("link","block");
+		return link(type, tx).clazz("link","block");
 	}
 	
 	@Override
@@ -267,7 +267,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 			new Input("min."+wt.tag+"."+dB,wt.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
 			new Input("max."+wt.tag+"."+dB,wt.get(dB).max).numeric().addTo(new Tag("td")).addTo(row);
 			Tag actions = new Tag("td");
-			Map<String, String> props = Map.of(REALM,REALM_PLAN,ID,id(),ACTION,ACTION_TIMES);
+			Map<String, String> props = Map.of(REALM,REALM_PLAN,ID,id().toString(),ACTION,ACTION_TIMES);
 			switch (count) {
 				case 1: 
 					actions.content(""); break;
@@ -348,8 +348,8 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 	public Tile update(HashMap<String, String> params) throws IOException {		
 		if (params.containsKey(NAME)) name=params.get(NAME);
 		if (params.containsKey(Train.class.getSimpleName())) {
-			int trainId = Integer.parseInt(params.get(Train.class.getSimpleName()));
-			if (trainId == 0) {
+			Id trainId = Id.from(params,Train.class.getSimpleName());
+			if (trainId == null) { // TODO: this is rubbish
 				if (isSet(train)) train.dropTrace();
 				train = null;
 			} else {

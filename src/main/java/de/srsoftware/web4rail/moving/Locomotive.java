@@ -39,7 +39,7 @@ public class Locomotive extends Car implements Constants,Device{
 		super(name);
 	}
 	
-	public Locomotive(String name, Integer id) {
+	public Locomotive(String name, Id id) {
 		super(name,id);
 	}
 	
@@ -82,7 +82,7 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	public static Tag cockpit(Object locoOrTrain) {
-		int id = 0;
+		Id id = null;
 		int speed = 0;
 		String realm = null;
 		Train train = null;
@@ -95,7 +95,7 @@ public class Locomotive extends Car implements Constants,Device{
 		} else if (locoOrTrain instanceof Train) {
 			train = (Train)locoOrTrain;
 			realm = REALM_TRAIN;			
-			id = train.id;
+			id = train.id();
 			speed = train.speed;
 		}
 		

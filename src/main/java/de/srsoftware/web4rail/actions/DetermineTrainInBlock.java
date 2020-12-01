@@ -18,8 +18,8 @@ public class DetermineTrainInBlock extends Action {
 	
 	@Override
 	public boolean fire(Context context) {
-		context.block = block;
-		context.train = block.train();		
+		context.block(block);
+		context.train(block.train());		
 		return true;
 	}
 	
@@ -33,7 +33,7 @@ public class DetermineTrainInBlock extends Action {
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		String blockId = json.getString(BLOCK);
+		Id blockId = Id.from(json,BLOCK);
 		if (isSet(blockId)) block = Block.get(blockId);
 		return this;
 	}
@@ -61,7 +61,7 @@ public class DetermineTrainInBlock extends Action {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		String blockId = params.get(Block.class.getSimpleName());
+		Id blockId = Id.from(params,Block.class.getSimpleName());
 		if (isSet(blockId)) block = Block.get(blockId);
 		return properties(params);
 	}

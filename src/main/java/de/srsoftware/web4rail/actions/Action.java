@@ -13,14 +13,9 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Plan.Direction;
-import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
-import de.srsoftware.web4rail.tiles.Block;
-import de.srsoftware.web4rail.tiles.Contact;
 
 /**
  * Base Class for all other actions
@@ -28,81 +23,12 @@ import de.srsoftware.web4rail.tiles.Contact;
  *
  */
 public abstract class Action extends BaseClass {
-	private static final HashMap<Integer,Action> actions = new HashMap<Integer, Action>();
+	private static final HashMap<Id,Action> actions = new HashMap<Id, Action>();
 	public static final Logger LOG = LoggerFactory.getLogger(Action.class);
 	private static final String PREFIX = Action.class.getPackageName();
-	protected int id;
-	
-	public static class Context {
-		public Contact contact = null;
-		public Route route = null;
-		public Train train = null;
-		public Block block = null;
-		public Direction direction = null;
-		
-		public Context(Contact c, Route r, Train t, Block b, Direction d) {
-			contact = c;
-			route = r;
-			train = t;
-			block = b;
-			direction = d;
-		}
-		
-		public Context(Contact c) {			
-			contact = c;
-			setRoute(contact.route());
-		}
-		
-		public Context(Train train) {
-			setTrain(train);
-		}
-		
-		public Context(Route route) {
-			setRoute(route);
-		}
-		
-		protected Context clone() {
-			return new Context(contact, route, train, block, direction);
-		}
-
-		private void setRoute(Route route) {
-			this.route = route;
-			if (isSet(route)) setTrain(route.train);
-			
-		}
-
-		private void setTrain(Train train) {
-			this.train = train;
-			if (isSet(train)) {
-				if (isNull(route)) route = train.route;
-				setBlock(train.currentBlock());
-				setDirection(train.direction());
-			}			
-		}
-
-		private void setDirection(Direction dir) {
-			direction = dir;
-		}
-
-		private void setBlock(Block block) {
-			this.block = block;
-		}
-		
-		@Override
-		public String toString() {
-			StringBuffer sb = new StringBuffer(getClass().getSimpleName());
-			sb.append("(");
-			sb.append(t("Train: {}",train));
-			if (isSet(route))   sb.append(", "+t("Route: {}",route));
-			if (isSet(contact)) sb.append(", "+t("Contact: {}",contact));
-			sb.append(")");
-			return sb.toString();
-		}
-	}
 	
 	public Action() {
-		id = Application.createId();
-		actions.put(id, this);
+		actions.put(id(), this);
 	}
 	
 	public static Action create(String type) {
@@ -120,12 +46,8 @@ public abstract class Action extends BaseClass {
 
 	public abstract boolean fire(Context context);
 	
-	public static Action get(int actionId) {
+	public static Action get(Id actionId) {
 		return actions.get(actionId);
-	}
-	
-	public int id() {
-		return id;
 	}
 
 	public JSONObject json() {

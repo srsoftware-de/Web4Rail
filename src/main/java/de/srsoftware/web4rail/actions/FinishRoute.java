@@ -6,7 +6,7 @@ public class FinishRoute extends Action {
 
 	@Override
 	public boolean fire(Context context) {
-		Route route = context.route;
+		Route route = context.route();
 		if (isSet(route)) route.finish();
 		return true;
 	}

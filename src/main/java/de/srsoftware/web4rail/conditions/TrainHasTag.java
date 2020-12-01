@@ -5,7 +5,6 @@ import java.util.HashMap;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
@@ -17,7 +16,7 @@ public class TrainHasTag extends Condition {
 	@Override
 	public boolean fulfilledBy(Context context) {
 		if (tag == null) return true;
-		return context.train.tags().contains(tag) != inverted;
+		return context.train().tags().contains(tag) != inverted;
 	}
 	
 	@Override

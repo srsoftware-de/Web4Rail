@@ -5,7 +5,6 @@ import java.util.HashMap;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tiles.Block;
 
@@ -26,7 +25,7 @@ public class BlockFree extends Condition {
 	
 	public Condition load(JSONObject json) {
 		super.load(json);
-		block(Block.get(json.getString(BLOCK)));
+		block(Block.get(new Id(json.getString(BLOCK))));
 		return this;
 	}
 	
@@ -52,7 +51,7 @@ public class BlockFree extends Condition {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		if (!params.containsKey(BLOCK)) return t("No block id passed to BlockFree.update()!");
-		String bid = params.get(BLOCK);
+		Id bid = new Id(params.get(BLOCK));
 		Block block = Block.get(bid);
 		if (block == null) return t("No block with id {} found!",bid);
 		this.block = block;

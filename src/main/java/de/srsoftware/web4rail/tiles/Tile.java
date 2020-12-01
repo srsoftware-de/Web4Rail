@@ -19,9 +19,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan;
@@ -101,12 +99,12 @@ public abstract class Tile extends BaseClass{
 		return 1;
 	}
 
-	public String id() {
+	public Id id() {
 		return Tile.id(x, y);
 	}
 	
-	public static String id(int x, int y) {
-		return x+"-"+y;
+	public static Id id(int x, int y) {
+		return new Id(x+"-"+y);
 	}
 	
 	private static void inflate(String clazz, JSONObject json, Plan plan) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, IOException {
@@ -131,7 +129,7 @@ public abstract class Tile extends BaseClass{
 		if (isSet(route))     json.put(ROUTE, route.id());
 		if (isSet(oneWay))    json.put(ONEW_WAY, oneWay);
 		if (disabled)         json.put(DISABLED, true);
-		if (isSet(train))     json.put(REALM_TRAIN, train.id);
+		if (isSet(train))     json.put(REALM_TRAIN, train.id());
 		json.put(LENGTH, length);
 		return json;
 	}
@@ -155,7 +153,7 @@ public abstract class Tile extends BaseClass{
 	public Tag link(String...args) {
 		String tx = args.length<1 ? id()+NBSP : args[0];
 		String type = args.length<2 ? "span" : args[1];
-		return link(type, Map.of(REALM,REALM_PLAN,ID,id(),ACTION,ACTION_CLICK), tx);
+		return super.link(type, tx, Map.of(ACTION,ACTION_CLICK));
 	}
 	
 	
@@ -216,7 +214,7 @@ public abstract class Tile extends BaseClass{
 		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",title(),x,y));
 		
 		if (isSet(train)) {
-			HashMap<String, Object> props = new HashMap<String,Object>(Map.of(REALM,REALM_TRAIN,ID,train.id));
+			HashMap<String, Object> props = new HashMap<String,Object>(Map.of(REALM,REALM_TRAIN,ID,train.id()));
 			if (isSet(train.route)) {
 				props.put(ACTION, ACTION_STOP);
 				window.children().insertElementAt(new Button(t("stop"),props), 1);
@@ -236,7 +234,7 @@ public abstract class Tile extends BaseClass{
 			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
 		}
 
-		if (isSet(route)) link("p",Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_PROPS),t("Locked by {}",route)).addTo(window);
+		if (isSet(route)) link("p",t("Locked by {}",route)).addTo(window);
 
 		Form form = propForm("tile-properties-"+id());
 		if (isTrack) {
@@ -295,7 +293,7 @@ public abstract class Tile extends BaseClass{
 		return routes;
 	}
 	
-	public static void saveAll(HashMap<String, Tile> tiles ,String filename) throws IOException {
+	public static void saveAll(HashMap<Id, Tile> tiles ,String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		for (Tile tile : tiles.values()) {
 			if (isNull(tile) || tile instanceof Shadow) continue;
@@ -317,10 +315,6 @@ public abstract class Tile extends BaseClass{
 		return plan.place(this);
 	}
 
-	protected static String t(String txt, Object...fills) {
-		return Translation.get(Application.class, txt, fills);
-	}
-
 	public Tag tag(Map<String,Object> replacements) throws IOException {
 		int width = 100*width();
 		int height = 100*height();
@@ -329,7 +323,7 @@ public abstract class Tile extends BaseClass{
 		replacements.put("%height%",height);
 		String style = "";
 		Tag svg = new Tag("svg")
-				.id(isSet(x) && isSet(y) ? id() : getClass().getSimpleName())
+				.id(isSet(x) && isSet(y) ? id().toString() : getClass().getSimpleName())
 				.clazz(classes())
 				.size(100,100)
 				.attr("name", getClass().getSimpleName())				

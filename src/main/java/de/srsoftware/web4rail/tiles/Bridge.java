@@ -6,7 +6,6 @@ import java.util.Map;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.tags.Button;
 
 public abstract class Bridge extends Tile {
 	private static Bridge pendingConnection = null;
@@ -37,10 +36,9 @@ public abstract class Bridge extends Tile {
 	@Override
 	public Window propMenu() {
 		Window win = super.propMenu();
-		Map<String, String> props = Map.of(REALM,REALM_PLAN,ID,id(),ACTION,ACTION_CONNECT);
 		new Tag("h4").content("Counterpart").addTo(win);
 		new Tag("p").content(isSet(counterpart) ? t("Connected to {}.",counterpart) : t("Not connected to other bridge part!")).addTo(win);
-		new Button(t("Select counterpart"), props).addTo(win);
+		button(t("Select counterpart"),Map.of(ACTION,ACTION_CONNECT)).addTo(win);
 		return win;
 	}
 

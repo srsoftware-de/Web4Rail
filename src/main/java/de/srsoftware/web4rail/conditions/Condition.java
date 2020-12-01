@@ -17,7 +17,6 @@ import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ConditionalAction;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
@@ -30,16 +29,15 @@ public abstract class Condition extends BaseClass {
 	public static final Logger LOG = LoggerFactory.getLogger(Condition.class);
 	private static final String INVERTED = "inverted";
 	private static final String PREFIX = Condition.class.getPackageName();
-	private static HashMap<Integer, Condition> conditions = new HashMap<Integer, Condition>();
+	private static HashMap<Id, Condition> conditions = new HashMap<Id, Condition>();
 	public boolean inverted = false;
-	protected int id;
 	private Object parent;
 
 	public Condition() {
-		this(Application.createId());
+		this(new Id());
 	}
 	
-	public Condition(int id) {
+	public Condition(Id id) {
 		this.id = id;
 		conditions.put(id, this);
 	}	
@@ -48,7 +46,7 @@ public abstract class Condition extends BaseClass {
 		String action = params.get(ACTION);
 		if (action == null) return t("No action passed to Condition.action!");
 		
-		Integer cid = (params.containsKey(ID)) ? Integer.parseInt(params.get(ID)) : null;
+		Id cid = Id.from(params);
 		
 		if (isSet(cid)) {		
 			Condition condition = conditions.get(cid);
@@ -85,14 +83,14 @@ public abstract class Condition extends BaseClass {
 		Condition condition = Condition.create(type);
 		if (isNull(condition)) return t("Unknown type \"{}\" of condition!",type);
 		String[] parts = context.split(":");
-		String contextId = parts[1];
+		Id contextId = new Id(parts[1]);
 		String realm = parts[0];
 		switch (realm) {
 		case REALM_ROUTE:
-			Route route = plan.route(Integer.parseInt(contextId));
+			Route route = plan.route(contextId);
 			if (isNull(route)) return t("Unknown route: {}",contextId);
 			route.add(condition);
-			return route.properties(new HashMap<String,String>(Map.of(REALM,REALM_ROUTE,ACTION,ACTION_PROPS,ID,contextId)));
+			return route.properties(new HashMap<String,String>(Map.of(REALM,REALM_ROUTE,ACTION,ACTION_PROPS,ID,contextId.toString())));
 			
 		default:
 			break;
@@ -124,10 +122,6 @@ public abstract class Condition extends BaseClass {
 	}
 
 	public abstract boolean fulfilledBy(Context context);
-
-	public int id() {
-		return id;
-	}
 	
 	public JSONObject json() {
 		JSONObject json = new JSONObject().put(TYPE, getClass().getSimpleName());
@@ -146,7 +140,7 @@ public abstract class Condition extends BaseClass {
 		String tx = args.length<1 ? toString()+NBSP : args[0];
 		String type = args.length<2 ? "span" : args[1];
 		String context = args.length<3 ? null : args[2];
-		return link(type, Map.of(REALM,REALM_CONDITION,ID,id(),ACTION,ACTION_PROPS,CONTEXT,context), tx);
+		return link(type, tx,Map.of(CONTEXT,context));
 	}
 		
 	private static List<Class<? extends Condition>> list() {

@@ -20,9 +20,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.PathFinder;
 import de.srsoftware.web4rail.Plan;
@@ -30,7 +28,6 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -49,9 +46,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static final String CAR_ID  = "carId";
 	public  static final String LOCO_ID = "locoId";
 	private static final String TRACE   = "trace";
-	private static final HashMap<Integer, Train> trains = new HashMap<>();
+	private static final HashMap<Id, Train> trains = new HashMap<>();
 	public static final String ID = "id";
-	public int id;
 
 	private static final String NAME = "name";
 	private String name = null;
@@ -117,8 +113,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		this(loco,null);
 	}
 	
-	public Train(Locomotive loco, Integer id) {
-		if (isNull(id)) id = Application.createId();
+	public Train(Locomotive loco, Id id) {
+		if (isNull(id)) id = new Id();
 		this.id = id;
 		add(loco);
 		trains.put(id, this);
@@ -136,7 +132,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			}
 			return t("No train id passed!");
 		}
-		int id = Integer.parseInt(params.get(Train.ID));
+		Id id = Id.from(params);
 		Train train = trains.get(id);
 		if (isNull(train)) return(t("No train with id {}!",id));
 		switch (action) {
@@ -320,7 +316,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 		
-	public static Train get(int id) {
+	public static Train get(Id id) {
 		return trains.get(id);
 	}
 	
@@ -344,15 +340,15 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(route)) json.put(ROUTE, route.id());
 		if (isSet(direction)) json.put(DIRECTION, direction);
 
-		Vector<Integer> locoIds = new Vector<Integer>();
+		Vector<Id> locoIds = new Vector<Id>();
 		for (Locomotive loco : locos) locoIds.add(loco.id());
 		json.put(LOCOS, locoIds);
 		
-		Vector<Integer> carIds = new Vector<Integer>();
+		Vector<Id> carIds = new Vector<Id>();
 		for (Car car : cars) carIds.add(car.id());
 		json.put(CARS,carIds);
 		
-		Vector<String> tileIds = new Vector<String>();
+		Vector<Id> tileIds = new Vector<Id>();
 		for (Tile tile : trace) tileIds.add(tile.id());
 		json.put(TRACE, tileIds);
 		
@@ -377,7 +373,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Tag link(String...args) {
 		String tx = args.length<1 ? name()+NBSP : args[0];
 		String type = args.length<2 ? "span" : args[1];
-		return link(type, Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_PROPS), tx);
+		return link(type, tx);
 	}
 	
 	public static TreeSet<Train> list() {
@@ -390,9 +386,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		while (isSet(line)) {
 			JSONObject json = new JSONObject(line);
 			
-			int id = json.getInt(ID);
-			
-			Train train = new Train(null,id);
+			Train train = new Train(null,Id.from(json));
 			train.plan(plan).load(json);			
 			
 			line = file.readLine();
@@ -405,8 +399,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
 		if (json.has(NAME)) name = json.getString(NAME);
 		if (json.has(TAGS))  json.getJSONArray(TAGS ).forEach(elem -> {  tags.add(elem.toString()); });
-		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(elem.toString(), false).set(this)); });
-		if (json.has(BLOCK)) currentBlock = (Block) plan.get(json.getString(BLOCK), false).set(this); // do not move this up! during set, other fields will be referenced!
+		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(new Id(elem.toString()), false).set(this)); });
+		if (json.has(BLOCK)) currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false).set(this); // do not move this up! during set, other fields will be referenced!
 		for (Object id : json.getJSONArray(CARS)) add(Car.get(id));
 		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get(id));
 		return this;
@@ -516,7 +510,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 	
-	public Tag properties() {
+	@Override
+	public Window properties() {
 		Window window = new Window("train-properties",t("Properties of {}",this));
 		
 		Locomotive.cockpit(this).addTo(window);
@@ -547,14 +542,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(destination)) {
 			new Button(t("Select from plan"),"return selectDest("+id+");").addTo(dest);			
 		} else {
-			link("span",Map.of(REALM,REALM_PLAN,ID,destination.id(),ACTION,ACTION_CLICK),destination.toString()).addTo(dest);
+			link("span",destination,Map.of(REALM,REALM_PLAN,ID,destination.id().toString(),ACTION,ACTION_CLICK)).addTo(dest);
 			new Button(t("Drop"),Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_MOVE,DESTINATION,"")).addTo(dest);
 		}
 		
 		dest.addTo(propList);		
-		if (isSet(route)) {
-			link("li", Map.of(REALM,REALM_ROUTE,ID,route.id(),ACTION,ACTION_PROPS), route).addTo(propList);
-		}
+		if (isSet(route)) link("li", route).addTo(propList);
 		int ms = maxSpeed();
 		if (ms < Integer.MAX_VALUE) new Tag("li").content(t("Max. Speed")+": "+maxSpeed()+NBSP+speedUnit).addTo(propList);
 		
@@ -594,7 +587,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void reserveNext() {
-		Context context = new Context(null, route, this, route.endBlock(), route.endDirection);
+		Context context = new Context(this)
+				.route(route)
+				.block(route.endBlock())
+				.direction(route.endDirection);
 		Route nextRoute = PathFinder.chooseRoute(context);
 		if (isNull(nextRoute)) return;
 		
@@ -622,7 +618,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Entry<Integer, Train> entry:trains.entrySet()) {
+		for (Entry<Id, Train> entry:trains.entrySet()) {
 			Train train = entry.getValue();
 			file.write(train.json()+"\n");
 		}
@@ -653,7 +649,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			destination = null;
 			return t("Dropped destination of {}.",this);
 		}
-		Tile tile = plan.get(dest, true);
+		Tile tile = plan.get(new Id(dest), true);
 		if (isNull(tile)) return t("Tile {} not known!",dest);
 		if (tile instanceof Block) {
 			destination = (Block) tile;
@@ -781,11 +777,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		return properties();
 	}
-	
-	private static String t(String message, Object...fills) {
-		return Translation.get(Application.class, message, fills);
-	}
-	
 
 	public SortedSet<String> tags() {
 		TreeSet<String> list = new TreeSet<String>(tags);

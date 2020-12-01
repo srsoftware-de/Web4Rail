@@ -23,7 +23,6 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
-import de.srsoftware.web4rail.actions.Action.Context;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.actions.BrakeStart;
 import de.srsoftware.web4rail.actions.BrakeStop;
@@ -72,7 +71,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	static final String SIGNALS  = "signals";
 	static final String TURNOUTS = "turnouts";
 	
-	private static HashMap<Integer, String> names = new HashMap<Integer, String>(); // maps id to name. needed to keep names during plan.analyze()
+	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
 	
 	private class BrakeProcessor extends Thread {
 		private int startSpeed;
@@ -144,7 +143,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	private boolean                        disabled = false;
 	private Block                          endBlock = null;
 	public  Direction					   endDirection;
-	private int                            id;
+	private Id                             id;
 	private Vector<Tile>                   path;
 	private Vector<Signal>                 signals;
 	public  Train                          train;
@@ -163,12 +162,12 @@ public class Route extends BaseClass implements Comparable<Route>{
 	 * @throws IOException 
 	 */
 	public static Object action(HashMap<String, String> params) throws IOException {
-		Route route = plan.route(Integer.parseInt(params.get(ID)));
+		Route route = plan.route(Id.from(params));
 		if (isNull(route)) return t("Unknown route: {}",params.get(ID));
 		switch (params.get(ACTION)) {
 			case ACTION_DROP:
 				String message = plan.remove(route);
-				String tileId = params.get(Tile.class.getSimpleName());
+				Id tileId = Id.from(params,Tile.class.getSimpleName());
 				if (isSet(tileId)) {
 					Tile tile = plan.get(tileId, false);
 					if (isSet(tile)) {
@@ -228,7 +227,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	private void addBasicPropertiesTo(Window win) {
-		if (isSet(train)) link("span",Map.of(REALM,REALM_TRAIN,ID,train.id,ACTION,ACTION_PROPS),t("Train: {}",train)).addTo(win);
+		if (isSet(train)) link("span",t("Train: {}",train)).addTo(win);
 		new Tag("h4").content(t("Origin and destination")).addTo(win);
 		Tag list = new Tag("ul");
 		Plan.addLink(startBlock, t("Origin: {} to {}",startBlock.name,startDirection), list);
@@ -441,8 +440,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	private Object dropCodition(HashMap<String, String> params) {
-		String condId = params.get(REALM_CONDITION);
-		if (isSet(condId)) conditions.removeById(Integer.parseInt(condId));
+		Id condId = Id.from(params,REALM_CONDITION);
+		if (isSet(condId)) conditions.removeById(condId);
 		return properties(params);
 	}
 		
@@ -492,8 +491,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 		return sb.toString().trim();
 	}
 	
-	public int id() {
-		if (id == 0) id = generateName().hashCode();
+	public Id id() {
+		if (id == null) id = new Id(generateName());
 		return id;
 	}
 		
@@ -512,11 +511,11 @@ public class Route extends BaseClass implements Comparable<Route>{
 		JSONObject json = new JSONObject();
 		
 		json.put(ID, id());
-		Vector<String> tileIds = new Vector<String>();
+		Vector<Id> tileIds = new Vector<Id>();
 		for (Tile t : this.path) tileIds.add(t.id());
 		json.put(PATH, tileIds);
 		
-		Vector<String> signalIds = new Vector<String>(); // list all signals affecting this route 
+		Vector<Id> signalIds = new Vector<Id>(); // list all signals affecting this route 
 		for (Tile t : this.signals) signalIds.add(t.id());
 		json.put(SIGNALS, signalIds);
 		
@@ -556,13 +555,13 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	private Route load(JSONObject json,Plan plan) {
-		if (json.has(ID)) id = json.getInt(ID);
+		if (json.has(ID)) id = Id.from(json);
 		if (json.has(NAME)) name(json.getString(NAME));
 		JSONArray pathIds = json.getJSONArray(PATH);
 		startDirection = Direction.valueOf(json.getString(START_DIRECTION));
 		endDirection = Direction.valueOf(json.getString(END_DIRECTION));
 		for (Object tileId : pathIds) {
-			Tile tile = plan.get((String) tileId,false);
+			Tile tile = plan.get(new Id((String) tileId),false);
 			if (isNull(tile)) {
 				continue;
 			}
@@ -582,12 +581,12 @@ public class Route extends BaseClass implements Comparable<Route>{
 			JSONArray turnouts = json.getJSONArray(TURNOUTS);
 			for (int i=0; i<turnouts.length();i++) {
 				JSONObject jTurnout = turnouts.getJSONObject(i);
-				Turnout turnout = (Turnout) plan.get(jTurnout.getString(Turnout.ID), false);
+				Turnout turnout = (Turnout) plan.get(new Id(jTurnout.getString(Turnout.ID)), false);
 				addTurnout(turnout, Turnout.State.valueOf(jTurnout.getString(Turnout.STATE)));
 			}
 		}
 		if (json.has(SIGNALS)) {
-			for (Object signalId : json.getJSONArray(SIGNALS)) addSignal((Signal) plan.get((String) signalId, false));
+			for (Object signalId : json.getJSONArray(SIGNALS)) addSignal((Signal) plan.get(new Id((String) signalId), false));
 		}
 		if (json.has(ACTION_LISTS)) loadActions(json.getJSONArray(ACTION_LISTS));
 		if (json.has(CONDITIONS)) conditions.load(json.getJSONArray(CONDITIONS));

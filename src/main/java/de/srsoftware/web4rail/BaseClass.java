@@ -2,14 +2,25 @@ package de.srsoftware.web4rail;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import org.json.JSONObject;
 
+import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.actions.Action;
+import de.srsoftware.web4rail.conditions.Condition;
+import de.srsoftware.web4rail.moving.Car;
+import de.srsoftware.web4rail.moving.Locomotive;
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Contact;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public abstract class BaseClass implements Constants{
 	protected static Plan plan; // the track layout in use
@@ -17,18 +28,162 @@ public abstract class BaseClass implements Constants{
 	public static String speedUnit = DEFAULT_SPEED_UNIT;
 	public static String lengthUnit = DEFAULT_LENGTH_UNIT;
 	private static final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
-	public static Button contextButton(String context,String text) {
-		String[] parts = context.split(":");
-		String realm = parts[0];
-		String id = parts.length>1 ? parts[1] : null;
-		return new Button(text,Map.of(REALM,realm,ID,id,ACTION,ACTION_PROPS));
+	protected Id id = null;
+	
+	public static class Context {
+		private BaseClass main = null;
+		private Tile tile;
+		private Block block;
+		private Train train;
+		private Route route;
+		private Action action;
+		private Condition condition;
+		private Car car;
+		private Contact contact;
+		private Direction direction = null;
+		
+		public Context(BaseClass object) {
+			main = object;
+			if (main instanceof Tile) this.tile = (Tile) main;
+			if (main instanceof Contact) this.contact = (Contact) main;
+			if (main instanceof Block) this.block = (Block) main;
+			if (main instanceof Train) this.train = (Train) main;
+			if (main instanceof Route) this.route = (Route) main;
+			if (main instanceof Action) this.action = (Action) main;
+			if (main instanceof Condition) this.condition = (Condition) main;
+			if (main instanceof Car) this.car = (Car) main;
+		}
+		
+		public Action action() {
+			return action;
+		}
+		
+		public Block block() {
+			return block;
+		}
+		
+		public Context block(Block newBlock) {
+			block = newBlock;
+			return this;
+		}
+
+		public Car car() {
+			return car;
+		}
+		
+		public Context clone() {
+			return new Context(main);
+		}
+		
+		public Condition condition() {
+			return condition;
+		}
+		
+		public Contact contact() {
+			return contact;
+		}
+		
+		public Direction direction() {
+			return direction;
+		}
+		
+		public Context direction(Direction newDirection) {
+			direction = newDirection;
+			return this;
+		}
+		
+		public Route route() {
+			return route;
+		}
+		
+		public Context route(Route newRoute) {
+			route = newRoute;
+			return this;
+		}
+		
+		public Tile tile() {
+			return tile;
+		}
+		
+		@Override
+		public String toString() {
+			StringBuffer sb = new StringBuffer(getClass().getSimpleName());
+			sb.append("(");
+			sb.append(t("Train: {}",train));
+			if (isSet(route))   sb.append(", "+t("Route: {}",route));
+			if (isSet(contact)) sb.append(", "+t("Contact: {}",contact));
+			sb.append(")");
+			return sb.toString();
+		}
+		
+		public Train train() {
+			return train;
+		}
+
+		public void train(Train newTrain) {
+			train = newTrain;
+		}
 	}
 	
-	public static Tag link(String tagClass,Map<String,Object> params,Object caption) {
-		String json = new JSONObject(params).toString().replace("\"", "'");
-		return new Tag(tagClass).clazz("link").attr("onclick","request("+json+")").content(caption.toString());
-	}
+	public static class Id implements Comparable<Id>{
+		private String internalId;
+
+		public Id() {
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			internalId = md5sum(new Date());
+		}
 		
+		
+		public Id(String id) {
+			internalId = id;
+		}
+				
+		@Override
+		public String toString() {
+			return internalId;
+		}
+
+		@Override
+		public int compareTo(Id other) {
+			return internalId.compareTo(other.internalId);
+		}
+		
+		public static Id from(JSONObject json) {
+			return Id.from(json,ID);
+		}
+		
+		public static Id from(JSONObject json,String key) {
+			return json.has(key) ? new Id(""+json.get(key)) : null;
+		}
+		
+		public static Id from(Map<String,String> params) {
+			return Id.from(params,ID);
+		}
+
+
+		public static Id from(Map<String, String> params, String key) {
+			String sid = params.get(key);
+			return sid == null ? null : new Id(sid);
+		}
+	}
+	
+	public Button button(String text,Map<String,String> additionalProps) {
+		return new Button(text,props(additionalProps));
+	}
+	
+	public Button button(String text) {		
+		return button(text,null);
+	}
+	
+	public Id id() {
+		if (isNull(id)) id = new Id();
+		return id;
+	}
+	
 	public static boolean isNull(Object o) {
 		return o==null;
 	}
@@ -36,6 +191,16 @@ public abstract class BaseClass implements Constants{
 	public static boolean isSet(Object o) {
 		return o != null;
 	}
+	
+	public Tag link(String tagClass,Object caption) {
+		return link(tagClass,caption,null);
+	}
+
+	public Tag link(String tagClass,Object caption,Map<String,String> additionalProps) {
+		String json = new JSONObject(props(additionalProps)).toString().replace("\"", "'");
+		return new Tag(tagClass).clazz("link").attr("onclick","request("+json+")").content(caption.toString());
+	}
+	
 	
 	public static String md5sum(Object o) {
 		try {
@@ -56,5 +221,31 @@ public abstract class BaseClass implements Constants{
 		HashMap<String,String> merged = new HashMap<>(base);
 		overlay.entrySet().stream().forEach(entry -> merged.put(entry.getKey(), entry.getValue()));
 		return merged;
+	}
+	
+	public Window properties() {
+		return new Window(getClass().getSimpleName()+"-properties", t("Properties of {}",this));
+	}
+	
+	public Map<String,String> props(Map<String,String> additionalProps){
+		String realm = null;
+		if (this instanceof Tile) realm = REALM_PLAN;
+		if (this instanceof Contact) realm = REALM_CONTACT;
+
+		if (this instanceof Car) realm = REALM_CAR;
+		if (this instanceof Locomotive) realm = REALM_LOCO;
+		
+		if (this instanceof Train) realm = REALM_TRAIN;
+		if (this instanceof Route) realm = REALM_ROUTE;
+		if (this instanceof Action) realm = REALM_ACTIONS;
+		if (this instanceof Condition) realm = REALM_CONDITION;
+		
+		HashMap<String,String> props = new HashMap<String, String>(Map.of(REALM, realm, ACTION, ACTION_PROPS, ID, id().toString()));
+		if (isSet(additionalProps)) props.putAll(additionalProps);
+		return props;
+	}
+		
+	protected static String t(String txt, Object...fills) {
+		return Translation.get(Application.class, txt, fills);
 	}
 }

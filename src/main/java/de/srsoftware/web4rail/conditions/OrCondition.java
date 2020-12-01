@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.actions.Action.Context;
 
 public class OrCondition extends Condition{
 	

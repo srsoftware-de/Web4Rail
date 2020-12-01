@@ -39,7 +39,7 @@ public class SetDisplayText extends TextAction{
 				public void run() {
 					try {
 						sleep(1000);
-						display = (TextDisplay) plan.get(json.getString(DISPLAY), false);
+						display = (TextDisplay) plan.get(Id.from(json,DISPLAY), false);
 					} catch (InterruptedException e) {}						
 				};
 			}.start();
@@ -72,7 +72,7 @@ public class SetDisplayText extends TextAction{
 	protected Object update(HashMap<String, String> params) {
 		super.update(params);
 		String displayId = params.get(TextDisplay.class.getSimpleName());
-		if (isSet(displayId)) display = (TextDisplay) plan.get(displayId, false);
+		if (isSet(displayId)) display = (TextDisplay) plan.get(new Id(displayId), false);
 		return properties(params);
 	}
 }

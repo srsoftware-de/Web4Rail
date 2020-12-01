@@ -32,7 +32,7 @@ public class TriggerContact extends Action {
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		String contactId = json.getString(CONTACT);
+		Id contactId = Id.from(json,CONTACT);
 		if (isSet(contactId)) contact = Contact.get(contactId);
 		return this;
 	}
@@ -60,7 +60,7 @@ public class TriggerContact extends Action {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		String contactId = params.get(CONTACT);
+		Id contactId = Id.from(params,CONTACT);
 		if (isSet(contactId)) contact = Contact.get(contactId);
 		return properties(params);
 	}
