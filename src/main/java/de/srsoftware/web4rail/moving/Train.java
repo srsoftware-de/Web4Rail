@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -338,18 +339,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(name))json.put(NAME, name);
 		if (isSet(route)) json.put(ROUTE, route.id());
 		if (isSet(direction)) json.put(DIRECTION, direction);
-
-		Vector<String> locoIds = new Vector<String>();
-		for (Locomotive loco : locos) locoIds.add(loco.id().toString());
-		json.put(LOCOS, locoIds);
 		
-		Vector<String> carIds = new Vector<String>();
-		for (Car car : cars) carIds.add(car.id().toString());
-		json.put(CARS,carIds);
-		
-		Vector<String> tileIds = new Vector<String>();
-		for (Tile tile : trace) tileIds.add(tile.id().toString());
-		json.put(TRACE, tileIds);
+		json.put(LOCOS, locos.stream().map(l -> l.id().toString()).collect(Collectors.toList()));
+		json.put(CARS,cars.stream().map(c -> c.id().toString()).collect(Collectors.toList()));
+		json.put(TRACE, trace.stream().map(t -> t.id().toString()).collect(Collectors.toList()));
 		
 		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;

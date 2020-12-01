@@ -11,7 +11,6 @@ import org.json.JSONObject;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.moving.Car;
@@ -40,7 +39,6 @@ public abstract class BaseClass implements Constants{
 		private Condition condition;
 		private Car car;
 		private Contact contact;
-		private Direction direction = null;
 		
 		public Context(BaseClass object) {
 			main = object;
@@ -82,16 +80,7 @@ public abstract class BaseClass implements Constants{
 		public Contact contact() {
 			return contact;
 		}
-		
-		public Direction direction() {
-			return direction;
-		}
-		
-		public Context direction(Direction newDirection) {
-			direction = newDirection;
-			return this;
-		}
-		
+				
 		public Route route() {
 			return route;
 		}

@@ -20,7 +20,6 @@ public abstract class TextAction extends Action {
 	public String fill(String tx,Context context) {
 		if (isSet(context.block())) tx = tx.replace("%block%", context.block().name);
 		if (isSet(context.contact())) tx = tx.replace("%contact%", context.contact().id().toString());
-		if (isSet(context.direction())) tx = tx.replace("%dir%", context.direction().name());
 		if (isSet(context.route())) tx = tx.replace("%route%", context.route().name());
 		if (isSet(context.train())) tx = tx.replace("%train%", context.train().name());		
 		return tx;
