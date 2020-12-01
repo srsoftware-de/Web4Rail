@@ -45,27 +45,62 @@ public abstract class Condition extends BaseClass {
 	}	
 	
 	public static Object action(HashMap<String, String> params,Plan plan) {
-		if (!params.containsKey(ID)) return t("No id passed to Condition.action!");
-		int cid = Integer.parseInt(params.get(ID));
-		Condition condition = conditions.get(cid);
-		if (condition == null) return t("No condition with id {}!",cid);
-		
 		String action = params.get(ACTION);
 		if (action == null) return t("No action passed to Condition.action!");
 		
+		Integer cid = (params.containsKey(ID)) ? Integer.parseInt(params.get(ID)) : null;
+		
+		if (isSet(cid)) {		
+			Condition condition = conditions.get(cid);
+			if (condition == null) return t("No condition with id {}!",cid);
+		
+			switch (action) {
+				case ACTION_PROPS:
+					return condition.properties(params);
+				case ACTION_UPDATE:
+					condition.update(params);
+					return plan.showContext(params);
+				case ACTION_DROP:
+					condition.drop();
+					return plan.showContext(params);
+			}
+			return t("Unknown action: {}",action);
+		}
+		
 		switch (action) {
-			case ACTION_PROPS:
-				return condition.properties(params);
-			case ACTION_UPDATE:
-				condition.update(params);
-				return plan.showContext(params);
-			case ACTION_DROP:
-				condition.drop();
-				return plan.showContext(params);
+			case ACTION_ADD:
+				return addCondition(params);
+				
 		}
 		return t("Unknown action: {}",action);
+
 	}
 	
+	private static Object addCondition(HashMap<String, String> params) {
+		String type = params.get(REALM_CONDITION);
+		String context = params.get(CONTEXT);
+		if (isNull(type)) return t("No type supplied to addCondition!");
+		if (isNull(context)) return t("No context supplied to addCondtion!");
+		
+		Condition condition = Condition.create(type);
+		if (isNull(condition)) return t("Unknown type \"{}\" of condition!",type);
+		String[] parts = context.split(":");
+		String contextId = parts[1];
+		String realm = parts[0];
+		switch (realm) {
+		case REALM_ROUTE:
+			Route route = plan.route(Integer.parseInt(contextId));
+			if (isNull(route)) return t("Unknown route: {}",contextId);
+			route.add(condition);
+			return route.properties(new HashMap<String,String>(Map.of(REALM,REALM_ROUTE,ACTION,ACTION_PROPS,ID,contextId)));
+			
+		default:
+			break;
+		}
+		
+		return t("Cannot handle context of type {} in addCondition!");
+	}
+
 	public static Condition create(String type) {
 		if (type == null) return null;
 		try {
@@ -117,6 +152,7 @@ public abstract class Condition extends BaseClass {
 	private static List<Class<? extends Condition>> list() {
 		return List.of(
 				BlockFree.class,
+				OrCondition.class,
 				PushPullTrain.class,
 				TrainHasTag.class,
 				TrainSelect.class,

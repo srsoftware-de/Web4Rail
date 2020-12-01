@@ -32,10 +32,10 @@ import de.srsoftware.web4rail.actions.PreserveRoute;
 import de.srsoftware.web4rail.actions.SetSignal;
 import de.srsoftware.web4rail.actions.SetSpeed;
 import de.srsoftware.web4rail.conditions.Condition;
+import de.srsoftware.web4rail.conditions.ConditionList;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
-import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
@@ -139,7 +139,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 
 	private BrakeProcessor				   brakeProcessor = null;
 	private HashMap<String,Integer>        brakeTimes = new HashMap<String, Integer>();
-	private Vector<Condition>              conditions = new Vector<Condition>();
+	private ConditionList                  conditions = new ConditionList();
 	private Vector<Contact>                contacts;
 	private boolean                        disabled = false;
 	private Block                          endBlock = null;
@@ -223,6 +223,10 @@ public class Route extends BaseClass implements Comparable<Route>{
 		actions.add(action);
 	}
 	
+	public void add(Condition condition) {
+		conditions.add(condition);
+	}
+	
 	private void addBasicPropertiesTo(Window win) {
 		if (isSet(train)) link("span",Map.of(REALM,REALM_TRAIN,ID,train.id,ACTION,ACTION_PROPS),t("Train: {}",train)).addTo(win);
 		new Tag("h4").content(t("Origin and destination")).addTo(win);
@@ -255,26 +259,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 	
 	private void addConditionsTo(Window win) {
 		new Tag("h4").content(t("Conditions")).addTo(win);		
-		if (!conditions.isEmpty()) {
-			Tag list = new Tag("ul");
-			for (Condition condition : conditions) {
-				Tag li = new Tag("li");
-				link("span",Map.of(REALM,REALM_CONDITION,ID,condition.id(),ACTION,ACTION_PROPS,CONTEXT,REALM_ROUTE+":"+id),condition).addTo(li);
-				Map<String, Object> params = Map.of(REALM,REALM_ROUTE,ID,id(),ACTION,DROP_CONDITION,REALM_CONDITION,condition.id());
-				new Button(t("delete"), params).addTo(li.content(NBSP)).addTo(list);
-			}
-			list.addTo(win);
-		}
-
 		new Tag("div").content(t("Route will only be available, if all conditions are fulfilled.")).addTo(win);
-		Form form = new Form("action-prop-form-"+id);
-		Fieldset fieldset = new Fieldset(t("Add condition"));
-		new Input(REALM,REALM_ROUTE).hideIn(form);
-		new Input(ID,id()).hideIn(form);
-		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-
-		Condition.selector().addTo(fieldset);
-		new Button(t("Add condition"),form).addTo(fieldset).addTo(form).addTo(win);
+		conditions.tag(REALM_ROUTE+":"+id()).addTo(win);
 	}
 	
 	private void addContactsTo(Window win) {
@@ -361,10 +347,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	 */
 	public boolean allowed(Context context) {
 		if (disabled) return false;
-		for (Condition condition : conditions) {
-			if (!condition.fulfilledBy(context)) return false;
-		}
-		return true;
+		return conditions.fulfilledBy(context);
 	}
 	
 	public Route begin(Block block,Direction to) {
@@ -459,15 +442,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	
 	private Object dropCodition(HashMap<String, String> params) {
 		String condId = params.get(REALM_CONDITION);
-		if (isSet(condId)) {
-			int cid = Integer.parseInt(condId);
-			for (Condition condition : conditions) {
-				if (condition.id() == cid) {
-					conditions.remove(condition);
-					break;
-				}
-			}
-		}
+		if (isSet(condId)) conditions.removeById(Integer.parseInt(condId));
 		return properties(params);
 	}
 		
@@ -556,9 +531,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		
 		json.put(BRAKE_TIMES, brakeTimes);
 		
-		JSONArray jConditions = new JSONArray();
-		for (Condition condition : conditions) jConditions.put(condition.json());
-		if (!jConditions.isEmpty()) json.put(CONDITIONS, jConditions);
+		if (!conditions.isEmpty()) json.put(CONDITIONS, conditions.json());
 		
 		JSONArray jTriggers = new JSONArray();
 		for (Entry<String, ActionList> entry : triggers.entrySet()) {
@@ -617,7 +590,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 			for (Object signalId : json.getJSONArray(SIGNALS)) addSignal((Signal) plan.get((String) signalId, false));
 		}
 		if (json.has(ACTION_LISTS)) loadActions(json.getJSONArray(ACTION_LISTS));
-		if (json.has(CONDITIONS)) loadConditions(json.getJSONArray(CONDITIONS));
+		if (json.has(CONDITIONS)) conditions.load(json.getJSONArray(CONDITIONS));
 		if (json.has(SETUP_ACTIONS)) setupActions = ActionList.load(json.getJSONArray(SETUP_ACTIONS));
 		if (json.has(START_ACTIONS)) startActions = ActionList.load(json.getJSONArray(START_ACTIONS));
 		if (json.has(DISABLED)) disabled = json.getBoolean(DISABLED);
@@ -647,15 +620,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		}
 		fis.close();
 	}
-	
-	private void loadConditions(JSONArray arr) {
-		for (int i=0; i<arr.length(); i++) {
-			JSONObject json = arr.getJSONObject(i);
-			Condition condition = Condition.create(json.getString(TYPE));
-			if (isSet(condition)) conditions.add(condition.parent(this).load(json));
-		}
-	}
-	
+		
 	public boolean lock() {
 		return lockIgnoring(null);
 	}

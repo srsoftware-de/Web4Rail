@@ -7,7 +7,6 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
-import de.srsoftware.web4rail.tiles.Turnout.State;
 
 public abstract class Bridge extends Tile {
 	private static Bridge pendingConnection = null;
