@@ -169,7 +169,8 @@ public abstract class Tile extends BaseClass{
 		}
 	}
 
-	protected Tile load(JSONObject json) throws IOException {
+	public Tile load(JSONObject json) {
+		super.load(json);
 		JSONObject pos = json.getJSONObject(POS);
 		x = pos.getInt(X);
 		y = pos.getInt(Y);
@@ -394,7 +395,7 @@ public abstract class Tile extends BaseClass{
 		plan.place(this);
 	}
 
-	public Tile update(HashMap<String, String> params) throws IOException {
+	public Tile update(HashMap<String, String> params) {
 		LOG.debug("{}.update({})",getClass().getSimpleName(),params);
 		String oneWayDir = params.get("oneway");
 		if (isSet(oneWayDir)) {
@@ -407,7 +408,7 @@ public abstract class Tile extends BaseClass{
 		disabled = "on".equals(params.get(DISABLED));
 		String len = params.get(LENGTH);
 		if (isSet(len)) length(Integer.parseInt(len));
-		plan.stream(tag(null).toString());
+		plan.place(this);
 		return this;
 	}
 	

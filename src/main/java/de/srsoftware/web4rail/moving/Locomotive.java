@@ -220,7 +220,7 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 
 	@Override
-	protected Car load(JSONObject json) {
+	public Car load(JSONObject json) {
 		super.load(json);
 		if (json.has(LOCOMOTIVE)) {
 			JSONObject loco = json.getJSONObject(LOCOMOTIVE);
@@ -353,7 +353,7 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	@Override
-	public Car update(HashMap<String, String> params) {
+	protected Car update(HashMap<String, String> params) {
 		super.update(params);
 		if (params.containsKey(PROTOCOL)) proto = Protocol.valueOf(params.get(PROTOCOL));
 		if (params.containsKey(ADDRESS)) address = Integer.parseInt(params.get(ADDRESS));

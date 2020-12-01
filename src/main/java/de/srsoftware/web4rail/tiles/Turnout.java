@@ -103,7 +103,7 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	@Override
-	protected Tile load(JSONObject json) throws IOException {
+	public Tile load(JSONObject json) {
 		if (json.has(ADDRESS)) address = json.getInt(ADDRESS);
 		if (json.has(PORT_A)) portA = json.getInt(PORT_A);
 		if (json.has(PORT_B)) portB = json.getInt(PORT_B);
@@ -201,7 +201,7 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) throws IOException {
+	public Tile update(HashMap<String, String> params) {
 		if (params.containsKey(PROTOCOL)) protocol = Protocol.valueOf(params.get(PROTOCOL));
 		if (params.containsKey(ADDRESS)) {
 			int newAddress = Integer.parseInt(params.get(ADDRESS));

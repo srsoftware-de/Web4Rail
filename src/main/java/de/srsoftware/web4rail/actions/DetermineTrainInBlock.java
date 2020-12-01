@@ -65,5 +65,4 @@ public class DetermineTrainInBlock extends Action {
 		if (isSet(blockId)) block = Block.get(blockId);
 		return properties(params);
 	}
-
 }

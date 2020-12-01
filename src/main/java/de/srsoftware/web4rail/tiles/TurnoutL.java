@@ -50,7 +50,7 @@ public class TurnoutL extends Turnout {
 	}
 		
 	@Override
-	public Tile update(HashMap<String, String> params) throws IOException {
+	public Tile update(HashMap<String, String> params) {
 		if (params.containsKey(STRAIGHT)) portA = Integer.parseInt(params.get(STRAIGHT));
 		if (params.containsKey(LEFT)) portB = Integer.parseInt(params.get(LEFT));
 		return super.update(params);

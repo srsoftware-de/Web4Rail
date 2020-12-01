@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.tiles;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -30,10 +29,9 @@ public abstract class StretchableTile extends Tile {
 	}
 	
 	@Override
-	protected Tile load(JSONObject json) throws IOException {
-		super.load(json);
+	public Tile load(JSONObject json) {
 		if (json.has(STRETCH_LENGTH)) stretch = json.getInt(STRETCH_LENGTH);
-		return this;
+		return super.load(json);
 	}
 	
 	@Override
@@ -61,7 +59,7 @@ public abstract class StretchableTile extends Tile {
 	protected abstract String stretchType();
 	
 	@Override
-	public Tile update(HashMap<String, String> params) throws IOException {
+	public Tile update(HashMap<String, String> params) {
 		for (Entry<String, String> entry : params.entrySet()) {
 			switch (entry.getKey()) {
 				case STRETCH_LENGTH:

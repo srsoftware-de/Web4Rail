@@ -117,11 +117,10 @@ public class Contact extends Tile{
 
 	
 	@Override
-	protected Tile load(JSONObject json) throws IOException {
-		super.load(json);
+	public Tile load(JSONObject json) {
 		if (json.has(ADDRESS)) addr(json.getInt(ADDRESS));
 		if (json.has(REALM_ACTIONS)) actions = ActionList.load(json.getJSONArray(REALM_ACTIONS));
-		return this;
+		return super.load(json);
 	}
 	
 	@Override
@@ -213,7 +212,7 @@ public class Contact extends Tile{
 		return true;
 	}
 	@Override
-	public Tile update(HashMap<String, String> params) throws IOException {
+	public Tile update(HashMap<String, String> params) {
 		if (params.containsKey(ADDRESS)) addr(Integer.parseInt(params.get(ADDRESS)));
 		return super.update(params);
 	}

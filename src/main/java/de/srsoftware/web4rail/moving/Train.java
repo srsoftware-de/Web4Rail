@@ -386,7 +386,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		file.close();
 	}
 
-	private Train load(JSONObject json) {
+	public Train load(JSONObject json) {
 		pushPull = json.getBoolean(PUSH_PULL);
 		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
 		if (json.has(NAME)) name = json.getString(NAME);
@@ -395,6 +395,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(BLOCK)) currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false).set(this); // do not move this up! during set, other fields will be referenced!
 		for (Object id : json.getJSONArray(CARS)) add(Car.get(id));
 		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get(id));
+		super.load(json);
 		return this;
 	}
 	
@@ -504,23 +505,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	@Override
 	public Window properties() {
-		Window window = new Window("train-properties",t("Properties of {}",this));
+		Window window = super.properties();
 		
-		Locomotive.cockpit(this).addTo(window);
+		window.children().insertElementAt(Locomotive.cockpit(this), 2);
 		
-		Fieldset fieldset = new Fieldset(t("editable train properties"));
-		Form form = new Form();
-		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(REALM,REALM_TRAIN).hideIn(form);
-		new Input(ID,id).hideIn(form);
-		new Input(NAME,name).addTo(form);
-		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(form);
-		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(form);
-		new Button(t("Apply")).addTo(form).addTo(fieldset);
-		
-		fieldset.addTo(window);
-		
-		fieldset = new Fieldset(t("other train properties"));
+		Fieldset fieldset = new Fieldset(t("other train properties"));
 		
 		Tag propList = new Tag("ul").clazz("proplist");
 		
@@ -561,6 +550,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 		propList.addTo(fieldset).addTo(window);
 		return window;
 	}
+	
+	@Override
+	public Form propertyForm() {
+		Form form = super.propertyForm();
+		Fieldset fieldset = form.children().stream().filter(tag -> tag instanceof Fieldset).map(tag -> (Fieldset)tag).findFirst().get();
+		new Input(NAME,name).addTo(fieldset);
+		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(fieldset);
+		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(fieldset);
+		return form;
+	}
 
 	public Object quitAutopilot() {
 		if (isSet(nextRoute)) {
@@ -579,10 +578,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void reserveNext() {
-		Context context = new Context(this)
-				.route(route)
-				.block(route.endBlock())
-				.direction(route.endDirection);
+		Context context = new Context(this).route(route).block(route.endBlock());
 		Route nextRoute = PathFinder.chooseRoute(context);
 		if (isNull(nextRoute)) return;
 		
@@ -794,7 +790,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 
-	public Train update(HashMap<String, String> params) {
+	protected Train update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
 		pushPull = params.containsKey(PUSH_PULL) && params.get(PUSH_PULL).equals("on");
 		if (params.containsKey(NAME)) name = params.get(NAME);

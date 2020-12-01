@@ -25,10 +25,9 @@ public class TextDisplay extends StretchableTile {
 	}
 	
 	@Override
-	protected Tile load(JSONObject json) throws IOException {
-		super.load(json);
+	public Tile load(JSONObject json) {
 		if (json.has(TEXT))	text = json.getString(TEXT);
-		return this;
+		return super.load(json);
 	}
 	
 	@Override
@@ -73,7 +72,7 @@ public class TextDisplay extends StretchableTile {
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) throws IOException {
+	public Tile update(HashMap<String, String> params) {
 		for (Entry<String, String> entry : params.entrySet()) {
 			switch (entry.getKey()) {
 				case TEXT:

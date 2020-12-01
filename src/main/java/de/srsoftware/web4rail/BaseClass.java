@@ -17,6 +17,10 @@ import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.TextArea;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -28,6 +32,8 @@ public abstract class BaseClass implements Constants{
 	public static String lengthUnit = DEFAULT_LENGTH_UNIT;
 	private static final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
 	protected Id id = null;
+	protected String notes;
+
 	
 	public static class Context {
 		private BaseClass main = null;
@@ -199,20 +205,22 @@ public abstract class BaseClass implements Constants{
 		return button(text,null);
 	}
 	
-	public Map<String,String> contextAction(String action){
-		String realm = REALM_PLAN;
-		if (this instanceof Tile) realm = REALM_PLAN;
-		if (this instanceof Contact) realm = REALM_CONTACT;
+	public String realm() {
+		if (this instanceof Tile) return REALM_PLAN;
+		if (this instanceof Contact) return REALM_CONTACT;
 
-		if (this instanceof Car) realm = REALM_CAR;
-		if (this instanceof Locomotive) realm = REALM_LOCO;
+		if (this instanceof Car) return REALM_CAR;
+		if (this instanceof Locomotive) return REALM_LOCO;
 		
-		if (this instanceof Action) realm = REALM_ACTIONS;
-		if (this instanceof Condition) realm = REALM_CONDITION;
-		if (this instanceof Route) realm = REALM_ROUTE;
-		if (this instanceof Train) realm = REALM_TRAIN;
-
-		return Map.of(ACTION,action,CONTEXT,realm+":"+id());
+		if (this instanceof Action) return REALM_ACTIONS;
+		if (this instanceof Condition) return REALM_CONDITION;
+		if (this instanceof Route) return REALM_ROUTE;
+		if (this instanceof Train) return REALM_TRAIN;
+		return REALM_PLAN;
+	}
+	
+	public Map<String,String> contextAction(String action){
+		return Map.of(ACTION,action,CONTEXT,realm()+":"+id());
 	}
 	
 	public Id id() {
@@ -229,7 +237,10 @@ public abstract class BaseClass implements Constants{
 	}
 	
 	public JSONObject json() {
-		return new JSONObject().put(ID, id().toString());
+		JSONObject json = new JSONObject();
+		if (isSet(id)) json.put(ID, id().toString());
+		if (isSet(notes) && !notes.isEmpty()) json.put(NOTES, notes);
+		return json;
 	}
 	
 	public Tag link(String tagClass,Object caption) {
@@ -264,7 +275,27 @@ public abstract class BaseClass implements Constants{
 	}
 	
 	public Window properties() {
-		return new Window(getClass().getSimpleName()+"-properties", t("Properties of {}",this));
+		Window win = new Window(getClass().getSimpleName()+"-properties", t("Properties of {}",this));
+
+		Form form = propertyForm();
+		if (form!=null && form.children().size()>2) {
+			new Button(t("Apply"),form).addTo(form).addTo(win);
+		} else win.content(t("This tile ({}) has no editable properties",getClass().getSimpleName()));
+
+		return win;
+	}
+	
+	public Form propertyForm() {		
+		Form form = new Form(getClass().getSimpleName()+"-prop-form");
+		new Input(ACTION, ACTION_UPDATE).hideIn(form);
+		new Input(REALM,realm()).hideIn(form);
+		new Input(ID,id()).hideIn(form);
+		Fieldset fieldset = new Fieldset("Basic properties");
+		fieldset.addTo(form);
+		
+		fieldset = new Fieldset(t("Notes"));
+		new TextArea(NOTES,notes).addTo(fieldset.clazz("notes")).addTo(form);
+		return form;
 	}
 	
 	public Map<String,String> props(Map<String,String> additionalProps){
@@ -287,5 +318,16 @@ public abstract class BaseClass implements Constants{
 		
 	protected static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
+	}
+
+	protected Object update(HashMap<String, String> params) {
+		if (params.containsKey(NOTES)) notes = params.get(NOTES).trim();
+		return this;
+	}
+
+	public BaseClass load(JSONObject json) {
+		if (json.has(ID)) id = Id.from(json);
+		if (json.has(NOTES)) notes = json.getString(NOTES);
+		return this;
 	}
 }

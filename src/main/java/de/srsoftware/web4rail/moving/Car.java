@@ -28,7 +28,6 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Table;
-import de.srsoftware.web4rail.tags.TextArea;
 
 public class Car extends BaseClass implements Comparable<Car>{
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
@@ -47,7 +46,6 @@ public class Car extends BaseClass implements Comparable<Car>{
 	private Train train;
 	protected Plan plan;
 	protected int maxSpeed = 0;
-	private String notes;
 	
 	public Car(String name) {
 		this(name,null);
@@ -102,7 +100,6 @@ public class Car extends BaseClass implements Comparable<Car>{
 		json.put(NAME, name);
 		json.put(LENGTH, length);
 		if (maxSpeed != 0) json.put(MAX_SPEED, maxSpeed);
-		if (isSet(notes) && !notes.isEmpty()) json.put(NOTES, notes);
 		json.put(STOCK_ID, stockId);
 		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;
@@ -145,11 +142,10 @@ public class Car extends BaseClass implements Comparable<Car>{
 		file.close();
 	}
 	
-	protected Car load(JSONObject json) {
-		if (json.has(ID)) id = Id.from(json);
+	public Car load(JSONObject json) {
+		super.load(json);
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
 		if (json.has(MAX_SPEED)) maxSpeed = json.getInt(MAX_SPEED);
-		if (json.has(NOTES)) notes = json.getString(NOTES);
 		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
 		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
 		return this;
@@ -202,32 +198,20 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 	
 	public Form propertyForm() {
-		Form form = new Form("car-prop-form");
-		new Input(ACTION, ACTION_UPDATE).hideIn(form);
-		new Input(REALM,REALM_CAR).hideIn(form);
-		new Input(ID,id()).hideIn(form);
-		Fieldset fieldset = new Fieldset("Basic properties");
+		Form form = super.propertyForm();
+		Fieldset fieldset = form.children().stream().filter(tag -> tag instanceof Fieldset).map(tag -> (Fieldset)tag).findFirst().get();
+		
 		new Input(NAME,name).addTo(new Label(t("Name")+NBSP)).addTo(fieldset);
 		new Input(STOCK_ID,stockId).addTo(new Label(t("Stock ID")+NBSP)).addTo(fieldset);
 		new Input(LENGTH,length).attr("type", "number").addTo(new Label(t("Length")+NBSP)).content(NBSP+lengthUnit).addTo(fieldset);
 		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(fieldset);
 		new Input(MAX_SPEED, maxSpeed).numeric().addTo(new Label(t("Maximum speed")+":"+NBSP)).content(NBSP+speedUnit).addTo(fieldset);
-		fieldset.addTo(form);
 		
-		fieldset = new Fieldset(t("Notes"));
-		new TextArea(NOTES,notes).addTo(fieldset.clazz("notes")).addTo(form);
 		return form;
 	}
 	
 	public Window properties() {
-		Window win = new Window("car-props", t("Properties of {}",this));
-		
-		Form form = propertyForm();
-		if (form!=null && form.children().size()>2) {
-			new Button(t("Apply"),form).addTo(form).addTo(win);
-		} else {
-			win.content(t("This tile ({}) has no editable properties",getClass().getSimpleName()));
-		}
+		Window win = super.properties();
 		
 		Tag list = new Tag("ul");
 		if (train != null) train.link().addTo(new Tag("li").content(t("Train:")+NBSP)).addTo(list);
@@ -262,9 +246,9 @@ public class Car extends BaseClass implements Comparable<Car>{
 		this.train = train;
 	}
 
-	public Car update(HashMap<String, String> params) {
+	protected Car update(HashMap<String, String> params) {
+		super.update(params);
 		if (params.containsKey(NAME)) name = params.get(NAME).trim();
-		if (params.containsKey(NOTES)) notes = params.get(NOTES).trim();
 		if (params.containsKey(LENGTH)) length = Integer.parseInt(params.get(LENGTH));
 		if (params.containsKey(MAX_SPEED)) maxSpeed  = Integer.parseInt(params.get(MAX_SPEED));
 		if (params.containsKey(STOCK_ID)) stockId  = params.get(STOCK_ID);

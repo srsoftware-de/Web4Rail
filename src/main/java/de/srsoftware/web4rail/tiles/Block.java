@@ -199,8 +199,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 	}
 	
 	@Override
-	protected Tile load(JSONObject json) throws IOException {
-		super.load(json);
+	public Tile load(JSONObject json) {
 		name = json.has(NAME) ? json.getString(NAME) : "Block";
 		turnAllowed = json.has(ALLOW_TURN) && json.getBoolean(ALLOW_TURN);
 		if (json.has(WAIT_TIMES)) {
@@ -210,7 +209,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 				if (object instanceof JSONObject) waitTimes.add(new WaitTime(null).load((JSONObject) object));
 			});
 		}
-		return this;
+		return super.load(json);
 	}
 	
 	@Override
@@ -345,7 +344,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) throws IOException {		
+	public Tile update(HashMap<String, String> params) {		
 		if (params.containsKey(NAME)) name=params.get(NAME);
 		if (params.containsKey(Train.class.getSimpleName())) {
 			Id trainId = Id.from(params,Train.class.getSimpleName());

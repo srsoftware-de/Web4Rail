@@ -46,7 +46,7 @@ public abstract class Bridge extends Tile {
 	}
 	
 	@Override
-	protected Tile load(JSONObject json) throws IOException {
+	public Tile load(JSONObject json) {
 		if (json.has(COUNTERPART)) {
 			new Thread() {
 				@Override

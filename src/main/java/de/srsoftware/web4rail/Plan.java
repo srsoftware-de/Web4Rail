@@ -920,7 +920,8 @@ public class Plan extends BaseClass{
 	 * @return
 	 * @throws IOException
 	 */
-	private Object update(HashMap<String, String> params) throws IOException {
+	protected Object update(HashMap<String, String> params) {
+		super.update(params);
 		Tile tile = get(Id.from(params),true);
 		if (isSet(tile)) return tile.update(params);
 		

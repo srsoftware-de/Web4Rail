@@ -780,7 +780,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		return this;
 	}
 
-	public Object update(HashMap<String, String> params,Plan plan) {
+	protected Object update(HashMap<String, String> params,Plan plan) {
 		LOG.debug("update({})",params);
 		String name = params.get(NAME);
 		if (isSet(name)) name(name);

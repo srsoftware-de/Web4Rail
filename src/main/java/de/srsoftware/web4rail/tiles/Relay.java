@@ -109,7 +109,7 @@ public class Relay extends Tile implements Device{
 	}
 	
 	@Override
-	protected Tile load(JSONObject json) throws IOException {
+	public Tile load(JSONObject json) {
 		if (json.has(ADDRESS)) address = json.getInt(ADDRESS);
 		if (json.has(PORT_A)) portA = json.getInt(PORT_A);
 		if (json.has(PORT_B)) portB = json.getInt(PORT_B);
@@ -227,7 +227,7 @@ public class Relay extends Tile implements Device{
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) throws IOException {
+	public Tile update(HashMap<String, String> params) {
 		if (params.containsKey(PROTOCOL)) protocol = Protocol.valueOf(params.get(PROTOCOL));
 		if (params.containsKey(ADDRESS)) address = Integer.parseInt(params.get(ADDRESS));
 		if (params.containsKey(PORT_A)) portA = Integer.parseInt(params.get(PORT_A));
