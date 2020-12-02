@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.TimeoutException;
 
 import org.json.JSONObject;
@@ -18,6 +19,7 @@ import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
+import de.srsoftware.web4rail.tags.Select;
 
 public class Relay extends Tile implements Device{
 	public static final String STATE = "state";
@@ -239,5 +241,17 @@ public class Relay extends Tile implements Device{
 
 	public static Relay get(Id relayId) {
 		return relays.get(relayId);
+	}
+
+	public static Select selector(Relay preselected, Collection<Relay> exclude) {
+		if (isNull(exclude)) exclude = new Vector<Relay>();
+		Select select = new Select(Relay.class.getSimpleName());
+		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
+		for (Relay relay : Relay.list()) {			
+			if (exclude.contains(relay)) continue;
+			Tag opt = select.addOption(relay.id, relay);
+			if (relay == preselected) opt.attr("selected", "selected");
+		}
+		return select;
 	}
 }

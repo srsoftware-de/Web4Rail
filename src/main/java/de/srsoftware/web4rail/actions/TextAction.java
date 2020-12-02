@@ -1,18 +1,21 @@
 package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
-import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.tags.Button;
-import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 
 public abstract class TextAction extends Action {
 	
+	public TextAction(Context parent) {
+		super(parent);
+	}
+
 	public static final String TEXT = "text";
 	protected String text = "Hello, world!";
 
@@ -42,24 +45,15 @@ public abstract class TextAction extends Action {
 	}
 	
 	@Override
-	public Window properties(HashMap<String, String> params) {
-		Window win = super.properties(params);
-		Form form = new Form("action-prop-form-"+id);
-		new Input(REALM,REALM_ACTIONS).hideIn(form);
-		new Input(ID,params.get(ID)).hideIn(form);
-		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
-		new Input(TEXT, text).addTo(label()).addTo(form);
-		new Button(t("Apply"),form).addTo(form).addTo(win);		
-		return win;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Text"),new Input(TEXT, text));
+		return super.properties(preForm, formInputs, postForm);
 	}
-	
+		
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		String error = null;
 		text = params.get(TEXT);
-		Window win = properties(params);
-		return new Tag("span").content(error).addTo(win);
+		return properties();
 	}
 }

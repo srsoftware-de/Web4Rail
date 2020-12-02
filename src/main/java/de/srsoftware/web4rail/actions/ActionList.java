@@ -10,12 +10,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
-import de.srsoftware.web4rail.BaseClass.Context;
-import de.srsoftware.web4rail.BaseClass.Id;
-import de.srsoftware.web4rail.Constants;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
@@ -23,16 +19,18 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 
-public class ActionList extends Vector<Action> implements Constants{
+public class ActionList extends BaseClass{
 	private static final Logger LOG = LoggerFactory.getLogger(ActionList.class);
 	
-	private static final long serialVersionUID = 4862000041987682112L;
 	private static final HashMap<Id, ActionList> actionLists = new HashMap<Id, ActionList>();
+	private Vector<Action> actions;
 	private Id id;
 	
 	public ActionList() {
 		id = new Id();
+		actions = new Vector<Action>();
 		actionLists.put(id,this);
+		
 	}
 	
 	private static Id actionId(HashMap<String, String> params) {
@@ -58,13 +56,18 @@ public class ActionList extends Vector<Action> implements Constants{
 		return new Button(t("Create action"),typeForm).addTo(typeForm).addTo(win);
 	}
 	
+	public ActionList add(Action action) {
+		actions.add(action);
+		return this;
+	}
+	
 	private Object addActionForm(HashMap<String, String> params, Plan plan) {
 		Window win = new Window("add-action-form", t("Add action to action list"));		
 		String type = params.get(TYPE);
 		String context = params.get(CONTEXT);
 		if (type == null) return actionTypeForm(win,context);
-		
-		Action action = Action.create(type);
+		Context parent = new Context(this);
+		Action action = Action.create(type,parent);
 		if (action instanceof Action) {
 			add(action);
 			return plan.showContext(params);
@@ -75,12 +78,12 @@ public class ActionList extends Vector<Action> implements Constants{
 	}
 	
 	public void addActionsFrom(ActionList other) {
-		for (Action otherAction : other) {
+		for (Action otherAction : other.actions) {
 			//LOG.debug("old action ({}): {}",otherAction.getClass().getSimpleName(),otherAction);
 			boolean exists = false;
-			int len = this.size();
+			int len = actions.size();
 			for (int i=0; i<len; i++) {
-				Action thisAction = this.get(i);
+				Action thisAction = actions.get(i);
 				LOG.debug("→ {} ?",thisAction);
 				if (thisAction.equals(otherAction)) {
 					LOG.debug("Action already existing!");
@@ -96,53 +99,15 @@ public class ActionList extends Vector<Action> implements Constants{
 			}
 		}
 	}
-	
-	public void addTo(Tag link, String context) {
-		Map<String, Object> props = new HashMap<String, Object>(Map.of(
-				REALM,REALM_ACTIONS,
-				ID,id,
-				ACTION,ACTION_ADD,
-				CONTEXT,context));
-		new Button(t("add action"),props).addTo(link);
-
-		props.put(ACTION,ACTION_PROPS);
-		if (!isEmpty()) {
-			Tag ul = new Tag("ol");
-			boolean first = true;
-			for (Action action : this) {
-				props.put(ID, id+"/"+action.id());
-				Tag act = action.link("span", action+NBSP, Map.of(CONTEXT,context,ID,id+"/"+action.id())).addTo(new Tag("li")); 
-				if (!first) {
-					props.put(ACTION, ACTION_MOVE);
-					new Button("↑",props).addTo(act);
-				}
-				props.put(ACTION, ACTION_DROP);
-				new Button("-",props).addTo(act);
-				if (action instanceof ConditionalAction) {
-					ConditionalAction ca = (ConditionalAction) action;
-					ca.children().addTo(act, context);
-				}
-				if (action instanceof DelayedAction) {
-					DelayedAction da = (DelayedAction) action;
-					da.children().addTo(act, context);
-				}
-				act.addTo(ul);
-				first = false;
-			}
-			ul.addTo(link);
-		}		
-	}
-	
-	public Fieldset properties() {
-		Fieldset fieldset = new Fieldset(t("Actions"));
-		new Tag("p").content("replace ActionList.addTo(...) by ActionsList.properties()!").addTo(fieldset);
-		return fieldset;
+		
+	public boolean isEmpty() {
+		return actions.isEmpty();
 	}
 	
 	public boolean drop(Id actionId) {
-		for (Action action : this) {
+		for (Action action : actions) {
 			if (action.id().equals(actionId)) {
-				this.remove(action);
+				actions.remove(action);
 				return true;				
 			}
 		}
@@ -151,7 +116,7 @@ public class ActionList extends Vector<Action> implements Constants{
 	
 	public boolean fire(Context context) {
 		if (!isEmpty())	LOG.debug(t("Firing {}"),this);
-		for (Action action : this) {
+		for (Action action : actions) {
 			if (!action.fire(context)) return false;			
 		}
 		return true;
@@ -161,29 +126,59 @@ public class ActionList extends Vector<Action> implements Constants{
 		return id;
 	}
 	
-	public JSONArray json() {
+	public JSONArray jsonArray() {
 		JSONArray result = new JSONArray();
-		for (Action action : this) result.put(action.json());
+		for (Action action : actions) result.put(action.json());
 		return result;
 	}
 
-	public static ActionList load(JSONArray list) {
-		ActionList actionList = new ActionList();
+	public Fieldset list() {
+		Fieldset fieldset = new Fieldset(t("Actions"));
+		
+		Map<String, Object> props = new HashMap<String, Object>(Map.of(
+				REALM,REALM_ACTIONS,
+				ID,id,
+				ACTION,ACTION_PROPS));
+		
+		if (!isEmpty()) {
+			Tag ul = new Tag("ol");
+			boolean first = true;
+			for (Action action : actions) {
+				props.put(ID, id+"/"+action.id());
+				Tag act = action.link("span", action+NBSP, Map.of(ID,id+"/"+action.id())).addTo(new Tag("li")); 
+				if (!first) {
+					props.put(ACTION, ACTION_MOVE);
+					new Button("↑",props).addTo(act);
+				}
+				props.put(ACTION, ACTION_DROP);
+				new Button("-",props).addTo(act);
+// TODO: add children for conditionalActions and delayedActions
+				act.addTo(ul);
+				first = false;
+			}
+			ul.addTo(fieldset);
+		}		
+	
+		return fieldset;
+	}
+
+	public ActionList load(JSONArray list) {
+		Context parent = new Context(this);
 		for (Object o : list) {
 			if (o instanceof JSONObject) {
 				JSONObject json = (JSONObject) o;
-				Action action = Action.create(json.getString(TYPE));
-				if (action != null) actionList.add(action.load(json));
+				Action action = Action.create(json.getString(TYPE),parent);
+				if (action != null) add(action.load(json));
 			}
 		}
-		return actionList;
+		return this;
 	}
 	
 	public boolean moveUp(Id actionId) {
-		for (int i=1; i<size(); i++) {
-			if (actionId.equals(elementAt(i).id())) {
-				Action action = remove(i);
-				insertElementAt(action, i-1);
+		for (int i=1; i<actions.size(); i++) {
+			if (actionId.equals(actions.elementAt(i).id())) {
+				Action action = actions.remove(i);
+				actions.insertElementAt(action, i-1);
 				return true;
 			}
 		}
@@ -207,25 +202,21 @@ public class ActionList extends Vector<Action> implements Constants{
 				return actionList.drop(actionId) ? plan.showContext(params) : t("No action with id {} found!",actionId);
 			case ACTION_MOVE:
 				return actionList.moveUp(actionId) ? plan.showContext(params) : t("No action with id {} found!",actionId);
-			case ACTION_PROPS:
-				return propsOf(params);
 			case ACTION_UPDATE:
 				return update(actionId,params,plan);
 		}
 		return t("Unknown action: {}",action);
 	}
 	
-	private static Object propsOf(HashMap<String, String> params) {
-		Id actionId = actionId(params); 
-		Action action = Action.get(actionId);
-		if (action != null) return action.properties(params);
-		return t("No action with id {} found!",actionId);
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		Fieldset fieldset = new Fieldset(t("Actions"));
+		list().addTo(fieldset);
+		preForm.add(fieldset);
+		return super.properties(preForm, formInputs, postForm);
 	}
-	
-	private static String t(String text,Object...fills) {
-		return Translation.get(Application.class, text, fills);
-	}
-	
+
+				
 	private static Object update(Id actionId, HashMap<String, String> params, Plan plan) {
 		Action action = Action.get(actionId);
 		if (action != null) {

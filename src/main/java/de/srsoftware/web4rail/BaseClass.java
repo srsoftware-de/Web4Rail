@@ -37,7 +37,7 @@ public abstract class BaseClass implements Constants{
 	private static final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
 	protected Id id = null;
 	protected String notes;
-
+	protected Context parent;
 	
 	public static class Context {
 
@@ -331,20 +331,8 @@ public abstract class BaseClass implements Constants{
 		return win;
 	}
 	
-	public Map<String,String> props(Map<String,String> additionalProps){
-		String realm = null;
-		if (this instanceof Tile) realm = REALM_PLAN;
-		if (this instanceof Contact) realm = REALM_CONTACT;
-
-		if (this instanceof Car) realm = REALM_CAR;
-		if (this instanceof Locomotive) realm = REALM_LOCO;
-		
-		if (this instanceof Train) realm = REALM_TRAIN;
-		if (this instanceof Route) realm = REALM_ROUTE;
-		if (this instanceof Action) realm = REALM_ACTIONS;
-		if (this instanceof Condition) realm = REALM_CONDITION;
-		
-		HashMap<String,String> props = new HashMap<String, String>(Map.of(REALM, realm, ACTION, ACTION_PROPS, ID, id().toString()));
+	private Map<String,String> props(Map<String,String> additionalProps){
+		HashMap<String,String> props = new HashMap<String, String>(Map.of(REALM, realm(), ACTION, ACTION_PROPS, ID, id().toString()));
 		if (isSet(additionalProps)) props.putAll(additionalProps);
 		return props;
 	}

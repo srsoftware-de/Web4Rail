@@ -1,19 +1,22 @@
 package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.ControlUnit;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.tags.Button;
-import de.srsoftware.web4rail.tags.Form;
-import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 
 public class SetPower extends Action{
 	
+	public SetPower(Context parent) {
+		super(parent);
+	}
+
 	private static final String STATE = "state";
 	private POWERCHANGE pc = POWERCHANGE.OFF;
 	
@@ -54,20 +57,14 @@ public class SetPower extends Action{
 	}
 	
 	@Override
-	public Window properties(HashMap<String, String> params) {
-		Window win = super.properties(params);
-		Form form = new Form("action-prop-form-"+id);
-		new Input(REALM,REALM_ACTIONS).hideIn(form);
-		new Input(ID,params.get(ID)).hideIn(form);
-		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
-
-		new Radio(STATE, POWERCHANGE.ON, t("On"), pc == POWERCHANGE.ON).addTo(form);
-		new Radio(STATE, POWERCHANGE.OFF, t("Off"), pc == POWERCHANGE.OFF).addTo(form);
-		new Radio(STATE, POWERCHANGE.TOGGLE, t("Toggle"), pc == POWERCHANGE.TOGGLE).addTo(form);
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		Tag div = new Tag("div");
+		new Radio(STATE, POWERCHANGE.ON, t("On"), pc == POWERCHANGE.ON).addTo(div);
+		new Radio(STATE, POWERCHANGE.OFF, t("Off"), pc == POWERCHANGE.OFF).addTo(div);
+		new Radio(STATE, POWERCHANGE.TOGGLE, t("Toggle"), pc == POWERCHANGE.TOGGLE).addTo(div);
+		formInputs.add(t("Set state to"),div);
 		
-		new Button(t("Apply"),form).addTo(form).addTo(win);		
-		return win;
+		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	@Override
@@ -83,12 +80,10 @@ public class SetPower extends Action{
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Window update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		String error = null;
 		String newState = params.get(STATE);
 		if (isSet(newState)) pc = POWERCHANGE.valueOf(newState);
-		Window win = properties(params);
-		return new Tag("span").content(error).addTo(win);
+		return properties();
 	}
 }

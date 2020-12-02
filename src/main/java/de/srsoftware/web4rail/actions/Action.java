@@ -13,7 +13,6 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
@@ -27,13 +26,14 @@ public abstract class Action extends BaseClass {
 	public static final Logger LOG = LoggerFactory.getLogger(Action.class);
 	private static final String PREFIX = Action.class.getPackageName();
 	
-	public Action() {
+	public Action(Context parent) {
 		actions.put(id(), this);
+		this.parent = parent;
 	}
 	
-	public static Action create(String type) {
+	public static Action create(String type,Context parent) {
 		try {
-			return (Action) Class.forName(PREFIX+"."+type).getDeclaredConstructor().newInstance();
+			return (Action) Class.forName(PREFIX+"."+type).getDeclaredConstructor(Context.class).newInstance(parent);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -94,10 +94,6 @@ public abstract class Action extends BaseClass {
 		
 		for (Entry<String, String> entry : names.entrySet()) select.addOption(entry.getValue(), entry.getKey());
 		return select.addTo(new Label(t("Action type:")+NBSP));
-	}
-
-	public Window properties(HashMap<String, String> params) {
-		return new Window("action-props-"+id, t("Properties of {}",this.getClass().getSimpleName()));
 	}
 	
 	protected static String t(String tex,Object...fills) {

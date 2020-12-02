@@ -2,6 +2,10 @@ package de.srsoftware.web4rail.actions;
 
 public class BrakeStart extends Action {
 
+	public BrakeStart(Context parent) {
+		super(parent);
+	}
+
 	@Override
 	public boolean fire(Context context) {
 		if (isNull(context.route())) return false;

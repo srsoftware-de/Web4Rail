@@ -807,7 +807,7 @@ public class Plan extends BaseClass{
 				return isNull(tile) ? null : tile.properties();
 			case REALM_ACTIONS:
 				Action action = Action.get(id);
-				return (isSet(action)) ? action.properties(params) : null;
+				return (isSet(action)) ? action.properties() : null;
 				
 		}
 		return null;

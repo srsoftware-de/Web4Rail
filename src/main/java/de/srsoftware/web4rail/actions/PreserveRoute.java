@@ -6,6 +6,10 @@ import de.srsoftware.web4rail.moving.Train;
 
 public class PreserveRoute extends Action {
 
+	public PreserveRoute(Context parent) {
+		super(parent);
+	}
+
 	@Override
 	public boolean fire(Context context) {
 		Train train = context.train();

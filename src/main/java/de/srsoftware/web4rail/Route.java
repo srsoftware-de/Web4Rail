@@ -258,11 +258,11 @@ public class Route extends BaseClass implements Comparable<Route>{
 		Tag list = new Tag("ol");
 		
 		Tag setup = new Tag("li").content(t("Setup actions")+NBSP);
-		setupActions.addTo(setup, context());
+		setupActions.list().addTo(setup);
 		setup.addTo(list);
 
 		Tag start = new Tag("li").content(t("Start actions")+NBSP);
-		startActions.addTo(start, context());
+		startActions.list().addTo(setup);
 		start.addTo(list);
 
 		for (Contact c : contacts) {
@@ -272,7 +272,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 				actions = new ActionList();
 				triggers.put(c.trigger(), actions);
 			}
-			actions.addTo(link,context());
+			actions.list().addTo(link);
 		}
 		list.addTo(win);
 		return win;
@@ -371,20 +371,21 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	public Route complete() {
+		Context parent = new Context(this);
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
 			Contact nextToLastContact = contacts.get(contacts.size()-2);
 			String trigger = nextToLastContact.trigger();
-			add(trigger,new BrakeStart());
-			add(trigger,new PreserveRoute());
-			for (Signal signal : signals) add(trigger,new SetSignal().set(signal).to(Signal.STOP));
+			add(trigger,new BrakeStart(parent));
+			add(trigger,new PreserveRoute(parent));
+			for (Signal signal : signals) add(trigger,new SetSignal(parent).set(signal).to(Signal.STOP));
 		}
 		if (!contacts.isEmpty()) {
 			Contact lastContact = contacts.lastElement(); 
-			add(lastContact.trigger(), new BrakeStop()); 
-			add(lastContact.trigger(), new FinishRoute());
+			add(lastContact.trigger(), new BrakeStop(parent)); 
+			add(lastContact.trigger(), new FinishRoute(parent));
 		}
-		for (Signal signal : signals) setupActions.add(new SetSignal().set(signal).to(Signal.GO));
-		startActions.add(new SetSpeed().to(999));
+		for (Signal signal : signals) setupActions.add(new SetSignal(parent).set(signal).to(Signal.GO));
+		startActions.add(new SetSpeed(parent).to(999));
 		return this;
 	}
 
@@ -512,7 +513,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 			JSONObject trigger = new JSONObject();
 			trigger.put(TRIGGER, entry.getKey());
 			ActionList actionList = entry.getValue();
-			trigger.put(ACTIONS, actionList.json());
+			trigger.put(ACTIONS, actionList.jsonArray());
 			
 			jTriggers.put(trigger);
 
@@ -565,8 +566,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 		}
 		if (json.has(ACTION_LISTS)) loadActions(json.getJSONArray(ACTION_LISTS));
 		if (json.has(CONDITIONS)) conditions.load(json.getJSONArray(CONDITIONS));
-		if (json.has(SETUP_ACTIONS)) setupActions = ActionList.load(json.getJSONArray(SETUP_ACTIONS));
-		if (json.has(START_ACTIONS)) startActions = ActionList.load(json.getJSONArray(START_ACTIONS));
+		if (json.has(SETUP_ACTIONS)) setupActions = new ActionList().load(json.getJSONArray(SETUP_ACTIONS));
+		if (json.has(START_ACTIONS)) startActions = new ActionList().load(json.getJSONArray(START_ACTIONS));
 		if (json.has(DISABLED)) disabled = json.getBoolean(DISABLED);
 		if (json.has(BRAKE_TIMES)) {
 			JSONObject dummy = json.getJSONObject(BRAKE_TIMES);
@@ -579,7 +580,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		for (int i=0; i<arr.length(); i++) {
 			JSONObject json = arr.getJSONObject(i);
 			String trigger = json.getString(TRIGGER);
-			ActionList actionList = ActionList.load(json.getJSONArray(ACTIONS));
+			ActionList actionList = new ActionList().load(json.getJSONArray(ACTIONS));
 			triggers.put(trigger, actionList);
 		}
 	}

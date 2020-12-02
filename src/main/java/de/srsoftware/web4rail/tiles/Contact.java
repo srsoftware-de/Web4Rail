@@ -119,7 +119,7 @@ public class Contact extends Tile{
 	@Override
 	public Tile load(JSONObject json) {
 		if (json.has(ADDRESS)) addr(json.getInt(ADDRESS));
-		if (json.has(REALM_ACTIONS)) actions = ActionList.load(json.getJSONArray(REALM_ACTIONS));
+		if (json.has(REALM_ACTIONS)) actions = new ActionList().load(json.getJSONArray(REALM_ACTIONS));
 		return super.load(json);
 	}
 	
@@ -155,7 +155,7 @@ public class Contact extends Tile{
 		button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(span);
 		formInputs.add(t("Address"),span);
 		
-		postForm.add(actions.properties());
+		postForm.add(actions.list());
 		return super.properties(preForm, formInputs, postForm);
 	}
 	

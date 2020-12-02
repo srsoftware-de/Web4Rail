@@ -1,17 +1,20 @@
 package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.tags.Button;
-import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 
 public class SetSpeed extends Action{
+
+	public SetSpeed(Context parent) {
+		super(parent);
+	}
 
 	public static final String MAX_SPEED = "max_speed";
 	private int speed = 0;
@@ -38,20 +41,11 @@ public class SetSpeed extends Action{
 	}
 	
 	@Override
-	public Window properties(HashMap<String, String> params) {
-		Window win = super.properties(params);
-		Form form = new Form("action-prop-form-"+id);
-		new Input(REALM,REALM_ACTIONS).hideIn(form);
-		new Input(ID,params.get(ID)).hideIn(form);
-		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
-		Label label = new Label(t("Set speed to")+NBSP);
-		new Input(MAX_SPEED, speed).numeric().addTo(label).content(NBSP+speedUnit);
-		label.addTo(form);
-		new Button(t("Apply"),form).addTo(form).addTo(win);		
-		return win;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Set speed to"),new Input(MAX_SPEED, speed).numeric());
+		return super.properties(preForm, formInputs, postForm);
 	}
-	
+		
 	@Override
 	public String toString() {
 		return t("Set speed to {} {}",speed,speedUnit);
@@ -81,7 +75,7 @@ public class SetSpeed extends Action{
 				error = t("Not a valid number!");
 			}
 		}
-		Window win = properties(params);
+		Window win = properties();
 		return new Tag("span").content(error).addTo(win);
 	}
 }

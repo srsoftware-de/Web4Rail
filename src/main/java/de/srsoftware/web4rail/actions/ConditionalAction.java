@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -17,17 +18,15 @@ import de.srsoftware.web4rail.tags.Input;
 
 public class ConditionalAction extends Action {
 	
+	public ConditionalAction(Context parent) {
+		super(parent);
+	}
+
 	private static final String CONDITIONS = "conditions";
 	private static final String ACTIONS = "actions";
 	private Vector<Condition> conditions = new Vector<Condition>();
 	private ActionList actions = new ActionList();
-	
-	private Tag actionsForm(HashMap<String, String> params) {
-		Fieldset fieldset = new Fieldset(t("Actions"));
-		actions.addTo(fieldset, params.get(CONTEXT));
-		return fieldset;
-	}
-	
+		
 	public ActionList children() {
 		return actions;
 	}
@@ -41,15 +40,14 @@ public class ConditionalAction extends Action {
 		return sb;
 	}
 	
-	private Tag conditionForm(HashMap<String, String> params) {
+	private Fieldset conditionForm() {
 		Fieldset fieldset = new Fieldset(t("Conditions"));
-		String context = params.get(CONTEXT);
 
 		new Tag("p").content(t("Actions will only fire, if all conditions are fullfilled.")).addTo(fieldset);
 		if (!conditions.isEmpty()) {
 			Tag list = new Tag("ul");
 			for (Condition condition : conditions) {
-				Tag li = link("span", condition+NBSP,Map.of(CONTEXT,context)).addTo(new Tag("li"));
+				Tag li = link("span", condition+NBSP,Map.of()).addTo(new Tag("li"));
 				HashMap<String,Object> props = new HashMap<String, Object>(Map.of(REALM,REALM_CONDITION,ID,condition.id(),ACTION,ACTION_DROP,CONTEXT, REALM_ACTIONS+":"+id()));
 				new Button(t("delete"), props).addTo(li).addTo(list);
 			}
@@ -58,14 +56,14 @@ public class ConditionalAction extends Action {
 
 		Form form = new Form("action-prop-form-"+id);
 		new Input(REALM,REALM_ACTIONS).hideIn(form);
-		new Input(ID,params.get(ID)).hideIn(form);
+		new Input(ID,id()).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(CONTEXT,context).hideIn(form);
 
 		Condition.selector().addTo(form);
 		
 		new Button(t("Add condition"),form).addTo(form);
-		return button(t("Back")).addTo(form).addTo(fieldset);
+		button(t("Back")).addTo(form).addTo(fieldset);
+		return fieldset;
 	}
 
 	public boolean equals(ConditionalAction other) {
@@ -86,7 +84,7 @@ public class ConditionalAction extends Action {
 		JSONArray conditions = new JSONArray();
 		for (Condition condition : this.conditions) conditions.put(condition.json());
 		json.put(CONDITIONS, conditions);
-		json.put(ACTIONS, actions.json());
+		json.put(ACTIONS, actions.jsonArray());
 		return json;
 	}
 	
@@ -100,16 +98,16 @@ public class ConditionalAction extends Action {
 				if (isSet(condition)) conditions.add(condition.parent(this).load(j));
 			}
 		}
-		actions = ActionList.load(json.getJSONArray(ACTIONS));
+		actions = new ActionList().load(json.getJSONArray(ACTIONS));
 		return this;
 	}
-		
+
 	@Override
-	public Window properties(HashMap<String, String> params) {
-		Window win = super.properties(params);
-		conditionForm(params).addTo(win);
-		actionsForm(params).addTo(win);
-		return win;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		preForm.add(conditionForm());
+		preForm.add(actions.list());
+		return super.properties(preForm, formInputs, postForm);
+		
 	}
 
 	public ConditionalAction remove(Condition condition) {

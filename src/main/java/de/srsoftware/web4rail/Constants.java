@@ -59,6 +59,7 @@ public interface Constants {
 	public static final String  NBSP = "&nbsp;";
 	public static final String  NOTES = "notes";
 	public static final String  PORT = "port";
+	public static final String RELAY = "relay";
 	public static final String  TYPE = "type";
 	public static final Charset UTF8 = StandardCharsets.UTF_8;
 }

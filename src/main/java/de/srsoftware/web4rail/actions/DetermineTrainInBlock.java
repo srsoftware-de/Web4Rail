@@ -1,19 +1,20 @@
 package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.tags.Button;
-import de.srsoftware.web4rail.tags.Form;
-import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
-import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tiles.Block;
 
 public class DetermineTrainInBlock extends Action {
 		
+	public DetermineTrainInBlock(Context parent) {
+		super(parent);
+	}
+
 	private Block block = null;
 	
 	@Override
@@ -39,19 +40,9 @@ public class DetermineTrainInBlock extends Action {
 	}
 	
 	@Override
-	public Window properties(HashMap<String, String> params) {
-		Window win = super.properties(params);
-		Form form = new Form("action-prop-form-"+id);
-		new Input(REALM,REALM_ACTIONS).hideIn(form);
-		new Input(ID,params.get(ID)).hideIn(form);
-		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
-		
-		Select select = Block.selector(block, null);
-		select.addTo(new Label(t("Select block:")+NBSP)).addTo(form);
-		
-		new Button(t("Apply"),form).addTo(form).addTo(win);		
-		return win;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Select block"),Block.selector(block, null));
+		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	public String toString() {
@@ -63,6 +54,6 @@ public class DetermineTrainInBlock extends Action {
 		LOG.debug("update: {}",params);
 		Id blockId = Id.from(params,Block.class.getSimpleName());
 		if (isSet(blockId)) block = Block.get(blockId);
-		return properties(params);
+		return properties();
 	}
 }

@@ -1,19 +1,20 @@
 package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.tags.Button;
-import de.srsoftware.web4rail.tags.Form;
-import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
-import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tiles.Contact;
 
 public class TriggerContact extends Action {
 		
+	public TriggerContact(Context parent) {
+		super(parent);
+	}
+
 	private Contact contact = null;
 	
 	@Override
@@ -38,19 +39,9 @@ public class TriggerContact extends Action {
 	}
 	
 	@Override
-	public Window properties(HashMap<String, String> params) {
-		Window win = super.properties(params);
-		Form form = new Form("action-prop-form-"+id);
-		new Input(REALM,REALM_ACTIONS).hideIn(form);
-		new Input(ID,params.get(ID)).hideIn(form);
-		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(CONTEXT,params.get(CONTEXT)).hideIn(form);
-		
-		Select select = Contact.selector(contact);
-		select.addTo(new Label(t("Select contact:")+NBSP)).addTo(form);
-		
-		new Button(t("Apply"),form).addTo(form).addTo(win);		
-		return win;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Select contact"),Contact.selector(contact));
+		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	public String toString() {
@@ -62,7 +53,7 @@ public class TriggerContact extends Action {
 		LOG.debug("update: {}",params);
 		Id contactId = Id.from(params,CONTACT);
 		if (isSet(contactId)) contact = Contact.get(contactId);
-		return properties(params);
+		return properties();
 	}
 
 }

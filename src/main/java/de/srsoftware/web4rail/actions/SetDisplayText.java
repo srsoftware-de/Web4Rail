@@ -1,17 +1,20 @@
 package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
-import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Label;
-import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tiles.TextDisplay;
 
 public class SetDisplayText extends TextAction{
+
+	public SetDisplayText(Context parent) {
+		super(parent);
+	}
 
 	private TextDisplay display;
 	private static final String DISPLAY = "display";
@@ -48,21 +51,11 @@ public class SetDisplayText extends TextAction{
 	}
 	
 	@Override
-	public Window properties(HashMap<String, String> params) {
-		Window win = super.properties(params);
-		
-		Select select = TextDisplay.selector(display, null);
-		Tag label = select.addTo(new Label(t("Select display:")+NBSP));
-		
-		for (Tag tag : win.children()) {
-			if (tag instanceof Form) {
-				tag.children().insertElementAt(label, 1);
-				break;
-			}
-		}
-		return win;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Select display"),TextDisplay.selector(display, null));
+		return super.properties(preForm, formInputs, postForm);
 	}
-	
+		
 	@Override
 	public String toString() {
 		return isNull(display) ? t("[Click here to select display!]") : t("Display \"{}\" on {}.",text,display);
@@ -73,6 +66,6 @@ public class SetDisplayText extends TextAction{
 		super.update(params);
 		String displayId = params.get(TextDisplay.class.getSimpleName());
 		if (isSet(displayId)) display = (TextDisplay) plan.get(new Id(displayId), false);
-		return properties(params);
+		return properties();
 	}
 }
