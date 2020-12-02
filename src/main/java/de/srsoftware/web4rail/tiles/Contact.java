@@ -153,7 +153,7 @@ public class Contact extends Tile{
 		Tag span = new Tag("span");
 		new Input(ADDRESS, addr).numeric().addTo(span).content(NBSP);
 		button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(span);
-		formInputs.add(t("Hardware settings"),span);
+		formInputs.add(t("Address"),span);
 		
 		postForm.add(actions.properties());
 		return super.properties(preForm, formInputs, postForm);

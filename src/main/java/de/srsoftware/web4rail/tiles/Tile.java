@@ -194,10 +194,18 @@ public abstract class Tile extends BaseClass{
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		Fieldset fieldset = new Fieldset(t("Route and Train"));
+		Fieldset fieldset = null;
 
+		if (isSet(route)) {
+			fieldset = new Fieldset(t("Route"));
+			route.link("p",t("Locked by {}",route)).addTo(fieldset);
+		}
+		
 		if (isSet(train)) {
-			train.link("span", train+NBSP).addTo(fieldset);
+			if (isSet(fieldset)) {
+				fieldset.children().firstElement().content(" / "+t("Train"));
+			} else fieldset = new Fieldset(t("Train"));
+			train.link("span", t("Train")+":"+NBSP+train+NBSP).addTo(fieldset);
 			if (isSet(train.route)) {
 				train.button(t("stop"), contextAction(ACTION_STOP)).addTo(fieldset);
 			} else {
@@ -210,10 +218,7 @@ public abstract class Tile extends BaseClass{
 			}
 		}
 		
-		if (isSet(route)) {
-			route.link("span",t("Locked by {}",route)).addTo(fieldset);
-		}
-		preForm.add(fieldset);
+		if (isSet(fieldset)) preForm.add(fieldset);
 		
 		if (isTrack) {
 			formInputs.add(t("Length"),new Input(LENGTH,length).numeric().addTo(new Tag("span")).content(NBSP+lengthUnit));

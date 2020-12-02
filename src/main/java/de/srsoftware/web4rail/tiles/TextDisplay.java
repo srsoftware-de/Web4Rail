@@ -3,16 +3,17 @@ package de.srsoftware.web4rail.tiles;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.Map.Entry;
+import java.util.Vector;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
 public class TextDisplay extends StretchableTile {
@@ -38,14 +39,9 @@ public class TextDisplay extends StretchableTile {
 	}
 	
 	@Override
-	public Form propForm(String id) {
-		noTrack();
-		Form form = super.propForm(id);
-		new Tag("h4").content(t("Text")).addTo(form);
-		
-		new Input(TEXT, text).addTo(new Label(t("Text")+":"+NBSP)).addTo(new Tag("p")).addTo(form);
-		
-		return form;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Text"),new Input(TEXT, text));
+		return super.properties(preForm, formInputs, postForm);
 	}
 
 	public static Select selector(TextDisplay preselected,Collection<TextDisplay> exclude) {

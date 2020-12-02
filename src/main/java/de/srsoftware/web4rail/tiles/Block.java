@@ -212,9 +212,8 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		return super.load(json);
 	}
 	
-	@Override
 	public Form propForm(String id) {
-		Form form = super.propForm(id);
+		Form form = new Form("test");
 		new Tag("h4").content(t("Block properties")).addTo(form);
 		
 		new Input(NAME, name).addTo(new Label(t("name:")+NBSP)).addTo(new Tag("p")).addTo(form);

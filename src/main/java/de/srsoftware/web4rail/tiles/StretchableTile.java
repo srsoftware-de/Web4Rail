@@ -1,14 +1,15 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 
 public abstract class StretchableTile extends Tile {
 	private static final String STRETCH_LENGTH = "stretch";
@@ -34,13 +35,10 @@ public abstract class StretchableTile extends Tile {
 		return super.load(json);
 	}
 	
-	public Form propForm(String id) {
-		Form form = new Form(id);
-		new Tag("h4").content(stretchType()).addTo(form);
-		
-		new Input(STRETCH_LENGTH, stretch).numeric().addTo(new Label(stretchType()+":"+NBSP)).addTo(new Tag("p")).addTo(form);
-		
-		return form;
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(stretchType(),new Input(STRETCH_LENGTH, stretch).addTo(new Tag("span")).content(NBSP+t("Tile(s)")));
+		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	private void stretch(String value) {
