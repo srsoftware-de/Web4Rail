@@ -2,12 +2,11 @@ package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
-import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
-import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 
 public class TurnoutR extends Turnout {
 	
@@ -36,18 +35,10 @@ public class TurnoutR extends Turnout {
 	}
 	
 	@Override
-	public Form propForm(String id) {
-		Form form = super.propForm(id);
-		Tag fieldset = null;
-		for (Tag child : form.children()) {
-			if (child.is(Fieldset.TYPE)) {
-				fieldset = child;
-				break;
-			}
-		}
-		new Input(STRAIGHT, portA).numeric().addTo(new Label(t("Straight port:")+NBSP)).addTo(fieldset);
-		new Input(RIGHT, portB).numeric().addTo(new Label(t("Right port:")+NBSP)).addTo(fieldset);
-		return form;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Straight port:"),new Input(STRAIGHT, portA).numeric());
+		formInputs.add(t("Right port:"),new Input(RIGHT, portB).numeric());
+		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	@Override

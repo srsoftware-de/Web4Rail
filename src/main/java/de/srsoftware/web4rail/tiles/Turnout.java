@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -12,10 +13,9 @@ import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Protocol;
+import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
-import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
 
 /**
@@ -112,16 +112,15 @@ public abstract class Turnout extends Tile implements Device{
 		return super.load(json);
 	}
 	
-	public Form propForm(String id) {
-		Form form = new Form(id);
-		Fieldset fieldset = new Fieldset(t("Decoder settings"));
-		Label protocol = new Label(t("Protocol:"));
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		Tag div = new Tag("div");
 		for (Protocol proto : Protocol.values()) {
-			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == this.protocol).addTo(protocol);
+			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == protocol).addTo(div);
 		}
-		protocol.addTo(fieldset).addTo(form);
-		new Input(ADDRESS, address).numeric().addTo(new Label(t("Address:")+NBSP)).addTo(fieldset);
-		return form;
+		formInputs.add(t("Protocol"),div);
+		formInputs.add(t("Address:"),new Input(ADDRESS, address).numeric());
+		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	private char proto() {
