@@ -90,7 +90,7 @@ public abstract class Condition extends BaseClass {
 			Route route = plan.route(contextId);
 			if (isNull(route)) return t("Unknown route: {}",contextId);
 			route.add(condition);
-			return route.properties(new HashMap<String,String>(Map.of(REALM,REALM_ROUTE,ACTION,ACTION_PROPS,ID,contextId.toString())));
+			return route.properties();
 			
 		default:
 			break;

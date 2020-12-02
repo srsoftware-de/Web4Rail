@@ -35,6 +35,7 @@ import de.srsoftware.web4rail.conditions.ConditionList;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
@@ -174,7 +175,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 				}
 				return message;
 			case ACTION_PROPS:
-				return route.properties(params);
+				return route.properties();
 			case ACTION_UPDATE:
 				return route.update(params,plan);
 			case DROP_CONDITION:
@@ -223,21 +224,22 @@ public class Route extends BaseClass implements Comparable<Route>{
 		conditions.add(condition);
 	}
 	
-	private void addBasicPropertiesTo(Window win) {
-		if (isSet(train)) train.link("span",t("Train: {}",train)).addTo(win);
-		new Tag("h4").content(t("Origin and destination")).addTo(win);
+	private Fieldset basicProperties() {
+		Fieldset fieldset = new Fieldset(t("Route properties"));
+		
+		if (isSet(train)) train.link("span",t("Train: {}",train)).addTo(fieldset);
 		Tag list = new Tag("ul");
 		Plan.addLink(startBlock, t("Origin: {} to {}",startBlock.name,startDirection), list);
 		Plan.addLink(endBlock, t("Destination: {} from {}",endBlock.name,endDirection.inverse()), list);
-		list.addTo(win);
+		list.addTo(fieldset);
 		
-
 		if (!signals.isEmpty()) {
-			new Tag("h4").content(t("Signals")).addTo(win);
+			new Tag("h4").content(t("Signals")).addTo(fieldset);
 			list = new Tag("ul");
 			for (Signal s : signals) Plan.addLink(s,s.toString(),list);
-			list.addTo(win);
+			list.addTo(fieldset);
 		}
+		return fieldset;
 	}
 	
 	private void addBraketimesTo(Window win) {
@@ -253,10 +255,11 @@ public class Route extends BaseClass implements Comparable<Route>{
 		new Tag("p").content(t("1) Duration between 5 {} steps during brake process.",speedUnit)).addTo(win);
 	}
 	
-	private void addConditionsTo(Window win) {
-		new Tag("h4").content(t("Conditions")).addTo(win);		
-		new Tag("div").content(t("Route will only be available, if all conditions are fulfilled.")).addTo(win);
-		conditions.tag(REALM_ROUTE+":"+id()).addTo(win);
+	private Fieldset conditions() {
+		Fieldset fieldset = new Fieldset(t("Conditions"));		
+		new Tag("div").content(t("Route will only be available, if all conditions are fulfilled.")).addTo(fieldset);
+		conditions.tag(REALM_ROUTE+":"+id()).addTo(fieldset);
+		return fieldset;
 	}
 	
 	private void addContactsTo(Window win) {
@@ -324,16 +327,15 @@ public class Route extends BaseClass implements Comparable<Route>{
 		turnouts.put(t, s);
 	}
 
-	private void addTurnoutsTo(Window win) {
-		if (!turnouts.isEmpty()) {
-			new Tag("h4").content(t("Turnouts")).addTo(win);
-			Tag list = new Tag("ul");
-			for (Entry<Turnout, State> entry : turnouts.entrySet()) {
-				Turnout turnout = entry.getKey();
-				Plan.addLink(turnout, turnout+": "+t(entry.getValue().toString()), list);
-			}
-			list.addTo(win);
+	private Fieldset turnouts() {
+		Fieldset win = new Fieldset(t("Turnouts"));
+		Tag list = new Tag("ul");
+		for (Entry<Turnout, State> entry : turnouts.entrySet()) {
+			Turnout turnout = entry.getKey();
+			Plan.addLink(turnout, turnout+": "+t(entry.getValue().toString()), list);
 		}
+		list.addTo(win);
+		return win;
 	}
 	
 	/**
@@ -439,7 +441,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	private Object dropCodition(HashMap<String, String> params) {
 		Id condId = Id.from(params,REALM_CONDITION);
 		if (isSet(condId)) conditions.removeById(condId);
-		return properties(params);
+		return properties();
 	}
 		
 	public Block endBlock() {
@@ -666,12 +668,24 @@ public class Route extends BaseClass implements Comparable<Route>{
 		return result;
 	}
 	
-	public Window properties(HashMap<String, String> params) {	
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+
+		formInputs.add(t("Name"),new Input(NAME, name()));
+		formInputs.add(t("disabled"),new Checkbox(DISABLED, t("disabled"), disabled));
+		
+		preForm.add(basicProperties());
+		if (!turnouts.isEmpty()) preForm.add(turnouts());
+		preForm.add(conditions());
+		return super.properties(preForm, formInputs, postForm);
+	}
+	
+	private Window properties(HashMap<String, String> params) {	
 		Window win = new Window("route-properties",t("Properties of {}",this));
 		addFormTo(win,params);		
-		addBasicPropertiesTo(win);
-		addTurnoutsTo(win);
-		addConditionsTo(win);
+		//basicProperties();
+		//addTurnoutsTo(win);
+		//addConditionsTo(win);
 		addContactsTo(win);
 		addBraketimesTo(win);
 		return win;
@@ -790,7 +804,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		Condition condition = Condition.create(params.get(REALM_CONDITION));
 		if (isSet(condition)) {
 			conditions.add(condition.parent(this));
-			return properties(params);
+			return properties();
 		}
 		String message = t("{} updated.",this); 
 		if (params.containsKey(CONTEXT)) {

@@ -800,7 +800,7 @@ public class Plan extends BaseClass{
 		Id id = parts.length>1 ? new Id(parts[1]) : null;
 		switch (realm) {
 			case REALM_ROUTE:
-				return route(id).properties(params);
+				return route(id).properties();
 			case REALM_CONTACT:
 			case REALM_PLAN:
 				Tile tile = get(id, false);
