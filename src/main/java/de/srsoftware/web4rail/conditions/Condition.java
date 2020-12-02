@@ -18,10 +18,8 @@ import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.ConditionalAction;
-import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
-import de.srsoftware.web4rail.tags.Form;
-import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
@@ -54,7 +52,7 @@ public abstract class Condition extends BaseClass {
 		
 			switch (action) {
 				case ACTION_PROPS:
-					return condition.properties(params);
+					return condition.properties();
 				case ACTION_UPDATE:
 					condition.update(params);
 					return plan.showContext(params);
@@ -157,23 +155,11 @@ public abstract class Condition extends BaseClass {
 		inverted = json.has(INVERTED) && json.getBoolean(INVERTED);
 		return this;
 	}
-
-	public Tag propForm(HashMap<String, String> params) {
-		Form form = new Form("condition-props-"+id);
-		new Input(REALM,REALM_CONDITION).hideIn(form);
-		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(ID,id).hideIn(form);
-		String context = params.get(CONTEXT);
-		if (isSet(context)) new Input(CONTEXT,context).hideIn(form);
-		return form;
-	}
-
-	protected Window properties(HashMap<String, String> params) {
-		Window win = new Window("condition-props", t("Properties of {}",getClass().getSimpleName()));		
-		Tag form = propForm(params);
-		new Checkbox(INVERTED, t("inverted"), inverted).addTo(form);
-		new Button(t("Apply"),"return submitForm('condition-props-"+id+"');").addTo(form).addTo(win);
-		return win;
+	
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("inverted"),new Checkbox(INVERTED, t("inverted"), inverted));
+		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	public static Tag selector() {

@@ -1,11 +1,12 @@
 package de.srsoftware.web4rail.conditions;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Fieldset;
 
 public class OrCondition extends Condition{
 	
@@ -33,13 +34,11 @@ public class OrCondition extends Condition{
 	}
 	
 	@Override
-	protected Window properties(HashMap<String, String> params) {
-		Window win = super.properties(params);
-		
-		win.children().insertElementAt(conditions.tag(REALM_CONDITION+":"+id()),2);
-		return win;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		// add conditions
+		return super.properties(preForm, formInputs, postForm);
 	}
-	
+		
 	@Override
 	public String toString() {
 		return conditions.isEmpty() ? t("Click here to select conditions") : String.join(" "+t("OR")+" ", conditions.stream().map(Object::toString).collect(Collectors.toList()));

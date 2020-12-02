@@ -1,13 +1,14 @@
 package de.srsoftware.web4rail.conditions;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 
 public class TrainLength extends Condition {
 	
@@ -30,10 +31,11 @@ public class TrainLength extends Condition {
 		if (json.has(MAX_LENGTH)) maxLength = json.getInt(MAX_LENGTH);
 		return this;
 	}
-
+	
 	@Override
-	public Tag propForm(HashMap<String, String> params) {
-		return new Input(MAX_LENGTH, maxLength).numeric().addTo(new Label(t("Maximum train length:")+NBSP)).addTo(super.propForm(params));
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Maximum train length"),new Input(MAX_LENGTH, maxLength).numeric());
+		return super.properties(preForm, formInputs, postForm);
 	}
 
 	@Override
@@ -48,7 +50,7 @@ public class TrainLength extends Condition {
 			if (ml < 1) throw new NumberFormatException(t("length must be larger than zero!"));
 			maxLength = ml;
 		} catch (NumberFormatException nfe) {
-			Window win = properties(params);
+			Window win = properties();
 			win.children().insertElementAt(new Tag("div").content(nfe.getMessage()),1);
 			return win;
 		}

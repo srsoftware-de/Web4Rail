@@ -55,7 +55,8 @@ Create action : Aktion erzeugen
 Current location\: : Aktueller Ort:
 Current location : Aufenthaltsort
 Current location\: {} : Aufenthaltsort: {}
-Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {} 
+Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {}
+Decoder address : Decoder-Adresse 
 Delay : Verzögerung
 DelayedAction : verzögerte Aktion
 delete : entfernen
@@ -174,6 +175,7 @@ SOUTH : Süden
 Speed unit : Geschwindigkeits-Einheit
 Start actions : Start-Aktionen
 Stock ID : Inventarnummer
+Stop settings : Halte-Einstellungen
 Started {} : {} gestartet
 State : Status
 StopAllTrains : Alle Züge stoppen
@@ -222,6 +224,7 @@ Unknown action\: {} : Unbekannte Aktion: {}
 unset : ungesetzt
 Wait {} ms, then\: : {} ms warten, dann:
 {} waiting {} secs... : {} wartet {} Sekunden...
+Wait times : Wartezeiten
 Was not able to assign {} to {}! : Konnte {} nicht an {} zuweisen!
 Was not able to lock {} : Konnte {} nicht reservieren
 Was not able to set all signals! : Konnte nicht alle Signale stellen!

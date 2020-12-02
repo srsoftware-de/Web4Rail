@@ -19,9 +19,9 @@ import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
 /**
@@ -212,89 +212,15 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		return super.load(json);
 	}
 	
-	public Form propForm(String id) {
-		Form form = new Form("test");
-		new Tag("h4").content(t("Block properties")).addTo(form);
-		
-		new Input(NAME, name).addTo(new Label(t("name:")+NBSP)).addTo(new Tag("p")).addTo(form);
-		
-		new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed).addTo(new Tag("p")).addTo(form);
-
-		Select select = Train.selector(train, null);
-		select.addTo(new Label(t("Train:")+NBSP)).addTo(new Tag("p")).addTo(form);
-		
-		return form;
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Name"),new Input(NAME, name));
+		formInputs.add("",new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed));
+		formInputs.add(t("Train"),Train.selector(train, null));
+		postForm.add(waitTimeForm());
+		return super.properties(preForm, formInputs, postForm);
 	}
-	
-	public Window propMenu() {
-		Window win = new Window("test", "Replace Block.propmenu by Block.properties!");
-		Form form = new Form("train-wait-form");
-		new Tag("h4").content(t("Stop settings")).addTo(win);
-		new Input(REALM,REALM_PLAN).hideIn(form);
-		new Input(ID,id()).hideIn(form);
-		new Input(ACTION,ACTION_TIMES).hideIn(form);
-		
-		new Tag("div").content(t("Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block.")).addTo(form);
-		
-		Direction dA = directionA();
-		Direction dB = directionB();
-		
-		Tag table = new Tag("table");
-		Tag row = new Tag("tr");			
-		new Tag("td").content(t("Direction")).addTo(row);
-		new Tag("th").content(t("{}bound",dA)).attr("colspan", 2).addTo(row);
-		new Tag("th").content(t("{}bound",dB)).attr("colspan", 2).addTo(row);
-		new Tag("td").content("").addTo(row).addTo(table);
-		
-		row = new Tag("tr");			
-		new Tag("th").content(t("Tag")).addTo(row);
-		new Tag("th").content(t("min")).addTo(row);
-		new Tag("th").content(t("max")).addTo(row);
-		new Tag("th").content(t("min")).addTo(row);
-		new Tag("th").content(t("max")).addTo(row);
-		new Tag("th").content(t("Actions")).addTo(row).addTo(table);
-		
-		int count = 0;
-		for (WaitTime wt : waitTimes) {
-			count++;
-			row = new Tag("tr");				
-			new Tag("td").content(wt.tag).addTo(row);
-			new Input("min."+wt.tag+"."+dA,wt.get(dA).min).numeric().addTo(new Tag("td")).addTo(row);
-			new Input("max."+wt.tag+"."+dA,wt.get(dA).max).numeric().addTo(new Tag("td")).addTo(row);
-			new Input("min."+wt.tag+"."+dB,wt.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
-			new Input("max."+wt.tag+"."+dB,wt.get(dB).max).numeric().addTo(new Tag("td")).addTo(row);
-			Tag actions = new Tag("td");
-			Map<String, String> props = Map.of(REALM,REALM_PLAN,ID,id().toString(),ACTION,ACTION_TIMES);
-			switch (count) {
-				case 1: 
-					actions.content(""); break;
-				case 2: 
-					new Button("-",merged(props,Map.of(ACTION_DROP,wt.tag))).addTo(actions);
-					break;
-				default: 
-					new Button("↑",merged(props,Map.of(RAISE,wt.tag))).addTo(actions);
-					new Button("-",merged(props,Map.of(ACTION_DROP,wt.tag))).addTo(actions);
-			}
-			actions.addTo(row).addTo(table);
 			
-		}
-
-		WaitTime defaultWT = getWaitTime(NO_TAG);
-
-		row = new Tag("tr");
-		new Input(NEW_TAG,"").attr("placeholder", t("new tag")).addTo(new Tag("td")).addTo(row);
-		new Input("min."+NEW_TAG+"."+dA,defaultWT.get(dA).min).numeric().addTo(new Tag("td")).addTo(row);
-		new Input("max."+NEW_TAG+"."+dA,defaultWT.get(dA).max).numeric().addTo(new Tag("td")).addTo(row);
-		new Input("min."+NEW_TAG+"."+dB,defaultWT.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
-		new Input("max."+NEW_TAG+"."+dB,defaultWT.get(dB).max).numeric().addTo(new Tag("td")).addTo(row).addTo(table);
-		
-		table.addTo(form);
-		
-		new Button(t("Apply"),form).addTo(form).addTo(win);
-		
-		return win;
-	}
-	
 	public Tile raise(String tag) {
 		for (int i=1; i<waitTimes.size(); i++) {
 			WaitTime wt = waitTimes.get(i);
@@ -399,4 +325,74 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 				
 		return this;
 	}
+	
+	public Fieldset waitTimeForm() {
+		Fieldset win = new Fieldset("Wait times");
+		Form form = new Form("train-wait-form");
+		new Tag("h4").content(t("Stop settings")).addTo(win);
+		new Input(REALM,REALM_PLAN).hideIn(form);
+		new Input(ID,id()).hideIn(form);
+		new Input(ACTION,ACTION_TIMES).hideIn(form);
+		
+		new Tag("div").content(t("Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block.")).addTo(form);
+		
+		Direction dA = directionA();
+		Direction dB = directionB();
+		
+		Tag table = new Tag("table");
+		Tag row = new Tag("tr");			
+		new Tag("td").content(t("Direction")).addTo(row);
+		new Tag("th").content(t("{}bound",dA)).attr("colspan", 2).addTo(row);
+		new Tag("th").content(t("{}bound",dB)).attr("colspan", 2).addTo(row);
+		new Tag("td").content("").addTo(row).addTo(table);
+		
+		row = new Tag("tr");			
+		new Tag("th").content(t("Tag")).addTo(row);
+		new Tag("th").content(t("min")).addTo(row);
+		new Tag("th").content(t("max")).addTo(row);
+		new Tag("th").content(t("min")).addTo(row);
+		new Tag("th").content(t("max")).addTo(row);
+		new Tag("th").content(t("Actions")).addTo(row).addTo(table);
+		
+		int count = 0;
+		for (WaitTime wt : waitTimes) {
+			count++;
+			row = new Tag("tr");				
+			new Tag("td").content(wt.tag).addTo(row);
+			new Input("min."+wt.tag+"."+dA,wt.get(dA).min).numeric().addTo(new Tag("td")).addTo(row);
+			new Input("max."+wt.tag+"."+dA,wt.get(dA).max).numeric().addTo(new Tag("td")).addTo(row);
+			new Input("min."+wt.tag+"."+dB,wt.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
+			new Input("max."+wt.tag+"."+dB,wt.get(dB).max).numeric().addTo(new Tag("td")).addTo(row);
+			Tag actions = new Tag("td");
+			Map<String, String> props = Map.of(REALM,REALM_PLAN,ID,id().toString(),ACTION,ACTION_TIMES);
+			switch (count) {
+				case 1: 
+					actions.content(""); break;
+				case 2: 
+					new Button("-",merged(props,Map.of(ACTION_DROP,wt.tag))).addTo(actions);
+					break;
+				default: 
+					new Button("↑",merged(props,Map.of(RAISE,wt.tag))).addTo(actions);
+					new Button("-",merged(props,Map.of(ACTION_DROP,wt.tag))).addTo(actions);
+			}
+			actions.addTo(row).addTo(table);
+			
+		}
+
+		WaitTime defaultWT = getWaitTime(NO_TAG);
+
+		row = new Tag("tr");
+		new Input(NEW_TAG,"").attr("placeholder", t("new tag")).addTo(new Tag("td")).addTo(row);
+		new Input("min."+NEW_TAG+"."+dA,defaultWT.get(dA).min).numeric().addTo(new Tag("td")).addTo(row);
+		new Input("max."+NEW_TAG+"."+dA,defaultWT.get(dA).max).numeric().addTo(new Tag("td")).addTo(row);
+		new Input("min."+NEW_TAG+"."+dB,defaultWT.get(dB).min).numeric().addTo(new Tag("td")).addTo(row);
+		new Input("max."+NEW_TAG+"."+dB,defaultWT.get(dB).max).numeric().addTo(new Tag("td")).addTo(row).addTo(table);
+		
+		table.addTo(form);
+		
+		new Button(t("Apply"),form).addTo(form).addTo(win);
+		
+		return win;
+	}
+
 }

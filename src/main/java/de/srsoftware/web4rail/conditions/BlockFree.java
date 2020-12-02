@@ -1,11 +1,12 @@
 package de.srsoftware.web4rail.conditions;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
-import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tiles.Block;
 
 public class BlockFree extends Condition {
@@ -28,12 +29,11 @@ public class BlockFree extends Condition {
 		block(Block.get(new Id(json.getString(BLOCK))));
 		return this;
 	}
-	
+
 	@Override
-	public Tag propForm(HashMap<String, String> params) {
-		Tag form = super.propForm(params);
-		Block.selector(block, null).addTo(new Label(t("Select block:")+NBSP)).addTo(form);
-		return form;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Select block"), Block.selector(block, null));
+		return super.properties(preForm, formInputs, postForm);
 	}
 
 	@Override

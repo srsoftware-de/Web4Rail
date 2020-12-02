@@ -3,6 +3,7 @@ package de.srsoftware.web4rail.tiles;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
@@ -13,10 +14,9 @@ import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Protocol;
+import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
-import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
 
 public class Relay extends Tile implements Device{
@@ -127,26 +127,22 @@ public class Relay extends Tile implements Device{
 		return this;
 	}
 	
-	public Form propForm(String id) {
-		Form form = new Form(id);
-		Fieldset fieldset = new Fieldset(t("Decoder settings"));
-		Label protocol = new Label(t("Protocol:"));
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Name"),new Input(NAME,name));
+		Tag div = new Tag("div");
 		for (Protocol proto : Protocol.values()) {
-			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == this.protocol).addTo(protocol);
+			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == this.protocol).addTo(div);
 		}
-		protocol.addTo(fieldset);
-		new Input(ADDRESS, address).numeric().addTo(new Label(t("Address"))).addTo(fieldset).addTo(form);
-		fieldset = new Fieldset(t("Ports and Labels"));
-		new Input(PORT_A, portA).numeric().addTo(new Label(t("Port for state A"))).addTo(fieldset);
-		new Input(LABEL_A, stateLabelA).addTo(new Label(t("Label for state A"))).addTo(fieldset);
-		new Input(PORT_B, portB).numeric().addTo(new Label(t("Port for state B"))).addTo(fieldset);
-		new Input(LABEL_B, stateLabelB).addTo(new Label(t("Label for state B"))).addTo(fieldset);
-		fieldset.addTo(form);
-		fieldset = new Fieldset(t("Name"));
-		new Input(NAME,name).addTo(new Label(t("Name"))).addTo(fieldset).addTo(form);
-		return form;
+		formInputs.add(t("Decoder address"),div);
+		formInputs.add(t("Address"),new Input(ADDRESS, address).numeric());
+		formInputs.add(t("Port for state A"),new Input(PORT_A, portA).numeric());
+		formInputs.add(t("Label for state A"),new Input(LABEL_A, stateLabelA));
+		formInputs.add(t("Port for state B"),new Input(PORT_B, portB).numeric());
+		formInputs.add(t("Label for state B"),new Input(LABEL_B, stateLabelB));
+		return super.properties(preForm, formInputs, postForm);
 	}
-	
+		
 	private char proto() {
 		switch (protocol) {
 		case DCC14:

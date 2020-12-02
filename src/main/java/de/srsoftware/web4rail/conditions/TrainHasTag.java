@@ -1,12 +1,13 @@
 package de.srsoftware.web4rail.conditions;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.json.JSONObject;
 
-import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 
 public class TrainHasTag extends Condition {
 	
@@ -31,10 +32,11 @@ public class TrainHasTag extends Condition {
 	}
 
 	@Override
-	public Tag propForm(HashMap<String, String> params) {
-		return new Input(TAG, tag == null ? "" : tag).addTo(new Label(t("Tag:")+NBSP)).addTo(super.propForm(params));
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Tag"),new Input(TAG, tag == null ? "" : tag));
+		return super.properties(preForm, formInputs, postForm);
 	}
-
+	
 	@Override
 	public String toString() {
 		if (tag == null) return t("[Click to setup tag]");
