@@ -102,6 +102,7 @@ Locomotives\: : Lokomotiven:
 Manage cars : Waggons verwalten
 Manage locos : Lokomotiven verwalten
 Manage trains : Züge verwalten
+Maximum Speed : Höchstgeschwindigkeit
 Maximum train length\: : maximale Zug-Länge
 Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block. : Minamle und maximale Block-Haltezeit (in Millisekunden) für Züge mit der entsprchender Markierung.
 Move tiles : Kacheln verschieben
@@ -113,6 +114,7 @@ new train : neuer Zug
 No : keine
 No free routes from {} : keine Route von {} frei
 NORTH : Norden
+Notes : Notizen
 {} now heading for {} : {} ist nun unterweg nach {}
 {} now in auto-mode : {} ist nun im Automatikmodus
 Occupied area\: : Belegte Abschnitte:

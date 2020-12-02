@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -502,9 +503,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		this.plan = plan;
 		return this;
 	}
-	
-	public Window properties() {
 		
+	@Override
+	protected Window properties(List<Fieldset> preForm, List<Entry<String, Tag>> formInputs, List<Fieldset> postForm) {
 		Fieldset otherTrainProsps = new Fieldset(t("other train properties"));
 		
 		Tag propList = new Tag("ul").clazz("proplist");
@@ -534,7 +535,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			for (String tag : allTags) new Tag("li").content(tag).addTo(tagList);
 			tagList.addTo(new Tag("li").content(t("Tags"))).addTo(propList);
 		}
-		new Tag("li").content(t("length: {}",length())).addTo(propList);
+		new Tag("li").content(t("length: {}",length())+NBSP+lengthUnit).addTo(propList);
 		
 		if (!trace.isEmpty()) {
 			Tag li = new Tag("li").content(t("Occupied area:"));
@@ -545,13 +546,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		propList.addTo(otherTrainProsps);
 		
-		List<Tag> formInputs = List.of(
-				new Input(NAME,name),
-				new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull),
-				new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP))
-			); 
+		formInputs.add(new AbstractMap.SimpleEntry<>(t("Name"), new Input(NAME,name)));
+		formInputs.add(new AbstractMap.SimpleEntry<>(t("Push-pull train"),new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull)));
+		formInputs.add(new AbstractMap.SimpleEntry<>(t("Tags"), new Input(TAGS,String.join(", ", tags))));
 		
-		return super.properties(List.of(Locomotive.cockpit(this)), formInputs, List.of(otherTrainProsps));
+		preForm.add(Locomotive.cockpit(this));
+		postForm.add(otherTrainProsps);
+		
+		return super.properties(preForm, formInputs, postForm);
 	}
 
 	public Object quitAutopilot() {

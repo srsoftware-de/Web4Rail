@@ -1,10 +1,13 @@
 package de.srsoftware.web4rail.moving;
 
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
@@ -260,33 +263,16 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	@Override
-	public Window properties() {
-		Window win = super.properties();
-		Tag cockpit = cockpit(this);
-		win.children().insertElementAt(cockpit, 2);
-		return win;
-	}
-	
-/*	@Override
-	public Form propertyForm() {
-		Form form = super.propertyForm();
-
-		for (Tag tag : form.children()) {
-			if (REALM.equals(tag.get(Input.NAME)) && REALM_CAR.equals(tag.get(Input.VALUE))) {
-				tag.attr("value", REALM_LOCO);
-				break;
-			}
-		}
-		Fieldset fieldset = new Fieldset("Decoder settings");
-		Label protocol = new Label(t("Protocol:"));
+	protected Window properties(List<Fieldset> preForm, List<Entry<String, Tag>> formInputs, List<Fieldset> postForm) {
+		preForm.add(cockpit(this));
+		Tag div = new Tag("div");
 		for (Protocol proto : Protocol.values()) {
-			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == this.proto).addTo(protocol);
+			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == this.proto).addTo(div);
 		}
-		protocol.addTo(fieldset);
-		new Input(ADDRESS, address).attr("type", "number").addTo(new Label(t("Address:"))).addTo(fieldset);
-		fieldset.addTo(form);
-		return form;
-	}*/
+		formInputs.add(new AbstractMap.SimpleEntry<String,Tag>(t("Protocol"),div));
+		formInputs.add(new AbstractMap.SimpleEntry<String,Tag>(t("Address"),new Input(ADDRESS, address).numeric()));
+		return super.properties(preForm, formInputs, postForm);
+	}
 	
 	private void queue() {
 		int step = proto.steps * speed / (maxSpeed == 0 ? 100 : maxSpeed); 

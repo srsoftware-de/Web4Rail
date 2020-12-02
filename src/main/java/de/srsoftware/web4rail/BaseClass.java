@@ -2,6 +2,8 @@ package de.srsoftware.web4rail;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +23,7 @@ import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.TextArea;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -225,6 +227,23 @@ public abstract class BaseClass implements Constants{
 		return Map.of(ACTION,action,CONTEXT,realm()+":"+id());
 	}
 	
+	public Form form(String id,List<Map.Entry<String, Tag>> elements) {
+		Form form = new Form(id);
+
+		Table table = new Table();
+		for (Map.Entry<String, Tag>entry : elements) {
+			String key = entry.getKey();	
+			Tag val = entry.getValue();
+			if (isNull(key) && val instanceof Input) ((Input)val).hideIn(form);
+			table.addRow(isSet(key)?key:"",entry.getValue());
+		}
+
+		table.addTo(form);
+		
+		new Button(t("Apply"),form).addTo(form);
+		return form;
+	}
+	
 	public Id id() {
 		if (isNull(id)) id = new Id();
 		return id;
@@ -276,26 +295,24 @@ public abstract class BaseClass implements Constants{
 		return merged;
 	}
 	
-	public Window properties(List<Fieldset> preForm,List<Tag> formInputs,List<Fieldset> postForm) {
+	public Window properties() {
+		return properties(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+	}
+
+	
+	protected Window properties(List<Fieldset> preForm,List<Map.Entry<String, Tag>> formInputs,List<Fieldset> postForm) {
 		Window win = new Window(getClass().getSimpleName()+"-properties", t("Properties of {}",this));
 		
 		preForm.forEach(fieldset -> fieldset.addTo(win));
-		
-		
-		Form form = new Form(getClass().getSimpleName()+"-prop-form");
-		new Input(ACTION, ACTION_UPDATE).hideIn(form);
-		new Input(REALM,realm()).hideIn(form);
-		new Input(ID,id()).hideIn(form);
-		
-		formInputs.forEach(tag -> tag.addTo(form));
 
-		new TextArea(NOTES,notes)
-			.addTo(new Label(t("Notes")+NBSP))
-			.addTo(form);
-		
-		new Button(t("Apply"),form)
-			.addTo(form)
-			.addTo(new Fieldset("Basic properties"))
+		formInputs.add(new AbstractMap.SimpleEntry<String, Tag>(null,new Input(ACTION, ACTION_UPDATE)));
+		formInputs.add(new AbstractMap.SimpleEntry<String, Tag>(null,new Input(REALM,realm())));
+		formInputs.add(new AbstractMap.SimpleEntry<String, Tag>(null,new Input(ID,id())));
+
+		formInputs.add(new AbstractMap.SimpleEntry<String, Tag>(t("Notes"),new TextArea(NOTES,notes)));
+
+		form(getClass().getSimpleName()+"-prop-form",formInputs)
+			.addTo(new Fieldset(t("Basic properties")))
 			.addTo(win);
 		
 		postForm.forEach(fieldset -> fieldset.addTo(win));
