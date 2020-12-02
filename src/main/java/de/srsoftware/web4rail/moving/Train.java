@@ -503,13 +503,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 	
-	@Override
 	public Window properties() {
-		Window window = super.properties();
 		
-		window.children().insertElementAt(Locomotive.cockpit(this), 2);
-		
-		Fieldset fieldset = new Fieldset(t("other train properties"));
+		Fieldset otherTrainProsps = new Fieldset(t("other train properties"));
 		
 		Tag propList = new Tag("ul").clazz("proplist");
 		
@@ -547,18 +543,15 @@ public class Train extends BaseClass implements Comparable<Train> {
 			ul.addTo(li).addTo(propList);
 		}
 		
-		propList.addTo(fieldset).addTo(window);
-		return window;
-	}
-	
-	@Override
-	public Form propertyForm() {
-		Form form = super.propertyForm();
-		Fieldset fieldset = form.children().stream().filter(tag -> tag instanceof Fieldset).map(tag -> (Fieldset)tag).findFirst().get();
-		new Input(NAME,name).addTo(fieldset);
-		new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull).addTo(fieldset);
-		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(fieldset);
-		return form;
+		propList.addTo(otherTrainProsps);
+		
+		List<Tag> formInputs = List.of(
+				new Input(NAME,name),
+				new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull),
+				new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP))
+			); 
+		
+		return super.properties(List.of(Locomotive.cockpit(this)), formInputs, List.of(otherTrainProsps));
 	}
 
 	public Object quitAutopilot() {

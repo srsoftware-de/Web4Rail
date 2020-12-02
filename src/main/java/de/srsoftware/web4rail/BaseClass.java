@@ -4,6 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -20,6 +21,7 @@ import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.TextArea;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -274,28 +276,31 @@ public abstract class BaseClass implements Constants{
 		return merged;
 	}
 	
-	public Window properties() {
+	public Window properties(List<Fieldset> preForm,List<Tag> formInputs,List<Fieldset> postForm) {
 		Window win = new Window(getClass().getSimpleName()+"-properties", t("Properties of {}",this));
-
-		Form form = propertyForm();
-		if (form!=null && form.children().size()>2) {
-			new Button(t("Apply"),form).addTo(form).addTo(win);
-		} else win.content(t("This tile ({}) has no editable properties",getClass().getSimpleName()));
-
-		return win;
-	}
-	
-	public Form propertyForm() {		
+		
+		preForm.forEach(fieldset -> fieldset.addTo(win));
+		
+		
 		Form form = new Form(getClass().getSimpleName()+"-prop-form");
 		new Input(ACTION, ACTION_UPDATE).hideIn(form);
 		new Input(REALM,realm()).hideIn(form);
 		new Input(ID,id()).hideIn(form);
-		Fieldset fieldset = new Fieldset("Basic properties");
-		fieldset.addTo(form);
 		
-		fieldset = new Fieldset(t("Notes"));
-		new TextArea(NOTES,notes).addTo(fieldset.clazz("notes")).addTo(form);
-		return form;
+		formInputs.forEach(tag -> tag.addTo(form));
+
+		new TextArea(NOTES,notes)
+			.addTo(new Label(t("Notes")+NBSP))
+			.addTo(form);
+		
+		new Button(t("Apply"),form)
+			.addTo(form)
+			.addTo(new Fieldset("Basic properties"))
+			.addTo(win);
+		
+		postForm.forEach(fieldset -> fieldset.addTo(win));
+		
+		return win;
 	}
 	
 	public Map<String,String> props(Map<String,String> additionalProps){

@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
@@ -197,26 +198,20 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return this;
 	}
 	
-	public Form propertyForm() {
-		Form form = super.propertyForm();
-		Fieldset fieldset = form.children().stream().filter(tag -> tag instanceof Fieldset).map(tag -> (Fieldset)tag).findFirst().get();
-		
-		new Input(NAME,name).addTo(new Label(t("Name")+NBSP)).addTo(fieldset);
-		new Input(STOCK_ID,stockId).addTo(new Label(t("Stock ID")+NBSP)).addTo(fieldset);
-		new Input(LENGTH,length).attr("type", "number").addTo(new Label(t("Length")+NBSP)).content(NBSP+lengthUnit).addTo(fieldset);
-		new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)).addTo(fieldset);
-		new Input(MAX_SPEED, maxSpeed).numeric().addTo(new Label(t("Maximum speed")+":"+NBSP)).content(NBSP+speedUnit).addTo(fieldset);
-		
-		return form;
-	}
-	
 	public Window properties() {
-		Window win = super.properties();
 		
-		Tag list = new Tag("ul");
-		if (train != null) train.link().addTo(new Tag("li").content(t("Train:")+NBSP)).addTo(list);
-		list.addTo(win);
-		return win;
+		List<Tag> formInputs = List.of(
+			new Input(NAME,name).addTo(new Label(t("Name")+NBSP)),
+			new Input(STOCK_ID,stockId).addTo(new Label(t("Stock ID")+NBSP)),
+			new Input(LENGTH,length).attr("type", "number").addTo(new Label(t("Length")+NBSP)).content(NBSP+lengthUnit),
+			new Input(TAGS,String.join(", ", tags)).addTo(new Label(t("Tags")+NBSP)),
+			new Input(MAX_SPEED, maxSpeed).numeric().addTo(new Label(t("Maximum speed")+":"+NBSP)).content(NBSP+speedUnit)
+		);
+		
+		Fieldset fieldset = new Fieldset(t("Train"));
+		if (train != null) train.link().addTo(fieldset);
+		
+		return super.properties(List.of(),formInputs,List.of(fieldset));
 	}
 
 	public static void saveAll(String filename) throws IOException {

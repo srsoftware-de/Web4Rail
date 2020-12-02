@@ -81,7 +81,7 @@ public class Locomotive extends Car implements Constants,Device{
 		return address;
 	}
 	
-	public static Tag cockpit(Object locoOrTrain) {
+	public static Fieldset cockpit(Object locoOrTrain) {
 		Id id = null;
 		int speed = 0;
 		String realm = null;
@@ -102,6 +102,7 @@ public class Locomotive extends Car implements Constants,Device{
 		HashMap<String,Object> params = new HashMap<String, Object>(Map.of(REALM,realm,ID,id));
 		
 		Fieldset fieldset = new Fieldset(t("Control"));
+		fieldset.clazz("cockpit");
 		
 		new Tag("span").content(t("Current velocity: {} {}",speed,speedUnit)).addTo(fieldset);
 		
@@ -147,7 +148,7 @@ public class Locomotive extends Car implements Constants,Device{
 		functions.addTo(fieldset);
 		
 
-		return fieldset.clazz("cockpit");
+		return fieldset;
 	}
 	
 	private String detail() {
@@ -266,7 +267,7 @@ public class Locomotive extends Car implements Constants,Device{
 		return win;
 	}
 	
-	@Override
+/*	@Override
 	public Form propertyForm() {
 		Form form = super.propertyForm();
 
@@ -285,7 +286,7 @@ public class Locomotive extends Car implements Constants,Device{
 		new Input(ADDRESS, address).attr("type", "number").addTo(new Label(t("Address:"))).addTo(fieldset);
 		fieldset.addTo(form);
 		return form;
-	}
+	}*/
 	
 	private void queue() {
 		int step = proto.steps * speed / (maxSpeed == 0 ? 100 : maxSpeed); 
