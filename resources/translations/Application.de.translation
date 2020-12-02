@@ -47,8 +47,10 @@ Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werd
 ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
 Condition type\: : Bedingungs-Typ:
+Connected to {}. : Mit {} verbunden.
 Control : Steuerung
 Control unit : Zentrale
+Counterpart : Gegenstück
 Create action : Aktion erzeugen
 Current location\: : Aktueller Ort:
 Current location : Aufenthaltsort
@@ -114,13 +116,14 @@ new train : neuer Zug
 No : keine
 No free routes from {} : keine Route von {} frei
 NORTH : Norden
+Not connected to other bridge part! : Nicht mit anderem Brücken-Teil verbunden!
 Notes : Notizen
 {} now heading for {} : {} ist nun unterweg nach {}
 {} now in auto-mode : {} ist nun im Automatikmodus
 Occupied area\: : Belegte Abschnitte:
 Off : Aus
 On : An
-One way\: : Richtung:
+One way : Richtung
 Online Documentation : Online-Dokumentation
 OrCondition : Oder-Bedingung
 other train properties : andere Zug-Eigenschaften
@@ -139,7 +142,7 @@ Relay/Turnout : Relais/Weiche
 Report Issue : Problem melden
 RIGHT : rechts
 Right port\: : Port für rechts
-Routes using this tile\: : Fahrstraßen, die diesen Abschnitt verwenden:
+Routes using this tile : Fahrstraßen, die diesen Abschnitt verwenden
 Route will only be available, if all conditions are fulfilled. : Route ist nur verfügbar, wenn alle Bedingungen erfüllt sind.
 Save : speichern
 Select block\: : Block auswählen:
@@ -172,6 +175,7 @@ Speed unit : Geschwindigkeits-Einheit
 Start actions : Start-Aktionen
 Stock ID : Inventarnummer
 Started {} : {} gestartet
+State : Status
 StopAllTrains : Alle Züge stoppen
 StopAuto : Automatikmodus abschalten
 {} stopping at next block. : {} hält im nächsten Block.

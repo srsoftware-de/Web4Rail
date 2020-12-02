@@ -127,9 +127,8 @@ public class Relay extends Tile implements Device{
 		return this;
 	}
 	
-	@Override
 	public Form propForm(String id) {
-		Form form = super.propForm(id);
+		Form form = new Form(id);
 		Fieldset fieldset = new Fieldset(t("Decoder settings"));
 		Label protocol = new Label(t("Protocol:"));
 		for (Protocol proto : Protocol.values()) {

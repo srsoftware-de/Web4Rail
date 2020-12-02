@@ -227,9 +227,8 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		return form;
 	}
 	
-	@Override
 	public Window propMenu() {
-		Window win = super.propMenu();
+		Window win = new Window("test", "Replace Block.propmenu by Block.properties!");
 		Form form = new Form("train-wait-form");
 		new Tag("h4").content(t("Stop settings")).addTo(win);
 		new Input(REALM,REALM_PLAN).hideIn(form);

@@ -27,11 +27,9 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
-import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
-import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
 
 /**
@@ -84,7 +82,7 @@ public abstract class Tile extends BaseClass{
 
 	public Object click() throws IOException {
 		LOG.debug("{}.click()",getClass().getSimpleName());
-		return propMenu();
+		return properties();
 	}
 	
 	public JSONObject config() {
@@ -194,73 +192,58 @@ public abstract class Tile extends BaseClass{
 		return new Vector<Plan.Direction>();
 	}
 	
-	public Form propForm(String formId) {
-		Form form = new Form(formId);
-		new Input(ACTION, ACTION_UPDATE).hideIn(form);
-		new Input(REALM, REALM_PLAN).hideIn(form);
-		new Input(ID,id()).hideIn(form);
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		Fieldset fieldset = new Fieldset(t("Route and Train"));
 
-		List<Direction> pd = possibleDirections();
-		if (!pd.isEmpty()) {
-			new Tag("h4").content(t("One way:")).addTo(form);
-			new Radio("oneway","none",t("No"),isNull(oneWay)).addTo(form);		
-			for (Direction d:pd) {
-				new Radio("oneway",d.toString(),t(d.toString()),d == oneWay).addTo(form);
-			}
-		}
-		return form;
-	}
-	
-	public Window propMenu() {	
-		Window window = new Window("tile-properties",t("Properties of {} @ ({},{})",title(),x,y));
-		
 		if (isSet(train)) {
-			HashMap<String, Object> props = new HashMap<String,Object>(Map.of(REALM,REALM_TRAIN,ID,train.id()));
+			train.link("span", train+NBSP).addTo(fieldset);
 			if (isSet(train.route)) {
-				props.put(ACTION, ACTION_STOP);
-				window.children().insertElementAt(new Button(t("stop"),props), 1);
+				train.button(t("stop"), contextAction(ACTION_STOP)).addTo(fieldset);
 			} else {
-				props.put(ACTION, ACTION_START);
-				window.children().insertElementAt(new Button(t("start"),props), 1);
+				train.button(t("start"), contextAction(ACTION_START)).addTo(fieldset);
 			}
 			if (train.usesAutopilot()) {
-				props.put(ACTION, ACTION_QUIT);
-				window.children().insertElementAt(new Button(t("quit autopilot"),props),2);
+				train.button(t("quit autopilot"), contextAction(ACTION_QUIT)).addTo(fieldset);
 			} else {
-				props.put(ACTION, ACTION_AUTO);
-				window.children().insertElementAt(new Button(t("auto"),props),2);
+				train.button(t("auto"), contextAction(ACTION_AUTO)).addTo(fieldset);
 			}
-
-			window.children().insertElementAt(train.link(), 1);
-			window.children().insertElementAt(new Tag("h4").content(t("Train:")), 1);
 		}
-
-		if (isSet(route)) route.link("p",t("Locked by {}",route)).addTo(window);
-
-		Form form = propForm("tile-properties-"+id());
-		if (isTrack) {
-			new Tag("h4").content(t("Length")).addTo(form);		
-			new Input(LENGTH,length).numeric().addTo(new Label(t("Length")+":"+NBSP)).content(NBSP+lengthUnit).addTo(form);
-			new Tag("h4").content(t("Availability")).addTo(form);
-			Checkbox cb = new Checkbox(DISABLED, t("disabled"), disabled);
-			if (disabled) cb.clazz("disabled");
-			cb.addTo(form);
-		}
-		new Button(t("Apply"),form).addTo(form);
-		form.addTo(window);
 		
+		if (isSet(route)) {
+			route.link("span",t("Locked by {}",route)).addTo(fieldset);
+		}
+		preForm.add(fieldset);
+		
+		if (isTrack) {
+			formInputs.add(t("Length"),new Input(LENGTH,length).numeric().addTo(new Tag("span")).content(NBSP+lengthUnit));
+			formInputs.add(t("State"),new Checkbox(DISABLED, t("disabled"), disabled));
+		}
+		
+		List<Direction> pd = possibleDirections();
+		if (!pd.isEmpty()) {
+			Tag div = new Tag("div");
+			new Radio("oneway","none",t("No"),isNull(oneWay)).addTo(div);
+			for (Direction d:pd) {
+				new Radio("oneway",d.toString(),t(d.toString()),d == oneWay).addTo(div);
+			}
+			formInputs.add(t("One way"),div);
+		}
+
 		
 		if (!routes.isEmpty()) {
-			new Tag("h4").content(t("Routes using this tile:")).addTo(window);
+			fieldset = new Fieldset(t("Routes using this tile"));
 			Tag routeList = new Tag("ol");
 			for (Route route : routes) {
 				Tag li = route.link("span", route.name()+(route.isDisabled()?" ["+t("disabled")+"]" : "")+NBSP).addTo(new Tag("li").clazz("link"));
 				route.button(t("delete route"),contextAction(ACTION_DROP)).addTo(li);
 				li.addTo(routeList);
 			}
-			routeList.addTo(window);
-		}		
-		return window;
+			routeList.addTo(fieldset);
+			postForm.add(fieldset);
+		}
+		
+		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	public void remove(Route route) {
@@ -268,7 +251,7 @@ public abstract class Tile extends BaseClass{
 	}
 
 	private static String replace(String line, Entry<String, Object> replacement) {
-		String key = replacement.getKey();
+		String key = replacement.getKey();	
 		Object val = replacement.getValue();
 		int start = line.indexOf(key);
 		int len = key.length();

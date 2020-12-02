@@ -19,6 +19,7 @@ import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 
@@ -130,6 +131,12 @@ public class ActionList extends Vector<Action> implements Constants{
 			}
 			ul.addTo(link);
 		}		
+	}
+	
+	public Fieldset properties() {
+		Fieldset fieldset = new Fieldset(t("Actions"));
+		new Tag("p").content("replace ActionList.addTo(...) by ActionsList.properties()!").addTo(fieldset);
+		return fieldset;
 	}
 	
 	public boolean drop(Id actionId) {

@@ -40,6 +40,7 @@ public abstract class BaseClass implements Constants{
 
 	
 	public static class Context {
+
 		private BaseClass main = null;
 		private Tile tile;
 		private Block block;
@@ -121,6 +122,16 @@ public abstract class BaseClass implements Constants{
 
 		public Context train(Train newTrain) {
 			train = newTrain;
+			return this;
+		}
+	}
+	
+	public class FormInput extends ArrayList<Map.Entry<String, Tag>>{
+		
+		private static final long serialVersionUID = -2371203388908395216L;
+
+		public FormInput add(String caption,Tag tag) {
+			add(new AbstractMap.SimpleEntry<String,Tag>(caption,tag));
 			return this;
 		}
 	}
@@ -296,11 +307,11 @@ public abstract class BaseClass implements Constants{
 	}
 	
 	public Window properties() {
-		return properties(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+		return properties(new ArrayList<>(), new FormInput(), new ArrayList<>());
 	}
 
 	
-	protected Window properties(List<Fieldset> preForm,List<Map.Entry<String, Tag>> formInputs,List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm,FormInput formInputs,List<Fieldset> postForm) {
 		Window win = new Window(getClass().getSimpleName()+"-properties", t("Properties of {}",this));
 		
 		preForm.forEach(fieldset -> fieldset.addTo(win));

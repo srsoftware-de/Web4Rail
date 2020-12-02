@@ -5,7 +5,6 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -505,7 +504,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 		
 	@Override
-	protected Window properties(List<Fieldset> preForm, List<Entry<String, Tag>> formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		Fieldset otherTrainProsps = new Fieldset(t("other train properties"));
 		
 		Tag propList = new Tag("ul").clazz("proplist");
@@ -546,9 +545,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		propList.addTo(otherTrainProsps);
 		
-		formInputs.add(new AbstractMap.SimpleEntry<>(t("Name"), new Input(NAME,name)));
-		formInputs.add(new AbstractMap.SimpleEntry<>(t("Push-pull train"),new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull)));
-		formInputs.add(new AbstractMap.SimpleEntry<>(t("Tags"), new Input(TAGS,String.join(", ", tags))));
+		formInputs.add(t("Name"), new Input(NAME,name));
+		formInputs.add(t("Push-pull train"),new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull));
+		formInputs.add(t("Tags"), new Input(TAGS,String.join(", ", tags)));
 		
 		preForm.add(Locomotive.cockpit(this));
 		postForm.add(otherTrainProsps);

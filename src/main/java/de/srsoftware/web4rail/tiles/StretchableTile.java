@@ -34,9 +34,8 @@ public abstract class StretchableTile extends Tile {
 		return super.load(json);
 	}
 	
-	@Override
 	public Form propForm(String id) {
-		Form form = super.propForm(id);
+		Form form = new Form(id);
 		new Tag("h4").content(stretchType()).addTo(form);
 		
 		new Input(STRETCH_LENGTH, stretch).numeric().addTo(new Label(stretchType()+":"+NBSP)).addTo(new Tag("p")).addTo(form);

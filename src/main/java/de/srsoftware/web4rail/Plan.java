@@ -611,7 +611,7 @@ public class Plan extends BaseClass{
 	private Window properties(HashMap<String, String> params) {
 		if (params.containsKey(ID)) {
 			Tile tile = get(Id.from(params), true);
-			if (isSet(tile)) return tile.propMenu();
+			if (isSet(tile)) return tile.properties();
 		}
 		
 		Window win = new Window("plan-properties", t("Properties"));
@@ -780,7 +780,7 @@ public class Plan extends BaseClass{
 				contact.addr(0);
 				LOG.debug("unsibscribed {} from {}",contact,addr);
 			}
-			stream(learningContact.addr(addr).propMenu().toString());
+			stream(learningContact.addr(addr).properties().toString());
 			learningContact = null;
 			LOG.debug("learned: {} = {}",addr,learningContact);			
 			return;
@@ -804,7 +804,7 @@ public class Plan extends BaseClass{
 			case REALM_CONTACT:
 			case REALM_PLAN:
 				Tile tile = get(id, false);
-				return isNull(tile) ? null : tile.propMenu();
+				return isNull(tile) ? null : tile.properties();
 			case REALM_ACTIONS:
 				Action action = Action.get(id);
 				return (isSet(action)) ? action.properties(params) : null;
@@ -937,7 +937,7 @@ public class Plan extends BaseClass{
 		if (tile instanceof Block) {
 			Block block = (Block) tile;
 			place(block.updateTimes(params));
-			return tile.propMenu();
+			return tile.properties();
 		}
 		return t("updateTimes called on non-block tile!");
 	}

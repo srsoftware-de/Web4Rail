@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONObject;
@@ -10,6 +11,7 @@ import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Fieldset;
 
 public abstract class Bridge extends Tile {
 	private static final String COUNTERPART = "counterpart";
@@ -75,10 +77,18 @@ public abstract class Bridge extends Tile {
 		if (isSet(counterpart) && counterpart.route != route) counterpart.setRoute(route);
 		return this;
 	}
-
+	
 	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		Fieldset fieldset = new Fieldset(t("Counterpart"));
+		new Tag("p").content(isSet(counterpart) ? t("Connected to {}.",counterpart) : t("Not connected to other bridge part!")).addTo(fieldset);		
+		button(t("Select counterpart"),Map.of(ACTION,ACTION_CONNECT)).addTo(fieldset);
+		preForm.add(fieldset);
+		return super.properties(preForm, formInputs, postForm);
+	}
+
 	public Window propMenu() {
-		Window win = super.propMenu();
+		Window win = new Window("test", "test");
 		new Tag("h4").content("Counterpart").addTo(win);
 		new Tag("p").content(isSet(counterpart) ? t("Connected to {}.",counterpart) : t("Not connected to other bridge part!")).addTo(win);
 		button(t("Select counterpart"),Map.of(ACTION,ACTION_CONNECT)).addTo(win);

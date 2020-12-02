@@ -3,6 +3,7 @@ package de.srsoftware.web4rail.tiles;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -12,9 +13,8 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.ActionList;
-import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
 public class Contact extends Tile{
@@ -140,7 +140,7 @@ public class Contact extends Tile{
 				if (id == null) return t("Missing ID on call to {}.process()",Contact.class.getSimpleName());
 				contact = contactsById.get(id);
 				if (contact == null) return t("No contact with id {} found!",id);
-				Tag propMenu = contact.propMenu();
+				Tag propMenu = contact.properties();
 				propMenu.children().insertElementAt(new Tag("div").content(t("Trigger a feedback sensor to assign it with this contact!")), 1);
 				plan.learn(contact);
 				return propMenu;
@@ -148,22 +148,15 @@ public class Contact extends Tile{
 		return t("Unknown action: {}",action);
 	}
 
-	
 	@Override
-	public Form propForm(String formId) {
-		Form form = super.propForm(formId);
-		new Tag("h4").content(t("Hardware settings")).addTo(form);
-		Tag label = new Input(ADDRESS, addr).numeric().addTo(new Label(t("Address:")+NBSP));
-		button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(label).addTo(form);		
-		return form;
-	}
-	
-	@Override
-	public Window propMenu() {
-		Window win = super.propMenu();
-		new Tag("h4").content(t("Actions")).addTo(win);
-		actions.addTo(win, REALM_PLAN+":"+id());
-		return win;
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		Tag span = new Tag("span");
+		new Input(ADDRESS, addr).numeric().addTo(span).content(NBSP);
+		button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(span);
+		formInputs.add(t("Hardware settings"),span);
+		
+		postForm.add(actions.properties());
+		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	public static Select selector(Contact preselect) {

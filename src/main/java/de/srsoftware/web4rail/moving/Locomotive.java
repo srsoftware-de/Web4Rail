@@ -1,13 +1,11 @@
 package de.srsoftware.web4rail.moving;
 
 import java.io.IOException;
-import java.util.AbstractMap;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import java.util.Map.Entry;
 
 import org.json.JSONObject;
 
@@ -263,14 +261,14 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, List<Entry<String, Tag>> formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		preForm.add(cockpit(this));
 		Tag div = new Tag("div");
 		for (Protocol proto : Protocol.values()) {
 			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == this.proto).addTo(div);
 		}
-		formInputs.add(new AbstractMap.SimpleEntry<String,Tag>(t("Protocol"),div));
-		formInputs.add(new AbstractMap.SimpleEntry<String,Tag>(t("Address"),new Input(ADDRESS, address).numeric()));
+		formInputs.add(t("Protocol"),div);
+		formInputs.add(t("Address"),new Input(ADDRESS, address).numeric());
 		return super.properties(preForm, formInputs, postForm);
 	}
 	

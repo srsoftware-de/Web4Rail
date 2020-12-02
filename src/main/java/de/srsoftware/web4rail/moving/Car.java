@@ -5,7 +5,6 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -200,12 +199,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, List<Entry<String, Tag>> formInputs, List<Fieldset> postForm) {
-		formInputs.add(new AbstractMap.SimpleEntry<>(t("Name"),new Input(NAME,name)));
-		formInputs.add(new AbstractMap.SimpleEntry<>(t("Stock ID"),new Input(STOCK_ID,stockId)));
-		formInputs.add(new AbstractMap.SimpleEntry<>(t("Length"),new Input(LENGTH,length).attr("type", "number").addTo(new Tag("span")).content(NBSP+lengthUnit)));
-		formInputs.add(new AbstractMap.SimpleEntry<>(t("Tag"), new Input(TAGS,String.join(", ", tags))));
-		formInputs.add(new AbstractMap.SimpleEntry<>(t("Maximum Speed"),new Input(MAX_SPEED, maxSpeed).numeric().addTo(new Tag("span")).content(NBSP+speedUnit)));
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Name"),new Input(NAME,name));
+		formInputs.add(t("Stock ID"),new Input(STOCK_ID,stockId));
+		formInputs.add(t("Length"),new Input(LENGTH,length).attr("type", "number").addTo(new Tag("span")).content(NBSP+lengthUnit));
+		formInputs.add(t("Tag"), new Input(TAGS,String.join(", ", tags)));
+		formInputs.add(t("Maximum Speed"),new Input(MAX_SPEED, maxSpeed).numeric().addTo(new Tag("span")).content(NBSP+speedUnit));
 		
 		Fieldset fieldset = new Fieldset(t("Train"));
 		if (train != null) train.link().addTo(fieldset);
