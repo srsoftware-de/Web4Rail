@@ -12,6 +12,7 @@ import de.srsoftware.web4rail.BaseClass.Context;
 import de.srsoftware.web4rail.BaseClass.Id;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 
@@ -31,6 +32,30 @@ public class ConditionList extends Vector<Condition> implements Constants{
 		for (Condition condition : this) json.put(condition.json());
 		return json;
 	}
+	
+	public Fieldset list() {
+		return list(null);
+	}
+	
+	public Fieldset list(String caption) {
+		Fieldset fieldset = new Fieldset(t("Conditions"));
+		if (caption != null) new Tag("p").content(caption).addTo(fieldset);
+		Tag list = new Tag("ul");
+		newConditionForm().addTo(new Tag("li")).addTo(list);
+		forEach(condition -> condition.link("li", condition).addTo(list));
+		list.addTo(fieldset);
+		return fieldset;
+	}
+
+	private Form newConditionForm() {
+		Form form = new Form("add-condition-form");
+		new Input(REALM, REALM_CONDITION).hideIn(form);
+		new Input(ACTION,ACTION_ADD).hideIn(form);
+		// new Input(CONTEXT,context).hideIn(form); TODO: add context
+		Condition.selector().addTo(form);
+		new Button(t("Add condition"), form).addTo(form);
+		return form;
+	}
 
 	public void load(JSONArray arr) {
 		for (int i=0; i<arr.length(); i++) {
@@ -47,28 +72,6 @@ public class ConditionList extends Vector<Condition> implements Constants{
 				break;
 			}
 		}	
-	}
-
-	public Tag tag(String context) {
-		if (context != null) {
-
-			Tag list = new Tag("ul");
-			for (Condition condition : this) {
-				condition.link(condition.toString(),"li",context).addTo(list);
-			}
-			Tag div = list.addTo(new Tag("div"));
-		
-			Form form = new Form("add-condition-form");
-			new Input(REALM, REALM_CONDITION).hideIn(form);
-			new Input(ACTION,ACTION_ADD).hideIn(form);
-			new Input(CONTEXT,context).hideIn(form);
-			Condition.selector().addTo(form);
-			new Button(t("Add condition"), form).addTo(form).addTo(div);
-			
-			return div;
-		}
-		return null;
-		
 	}
 
 	private static String t(String tx, Object...fills) {

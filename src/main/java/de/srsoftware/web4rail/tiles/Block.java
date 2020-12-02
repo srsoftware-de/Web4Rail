@@ -327,7 +327,7 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 	}
 	
 	public Fieldset waitTimeForm() {
-		Fieldset win = new Fieldset("Wait times");
+		Fieldset win = new Fieldset(t("Wait times"));
 		Form form = new Form("train-wait-form");
 		new Tag("h4").content(t("Stop settings")).addTo(win);
 		new Input(REALM,REALM_PLAN).hideIn(form);

@@ -26,7 +26,7 @@ public class TrainSelect extends Condition {
 	
 	public Condition load(JSONObject json) {
 		super.load(json);
-		train(Train.get(new Id(json.getString(REALM_TRAIN))));
+		train(Train.get(new Id(""+json.get(REALM_TRAIN))));
 		return this;
 	}
 	
