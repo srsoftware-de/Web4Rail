@@ -55,6 +55,6 @@ public abstract class TextAction extends Action {
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
 		text = params.get(TEXT);
-		return properties();
+		return super.update(params);
 	}
 }

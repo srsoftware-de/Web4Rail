@@ -33,7 +33,7 @@ public class TrainSelect extends Condition {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Select train"),Train.selector(train, null));
+		formInputs.add(t("Select train")+":",Train.selector(train, null));
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
@@ -44,7 +44,7 @@ public class TrainSelect extends Condition {
 	
 	@Override
 	public String toString() {
-		if (train == null) return t("[Click here to select train!]");
+		if (train == null) return "["+t("Click here to select train!")+"]";
 		return t("Train")+ (inverted?"≠":"=") + train;
 	}
 	

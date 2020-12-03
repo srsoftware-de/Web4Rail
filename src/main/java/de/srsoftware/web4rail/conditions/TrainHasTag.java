@@ -45,7 +45,7 @@ public class TrainHasTag extends Condition {
 	
 	@Override
 	public String toString() {
-		if (tag == null) return t("[Click to setup tag]");
+		if (tag == null) return "["+t("Click to setup tag")+"]";
 		return t(inverted ? "train does not have tag \"{}\"" : "train has tag \"{}\"",tag) ;
 	}
 

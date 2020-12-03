@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,7 +36,7 @@ import de.srsoftware.web4rail.tags.Radio;
  * @author Stephan Richter, SRSoftware
  *
  */
-public abstract class Tile extends BaseClass{
+public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);	
 	private static int DEFAUT_LENGTH = 100; // 10cm
 	
@@ -57,7 +56,7 @@ public abstract class Tile extends BaseClass{
 	protected Direction       oneWay    = null;
 	protected Route           route     = null;
 	private   TreeSet<Route>  routes    = new TreeSet<>();
-	protected HashSet<Shadow> shadows   = new HashSet<>();
+	protected TreeSet<Shadow> shadows   = new TreeSet<>();
 	protected Train           train     = null;	
 	public    Integer         x         = null;
 	public    Integer         y         = null;
@@ -83,6 +82,12 @@ public abstract class Tile extends BaseClass{
 	public Object click() throws IOException {
 		LOG.debug("{}.click()",getClass().getSimpleName());
 		return properties();
+	}
+	
+	@Override
+	public int compareTo(Tile other) {
+		if (x == other.x) return y-other.y;
+		return x - other.x;
 	}
 	
 	public JSONObject config() {
@@ -207,14 +212,14 @@ public abstract class Tile extends BaseClass{
 			} else fieldset = new Fieldset(t("Train"));
 			train.link("span", t("Train")+":"+NBSP+train+NBSP).addTo(fieldset);
 			if (isSet(train.route)) {
-				train.button(t("stop"), contextAction(ACTION_STOP)).addTo(fieldset);
+				train.button(t("stop"), Map.of(ACTION,ACTION_STOP)).addTo(fieldset);
 			} else {
-				train.button(t("start"), contextAction(ACTION_START)).addTo(fieldset);
+				train.button(t("start"), Map.of(ACTION,ACTION_START)).addTo(fieldset);
 			}
 			if (train.usesAutopilot()) {
-				train.button(t("quit autopilot"), contextAction(ACTION_QUIT)).addTo(fieldset);
+				train.button(t("quit autopilot"), Map.of(ACTION,ACTION_QUIT)).addTo(fieldset);
 			} else {
-				train.button(t("auto"), contextAction(ACTION_AUTO)).addTo(fieldset);
+				train.button(t("auto"), Map.of(ACTION,ACTION_AUTO)).addTo(fieldset);
 			}
 		}
 		
@@ -241,7 +246,7 @@ public abstract class Tile extends BaseClass{
 			Tag routeList = new Tag("ol");
 			for (Route route : routes) {
 				Tag li = route.link("span", route.name()+(route.isDisabled()?" ["+t("disabled")+"]" : "")+NBSP).addTo(new Tag("li").clazz("link"));
-				route.button(t("delete route"),contextAction(ACTION_DROP)).addTo(li);
+				route.button(t("delete route"),Map.of(ACTION,ACTION_DROP)).addTo(li);
 				li.addTo(routeList);
 			}
 			routeList.addTo(fieldset);
@@ -376,12 +381,8 @@ public abstract class Tile extends BaseClass{
 	@Override
 	public BaseClass remove() {
 		super.remove();
-		routes.forEach(route -> {
-			route.remove();
-		});
-		shadows.forEach(shadow -> {
-			shadow.remove();
-		});
+		while (!routes.isEmpty()) routes.first().remove();
+		while (!shadows.isEmpty()) shadows.first().remove();
 		return this;
 	}
 	

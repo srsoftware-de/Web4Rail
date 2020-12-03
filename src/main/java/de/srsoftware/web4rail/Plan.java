@@ -716,10 +716,10 @@ public class Plan extends BaseClass{
 	 * @throws IOException
 	 */
 	public void set(int x,int y,Tile tile) throws IOException {
-		if (tile == null) return;
-		for (int i=1; i<tile.width(); i++) set(x+i,y,new Shadow(tile));
-		for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
+		if (isNull(tile)) return;
 		setIntern(x,y,tile);
+		for (int i=1; i<tile.width(); i++) set(x+i,y,new Shadow(tile,x+i,y));
+		for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile,x,y+1));
 		place(tile);		
 	}
 	

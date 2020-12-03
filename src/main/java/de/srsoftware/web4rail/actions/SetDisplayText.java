@@ -68,10 +68,9 @@ public class SetDisplayText extends TextAction{
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
-		super.update(params);
+	protected Object update(HashMap<String, String> params) {		
 		String displayId = params.get(TextDisplay.class.getSimpleName());
 		if (isSet(displayId)) display = (TextDisplay) plan.get(new Id(displayId), false);
-		return properties();
+		return super.update(params);
 	}
 }

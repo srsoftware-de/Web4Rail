@@ -16,9 +16,9 @@ import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
-import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
 public abstract class Condition extends BaseClass {
@@ -40,48 +40,36 @@ public abstract class Condition extends BaseClass {
 		String action = params.get(ACTION);
 		if (action == null) return t("No action passed to Condition.action!");
 		
-		Id cid = Id.from(params);
-		
-		if (isSet(cid)) {		
-			Condition condition = BaseClass.get(cid);
-			if (isNull(condition)) return t("No condition with id {}!",cid);
-		
-			switch (action) {
-				case ACTION_PROPS:
-					return condition.properties();
-				case ACTION_UPDATE:
-					condition.update(params);
-					return condition.parent().properties();
-				case ACTION_DROP:
-					condition.remove();
-					return condition.parent().properties();
-			}
-			return t("Unknown action: {}",action);
-		}
+		Id id = Id.from(params);
+		Condition condition = BaseClass.get(id);
 		
 		switch (action) {
 			case ACTION_ADD:
 				return addCondition(params);
-				
+			case ACTION_DROP:
+				BaseClass context = condition.context();
+				condition.remove();
+				return context.properties();
+			case ACTION_PROPS:
+				return condition.properties();
+			case ACTION_UPDATE:
+				condition.update(params);
+				return condition.context().properties();
 		}
 		return t("Unknown action: {}",action);
-
 	}
 	
 	private static Object addCondition(HashMap<String, String> params) {
 		String type = params.get(REALM_CONDITION);
 		if (isNull(type)) return t("No type supplied to addCondition!");
 		
-		Id parentId = Id.from(params, PARENT);
+		Id parentId = Id.from(params);
 		if (isNull(parentId)) return t("No parent id supplied to addCondition");
 		
-		BaseClass parent = BaseClass.get(parentId);
-		if (isNull(parent)) return t("No condition with id {} found!",parentId);
+		ConditionList conditionList = BaseClass.get(parentId);
+		if (isNull(conditionList)) return t("No condition list with id {} found!",parentId);
 		
-		Condition condition = Condition.create(type);
-		if (isNull(condition)) return t("Unknown type \"{}\" of condition!",type);
-		
-		return condition.parent(parent).properties();
+		return conditionList.add(Condition.create(type)).properties();
 	}
 
 	public static Condition create(String type) {
@@ -92,6 +80,14 @@ public abstract class Condition extends BaseClass {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public BaseClass context() {
+		BaseClass context = this;
+		while (isSet(context.parent()) && (context instanceof Condition || context instanceof Action)) {
+			context = context.parent();
+		}
+		return context;
 	}
 	
 	public abstract boolean fulfilledBy(Context context);
@@ -137,7 +133,7 @@ public abstract class Condition extends BaseClass {
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
-	public static Tag selector() {
+	public static Select selector() {
 		Select select = new Select(REALM_CONDITION);
 		TreeMap<String, String> names = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 		
@@ -147,7 +143,7 @@ public abstract class Condition extends BaseClass {
 		}
 		
 		for (Entry<String, String> entry : names.entrySet()) select.addOption(entry.getValue(), entry.getKey());
-		return select.addTo(new Label(t("Condition type:")+NBSP));
+		return select;
 	}
 	
 	public static String t(String text, Object...fills) {

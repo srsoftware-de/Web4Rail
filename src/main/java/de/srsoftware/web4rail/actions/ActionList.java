@@ -3,6 +3,7 @@ package de.srsoftware.web4rail.actions;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -29,12 +30,12 @@ public class ActionList extends Action implements Iterable<Action>{
 		actions = new Vector<Action>();
 	}
 
-	private Object actionTypeForm(Window win, String context) {
+	private Tag actionTypeForm() {
+		Window win = new Window("add-action-form", t("Add action to action list"));		
 		Form typeForm = new Form("add-action-to-"+id);
 		new Input(REALM, REALM_ACTIONS).hideIn(typeForm);
 		new Input(ID,id).hideIn(typeForm);
 		new Input(ACTION,ACTION_ADD).hideIn(typeForm);
-		new Input(CONTEXT,context).hideIn(typeForm);
 		Action.selector().addTo(typeForm);
 		return new Button(t("Create action"),typeForm).addTo(typeForm).addTo(win);
 	}
@@ -45,18 +46,14 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 	
 	private Object addActionForm(HashMap<String, String> params, Plan plan) {
-		Window win = new Window("add-action-form", t("Add action to action list"));		
 		String type = params.get(TYPE);
-		String context = params.get(CONTEXT);
-		if (type == null) return actionTypeForm(win,context);
+		if (isNull(type)) return actionTypeForm();
 		Action action = Action.create(type,this);
 		if (action instanceof Action) {
 			add(action);
-			return parent().properties();
+			return context().properties();
 		} 
-		actionTypeForm(win,context);
-		new Tag("span").content(t("Unknown action type: {}",type)).addTo(win);
-		return win;			
+		return new Tag("span").content(t("Unknown action type: {}",type)).addTo(actionTypeForm());
 	}
 	
 	public void addActionsFrom(ActionList other) {
@@ -117,18 +114,18 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 
 	public Tag list() {
-		Button button = button(t("add action"), contextAction(ACTION_ADD_ACTION));
 		Tag span = new Tag("span");
-		button.addTo(span);
+		button(t("add action"), Map.of(ACTION, ACTION_ADD)).addTo(span);
 		
 		if (!isEmpty()) {
 			Tag list = new Tag("ol");
 			boolean first = true;
 			for (Action action : actions) {
-				Tag item = action.link("span",action).addTo(new Tag("li"));
+				Tag item = action.link("span",action).addTo(new Tag("li")).content(NBSP);
+				action.button("-", Map.of(ACTION,ACTION_DROP)).addTo(item);
 				if (first) {
 					first = false;
-				} else action.button("↑", contextAction(ACTION_MOVE)).addTo(item.content(NBSP));
+				} else action.button("↑", Map.of(ACTION,ACTION_MOVE)).addTo(item);
 				if (action instanceof ActionList) ((ActionList) action).list().addTo(item);
 				item.addTo(list);
 			}
@@ -174,7 +171,10 @@ public class ActionList extends Action implements Iterable<Action>{
 				if (isNull(actionList)) return t("Id ({}) does not belong to ActionList!",actionId);
 				return actionList.addActionForm(params,plan);
 			case ACTION_DROP:
-				return action.drop() ? action.properties() : t("No action with id {} found!",actionId);
+				if (isNull(action)) return t("No action with id {} found!",actionId);
+				BaseClass context = action.context();
+				action.remove();
+				return context.properties();
 			case ACTION_MOVE:
 				return action.moveUp() ? action.properties() : t("No action with id {} found!",actionId);
 			case ACTION_PROPS:
@@ -189,7 +189,7 @@ public class ActionList extends Action implements Iterable<Action>{
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		Fieldset fieldset = new Fieldset(t("Actions"));
 		list().addTo(fieldset);
-		preForm.add(fieldset);
+		postForm.add(fieldset);
 		return super.properties(preForm, formInputs, postForm);
 	}
 	

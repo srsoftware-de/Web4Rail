@@ -9,7 +9,7 @@ import java.util.Vector;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Plan.Direction;
 
-public abstract class Signal extends Tile implements Comparable<Signal>{
+public abstract class Signal extends Tile {
 	public static final String STATE = "state";
 	public static final String STOP = "stop";
 	public static final String GO = "go";
@@ -27,13 +27,6 @@ public abstract class Signal extends Tile implements Comparable<Signal>{
 		Vector<String> classes = super.classes();
 		classes.add("signal");
 		return classes;
-	}
-	
-	@Override
-	public int compareTo(Signal other) {
-		Id tid = this.id();
-		Id oid = other.id();
-		return tid.compareTo(oid);
 	}
 	
 	public abstract boolean isAffectedFrom(Direction dir);

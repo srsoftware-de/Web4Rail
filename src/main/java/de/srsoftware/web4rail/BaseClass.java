@@ -238,11 +238,7 @@ public abstract class BaseClass implements Constants{
 		if (this instanceof Train) return REALM_TRAIN;
 		return REALM_PLAN;
 	}
-	
-	public Map<String,String> contextAction(String action){
-		return Map.of(ACTION,action,CONTEXT,realm()+":"+id());
-	}
-	
+		
 	public Form form(String id,List<Map.Entry<String, Tag>> elements) {
 		Form form = new Form(id);
 
@@ -356,7 +352,7 @@ public abstract class BaseClass implements Constants{
 
 	
 	protected Window properties(List<Fieldset> preForm,FormInput formInputs,List<Fieldset> postForm) {
-		Window win = new Window(getClass().getSimpleName()+"-properties", t("Properties of {}",this));
+		Window win = new Window(getClass().getSimpleName()+"-properties", t("Properties of {} ({})",this.title(),id));
 		
 		preForm.forEach(fieldset -> fieldset.addTo(win));
 
@@ -375,6 +371,10 @@ public abstract class BaseClass implements Constants{
 		return win;
 	}
 	
+	private String title() {
+		return getClass().getSimpleName();
+	}
+
 	private Map<String,String> props(Map<String,String> additionalProps){
 		HashMap<String,String> props = new HashMap<String, String>(Map.of(REALM, realm(), ACTION, ACTION_PROPS, ID, id().toString()));
 		if (isSet(additionalProps)) props.putAll(additionalProps);

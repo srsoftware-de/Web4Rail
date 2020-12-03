@@ -17,6 +17,7 @@ Add tile : Kachel hinzufügen
 Address : Adresse
 Address\: : Adresse:
 Analyze : analysieren
+and : und
 Apply : Übernehmen
 Auto pilot : Autopilot
 Availability : Verfügbarkeit
@@ -37,9 +38,10 @@ Car manager : Waggon-Verwaltung
 Cars\: : Waggons:
 Click here to select train! : HIer klicken, um Zug auszuwählen!
 [Click here to select block!] : [Hier klicken, um Block auszuwählen!]
-[Click here to add condition] : [Hier klicken, um Bedingung hinzuzufügen]
+Click to setup tag : Hier klicken, um Markierung anzugeben
+Click here to add conditions : Hier klicken, um Bedingungen hinzuzufügen
 [Click here to select display!] : [Hier klicken, um Anzeige auszuwählen!]
-[Click here to select train!] : [Hier klicken, um Zug auszuwählen!]
+Click here to select train! : Hier klicken, um Zug auszuwählen!
 click here to setup contact : Hier klicken, um Kontakt auszuwählen
 click here to setup relay : Hier klicken, um Relais einzurichten
 Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
@@ -69,7 +71,7 @@ Determine, which train is in {} : Bestimmen, welcher Zug sich in {} befindet
 Direction : Richtung
 Direction\: heading {} : Richtung: nach {}
 disabled : deaktiviert
-Display "{}" on clients. : „{}“ auf den Clients anzeigen.
+Display "{}" on {}. : „{}“ auf {} anzeigen.
 Drop : Verwerfen
 Dropped destination of {}. : Ziel von {} verworfen.
 1) Duration between 5 {} steps during brake process. : 1) Zeit zwischen 5 {}-Schritten beim Bremsvorgang.
@@ -124,8 +126,10 @@ Notes : Notizen
 Occupied area\: : Belegte Abschnitte:
 Off : Aus
 On : An
+One of : eine von
 One way : Richtung
 Online Documentation : Online-Dokumentation
+or : oder
 OrCondition : Oder-Bedingung
 other train properties : andere Zug-Eigenschaften
 Origin and destination : Start und Ziel
@@ -148,10 +152,10 @@ Route will only be available, if all conditions are fulfilled. : Route ist nur v
 Save : speichern
 Select block : Block auswählen
 Select contact\: : Kotakt auswählen:
-Select display\: : Anzeige auswählen:
+Select display : Anzeige auswählen
 Select from plan : Auf Plan auswählen
 Select relay\: : Relais auswählen:
-Select train\: : Zug auswählen:
+Select train: : Zug auswählen
 SendCommand : Kommando senden
 Send command "{}" to control unit : Kommando „{}“ an Zentrale senden
 Set {} as context : {} als Kontext setzen

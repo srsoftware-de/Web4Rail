@@ -61,9 +61,6 @@ public class DelayedAction extends ActionList {
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		formInputs.add(t("Delay"),new Input(DELAY,delay).numeric().addTo(new Tag("span")).content(NBSP+"ms"));
-		Fieldset fieldset = new Fieldset(t("Actions"));
-		list().addTo(fieldset);
-		postForm.add(fieldset);
 		return super.properties(preForm, formInputs, postForm);
 	}
 

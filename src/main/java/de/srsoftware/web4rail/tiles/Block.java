@@ -30,7 +30,7 @@ import de.srsoftware.web4rail.tags.Select;
  * @author Stephan Richter, SRSoftware
  *
  */
-public abstract class Block extends StretchableTile implements Comparable<Block>{
+public abstract class Block extends StretchableTile{
 	private static final String ALLOW_TURN = "allowTurn";
 	private static final String NAME       = "name";
 	private static final String NO_TAG = "[default]";
@@ -127,7 +127,6 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		return super.click();
 	}
 	
-	@Override
 	public int compareTo(Block other) {
 		return name.compareTo(other.name);
 	}

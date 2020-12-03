@@ -13,7 +13,6 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
@@ -32,6 +31,12 @@ public abstract class Action extends BaseClass {
 		parent(parent);
 	}
 	
+	public BaseClass context() {
+		BaseClass context = this;
+		while (context instanceof Action && isSet(context.parent())) context = context.parent();
+		return context;
+	}
+	
 	public static Action create(String type,BaseClass parent) {
 		try {
 			return (Action) Class.forName(PREFIX+"."+type).getDeclaredConstructor(BaseClass.class).newInstance(parent);
@@ -39,16 +44,6 @@ public abstract class Action extends BaseClass {
 			e.printStackTrace();
 		}
 		return null;
-	}
-	
-	public boolean drop() {
-		BaseClass parent = parent();
-		if (parent instanceof ActionList) {
-			ActionList actionList = (ActionList) parent;
-			return actionList.drop(this);
-		}
-		LOG.error("Action.drop() called on Action ({}) whose parent ({}) is not an ActionList!",this,parent); 
-		return false;
 	}
 	
 	public boolean equals(Action other) {
@@ -104,10 +99,10 @@ public abstract class Action extends BaseClass {
 		return false;
 	}
 
-	@Override
+/*	@Override
 	public Window properties() { // goes up to first ancestor, which is not an Action
 		return parent().properties();
-	}
+	}*/
 	
 	public static Tag selector() {
 		Select select = new Select(TYPE);
@@ -134,6 +129,6 @@ public abstract class Action extends BaseClass {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		super.update(params);
-		return properties();		
+		return context().properties();		
 	}
 }

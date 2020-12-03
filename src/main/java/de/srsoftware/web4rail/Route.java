@@ -167,8 +167,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		switch (params.get(ACTION)) {
 			case ACTION_DROP:
 				route.remove();
-				return t("Removed {}.",route);
-				
+				return t("Removed {}.",route);				
 			case ACTION_PROPS:
 				return route.properties();
 			case ACTION_UPDATE:
@@ -552,9 +551,9 @@ public class Route extends BaseClass implements Comparable<Route>{
 			for (Object signalId : json.getJSONArray(SIGNALS)) addSignal((Signal) plan.get(new Id((String) signalId), false));
 		}
 		if (json.has(ACTION_LISTS)) loadActions(json.getJSONArray(ACTION_LISTS));
-		if (json.has(CONDITIONS)) conditions.load(json.getJSONArray(CONDITIONS));
-		if (json.has(SETUP_ACTIONS)) setupActions.load(json.getJSONArray(SETUP_ACTIONS));
-		if (json.has(START_ACTIONS)) startActions.load(json.getJSONArray(START_ACTIONS));
+		if (json.has(CONDITIONS)) conditions.load(json.getJSONArray(CONDITIONS)).parent(this);
+		if (json.has(SETUP_ACTIONS)) setupActions.load(json.getJSONArray(SETUP_ACTIONS)).parent(this);
+		if (json.has(START_ACTIONS)) startActions.load(json.getJSONArray(START_ACTIONS)).parent(this);
 		if (json.has(DISABLED)) disabled = json.getBoolean(DISABLED);
 		if (json.has(BRAKE_TIMES)) {
 			JSONObject dummy = json.getJSONObject(BRAKE_TIMES);
@@ -568,6 +567,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 			JSONObject json = arr.getJSONObject(i);
 			String trigger = json.getString(TRIGGER);
 			ActionList actionList = new ActionList(this).load(json.getJSONArray(ACTIONS));
+			actionList.parent(this);
 			triggers.put(trigger, actionList);
 		}
 	}

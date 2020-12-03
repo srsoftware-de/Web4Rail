@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.conditions;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 import java.util.stream.Stream;
 
@@ -9,6 +10,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
@@ -18,8 +20,10 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 	
 	private Vector<Condition> conditions = new Vector<Condition>();
 	
-	public void add(Condition condition) {
+	public ConditionList add(Condition condition) {
 		conditions.add(condition);
+		condition.parent(this);
+		return this;
 	}
 
 	public void addAll(ConditionList conditions) {
@@ -32,6 +36,10 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 			if (!condition.fulfilledBy(context)) return false;
 		}
 		return true;
+	}
+	
+	protected String glue() {
+		return t("and");
 	}
 	
 	public boolean isEmpty() {
@@ -62,14 +70,26 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 	public Fieldset list(String caption) {
 		Fieldset fieldset = new Fieldset(t("Conditions"));
 		if (caption != null) new Tag("p").content(caption).addTo(fieldset);
-		Tag list = new Tag("ul");
-		newConditionForm().addTo(new Tag("li")).addTo(list);
-		conditions.forEach(condition -> condition.link("li", condition).addTo(list));
-		list.addTo(fieldset);
+		listInternal().addTo(fieldset);
 		return fieldset;
 	}
+	
+	private Tag listInternal() {
+		Tag list = new Tag("ul");
+		for (Condition condition : conditions) {
+			Tag item = new Tag("li");
+			condition.link("span", condition).addTo(item);
+			condition.button(t("delete"), Map.of(ACTION,ACTION_DROP)).addTo(item.content(NBSP)).addTo(list);
+			if (condition instanceof ConditionList) {
+				((ConditionList)condition).listInternal().addTo(item);
+			}						
+		}
+		newConditionForm().addTo(new Tag("li")).addTo(list);
+		return list;
+		
+	}
 
-	public void load(JSONArray arr) {
+	public ConditionList load(JSONArray arr) {
 		for (int i=0; i<arr.length(); i++) {
 			JSONObject json = arr.getJSONObject(i);
 			Condition condition = Condition.create(json.getString(TYPE));			
@@ -78,16 +98,24 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 				conditions.add(condition.load(json));
 			}
 		}
+		return this;
 	}
 
 	private Form newConditionForm() {
-		Form form = new Form("add-condition-form");
+		Form form = new Form("new-condition-form-"+id());
 		new Input(REALM, REALM_CONDITION).hideIn(form);
 		new Input(ACTION,ACTION_ADD).hideIn(form);
-		new Input(PARENT,id());
+		new Input(ID,id()).hideIn(form);
 		Condition.selector().addTo(form);
 		new Button(t("Add condition"), form).addTo(form);
 		return form;
+	}
+	
+	@Override
+	public Window properties() {
+		BaseClass parent = parent();
+		if (isSet(parent)) return parent.properties();
+		return super.properties();
 	}
 	
 	@Override
@@ -109,5 +137,14 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 
 	public Stream<Condition> stream() {
 		return conditions.stream();
+	}
+	
+	@Override
+	public String toString() {
+		if (conditions.isEmpty()) return "["+t("Click here to add conditions")+"]";
+		StringBuffer sb = new StringBuffer(conditions.firstElement().toString());
+		String glue = glue();
+		for (int i=1; i<conditions.size(); i++) sb.append(" ").append(glue).append(" "+conditions.get(i));
+		return sb.toString();
 	}
 }
