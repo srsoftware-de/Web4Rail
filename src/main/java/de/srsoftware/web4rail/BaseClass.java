@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Random;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
@@ -37,6 +39,8 @@ public abstract class BaseClass implements Constants{
 	private static final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
 	protected Id id = null;
 	protected String notes;
+	
+	public static final Logger LOG = LoggerFactory.getLogger(BaseClass.class);
 	private BaseClass parent;
 	
 	public static class Context {
@@ -145,7 +149,7 @@ public abstract class BaseClass implements Constants{
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			internalId = md5sum(new Date());
+			internalId = ""+new Date().getTime();
 		}
 		
 		
@@ -351,6 +355,7 @@ public abstract class BaseClass implements Constants{
 	}
 
 	protected Object update(HashMap<String, String> params) {
+		LOG.debug("update: {}",params);
 		if (params.containsKey(NOTES)) notes = params.get(NOTES).trim();
 		return this;
 	}

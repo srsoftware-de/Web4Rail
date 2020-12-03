@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.json.JSONObject;
 
-import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -59,7 +58,6 @@ public class SetSpeed extends Action{
 
 	@Override
 	protected Object update(HashMap<String, String> params) {
-		LOG.debug("update: {}",params);
 		String error = null;
 		String ms = params.get(MAX_SPEED);
 		if (ms == null) {
@@ -76,7 +74,7 @@ public class SetSpeed extends Action{
 				error = t("Not a valid number!");
 			}
 		}
-		Window win = properties();
-		return new Tag("span").content(error).addTo(win);
+		if (isSet(error)) return error;
+		return super.update(params);
 	}
 }

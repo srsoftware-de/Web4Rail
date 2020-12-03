@@ -125,8 +125,17 @@ public abstract class Action extends BaseClass {
 	public String toString() {
 		return t(getClass().getSimpleName());
 	}
-
+	
+	@Override
 	protected Object update(HashMap<String, String> params) {
-		return t("Nothing changed");
+		super.update(params);
+		BaseClass parent = parent();
+		if (isNull(parent)) return properties();
+		if (parent instanceof ActionList) {
+			ActionList al = (ActionList) parent;
+			return al.parent().properties();
+		}
+		return parent.properties();
+		
 	}
 }
