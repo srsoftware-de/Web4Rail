@@ -105,7 +105,9 @@ public class Route extends BaseClass implements Comparable<Route>{
 			train.setSpeed(0);
 			if (aborted) return;
 			long runtime = timestamp2 - timestamp;
-			int newTimeStep = 5*(int) runtime/(startSpeed - ENDSPEED);
+			int quotient = startSpeed - ENDSPEED;
+			if (quotient<1) quotient = 1;
+			int newTimeStep = 5*(int) runtime/quotient;
 			
 			int diff = newTimeStep - timeStep;
 			int absDiff = diff < 0 ? -diff : diff;

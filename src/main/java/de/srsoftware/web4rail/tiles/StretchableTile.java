@@ -37,7 +37,7 @@ public abstract class StretchableTile extends Tile {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(stretchType(),new Input(STRETCH_LENGTH, stretch).addTo(new Tag("span")).content(NBSP+t("Tile(s)")));
+		formInputs.add(stretchType(),new Input(STRETCH_LENGTH, stretch).numeric().addTo(new Tag("span")).content(NBSP+t("Tile(s)")));
 		return super.properties(preForm, formInputs, postForm);
 	}
 	

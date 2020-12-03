@@ -754,8 +754,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 			nextRoute = null;
 		}
 		if (isSet(route)) {
-			route.reset();
 			route.brakeCancel();
+			route.reset();
 			route = null;
 		}
 		
