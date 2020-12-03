@@ -41,6 +41,7 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 	
 	public ActionList add(Action action) {
+		action.parent(this);
 		actions.add(action);
 		return this;
 	}

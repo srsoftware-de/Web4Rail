@@ -72,6 +72,7 @@ public class ConditionalAction extends ActionList {
 	@Override
 	public void removeChild(BaseClass child) {
 		conditions.remove(child);
+		actions.remove(child);
 	}
 
 	@Override

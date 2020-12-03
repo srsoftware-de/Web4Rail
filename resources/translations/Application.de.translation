@@ -108,7 +108,7 @@ Manage cars : Waggons verwalten
 Manage locos : Lokomotiven verwalten
 Manage trains : Züge verwalten
 Maximum Speed : Höchstgeschwindigkeit
-Maximum train length\: : maximale Zug-Länge
+Maximum train length : maximale Zug-Länge
 Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block. : Minamle und maximale Block-Haltezeit (in Millisekunden) für Züge mit der entsprchender Markierung.
 Move tiles : Kacheln verschieben
 name\: : Name:
@@ -155,7 +155,7 @@ Select contact\: : Kotakt auswählen:
 Select display : Anzeige auswählen
 Select from plan : Auf Plan auswählen
 Select relay\: : Relais auswählen:
-Select train: : Zug auswählen
+Select train : Zug auswählen
 SendCommand : Kommando senden
 Send command "{}" to control unit : Kommando „{}“ an Zentrale senden
 Set {} as context : {} als Kontext setzen
