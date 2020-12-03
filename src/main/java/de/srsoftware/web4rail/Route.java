@@ -136,7 +136,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 
 	private BrakeProcessor				   brakeProcessor = null;
 	private HashMap<String,Integer>        brakeTimes = new HashMap<String, Integer>();
-	private ConditionList                  conditions = new ConditionList();
+	private ConditionList                  conditions;
 	private Vector<Contact>                contacts;
 	private boolean                        disabled = false;
 	private Block                          endBlock = null;
@@ -149,6 +149,11 @@ public class Route extends BaseClass implements Comparable<Route>{
 	private Block                          startBlock = null;
 	public  Direction 					   startDirection;
 	private HashSet<Contact>			   triggeredContacts = new HashSet<>();
+	
+	public Route() {
+		conditions = new ConditionList();
+		conditions.parent(this);
+	}
 		
 	/**
 	 * process commands from the client
@@ -450,7 +455,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	public Id id() {
-		if (id == null) id = new Id(md5sum(generateName()));
+		if (id == null) id = new Id(""+(generateName().hashCode()));
 		return id;
 	}
 		
