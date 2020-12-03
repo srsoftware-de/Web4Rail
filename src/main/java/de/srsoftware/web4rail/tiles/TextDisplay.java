@@ -44,11 +44,6 @@ public class TextDisplay extends StretchableTile {
 		formInputs.add(t("Text"),new Input(TEXT, text));
 		return super.properties(preForm, formInputs, postForm);
 	}
-	
-	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
-	}
 
 	public static Select selector(TextDisplay preselected,Collection<TextDisplay> exclude) {
 		if (isNull(exclude)) exclude = new Vector<TextDisplay>();

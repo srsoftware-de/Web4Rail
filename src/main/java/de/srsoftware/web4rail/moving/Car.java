@@ -45,7 +45,6 @@ public class Car extends BaseClass implements Comparable<Car>{
 	public int length;
 	protected String stockId = "";
 	private Train train;
-	protected Plan plan;
 	protected int maxSpeed = 0;
 	
 	public Car(String name) {
@@ -66,8 +65,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
 				if (isSet(car)) {
-					car.clone().plan(plan);
-				} else new Car(params.get(Car.NAME)).plan(plan);
+					car.clone();
+				} else new Car(params.get(Car.NAME)).parent(plan);
 				return Car.manager();
 			case ACTION_PROPS:
 				return car == null ? Car.manager() : car.properties();
@@ -85,6 +84,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		clone.length = length;
 		clone.tags = new HashSet<String>(tags);
 		clone.notes = notes;
+		clone.parent(parent());
 		return clone;
 	}
 
@@ -136,7 +136,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 			String name = json.getString(Car.NAME);
 			Id id = Id.from(json);
 			Car car = json.has(Locomotive.LOCOMOTIVE) ? new Locomotive(name, id) : new Car(name,id);
-			car.load(json).plan(plan);
+			car.load(json).parent(plan);
 			
 			line = file.readLine();
 		}
@@ -187,15 +187,6 @@ public class Car extends BaseClass implements Comparable<Car>{
 	
 	String name(){
 		return name;
-	}
-	
-	public Plan plan() {
-		return plan;
-	}
-	
-	public Car plan(Plan plan) {
-		this.plan = plan;
-		return this;
 	}
 	
 	@Override

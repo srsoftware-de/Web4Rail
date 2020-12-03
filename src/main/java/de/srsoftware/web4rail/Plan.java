@@ -240,6 +240,7 @@ public class Plan extends BaseClass{
 		}
 		//if (configJson != null) tile.configure(new JSONObject(configJson));		
 		set(x, y, tile);
+		tile.parent(this);
 		return t("Added {}",tile.getClass().getSimpleName());
 	}
 	
@@ -647,7 +648,7 @@ public class Plan extends BaseClass{
 		newRoute.path().stream().filter(Tile::isSet).forEach(tile -> tile.add(newRoute));
 		Route existingRoute = BaseClass.get(newRoute.id());
 		if (isSet(existingRoute)) newRoute.addPropertiesFrom(existingRoute);
-		newRoute.register();
+		newRoute.parent(this).register();
 		return newRoute;
 	}
 	
@@ -655,6 +656,7 @@ public class Plan extends BaseClass{
 	protected void removeChild(BaseClass child) {
 		if (child instanceof Tile) {
 			Tile tile = (Tile) child;
+			stream("remove "+tile.id());			
 			for (int i=1; i<tile.width(); i++) removeTile(tile.x+i, tile.y); // remove shadow tiles
 			for (int i=1; i<tile.height(); i++) removeTile(tile.x, tile.y+i); // remove shadow tiles
 		}

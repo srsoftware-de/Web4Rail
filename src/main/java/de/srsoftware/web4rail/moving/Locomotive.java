@@ -49,7 +49,7 @@ public class Locomotive extends Car implements Constants,Device{
 		Locomotive loco = id == null ? null : Locomotive.get(id);
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
-				new Locomotive(params.get(Locomotive.NAME)).plan(plan);
+				new Locomotive(params.get(Locomotive.NAME)).parent(plan);
 				return Locomotive.manager();
 			case ACTION_FASTER10:
 				return loco.faster(10);

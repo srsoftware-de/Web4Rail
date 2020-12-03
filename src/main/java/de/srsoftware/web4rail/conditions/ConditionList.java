@@ -90,6 +90,13 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 		return form;
 	}
 	
+	@Override
+	public BaseClass remove() {
+		super.remove();
+		while (!conditions.isEmpty()) conditions.lastElement().remove();
+		return this;
+	}
+	
 	public boolean remove(Object condition) {
 		return conditions.remove(condition);
 	}

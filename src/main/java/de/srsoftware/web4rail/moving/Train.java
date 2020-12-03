@@ -78,6 +78,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Block currentBlock,destination = null;
 	LinkedList<Tile> trace = new LinkedList<Tile>();
 	
+	public int speed = 0;
+	private Autopilot autopilot = null;
+	private Route nextRoute;
+
+	
 	private class Autopilot extends Thread{
 		boolean stop = false;
 		int waitTime = 100;
@@ -102,13 +107,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 			}			
 		}
 	}
-
-	public int speed = 0;
-	private Autopilot autopilot = null;
-
-	private Plan plan;
-
-	private Route nextRoute;
 	
 	public Train(Locomotive loco) {
 		this(loco,null);
@@ -257,7 +255,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static Object create(HashMap<String, String> params, Plan plan) {
 		Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
 		if (isNull(loco)) return t("unknown locomotive: {}",params.get(ID));
-		Train train = new Train(loco).plan(plan);
+		Train train = new Train(loco);
+		train.parent(plan);
 		if (params.containsKey(NAME)) train.name(params.get(NAME));
 		return train;
 	}
@@ -379,7 +378,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			JSONObject json = new JSONObject(line);
 			
 			Train train = new Train(null,Id.from(json));
-			train.plan(plan).load(json);			
+			train.load(json).parent(plan);			
 			
 			line = file.readLine();
 		}
@@ -497,12 +496,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		this.name = newName;
 		return this;
 	}
-	
-	private Train plan(Plan plan) {
-		this.plan = plan;
-		return this;
-	}
-		
+			
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		Fieldset otherTrainProsps = new Fieldset(t("other train properties"));
@@ -570,6 +564,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	@Override
 	public void removeChild(BaseClass child) {
 		if (child == route) route = null;
+		if (child == nextRoute) nextRoute = null;
 		if (child == currentBlock) currentBlock = null;
 		if (child == destination) destination = null;
 		cars.remove(child);

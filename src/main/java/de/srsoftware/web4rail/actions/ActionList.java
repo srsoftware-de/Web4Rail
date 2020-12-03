@@ -194,6 +194,13 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 	
 	@Override
+	public BaseClass remove() {
+		super.remove();
+		while (!actions.isEmpty()) actions.lastElement().remove();
+		return this;
+	}
+	
+	@Override
 	public void removeChild(BaseClass child) {
 		actions.remove(child);
 	}

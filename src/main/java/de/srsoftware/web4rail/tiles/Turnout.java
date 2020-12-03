@@ -9,7 +9,6 @@ import java.util.concurrent.TimeoutException;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Device;
@@ -138,11 +137,6 @@ public abstract class Turnout extends Tile implements Device{
 		default:
 			return 'P';
 		}		
-	}
-	
-	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
 	}
 	
 	public State state() {

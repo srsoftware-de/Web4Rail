@@ -61,7 +61,7 @@ public abstract class Tile extends BaseClass{
 	protected Train           train     = null;	
 	public    Integer         x         = null;
 	public    Integer         y         = null;
-
+	
 	public void add(Route route) {
 		this.routes.add(route);
 	}
@@ -108,7 +108,7 @@ public abstract class Tile extends BaseClass{
 	private static void inflate(String clazz, JSONObject json, Plan plan) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, IOException {
 		clazz = Tile.class.getName().replace(".Tile", "."+clazz);
 		Tile tile = (Tile) Tile.class.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
-		tile.load(json);
+		tile.load(json).parent(plan);
 		plan.set(tile.x, tile.y, tile);
 	}
 
@@ -251,12 +251,6 @@ public abstract class Tile extends BaseClass{
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
-	@Override
-	public BaseClass remove() {
-		plan.stream("remove "+id());
-		return super.remove();
-	}
-	
 	private static String replace(String line, Entry<String, Object> replacement) {
 		String key = replacement.getKey();	
 		Object val = replacement.getValue();
@@ -377,6 +371,27 @@ public abstract class Tile extends BaseClass{
 	
 	public Train train() {
 		return train;
+	}
+	
+	@Override
+	public BaseClass remove() {
+		super.remove();
+		routes.forEach(route -> {
+			route.remove();
+		});
+		shadows.forEach(shadow -> {
+			shadow.remove();
+		});
+		return this;
+	}
+	
+	@Override
+	public void removeChild(BaseClass child) {
+		routes.remove(child);
+		shadows.remove(child);
+		if (child == train) train = null;
+		if (child == route) route = null;
+		plan.place(this);
 	}
 	
 	public void unlock() {

@@ -159,12 +159,7 @@ public class Relay extends Tile implements Device{
 			return 'P';
 		}		
 	}
-	
-	@Override
-	protected void removeChild(BaseClass child) {
-		// TODO Auto-generated method stub
-	}
-	
+		
 	public Relay setLabel(boolean state, String tx) {
 		if (state) {
 			stateLabelA = tx;

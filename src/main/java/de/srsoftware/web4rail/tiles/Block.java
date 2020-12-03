@@ -234,11 +234,6 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		return this;
 	}
 	
-	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements
-	}
-	
 	public static Select selector(Block preselected,Collection<Block> exclude) {
 		if (isNull(exclude)) exclude = new Vector<Block>();
 		Select select = new Select(Block.class.getSimpleName());

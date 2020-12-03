@@ -648,9 +648,24 @@ public class Route extends BaseClass implements Comparable<Route>{
 		postForm.add(brakeTimes());
 		return super.properties(preForm, formInputs, postForm);
 	}
+	
+	@Override
+	public BaseClass remove() {		
+		super.remove();
+		if (isSet(train)) train.removeChild(this);
+		path.forEach(tile -> tile.removeChild(this));
+		conditions.remove();
+		for (String key : new Vector<String>(triggers.keySet())){
+			ActionList actionList = triggers.remove(key);
+			if (isSet(actionList)) actionList.remove();			
+		};
+		setupActions.remove();
+		startActions.remove();
+		return this;
+	}
 
 	@Override
-	protected void removeChild(BaseClass child) {
+	public void removeChild(BaseClass child) {
 		conditions.remove(child);
 		contacts.remove(child);
 		if (child == endBlock) endBlock = null;
