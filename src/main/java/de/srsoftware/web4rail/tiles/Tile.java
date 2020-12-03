@@ -251,10 +251,12 @@ public abstract class Tile extends BaseClass{
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
-	public void remove(Route route) {
-		routes.remove(route);
+	@Override
+	public BaseClass remove() {
+		plan.stream("remove "+id());
+		return super.remove();
 	}
-
+	
 	private static String replace(String line, Entry<String, Object> replacement) {
 		String key = replacement.getKey();	
 		Object val = replacement.getValue();
@@ -280,9 +282,9 @@ public abstract class Tile extends BaseClass{
 		return routes;
 	}
 	
-	public static void saveAll(HashMap<Id, Tile> tiles ,String filename) throws IOException {
+	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Tile tile : tiles.values()) {
+		for (Tile tile : BaseClass.listElements(Tile.class)) {
 			if (isNull(tile) || tile instanceof Shadow) continue;
 			file.append(tile.json()+"\n");
 		}

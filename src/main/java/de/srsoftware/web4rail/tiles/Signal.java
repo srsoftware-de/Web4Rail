@@ -7,6 +7,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan.Direction;
 
 public abstract class Signal extends Tile implements Comparable<Signal>{
@@ -37,6 +38,11 @@ public abstract class Signal extends Tile implements Comparable<Signal>{
 	}
 	
 	public abstract boolean isAffectedFrom(Direction dir);
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements		
+	}
 
 	public boolean state(String state) {
 		this.state = state;

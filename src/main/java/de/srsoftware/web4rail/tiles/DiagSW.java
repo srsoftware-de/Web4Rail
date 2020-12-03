@@ -3,6 +3,7 @@ package de.srsoftware.web4rail.tiles;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.tiles.Turnout.State;
@@ -19,5 +20,10 @@ public class DiagSW extends Tile{
 			default:
 				return new HashMap<>();
 		}
+	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements		
 	}
 }

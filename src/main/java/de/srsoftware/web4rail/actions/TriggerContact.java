@@ -45,6 +45,11 @@ public class TriggerContact extends Action {
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == contact) contact = null;
+	}
+	
 	public String toString() {
 		return isSet(contact) ? t("Trigger {}",contact) : "["+t("click here to setup contact")+"]";
 	};

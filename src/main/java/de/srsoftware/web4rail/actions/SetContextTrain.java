@@ -12,11 +12,11 @@ import de.srsoftware.web4rail.tags.Fieldset;
 
 public class SetContextTrain extends Action {
 		
+	private Train train = null;
+
 	public SetContextTrain(BaseClass parent) {
 		super(parent);
 	}
-
-	private Train train = null;
 	
 	@Override
 	public boolean fire(Context context) {
@@ -53,6 +53,11 @@ public class SetContextTrain extends Action {
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		formInputs.add(t("Select train"),Train.selector(train, null));
 		return super.properties(preForm, formInputs, postForm);
+	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == train) train = null;		
 	}
 	
 	public String toString() {

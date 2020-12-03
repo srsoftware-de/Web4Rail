@@ -109,4 +109,9 @@ public class PathFinder extends BaseClass{
 		
 		return selectetRoute;
 	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements		
+	}
 }

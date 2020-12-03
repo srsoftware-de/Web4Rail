@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
@@ -35,6 +36,11 @@ public class TrainHasTag extends Condition {
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		formInputs.add(t("Tag"),new Input(TAG, tag == null ? "" : tag));
 		return super.properties(preForm, formInputs, postForm);
+	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements
 	}
 	
 	@Override

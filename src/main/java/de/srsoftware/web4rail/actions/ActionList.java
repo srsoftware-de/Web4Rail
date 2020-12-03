@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -18,10 +19,10 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 
-public class ActionList extends Action{
-	private static final Logger LOG = LoggerFactory.getLogger(ActionList.class);
+public class ActionList extends Action implements Iterable<Action>{
+	static final Logger LOG = LoggerFactory.getLogger(ActionList.class);
 	
-	private Vector<Action> actions;
+	protected Vector<Action> actions;
 	
 	public ActionList(BaseClass parent) {
 		super(parent);
@@ -51,7 +52,7 @@ public class ActionList extends Action{
 		Action action = Action.create(type,this);
 		if (action instanceof Action) {
 			add(action);
-			return plan.showContext(params);
+			return parent().properties();
 		} 
 		actionTypeForm(win,context);
 		new Tag("span").content(t("Unknown action type: {}",type)).addTo(win);
@@ -80,21 +81,33 @@ public class ActionList extends Action{
 			}
 		}
 	}
-		
-	public boolean isEmpty() {
-		return actions.isEmpty();
-	}
 	
 	public boolean drop(Action action) {
 		return actions.remove(action);
 	}
-	
+
 	public boolean fire(Context context) {
 		if (!isEmpty())	LOG.debug(t("Firing {}"),this);
 		for (Action action : actions) {
 			if (!action.fire(context)) return false;			
 		}
 		return true;
+	}
+	
+	@Override
+	public Iterator<Action> iterator() {
+		return actions.iterator();
+	}
+			
+	public boolean isEmpty() {
+		return actions.isEmpty();
+	}
+
+	
+	@Override
+	public JSONObject json() {
+		String cls = getClass().getSimpleName();
+		throw new UnsupportedOperationException(cls+".json() not supported, use "+cls+".jsonArray instead!");
 	}
 	
 	public JSONArray jsonArray() {
@@ -104,7 +117,7 @@ public class ActionList extends Action{
 	}
 
 	public Tag list() {
-		Button button = button(t("Add action"), contextAction(ACTION_ADD_ACTION));
+		Button button = button(t("add action"), contextAction(ACTION_ADD_ACTION));
 		Tag span = new Tag("span");
 		button.addTo(span);
 		
@@ -116,6 +129,7 @@ public class ActionList extends Action{
 				if (first) {
 					first = false;
 				} else action.button("↑", contextAction(ACTION_MOVE)).addTo(item.content(NBSP));
+				if (action instanceof ActionList) ((ActionList) action).list().addTo(item);
 				item.addTo(list);
 			}
 			list.addTo(span);
@@ -160,9 +174,9 @@ public class ActionList extends Action{
 				if (isNull(actionList)) return t("Id ({}) does not belong to ActionList!",actionId);
 				return actionList.addActionForm(params,plan);
 			case ACTION_DROP:
-				return action.drop() ? action.parent().properties() : t("No action with id {} found!",actionId);
+				return action.drop() ? action.properties() : t("No action with id {} found!",actionId);
 			case ACTION_MOVE:
-				return action.moveUp() ? action.parent().properties() : t("No action with id {} found!",actionId);
+				return action.moveUp() ? action.properties() : t("No action with id {} found!",actionId);
 			case ACTION_PROPS:
 				return action.properties();
 			case ACTION_UPDATE:
@@ -177,5 +191,10 @@ public class ActionList extends Action{
 		list().addTo(fieldset);
 		preForm.add(fieldset);
 		return super.properties(preForm, formInputs, postForm);
+	}
+	
+	@Override
+	public void removeChild(BaseClass child) {
+		actions.remove(child);
 	}
 }

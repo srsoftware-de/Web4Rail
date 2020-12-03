@@ -17,22 +17,16 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 
-public class ConditionalAction extends Action {
+public class ConditionalAction extends ActionList {
 	
 	private static final String CONDITIONS = "conditions";
 	private static final String ACTIONS = "actions";
 	private Vector<Condition> conditions = new Vector<Condition>();
-	private ActionList actions;
 
 	public ConditionalAction(BaseClass parent) {
 		super(parent);
-		actions = new ActionList(this);
 	}
 
-	public ActionList children() {
-		return actions;
-	}
-	
 	private StringBuffer conditions() {
 		StringBuffer sb = new StringBuffer();		
 		for (int i = 0; i<conditions.size(); i++) {
@@ -77,7 +71,7 @@ public class ConditionalAction extends Action {
 		for (Condition condition : conditions) {
 			if (!condition.fulfilledBy(context)) return true;
 		}
-		return actions.fire(context.clone()); // actions, that happen within the conditional action list must not modify the global context.
+		return super.fire(context.clone()); // actions, that happen within the conditional action list must not modify the global context.
 	}
 	
 	@Override
@@ -86,7 +80,7 @@ public class ConditionalAction extends Action {
 		JSONArray conditions = new JSONArray();
 		for (Condition condition : this.conditions) conditions.put(condition.json());
 		json.put(CONDITIONS, conditions);
-		json.put(ACTIONS, actions.jsonArray());
+		json.put(ACTIONS, super.jsonArray());
 		return json;
 	}
 	
@@ -103,7 +97,7 @@ public class ConditionalAction extends Action {
 				}
 			}
 		}
-		actions.load(json.getJSONArray(ACTIONS));
+		super.load(json.getJSONArray(ACTIONS));
 		return this;
 	}
 
@@ -111,15 +105,15 @@ public class ConditionalAction extends Action {
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		preForm.add(conditionForm());
 		Fieldset fieldset = new Fieldset(t("Actions"));
-		actions.list().addTo(fieldset);
+		list().addTo(fieldset);
 		postForm.add(fieldset);
 		return super.properties(preForm, formInputs, postForm);
 		
 	}
 
-	public ConditionalAction remove(Condition condition) {
-		conditions.remove(condition);
-		return this;
+	@Override
+	public void removeChild(BaseClass child) {
+		conditions.remove(child);
 	}
 
 	@Override

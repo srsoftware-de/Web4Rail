@@ -53,6 +53,11 @@ public class SendCommand extends Action{
 		formInputs.add(t("Command to send to control unit"),new Input(COMMAND, command));
 		return super.properties(preForm, formInputs, postForm);
 	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements		
+	}
 		
 	@Override
 	public String toString() {

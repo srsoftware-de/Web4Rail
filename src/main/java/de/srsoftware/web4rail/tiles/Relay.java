@@ -11,6 +11,7 @@ import java.util.concurrent.TimeoutException;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Device;
@@ -40,7 +41,6 @@ public class Relay extends Tile implements Device{
 	private String name = t("Relay");
 	protected boolean state = true;
 	
-	private static final HashMap<Id,Relay> relays = new HashMap<Id, Relay>();
 	public static final boolean STATE_A = true,STATE_B=false;
 	private static final String LABEL_A = "label_a";
 	private static final String LABEL_B = "label_b";
@@ -125,7 +125,6 @@ public class Relay extends Tile implements Device{
 	@Override
 	public Tile position(int x, int y) {
 		super.position(x, y);
-		relays.put(id(), this);
 		return this;
 	}
 	
@@ -159,6 +158,11 @@ public class Relay extends Tile implements Device{
 		default:
 			return 'P';
 		}		
+	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// TODO Auto-generated method stub
 	}
 	
 	public Relay setLabel(boolean state, String tx) {
@@ -235,19 +239,11 @@ public class Relay extends Tile implements Device{
 		return super.update(params);
 	}
 
-	public static Collection<Relay> list() {
-		return relays.values();
-	}
-
-	public static Relay get(Id relayId) {
-		return relays.get(relayId);
-	}
-
 	public static Select selector(Relay preselected, Collection<Relay> exclude) {
 		if (isNull(exclude)) exclude = new Vector<Relay>();
 		Select select = new Select(Relay.class.getSimpleName());
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
-		for (Relay relay : Relay.list()) {			
+		for (Relay relay : BaseClass.listElements(Relay.class)) {			
 			if (exclude.contains(relay)) continue;
 			Tag opt = select.addOption(relay.id, relay);
 			if (relay == preselected) opt.attr("selected", "selected");

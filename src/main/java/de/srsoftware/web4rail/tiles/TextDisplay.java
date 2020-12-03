@@ -11,6 +11,7 @@ import java.util.Vector;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
@@ -43,16 +44,20 @@ public class TextDisplay extends StretchableTile {
 		formInputs.add(t("Text"),new Input(TEXT, text));
 		return super.properties(preForm, formInputs, postForm);
 	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements		
+	}
 
 	public static Select selector(TextDisplay preselected,Collection<TextDisplay> exclude) {
 		if (isNull(exclude)) exclude = new Vector<TextDisplay>();
 		Select select = new Select(TextDisplay.class.getSimpleName());
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
-		for (Tile tile : plan.tiles.values()) {
-			if (!(tile instanceof TextDisplay)) continue;
-			if (exclude.contains(tile)) continue;
-			Tag opt = select.addOption(tile.id(), tile);
-			if (tile == preselected) opt.attr("selected", "selected");
+		for (TextDisplay display : BaseClass.listElements(TextDisplay.class)) {
+			if (exclude.contains(display)) continue;
+			Tag opt = select.addOption(display.id(), display);
+			if (display == preselected) opt.attr("selected", "selected");
 		}
 		return select;
 	}

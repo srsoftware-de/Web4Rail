@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tiles.Block;
@@ -13,6 +14,11 @@ public class BlockFree extends Condition {
 	
 	private static final String BLOCK = Block.class.getSimpleName();
 	private Block block;
+	
+	private BlockFree block(Block block) {
+		this.block = block;
+		return this;
+	}
 
 	@Override
 	public boolean fulfilledBy(Context context) {
@@ -35,16 +41,16 @@ public class BlockFree extends Condition {
 		formInputs.add(t("Select block"), Block.selector(block, null));
 		return super.properties(preForm, formInputs, postForm);
 	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == block) block = null;
+	}	
 
 	@Override
 	public String toString() {
 		if (block == null) return t("[Click here to select block!]");
 		return t(inverted ? "Block {} is occupied":"Block {} is free",block);
-	}
-	
-	private BlockFree block(Block block) {
-		this.block = block;
-		return this;
 	}
 
 

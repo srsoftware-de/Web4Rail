@@ -15,9 +15,7 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
-import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
-import de.srsoftware.web4rail.actions.ConditionalAction;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Label;
@@ -27,9 +25,7 @@ public abstract class Condition extends BaseClass {
 	public static final Logger LOG = LoggerFactory.getLogger(Condition.class);
 	private static final String INVERTED = "inverted";
 	private static final String PREFIX = Condition.class.getPackageName();
-	private static HashMap<Id, Condition> conditions = new HashMap<Id, Condition>();
 	public boolean inverted = false;
-	private Object parent;
 
 	public Condition() {
 		this(new Id());
@@ -37,7 +33,7 @@ public abstract class Condition extends BaseClass {
 	
 	public Condition(Id id) {
 		this.id = id;
-		conditions.put(id, this);
+		register();
 	}	
 	
 	public static Object action(HashMap<String, String> params,Plan plan) {
@@ -47,18 +43,18 @@ public abstract class Condition extends BaseClass {
 		Id cid = Id.from(params);
 		
 		if (isSet(cid)) {		
-			Condition condition = conditions.get(cid);
-			if (condition == null) return t("No condition with id {}!",cid);
+			Condition condition = BaseClass.get(cid);
+			if (isNull(condition)) return t("No condition with id {}!",cid);
 		
 			switch (action) {
 				case ACTION_PROPS:
 					return condition.properties();
 				case ACTION_UPDATE:
 					condition.update(params);
-					return plan.showContext(params);
+					return condition.parent().properties();
 				case ACTION_DROP:
-					condition.drop();
-					return plan.showContext(params);
+					condition.remove();
+					return condition.parent().properties();
 			}
 			return t("Unknown action: {}",action);
 		}
@@ -74,27 +70,18 @@ public abstract class Condition extends BaseClass {
 	
 	private static Object addCondition(HashMap<String, String> params) {
 		String type = params.get(REALM_CONDITION);
-		String context = params.get(CONTEXT);
 		if (isNull(type)) return t("No type supplied to addCondition!");
-		if (isNull(context)) return t("No context supplied to addCondtion!");
+		
+		Id parentId = Id.from(params, PARENT);
+		if (isNull(parentId)) return t("No parent id supplied to addCondition");
+		
+		BaseClass parent = BaseClass.get(parentId);
+		if (isNull(parent)) return t("No condition with id {} found!",parentId);
 		
 		Condition condition = Condition.create(type);
 		if (isNull(condition)) return t("Unknown type \"{}\" of condition!",type);
-		String[] parts = context.split(":");
-		Id contextId = new Id(parts[1]);
-		String realm = parts[0];
-		switch (realm) {
-		case REALM_ROUTE:
-			Route route = plan.route(contextId);
-			if (isNull(route)) return t("Unknown route: {}",contextId);
-			route.add(condition);
-			return route.properties();
-			
-		default:
-			break;
-		}
 		
-		return t("Cannot handle context of type {} in addCondition!");
+		return condition.parent(parent).properties();
 	}
 
 	public static Condition create(String type) {
@@ -107,18 +94,6 @@ public abstract class Condition extends BaseClass {
 		return null;
 	}
 	
-	private void drop() {
-		if (parent instanceof ConditionalAction) {
-			ConditionalAction ca = (ConditionalAction) parent;
-			ca.remove(this);
-		}
-		if (parent instanceof Route) {
-			Route route = (Route) parent;
-			route.remove(this);
-		}
-		conditions.remove(this.id());
-	}
-
 	public abstract boolean fulfilledBy(Context context);
 	
 	public JSONObject json() {
@@ -186,11 +161,6 @@ public abstract class Condition extends BaseClass {
 
 	protected Object update(HashMap<String, String> params) {
 		inverted = "on".equals(params.get(INVERTED));
-		return t("updated {}.",this);
-	}
-
-	public Condition parent(Object parent) {
-		this.parent = parent;
 		return this;
 	}
 }

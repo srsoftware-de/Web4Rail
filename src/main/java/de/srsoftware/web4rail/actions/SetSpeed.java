@@ -47,6 +47,11 @@ public class SetSpeed extends Action{
 	}
 		
 	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements		
+	}
+	
+	@Override
 	public String toString() {
 		return t("Set speed to {} {}",speed,speedUnit);
 	}

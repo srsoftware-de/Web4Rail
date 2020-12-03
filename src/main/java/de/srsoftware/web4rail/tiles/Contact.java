@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -163,6 +164,11 @@ public class Contact extends Tile{
 		actions.list().addTo(fieldset);
 		postForm.add(fieldset);
 		return super.properties(preForm, formInputs, postForm);
+	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == actions) actions = null;
 	}
 	
 	public static Select selector(Contact preselect) {

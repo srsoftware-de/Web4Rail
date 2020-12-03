@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.tiles.Turnout.State;
@@ -24,17 +25,22 @@ public class StraightH extends StretchableTile{
 	}
 	
 	@Override
-	public int width() {
-		return stretch;
-	}
-	
-	@Override
 	public List<Direction> possibleDirections() {
 		return List.of(Direction.EAST,Direction.WEST);
+	}
+
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements		
 	}
 	
 	@Override
 	protected String stretchType() {
 		return t("Width");
-	}	
+	}
+	
+	@Override
+	public int width() {
+		return stretch;
+	}
 }

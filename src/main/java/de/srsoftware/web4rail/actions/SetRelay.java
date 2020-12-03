@@ -61,6 +61,11 @@ public class SetRelay extends Action {
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == relay) relay = null;
+	}
+	
 	public String toString() {
 		if (isNull(relay)) return "["+t("click here to setup relay")+"]";
 		return t("Set {} to {}",relay,state?relay.stateLabelA:relay.stateLabelB);

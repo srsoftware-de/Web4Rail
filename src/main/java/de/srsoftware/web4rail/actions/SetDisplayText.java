@@ -13,12 +13,12 @@ import de.srsoftware.web4rail.tiles.TextDisplay;
 
 public class SetDisplayText extends TextAction{
 
+	private TextDisplay display;
+	private static final String DISPLAY = "display";
+
 	public SetDisplayText(BaseClass parent) {
 		super(parent);
 	}
-
-	private TextDisplay display;
-	private static final String DISPLAY = "display";
 	
 	@Override
 	public boolean fire(Context context) {
@@ -49,6 +49,11 @@ public class SetDisplayText extends TextAction{
 			}.start();
 		}
 		return super.load(json);
+	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == display) display = null;
 	}
 	
 	@Override

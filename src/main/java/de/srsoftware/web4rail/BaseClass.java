@@ -39,6 +39,7 @@ public abstract class BaseClass implements Constants{
 	private static final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
 	protected Id id = null;
 	protected String notes;
+	private static HashMap<Id,BaseClass> registry = new HashMap<BaseClass.Id, BaseClass>();
 	
 	public static final Logger LOG = LoggerFactory.getLogger(BaseClass.class);
 	private BaseClass parent;
@@ -259,6 +260,17 @@ public abstract class BaseClass implements Constants{
 		return form;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public static <T> T get(Id id) {
+		BaseClass element = registry.get(id);
+		if (isNull(element)) return null;
+		try {
+			return (T) element;
+		} catch (ClassCastException e) {
+			return null;
+		}		
+	}
+	
 	public Id id() {
 		if (isNull(id)) id = new Id();
 		return id;
@@ -288,6 +300,25 @@ public abstract class BaseClass implements Constants{
 		return new Tag(tagClass).clazz("link").attr("onclick","request("+json+")").content(caption.toString());
 	}
 	
+	@SuppressWarnings("unchecked")
+	public static <T extends BaseClass> List<T> listElements(Class<T> cls) {
+		ArrayList<T> result = new ArrayList<T>();
+		for (BaseClass object : registry.values()) {
+			if (isSet(object) && cls.isAssignableFrom(object.getClass())) {
+				result.add((T) object);
+			}
+		}
+		return result;
+	}
+	
+	public BaseClass load(JSONObject json) {
+		if (json.has(ID)) {
+			id = Id.from(json);
+			register();
+		}
+		if (json.has(NOTES)) notes = json.getString(NOTES);
+		return this;
+	}
 	
 	public static String md5sum(Object o) {
 		try {
@@ -349,7 +380,19 @@ public abstract class BaseClass implements Constants{
 		if (isSet(additionalProps)) props.putAll(additionalProps);
 		return props;
 	}
+	
+	public BaseClass register() {
+		registry.put(id(),this);
+		return this;
+	}
+	
+	public BaseClass remove() {
+		if (isSet(parent)) parent.removeChild(this);
+		return registry.remove(id());
+	}
 		
+	protected abstract void removeChild(BaseClass child);
+
 	protected static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
 	}
@@ -357,12 +400,6 @@ public abstract class BaseClass implements Constants{
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
 		if (params.containsKey(NOTES)) notes = params.get(NOTES).trim();
-		return this;
-	}
-
-	public BaseClass load(JSONObject json) {
-		if (json.has(ID)) id = Id.from(json);
-		if (json.has(NOTES)) notes = json.getString(NOTES);
 		return this;
 	}
 }

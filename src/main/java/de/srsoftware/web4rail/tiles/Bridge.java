@@ -7,6 +7,7 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
@@ -98,6 +99,12 @@ public abstract class Bridge extends Tile {
 	public Object requestConnect() {
 		pendingConnection = this;
 		return t("Click other bridge to connect to!");
+	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == counterpart) counterpart = null;
+		plan.place(this);
 	}
 	
 	@Override

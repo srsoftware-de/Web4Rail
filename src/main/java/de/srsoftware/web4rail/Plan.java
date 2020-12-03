@@ -12,13 +12,10 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.SortedSet;
 import java.util.Stack;
-import java.util.TreeSet;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -27,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
@@ -61,7 +57,6 @@ import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.Eraser;
 import de.srsoftware.web4rail.tiles.Relay;
 import de.srsoftware.web4rail.tiles.Shadow;
-import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.SignalE;
 import de.srsoftware.web4rail.tiles.SignalN;
 import de.srsoftware.web4rail.tiles.SignalS;
@@ -140,10 +135,6 @@ public class Plan extends BaseClass{
 	private static final String SPEED_UNIT = "speed_unit";
 	private static final String LENGTH_UNIT = "length_unit";
 	
-	public HashMap<Id,Tile> tiles = new HashMap<Id,Tile>(); // The list of tiles of this plan, i.e. the Track layout
-	private HashSet<Block> blocks = new HashSet<Block>(); // the list of tiles, that are blocks
-	private HashSet<Signal> signals = new HashSet<Signal>(); // the list of tiles, that are signals
-	private HashMap<Id, Route> routes = new HashMap<Id, Route>(); // the list of routes of the track layout
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
 	private Contact learningContact;
 	
@@ -241,8 +232,11 @@ public class Plan extends BaseClass{
 		Tile tile = (Tile) tc.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
 		if (tile instanceof Eraser) {
 			Tile erased = get(Tile.id(x,y),true);
-			remove(erased);
-			return erased == null ? null : t("Removed {}.",erased);
+			if (isSet(erased)) {
+				erased.remove();
+				return t("Removed {}.",erased);
+			}
+			return null;
 		}
 		//if (configJson != null) tile.configure(new JSONObject(configJson));		
 		set(x, y, tile);
@@ -255,7 +249,7 @@ public class Plan extends BaseClass{
 	 */
 	private String analyze() {
 		Vector<Route> routes = new Vector<Route>();
-		for (Block block : blocks) {
+		for (Block block : BaseClass.listElements(Block.class)) {
 			if (block.name.equals("Huhu")) {
 				System.err.println("Here we go!");
 			}
@@ -263,18 +257,11 @@ public class Plan extends BaseClass{
 				routes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
 			}
 		}
-		for (Tile tile : tiles.values()) tile.routes().clear();
+		for (Tile tile : BaseClass.listElements(Tile.class)) tile.routes().clear();
 		for (Route route : routes) registerRoute(route.complete());
 		return t("Found {} routes.",routes.size());
 	}
 
-	/**
-	 * @return the list of blocks known to the plan, ordered by name
-	 */
-	public Collection<Block> blocks() {
-		return new TreeSet<Block>(blocks);
-	}
-	
 	/**
 	 * calls tile.click()
 	 * @param tile
@@ -342,7 +329,7 @@ public class Plan extends BaseClass{
 	 */
 	public Tile get(Id tileId,boolean resolveShadows) {
 		if (isNull(tileId)) return null;
-		Tile tile = tiles.get(tileId);
+		Tile tile = BaseClass.get(tileId);
 		if (resolveShadows && tile instanceof Shadow) tile = ((Shadow)tile).overlay();
 		return tile;
 	}
@@ -391,7 +378,7 @@ public class Plan extends BaseClass{
 	 */
 	public Page html() throws IOException {
 		Page page = new Page().append("<div id=\"plan\"><div id=\"scroll\">");
-		for (Tile tile: tiles.values()) {
+		for (Tile tile: BaseClass.listElements(Tile.class)) {
 			if (tile == null) continue;
 			page.append("\t\t"+tile.tag(null)+"\n");
 		}
@@ -570,7 +557,7 @@ public class Plan extends BaseClass{
 			tile = stack.pop();
 			if (!(tile instanceof Shadow)) {
 				LOG.debug("altering position of {}",tile);
-				remove(tile);
+				tile.remove();
 				set(tile.x+xstep,tile.y+ystep,tile);
 			}
 		}
@@ -628,7 +615,7 @@ public class Plan extends BaseClass{
 		new Tag("h4").content(t("turnout properties")).addTo(win);
 		Table table = new Table();
 		table.addHead(t("Address"),t("Relay/Turnout"));
-		tiles.values()
+		BaseClass.listElements(Tile.class)
 			.stream()
 			.filter(tile -> tile instanceof Device )
 			.map(tile -> (Device) tile)
@@ -658,38 +645,19 @@ public class Plan extends BaseClass{
 	 */
 	Route registerRoute(Route newRoute) {
 		newRoute.path().stream().filter(Tile::isSet).forEach(tile -> tile.add(newRoute));
-		Id newRouteId = newRoute.id();
-		Route existingRoute = routes.get(newRouteId);
+		Route existingRoute = BaseClass.get(newRoute.id());
 		if (isSet(existingRoute)) newRoute.addPropertiesFrom(existingRoute);
-		routes.put(newRouteId, newRoute);
+		newRoute.register();
 		return newRoute;
 	}
 	
-	/**
-	 * removes a tile from the track layout
-	 * @param tile
-	 */
-	private void remove(Tile tile) {
-		if (isNull(tile)) return;
-		removeTile(tile.x,tile.y);
-		if (tile instanceof Block) blocks.remove(tile);
-		for (int i=1; i<tile.width(); i++) removeTile(tile.x+i, tile.y); // remove shadow tiles
-		for (int i=1; i<tile.height(); i++) removeTile(tile.x, tile.y+i); // remove shadow tiles
-		if (tile != null) stream("remove "+tile.id());
-	}
-	
-	/**
-	 * removes a route from the track layout
-	 * @param route
-	 * @return 
-	 */
-	public String remove(Route route) {
-		for (Tile tile : route.path()) tile.remove(route);
-		for (Train train : Train.list()) {
-			if (train.route == route) train.route = null;
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child instanceof Tile) {
+			Tile tile = (Tile) child;
+			for (int i=1; i<tile.width(); i++) removeTile(tile.x+i, tile.y); // remove shadow tiles
+			for (int i=1; i<tile.height(); i++) removeTile(tile.x, tile.y+i); // remove shadow tiles
 		}
-		routes.remove(route.id());
-		return t("Removed {}.",route);
 	}
 
 	/**
@@ -698,16 +666,8 @@ public class Plan extends BaseClass{
 	 * @param y
 	 */
 	private void removeTile(int x, int y) {
-		LOG.debug("removed {} from tile list",tiles.remove(Tile.id(x, y)));
-	}
-	
-	/**
-	 * returns a specific route from the list of routes assigned to this plan
-	 * @param routeId the id of the route requestd
-	 * @return
-	 */
-	public Route route(Id routeId) {
-		return routes.get(routeId);
+		Tile tile = BaseClass.get(Tile.id(x, y));
+		if (isSet(tile)) tile.remove();
 	}
 	
 	/**
@@ -719,9 +679,10 @@ public class Plan extends BaseClass{
 	private String saveTo(String name) throws IOException {
 		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
 		Car.saveAll(name+".cars");		
-		Tile.saveAll(tiles,name+".plan");
-		Train.saveAll(name+".trains"); // refers to cars, blocks
-		Route.saveAll(routes.values(),name+".routes"); // refers to tiles
+		
+		Tile.saveAll(name+".plan");
+		Train.saveAll(name+".trains"); // refers to cars, blocks		
+		Route.saveAll(name+".routes"); // refers to tiles
 		controlUnit.save(name+".cu");
 		
 		BufferedWriter file = new BufferedWriter(new FileWriter(name+".plan"));
@@ -733,8 +694,8 @@ public class Plan extends BaseClass{
 	
 	public JSONObject json() {
 		JSONArray jTiles = new JSONArray();
-		tiles.values().stream()
-			.filter(tile -> isSet(tile))
+		BaseClass.listElements(Tile.class)
+			.stream()
 			.filter(tile -> !(tile instanceof Shadow))
 			.map(tile -> tile.json())
 			.forEach(jTiles::put);
@@ -754,8 +715,6 @@ public class Plan extends BaseClass{
 	 */
 	public void set(int x,int y,Tile tile) throws IOException {
 		if (tile == null) return;
-		if (tile instanceof Block) blocks.add((Block) tile);
-		if (tile instanceof Signal) signals .add((Signal) tile);
 		for (int i=1; i<tile.width(); i++) set(x+i,y,new Shadow(tile));
 		for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile));
 		setIntern(x,y,tile);
@@ -769,8 +728,7 @@ public class Plan extends BaseClass{
 	 * @param tile
 	 */
 	private void setIntern(int x, int y, Tile tile) {
-		tile.position(x, y);
-		tiles.put(tile.id(),tile);
+		tile.position(x, y).register();
 	}
 	
 	public void sensor(int addr, boolean active) {
@@ -787,34 +745,6 @@ public class Plan extends BaseClass{
 		}
 		
 		if (isSet(contact)) contact.activate(active);
-	}
-
-	/**
-	 * shows the properties of an entity specified in the params.context value
-	 * @param params
-	 * @return
-	 */
-	public Tag showContext(HashMap<String, String> params) {
-		String[] parts = params.get(CONTEXT).split(":");
-		String realm = parts[0];
-		Id id = parts.length>1 ? new Id(parts[1]) : null;
-		switch (realm) {
-			case REALM_ROUTE:
-				return route(id).properties();
-			case REALM_CONTACT:
-			case REALM_PLAN:
-				Tile tile = get(id, false);
-				return isNull(tile) ? null : tile.properties();
-			case REALM_ACTIONS:
-				Action action = Action.get(id);
-				return (isSet(action)) ? action.properties() : null;
-				
-		}
-		return null;
-	}
-	
-	public SortedSet<Signal> signals() {
-		return new TreeSet<Signal>(signals);
 	}
 	
 	/**

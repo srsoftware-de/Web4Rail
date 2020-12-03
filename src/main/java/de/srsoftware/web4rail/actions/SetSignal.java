@@ -51,7 +51,7 @@ public class SetSignal extends Action {
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		Select select = new Select(SIGNAL);
-		for (Signal signal : plan.signals()) {
+		for (Signal signal : BaseClass.listElements(Signal.class)) {
 			Tag option = select.addOption(signal.id(),signal.title());
 			if (signal == this.signal) option.attr("selected", "selected");
 		}
@@ -65,6 +65,11 @@ public class SetSignal extends Action {
 		formInputs.add(t("Select state"),state);
 
 		return super.properties(preForm, formInputs, postForm);
+	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == signal) signal = null;
 	}
 		
 	public SetSignal set(Signal sig) {

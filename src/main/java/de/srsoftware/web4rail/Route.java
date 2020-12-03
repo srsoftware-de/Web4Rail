@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,7 +56,6 @@ public class Route extends BaseClass implements Comparable<Route>{
 	private static final String ACTION_LISTS = "action_lists";
 	private static final String BRAKE_TIMES = "brake_times";
 	private static final String CONDITIONS = "conditions";
-	private static final String DROP_CONDITION = "drop_condition";
   	private static final String END_DIRECTION   = "direction_end";
 	private static final String ROUTES = "routes";
 	private static final String SETUP_ACTIONS = "setup_actions";
@@ -141,7 +139,6 @@ public class Route extends BaseClass implements Comparable<Route>{
 	private boolean                        disabled = false;
 	private Block                          endBlock = null;
 	public  Direction					   endDirection;
-	private Id                             id;
 	private Vector<Tile>                   path;
 	private Vector<Signal>                 signals;
 	public  Train                          train;
@@ -151,7 +148,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	private ActionList                     startActions;
 	private Block                          startBlock = null;
 	public  Direction 					   startDirection;
-	private HashSet<Contact>			   triggeredContacts = new HashSet<>();      
+	private HashSet<Contact>			   triggeredContacts = new HashSet<>();
 	
 	public Route() {
 		setupActions = new ActionList(this);
@@ -165,23 +162,17 @@ public class Route extends BaseClass implements Comparable<Route>{
 	 * @throws IOException 
 	 */
 	public static Object action(HashMap<String, String> params) throws IOException {
-		Route route = plan.route(Id.from(params));
+		Route route = BaseClass.get(Id.from(params));
 		if (isNull(route)) return t("Unknown route: {}",params.get(ID));
 		switch (params.get(ACTION)) {
 			case ACTION_DROP:
-				String message = plan.remove(route);
-				String context = params.get(CONTEXT);
-				if (isSet(context)) {
-					plan.stream(message);
-					return plan.showContext(params);
-				}
-				return message;
+				route.remove();
+				return t("Removed {}.",route);
+				
 			case ACTION_PROPS:
 				return route.properties();
 			case ACTION_UPDATE:
 				return route.update(params,plan);
-			case DROP_CONDITION:
-				return route.dropCodition(params);
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
@@ -419,12 +410,6 @@ public class Route extends BaseClass implements Comparable<Route>{
 		return disabled;
 	}
 	
-	private Object dropCodition(HashMap<String, String> params) {
-		Id condId = Id.from(params,REALM_CONDITION);
-		if (isSet(condId)) conditions.removeById(condId);
-		return properties();
-	}
-		
 	public Block endBlock() {
 		return endBlock;
 	}	
@@ -435,7 +420,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Contact) {
 			lastTile.set(null);
-			if (isSet(train)) train.removeFromTrace(lastTile);
+			if (isSet(train)) train.removeChild(lastTile);
 		}
 		if (isSet(train)) { 
 			train.set(endBlock);
@@ -508,7 +493,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		
 		json.put(BRAKE_TIMES, brakeTimes);
 		
-		if (!conditions.isEmpty()) json.put(CONDITIONS, conditions.json());
+		if (!conditions.isEmpty()) json.put(CONDITIONS, conditions.jsonArray());
 		
 		JSONArray jTriggers = new JSONArray();
 		for (Entry<String, ActionList> entry : triggers.entrySet()) {
@@ -652,20 +637,32 @@ public class Route extends BaseClass implements Comparable<Route>{
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 
+		preForm.add(conditions.list(t("Route will only be available, if all conditions are fulfilled.")));
+		preForm.add(contactsAndActions());
+
 		formInputs.add(t("Name"),new Input(NAME, name()));
 		formInputs.add(t("State"),new Checkbox(DISABLED, t("disabled"), disabled));
 		
 		postForm.add(basicProperties());
 		if (!turnouts.isEmpty()) postForm.add(turnouts());
-		preForm.add(conditions.list(t("Route will only be available, if all conditions are fulfilled.")));
-		preForm.add(contactsAndActions());
 		postForm.add(brakeTimes());
 		return super.properties(preForm, formInputs, postForm);
 	}
 
-	public Route remove(Condition condition) {
-		conditions.remove(condition);	
-		return this;
+	@Override
+	protected void removeChild(BaseClass child) {
+		conditions.remove(child);
+		contacts.remove(child);
+		if (child == endBlock) endBlock = null;
+		path.remove(child);
+		signals.remove(child);
+		if (child == train) train = null;
+		for (ActionList list : triggers.values()) list.removeChild(child);
+		turnouts.remove(child);
+		setupActions.removeChild(child);
+		startActions.removeChild(child);
+		if (child == startBlock) startBlock = null;
+		triggeredContacts.remove(child);
 	}
 	
 	public boolean reset() {
@@ -674,7 +671,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Contact) {
 			lastTile.set(null);
-			if (isSet(train)) train.removeFromTrace(lastTile);
+			if (isSet(train)) train.removeChild(lastTile);
 		}
 		if (isSet(train)) {
 			train.set(startBlock);
@@ -686,10 +683,11 @@ public class Route extends BaseClass implements Comparable<Route>{
 		return true;
 	}
 
-	public static void saveAll(Collection<Route> routes, String filename) throws IOException {
+	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		file.write("{\""+ROUTES+"\":[\n");
 		int count = 0;
+		List<Route> routes = BaseClass.listElements(Route.class);
 		for (Route route : routes) {			
 			file.write(route.json().toString());
 			if (++count < routes.size()) file.write(",");
@@ -777,13 +775,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		if (isSet(condition)) {
 			condition.parent(this);
 			conditions.add(condition);
-			return properties();
 		}
-		String message = t("{} updated.",this); 
-		if (params.containsKey(CONTEXT)) {
-			plan.stream(message);
-			return plan.showContext(params);
-		}
-		return message;
+		return properties();
 	}
 }

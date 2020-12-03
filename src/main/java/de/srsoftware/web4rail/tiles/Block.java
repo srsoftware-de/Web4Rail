@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Range;
@@ -233,11 +234,16 @@ public abstract class Block extends StretchableTile implements Comparable<Block>
 		return this;
 	}
 	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements
+	}
+	
 	public static Select selector(Block preselected,Collection<Block> exclude) {
 		if (isNull(exclude)) exclude = new Vector<Block>();
 		Select select = new Select(Block.class.getSimpleName());
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
-		for (Block block : plan.blocks()) {
+		for (Block block : BaseClass.listElements(Block.class)) {
 			if (exclude.contains(block)) continue;
 			Tag opt = select.addOption(block.id(), block);
 			if (block == preselected) opt.attr("selected", "selected");

@@ -13,6 +13,7 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 
@@ -103,6 +104,10 @@ public abstract class Action extends BaseClass {
 		return false;
 	}
 
+	@Override
+	public Window properties() { // goes up to first ancestor, which is not an Action
+		return parent().properties();
+	}
 	
 	public static Tag selector() {
 		Select select = new Select(TYPE);
@@ -129,13 +134,6 @@ public abstract class Action extends BaseClass {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		super.update(params);
-		BaseClass parent = parent();
-		if (isNull(parent)) return properties();
-		if (parent instanceof ActionList) {
-			ActionList al = (ActionList) parent;
-			return al.parent().properties();
-		}
-		return parent.properties();
-		
+		return properties();		
 	}
 }

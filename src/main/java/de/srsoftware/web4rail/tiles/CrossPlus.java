@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.tiles.Turnout.State;
@@ -31,4 +32,9 @@ public class CrossPlus extends Tile{
 	public List<Direction> possibleDirections() {
 		return List.of(Direction.EAST,Direction.WEST,Direction.NORTH,Direction.SOUTH);
 	}	
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements		
+	}
 }

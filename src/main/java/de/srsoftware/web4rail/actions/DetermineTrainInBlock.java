@@ -46,6 +46,11 @@ public class DetermineTrainInBlock extends Action {
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == block) block = null;
+	}
+	
 	public String toString() {
 		return isSet(block) ? t("Determine, which train is in {}",block) : t("[Click here to select block!]");
 	};

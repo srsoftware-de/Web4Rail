@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.tiles.Turnout.State;
@@ -26,6 +27,14 @@ public class Shadow extends Tile{
 
 	public Tile overlay() {
 		return overlay;
+	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == overlay) {
+			overlay = null;
+			remove();
+		}
 	}
 	
 	@Override

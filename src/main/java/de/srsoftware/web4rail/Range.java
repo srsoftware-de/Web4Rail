@@ -28,6 +28,11 @@ public class Range extends BaseClass{
 		if (max - min == 0) return max - min;
 		return min + random.nextInt(max - min);
 	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements		
+	}
 
 	@Override
 	public String toString() {

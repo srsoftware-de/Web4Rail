@@ -15,4 +15,8 @@ public class BrakeStop extends Action {
 		return true;
 	}
 
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements		
+	}
 }

@@ -48,18 +48,19 @@ public interface Constants {
 	public static final String REALM_TRAIN     = "train";
 	
 
-	public static final String  BLOCK = "block";
-	public static final String  CONTACT = "contact";
-	public static final String  CONTEXT = "context";
-	public static final String  DEFAULT_SPEED_UNIT = "km/h";
+	public static final String  BLOCK               = "block";
+	public static final String  CONTACT             = "contact";
+	public static final String  CONTEXT             = "context";
+	public static final String  DEFAULT_SPEED_UNIT  = "km/h";
 	public static final String  DEFAULT_LENGTH_UNIT = "mm";
-	public static final String  DISABLED = "disabled";
-	public static final String  GITHUB_URL = "https://github.com/srsoftware-de/Web4Rail";
-	public static final String  ID = "id";
-	public static final String  NBSP = "&nbsp;";
-	public static final String  NOTES = "notes";
-	public static final String  PORT = "port";
-	public static final String RELAY = "relay";
-	public static final String  TYPE = "type";
-	public static final Charset UTF8 = StandardCharsets.UTF_8;
+	public static final String  DISABLED            = "disabled";
+	public static final String  GITHUB_URL          = "https://github.com/srsoftware-de/Web4Rail";
+	public static final String  ID                  = "id";
+	public static final String  NBSP                = "&nbsp;";
+	public static final String  NOTES               = "notes";
+	public static final String  PARENT              = "parent";
+	public static final String  PORT                = "port";
+	public static final String  RELAY               = "relay";
+	public static final String  TYPE                = "type";
+	public static final Charset UTF8                = StandardCharsets.UTF_8;
 }

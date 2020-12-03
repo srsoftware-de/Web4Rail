@@ -6,6 +6,7 @@ import java.util.List;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
@@ -37,7 +38,12 @@ public class TrainLength extends Condition {
 		formInputs.add(t("Maximum train length"),new Input(MAX_LENGTH, maxLength).numeric());
 		return super.properties(preForm, formInputs, postForm);
 	}
-
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		// this class has no child elements
+	}
+	
 	@Override
 	public String toString() {
 		return t(inverted ? "train is longer than {}" : "train is shorter than {}",maxLength) ;

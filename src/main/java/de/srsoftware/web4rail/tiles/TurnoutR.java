@@ -8,7 +8,7 @@ import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 
-public class TurnoutR extends Turnout {
+public abstract class TurnoutR extends Turnout {
 	
 	private static final String RIGHT = "right";
 

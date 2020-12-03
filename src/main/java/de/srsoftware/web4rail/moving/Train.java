@@ -77,7 +77,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private Block currentBlock,destination = null;
 	LinkedList<Tile> trace = new LinkedList<Tile>();
-				
+	
 	private class Autopilot extends Thread{
 		boolean stop = false;
 		int waitTime = 100;
@@ -566,9 +566,15 @@ public class Train extends BaseClass implements Comparable<Train> {
 			return t("{} stopping at next block.",this);
 		} else return t("autopilot not active.");
 	}
-
-	public void removeFromTrace(Tile tile) {
-		trace.remove(tile);		
+	
+	@Override
+	public void removeChild(BaseClass child) {
+		if (child == route) route = null;
+		if (child == currentBlock) currentBlock = null;
+		if (child == destination) destination = null;
+		cars.remove(child);
+		locos.remove(child);
+		trace.remove(child);
 	}
 	
 	public void reserveNext() {

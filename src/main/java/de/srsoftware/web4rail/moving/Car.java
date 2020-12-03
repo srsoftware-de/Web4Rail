@@ -213,6 +213,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 		
 		return super.properties(preForm,formInputs,postForm);
 	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		if (child == train) train = null;
+	}
+
 
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
