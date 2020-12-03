@@ -1,11 +1,12 @@
 package de.srsoftware.web4rail.actions;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.tags.Label;
 
 public class ShowText extends TextAction{
 
 
-	public ShowText(Context parent) {
+	public ShowText(BaseClass parent) {
 		super(parent);
 	}
 

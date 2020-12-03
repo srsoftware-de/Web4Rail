@@ -37,7 +37,7 @@ public abstract class BaseClass implements Constants{
 	private static final char[] HEX_CHARS = "0123456789ABCDEF".toCharArray();
 	protected Id id = null;
 	protected String notes;
-	protected Context parent;
+	private BaseClass parent;
 	
 	public static class Context {
 
@@ -304,6 +304,15 @@ public abstract class BaseClass implements Constants{
 		HashMap<String,String> merged = new HashMap<>(base);
 		overlay.entrySet().stream().forEach(entry -> merged.put(entry.getKey(), entry.getValue()));
 		return merged;
+	}
+	
+	public BaseClass parent() {
+		return parent;
+	}
+	
+	public BaseClass parent(BaseClass parent) {
+		this.parent = parent;
+		return this;
 	}
 	
 	public Window properties() {

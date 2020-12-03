@@ -6,6 +6,7 @@ import java.util.List;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
@@ -14,7 +15,7 @@ import de.srsoftware.web4rail.tiles.Tile;
 
 public class SetSignal extends Action {
 	
-	public SetSignal(Context parent) {
+	public SetSignal(BaseClass parent) {
 		super(parent);
 	}
 

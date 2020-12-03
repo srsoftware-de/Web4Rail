@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.tags.Button;
@@ -18,15 +19,16 @@ import de.srsoftware.web4rail.tags.Input;
 
 public class ConditionalAction extends Action {
 	
-	public ConditionalAction(Context parent) {
-		super(parent);
-	}
-
 	private static final String CONDITIONS = "conditions";
 	private static final String ACTIONS = "actions";
 	private Vector<Condition> conditions = new Vector<Condition>();
-	private ActionList actions = new ActionList();
-		
+	private ActionList actions;
+
+	public ConditionalAction(BaseClass parent) {
+		super(parent);
+		actions = new ActionList(this);
+	}
+
 	public ActionList children() {
 		return actions;
 	}
@@ -94,18 +96,23 @@ public class ConditionalAction extends Action {
 		for (Object o : json.getJSONArray(CONDITIONS)) {
 			if (o instanceof JSONObject) {
 				JSONObject j = (JSONObject) o;
-				Condition condition = Condition.create(j.getString(TYPE));
-				if (isSet(condition)) conditions.add(condition.parent(this).load(j));
+				Condition condition = Condition.create(j.getString(TYPE));				
+				if (isSet(condition)) {
+					condition.parent(this);
+					conditions.add(condition.load(j));
+				}
 			}
 		}
-		actions = new ActionList().load(json.getJSONArray(ACTIONS));
+		actions.load(json.getJSONArray(ACTIONS));
 		return this;
 	}
 
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		preForm.add(conditionForm());
-		preForm.add(actions.list());
+		Fieldset fieldset = new Fieldset(t("Actions"));
+		actions.list().addTo(fieldset);
+		postForm.add(fieldset);
 		return super.properties(preForm, formInputs, postForm);
 		
 	}
@@ -126,7 +133,8 @@ public class ConditionalAction extends Action {
 		String conditionClass = params.get(REALM_CONDITION);
 		Condition condition = Condition.create(conditionClass);
 		if (isNull(condition)) return t("Unknown type of condition: {}",conditionClass);
-		conditions.add(condition.parent(this));
+		condition.parent(this);
+		conditions.add(condition);
 		return super.update(params);
 	}
 }

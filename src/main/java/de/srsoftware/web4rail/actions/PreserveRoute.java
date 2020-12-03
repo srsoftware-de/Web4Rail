@@ -1,12 +1,13 @@
 package de.srsoftware.web4rail.actions;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 
 public class PreserveRoute extends Action {
 
-	public PreserveRoute(Context parent) {
+	public PreserveRoute(BaseClass parent) {
 		super(parent);
 	}
 

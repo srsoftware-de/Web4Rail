@@ -26,18 +26,28 @@ public abstract class Action extends BaseClass {
 	public static final Logger LOG = LoggerFactory.getLogger(Action.class);
 	private static final String PREFIX = Action.class.getPackageName();
 	
-	public Action(Context parent) {
+	public Action(BaseClass parent) {
 		actions.put(id(), this);
-		this.parent = parent;
+		parent(parent);
 	}
 	
-	public static Action create(String type,Context parent) {
+	public static Action create(String type,BaseClass parent) {
 		try {
-			return (Action) Class.forName(PREFIX+"."+type).getDeclaredConstructor(Context.class).newInstance(parent);
+			return (Action) Class.forName(PREFIX+"."+type).getDeclaredConstructor(BaseClass.class).newInstance(parent);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public boolean drop() {
+		BaseClass parent = parent();
+		if (parent instanceof ActionList) {
+			ActionList actionList = (ActionList) parent;
+			return actionList.drop(this);
+		}
+		LOG.error("Action.drop() called on Action ({}) whose parent ({}) is not an ActionList!",this,parent); 
+		return false;
 	}
 	
 	public boolean equals(Action other) {
@@ -54,7 +64,7 @@ public abstract class Action extends BaseClass {
 		return new JSONObject().put(TYPE, getClass().getSimpleName());
 	}
 	
-	public static List<Class<? extends Action>> list() {
+	public static List<Class<? extends Action>> classes() {
 		return List.of(
 			BrakeStart.class,
 			BrakeStop.class,
@@ -83,11 +93,22 @@ public abstract class Action extends BaseClass {
 		return this;
 	}
 	
+	public boolean moveUp() {
+		BaseClass parent = parent();
+		if (parent instanceof ActionList) {
+			ActionList actionList = (ActionList) parent;
+			return actionList.moveUp(this);
+		}
+		LOG.error("Action.drop() called on Action ({}) whose parent ({}) is not an ActionList!",this,parent); 
+		return false;
+	}
+
+	
 	public static Tag selector() {
 		Select select = new Select(TYPE);
 		TreeMap<String, String> names = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 		
-		for (Class<? extends Action> clazz : Action.list()) {
+		for (Class<? extends Action> clazz : Action.classes()) {
 			String s = t(clazz.getSimpleName());
 			names.put(s, clazz.getSimpleName());
 		}

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Label;
@@ -12,7 +13,7 @@ import de.srsoftware.web4rail.tiles.TextDisplay;
 
 public class SetDisplayText extends TextAction{
 
-	public SetDisplayText(Context parent) {
+	public SetDisplayText(BaseClass parent) {
 		super(parent);
 	}
 

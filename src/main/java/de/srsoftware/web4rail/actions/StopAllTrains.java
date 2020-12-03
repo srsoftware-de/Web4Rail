@@ -1,10 +1,11 @@
 package de.srsoftware.web4rail.actions;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.moving.Train;
 
 public class StopAllTrains extends Action {
 
-	public StopAllTrains(Context parent) {
+	public StopAllTrains(BaseClass parent) {
 		super(parent);
 	}
 

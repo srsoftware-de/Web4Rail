@@ -1,8 +1,10 @@
 package de.srsoftware.web4rail.actions;
 
+import de.srsoftware.web4rail.BaseClass;
+
 public class BrakeStop extends Action {
 
-	public BrakeStop(Context parent) {
+	public BrakeStop(BaseClass parent) {
 		super(parent);
 	}
 	

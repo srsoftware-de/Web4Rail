@@ -5,13 +5,14 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tiles.Block;
 
 public class DetermineTrainInBlock extends Action {
 		
-	public DetermineTrainInBlock(Context parent) {
+	public DetermineTrainInBlock(BaseClass parent) {
 		super(parent);
 	}
 

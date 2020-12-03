@@ -25,8 +25,12 @@ public class Contact extends Tile{
 	private boolean state = false;
 	private String trigger = null;
 	private int addr = 0;
-	private ActionList actions = new ActionList();
+	private ActionList actions;
 	private OffTimer timer = null;
+	
+	public Contact() {
+		actions = new ActionList(this);
+	}
 	
 	/**
 	 * Dieser Timer dient dazu, Merhfachauslösungen eines Kontakes innerhalb einer Sekunde zu unterbinden
@@ -119,7 +123,7 @@ public class Contact extends Tile{
 	@Override
 	public Tile load(JSONObject json) {
 		if (json.has(ADDRESS)) addr(json.getInt(ADDRESS));
-		if (json.has(REALM_ACTIONS)) actions = new ActionList().load(json.getJSONArray(REALM_ACTIONS));
+		if (json.has(REALM_ACTIONS)) actions.load(json.getJSONArray(REALM_ACTIONS));
 		return super.load(json);
 	}
 	
@@ -155,7 +159,9 @@ public class Contact extends Tile{
 		button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(span);
 		formInputs.add(t("Address"),span);
 		
-		postForm.add(actions.list());
+		Fieldset fieldset = new Fieldset(t("Actions"));
+		actions.list().addTo(fieldset);
+		postForm.add(fieldset);
 		return super.properties(preForm, formInputs, postForm);
 	}
 	

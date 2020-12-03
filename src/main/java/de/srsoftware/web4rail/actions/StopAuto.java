@@ -1,8 +1,10 @@
 package de.srsoftware.web4rail.actions;
 
+import de.srsoftware.web4rail.BaseClass;
+
 public class StopAuto extends Action {
 
-	public StopAuto(Context parent) {
+	public StopAuto(BaseClass parent) {
 		super(parent);
 	}
 

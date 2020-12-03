@@ -6,6 +6,7 @@ import java.util.List;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.ControlUnit;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -13,7 +14,7 @@ import de.srsoftware.web4rail.tags.Radio;
 
 public class SetPower extends Action{
 	
-	public SetPower(Context parent) {
+	public SetPower(BaseClass parent) {
 		super(parent);
 	}
 

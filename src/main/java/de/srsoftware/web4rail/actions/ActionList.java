@@ -2,7 +2,6 @@ package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -19,33 +18,16 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 
-public class ActionList extends BaseClass{
+public class ActionList extends Action{
 	private static final Logger LOG = LoggerFactory.getLogger(ActionList.class);
 	
-	private static final HashMap<Id, ActionList> actionLists = new HashMap<Id, ActionList>();
 	private Vector<Action> actions;
-	private Id id;
 	
-	public ActionList() {
-		id = new Id();
+	public ActionList(BaseClass parent) {
+		super(parent);
 		actions = new Vector<Action>();
-		actionLists.put(id,this);
-		
-	}
-	
-	private static Id actionId(HashMap<String, String> params) {
-		if (!params.containsKey(ID)) return null;
-		String[] parts = params.get(ID).split("/");
-		if (parts.length<2) return null;
-		return new Id(parts[1]);
 	}
 
-	private static Id actionListId(HashMap<String, String> params) {
-		if (!params.containsKey(ID)) return null;
-		String[] parts = params.get(ID).split("/");
-		return new Id(parts[0]);
-	}
-	
 	private Object actionTypeForm(Window win, String context) {
 		Form typeForm = new Form("add-action-to-"+id);
 		new Input(REALM, REALM_ACTIONS).hideIn(typeForm);
@@ -66,8 +48,7 @@ public class ActionList extends BaseClass{
 		String type = params.get(TYPE);
 		String context = params.get(CONTEXT);
 		if (type == null) return actionTypeForm(win,context);
-		Context parent = new Context(this);
-		Action action = Action.create(type,parent);
+		Action action = Action.create(type,this);
 		if (action instanceof Action) {
 			add(action);
 			return plan.showContext(params);
@@ -104,14 +85,8 @@ public class ActionList extends BaseClass{
 		return actions.isEmpty();
 	}
 	
-	public boolean drop(Id actionId) {
-		for (Action action : actions) {
-			if (action.id().equals(actionId)) {
-				actions.remove(action);
-				return true;				
-			}
-		}
-		return false;
+	public boolean drop(Action action) {
+		return actions.remove(action);
 	}
 	
 	public boolean fire(Context context) {
@@ -121,10 +96,6 @@ public class ActionList extends BaseClass{
 		}
 		return true;
 	}
-
-	public Id id() {
-		return id;
-	}
 	
 	public JSONArray jsonArray() {
 		JSONArray result = new JSONArray();
@@ -132,52 +103,42 @@ public class ActionList extends BaseClass{
 		return result;
 	}
 
-	public Fieldset list() {
-		Fieldset fieldset = new Fieldset(t("Actions"));
-		
-		Map<String, Object> props = new HashMap<String, Object>(Map.of(
-				REALM,REALM_ACTIONS,
-				ID,id,
-				ACTION,ACTION_PROPS));
+	public Tag list() {
+		Button button = button(t("Add action"), contextAction(ACTION_ADD_ACTION));
+		Tag span = new Tag("span");
+		button.addTo(span);
 		
 		if (!isEmpty()) {
-			Tag ul = new Tag("ol");
+			Tag list = new Tag("ol");
 			boolean first = true;
 			for (Action action : actions) {
-				props.put(ID, id+"/"+action.id());
-				Tag act = action.link("span", action+NBSP, Map.of(ID,id+"/"+action.id())).addTo(new Tag("li")); 
-				if (!first) {
-					props.put(ACTION, ACTION_MOVE);
-					new Button("↑",props).addTo(act);
-				}
-				props.put(ACTION, ACTION_DROP);
-				new Button("-",props).addTo(act);
-// TODO: add children for conditionalActions and delayedActions
-				act.addTo(ul);
-				first = false;
+				Tag item = action.link("span",action).addTo(new Tag("li"));
+				if (first) {
+					first = false;
+				} else action.button("↑", contextAction(ACTION_MOVE)).addTo(item.content(NBSP));
+				item.addTo(list);
 			}
-			ul.addTo(fieldset);
-		}		
-	
-		return fieldset;
+			list.addTo(span);
+		}
+				
+		return span;
 	}
 
 	public ActionList load(JSONArray list) {
-		Context parent = new Context(this);
 		for (Object o : list) {
 			if (o instanceof JSONObject) {
 				JSONObject json = (JSONObject) o;
-				Action action = Action.create(json.getString(TYPE),parent);
+				Action action = Action.create(json.getString(TYPE),this);
 				if (action != null) add(action.load(json));
 			}
 		}
 		return this;
 	}
 	
-	public boolean moveUp(Id actionId) {
+	public boolean moveUp(Action action) {
 		for (int i=1; i<actions.size(); i++) {
-			if (actionId.equals(actions.elementAt(i).id())) {
-				Action action = actions.remove(i);
+			if (actions.elementAt(i) == action) {
+				actions.remove(i);
 				actions.insertElementAt(action, i-1);
 				return true;
 			}
@@ -186,26 +147,28 @@ public class ActionList extends BaseClass{
 	}
 	
 	public static Object process(HashMap<String, String> params, Plan plan) {
-		Id listId = actionListId(params);
-		if (listId == null) return t("No action list id passed to ActionList.process()!");
-		ActionList actionList = actionLists.get(listId);
-
-		Id actionId = actionId(params);
-		String action = params.get(ACTION);
-		if (action == null) return t("No action passed to ActionList.process()!");
-		if (actionList == null && !List.of(ACTION_UPDATE,ACTION_PROPS).contains(action)) return t("No action list with id {} found!",listId);
+		String command = params.get(ACTION);
+		if (command == null) return t("No action passed to ActionList.process()!");
 		
-		switch (action) {
-			case ACTION_ADD:
+		Id actionId = Id.from(params);
+		Action action = Action.get(actionId);
+		if (isNull(action)) return t("Id ({}) does not belong to Action!",actionId);
+		ActionList actionList = action instanceof ActionList ? (ActionList) action : null;
+		
+		switch (command) {
+			case ACTION_ADD:				
+				if (isNull(actionList)) return t("Id ({}) does not belong to ActionList!",actionId);
 				return actionList.addActionForm(params,plan);
 			case ACTION_DROP:
-				return actionList.drop(actionId) ? plan.showContext(params) : t("No action with id {} found!",actionId);
+				return action.drop() ? action.parent().properties() : t("No action with id {} found!",actionId);
 			case ACTION_MOVE:
-				return actionList.moveUp(actionId) ? plan.showContext(params) : t("No action with id {} found!",actionId);
+				return action.moveUp() ? action.parent().properties() : t("No action with id {} found!",actionId);
+			case ACTION_PROPS:
+				return action.properties();
 			case ACTION_UPDATE:
-				return update(actionId,params,plan);
+				return action.update(params);
 		}
-		return t("Unknown action: {}",action);
+		return t("Unknown action: {}",command);
 	}
 	
 	@Override
@@ -214,15 +177,5 @@ public class ActionList extends BaseClass{
 		list().addTo(fieldset);
 		preForm.add(fieldset);
 		return super.properties(preForm, formInputs, postForm);
-	}
-
-				
-	private static Object update(Id actionId, HashMap<String, String> params, Plan plan) {
-		Action action = Action.get(actionId);
-		if (action != null) {
-			plan.stream(action.update(params).toString());
-			return plan.showContext(params);
-		}
-		return t("No action with id {} found.",actionId);
 	}
 }

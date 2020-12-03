@@ -1,8 +1,10 @@
 package de.srsoftware.web4rail.actions;
 
+import de.srsoftware.web4rail.BaseClass;
+
 public class TurnTrain extends Action{
 
-	public TurnTrain(Context parent) {
+	public TurnTrain(BaseClass parent) {
 		super(parent);
 	}
 

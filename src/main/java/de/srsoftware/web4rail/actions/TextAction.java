@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
@@ -12,7 +13,7 @@ import de.srsoftware.web4rail.tags.Label;
 
 public abstract class TextAction extends Action {
 	
-	public TextAction(Context parent) {
+	public TextAction(BaseClass parent) {
 		super(parent);
 	}
 

@@ -147,11 +147,16 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public  Train                          train;
 	private HashMap<String,ActionList>     triggers = new HashMap<String, ActionList>();
 	private HashMap<Turnout,Turnout.State> turnouts;
-	private ActionList                     setupActions = new ActionList();
-	private ActionList                     startActions = new ActionList();
+	private ActionList                     setupActions;
+	private ActionList                     startActions;
 	private Block                          startBlock = null;
 	public  Direction 					   startDirection;
-	private HashSet<Contact>			   triggeredContacts = new HashSet<>();               
+	private HashSet<Contact>			   triggeredContacts = new HashSet<>();      
+	
+	public Route() {
+		setupActions = new ActionList(this);
+		startActions = new ActionList(this);
+	}
 	
 	/**
 	 * process commands from the client
@@ -211,7 +216,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public void add(String trigger, Action action) {
 		ActionList actions = triggers.get(trigger);
 		if (isNull(actions)) {
-			actions = new ActionList();
+			actions = new ActionList(this);
 			triggers.put(trigger, actions);
 		}
 		actions.add(action);
@@ -258,21 +263,19 @@ public class Route extends BaseClass implements Comparable<Route>{
 		Tag list = new Tag("ol");
 		
 		Tag setup = new Tag("li").content(t("Setup actions")+NBSP);
-		setupActions.list().addTo(setup);
-		setup.addTo(list);
+		setupActions.list().addTo(setup).addTo(list);
 
 		Tag start = new Tag("li").content(t("Start actions")+NBSP);
-		startActions.list().addTo(setup);
-		start.addTo(list);
+		startActions.list().addTo(start).addTo(list);
 
 		for (Contact c : contacts) {
-			Tag link = Plan.addLink(c,c+NBSP,list);
+			Tag item = c.link("span", c).addTo(new Tag("li")).content(NBSP);
 			ActionList actions = triggers.get(c.trigger());
 			if (isNull(actions)) {
-				actions = new ActionList();
+				actions = new ActionList(this);
 				triggers.put(c.trigger(), actions);
 			}
-			actions.list().addTo(link);
+			actions.list().addTo(item).addTo(list);
 		}
 		list.addTo(win);
 		return win;
@@ -371,21 +374,20 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	public Route complete() {
-		Context parent = new Context(this);
 		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
 			Contact nextToLastContact = contacts.get(contacts.size()-2);
 			String trigger = nextToLastContact.trigger();
-			add(trigger,new BrakeStart(parent));
-			add(trigger,new PreserveRoute(parent));
-			for (Signal signal : signals) add(trigger,new SetSignal(parent).set(signal).to(Signal.STOP));
+			add(trigger,new BrakeStart(this));
+			add(trigger,new PreserveRoute(this));
+			for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.STOP));
 		}
 		if (!contacts.isEmpty()) {
 			Contact lastContact = contacts.lastElement(); 
-			add(lastContact.trigger(), new BrakeStop(parent)); 
-			add(lastContact.trigger(), new FinishRoute(parent));
+			add(lastContact.trigger(), new BrakeStop(this)); 
+			add(lastContact.trigger(), new FinishRoute(this));
 		}
-		for (Signal signal : signals) setupActions.add(new SetSignal(parent).set(signal).to(Signal.GO));
-		startActions.add(new SetSpeed(parent).to(999));
+		for (Signal signal : signals) setupActions.add(new SetSignal(this).set(signal).to(Signal.GO));
+		startActions.add(new SetSpeed(this).to(999));
 		return this;
 	}
 
@@ -566,8 +568,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 		}
 		if (json.has(ACTION_LISTS)) loadActions(json.getJSONArray(ACTION_LISTS));
 		if (json.has(CONDITIONS)) conditions.load(json.getJSONArray(CONDITIONS));
-		if (json.has(SETUP_ACTIONS)) setupActions = new ActionList().load(json.getJSONArray(SETUP_ACTIONS));
-		if (json.has(START_ACTIONS)) startActions = new ActionList().load(json.getJSONArray(START_ACTIONS));
+		if (json.has(SETUP_ACTIONS)) setupActions.load(json.getJSONArray(SETUP_ACTIONS));
+		if (json.has(START_ACTIONS)) startActions.load(json.getJSONArray(START_ACTIONS));
 		if (json.has(DISABLED)) disabled = json.getBoolean(DISABLED);
 		if (json.has(BRAKE_TIMES)) {
 			JSONObject dummy = json.getJSONObject(BRAKE_TIMES);
@@ -580,7 +582,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		for (int i=0; i<arr.length(); i++) {
 			JSONObject json = arr.getJSONObject(i);
 			String trigger = json.getString(TRIGGER);
-			ActionList actionList = new ActionList().load(json.getJSONArray(ACTIONS));
+			ActionList actionList = new ActionList(this).load(json.getJSONArray(ACTIONS));
 			triggers.put(trigger, actionList);
 		}
 	}
@@ -651,7 +653,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 
 		formInputs.add(t("Name"),new Input(NAME, name()));
-		formInputs.add(t("disabled"),new Checkbox(DISABLED, t("disabled"), disabled));
+		formInputs.add(t("State"),new Checkbox(DISABLED, t("disabled"), disabled));
 		
 		postForm.add(basicProperties());
 		if (!turnouts.isEmpty()) postForm.add(turnouts());
@@ -773,7 +775,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 		
 		Condition condition = Condition.create(params.get(REALM_CONDITION));
 		if (isSet(condition)) {
-			conditions.add(condition.parent(this));
+			condition.parent(this);
+			conditions.add(condition);
 			return properties();
 		}
 		String message = t("{} updated.",this); 
