@@ -352,7 +352,7 @@ public abstract class BaseClass implements Constants{
 
 	
 	protected Window properties(List<Fieldset> preForm,FormInput formInputs,List<Fieldset> postForm) {
-		Window win = new Window(getClass().getSimpleName()+"-properties", t("Properties of {} ({})",this.title(),id));
+		Window win = new Window(getClass().getSimpleName()+"-properties", t("Properties of {}",this.title()));
 		
 		preForm.forEach(fieldset -> fieldset.addTo(win));
 
@@ -372,7 +372,7 @@ public abstract class BaseClass implements Constants{
 	}
 	
 	private String title() {
-		return getClass().getSimpleName();
+		return toString();
 	}
 
 	private Map<String,String> props(Map<String,String> additionalProps){

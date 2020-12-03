@@ -18,6 +18,7 @@ import de.srsoftware.web4rail.tags.Input;
 
 public class ConditionList extends Condition implements Iterable<Condition>{
 	
+	private static final String CONDITIONS = "conditions";
 	private Vector<Condition> conditions = new Vector<Condition>();
 	
 	public ConditionList add(Condition condition) {
@@ -53,13 +54,10 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 	
 	@Override
 	public JSONObject json() {
-		String cls = getClass().getSimpleName();
-		throw new UnsupportedOperationException(cls+".json() not supported, use "+cls+".jsonArray instead!");
-	}
-
-	public JSONArray jsonArray() {
-		JSONArray json = new JSONArray();
-		for (Condition condition : conditions) json.put(condition.json());
+		JSONObject json = super.json();
+		JSONArray jConditions = new JSONArray();
+		conditions.stream().map(Condition::json).forEach(js -> jConditions.put(js));
+		json.put(CONDITIONS, jConditions);
 		return json;
 	}
 	
@@ -89,13 +87,17 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 		
 	}
 
-	public ConditionList load(JSONArray arr) {
-		for (int i=0; i<arr.length(); i++) {
-			JSONObject json = arr.getJSONObject(i);
-			Condition condition = Condition.create(json.getString(TYPE));			
-			if (condition != null) {
-				condition.parent(this);
-				conditions.add(condition.load(json));
+	@Override
+	public Condition load(JSONObject json) {
+		super.load(json);
+		if (json.has(CONDITIONS)) {
+			JSONArray jConditions = json.getJSONArray(CONDITIONS);
+			for (Object o : jConditions) {
+				if (o instanceof JSONObject) {
+					JSONObject jo = (JSONObject) o;
+					Condition condition = Condition.create(jo.getString(TYPE));
+					if (isSet(condition)) add(condition.load(jo));
+				}
 			}
 		}
 		return this;

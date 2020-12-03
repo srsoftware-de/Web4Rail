@@ -37,9 +37,10 @@ public abstract class Action extends BaseClass {
 		return context;
 	}
 	
-	public static Action create(String type,BaseClass parent) {
+	@SuppressWarnings("unchecked")
+	public static <T extends Action> T create(String type,BaseClass parent) {
 		try {
-			return (Action) Class.forName(PREFIX+"."+type).getDeclaredConstructor(BaseClass.class).newInstance(parent);
+			return (T) Class.forName(PREFIX+"."+type).getDeclaredConstructor(BaseClass.class).newInstance(parent);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

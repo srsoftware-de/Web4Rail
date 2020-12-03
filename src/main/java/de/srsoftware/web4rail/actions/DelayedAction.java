@@ -13,8 +13,6 @@ import de.srsoftware.web4rail.tags.Input;
 
 public class DelayedAction extends ActionList {
 	
-
-	private static final String ACTIONS = "actions";
 	public static final String DELAY = "delay";
 	private static final int DEFAULT_DELAY = 1000;
 	private int delay = DEFAULT_DELAY;
@@ -45,16 +43,12 @@ public class DelayedAction extends ActionList {
 	
 	@Override
 	public JSONObject json() {
-		JSONObject json = super.json();
-		json.put(DELAY, delay);
-		json.put(ACTIONS, jsonArray());
-		return json;
+		return super.json().put(DELAY, delay);
 	}
 	
 	public DelayedAction load(JSONObject json) {
 		super.load(json);
 		delay = json.getInt(DELAY);
-		if (json.has(ACTIONS)) super.load(json.getJSONArray(ACTIONS));
 		return this;
 	}
 		

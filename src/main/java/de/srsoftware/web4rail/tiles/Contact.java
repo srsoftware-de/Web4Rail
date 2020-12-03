@@ -8,11 +8,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
@@ -124,7 +126,26 @@ public class Contact extends Tile{
 	@Override
 	public Tile load(JSONObject json) {
 		if (json.has(ADDRESS)) addr(json.getInt(ADDRESS));
-		if (json.has(REALM_ACTIONS)) actions.load(json.getJSONArray(REALM_ACTIONS));
+		if (json.has(REALM_ACTIONS)) {
+			Object dummy = json.get(REALM_ACTIONS);
+			if (dummy instanceof JSONArray) {
+				JSONArray jarr = (JSONArray) dummy;
+				for (Object o : jarr) {
+					if (o instanceof JSONObject) {
+						JSONObject jo = (JSONObject) o;
+						String type = jo.getString("type");
+						Action action = Action.create(type, actions);
+						if (isSet(action)) {
+							action.load(jo);
+							actions.add(action);
+						}
+					}
+				}
+			}
+			if (dummy instanceof JSONObject) {
+				actions.load((JSONObject) dummy);
+			}
+		}
 		return super.load(json);
 	}
 	

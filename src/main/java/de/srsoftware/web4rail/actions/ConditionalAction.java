@@ -15,7 +15,6 @@ import de.srsoftware.web4rail.tags.Fieldset;
 public class ConditionalAction extends ActionList {
 	
 	private static final String CONDITIONS = "conditions";
-	private static final String ACTIONS = "actions";
 	private ConditionList conditions = new ConditionList();
 
 	public ConditionalAction(BaseClass parent) {
@@ -41,24 +40,24 @@ public class ConditionalAction extends ActionList {
 		JSONArray conditions = new JSONArray();
 		for (Condition condition : this.conditions) conditions.put(condition.json());
 		json.put(CONDITIONS, conditions);
-		json.put(ACTIONS, super.jsonArray());
 		return json;
 	}
 	
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		for (Object o : json.getJSONArray(CONDITIONS)) {
-			if (o instanceof JSONObject) {
-				JSONObject j = (JSONObject) o;
-				Condition condition = Condition.create(j.getString(TYPE));				
-				if (isSet(condition)) {
-					condition.parent(this);
-					conditions.add(condition.load(j));
+		if (json.has(CONDITIONS)) {
+			for (Object o : json.getJSONArray(CONDITIONS)) {
+				if (o instanceof JSONObject) {
+					JSONObject j = (JSONObject) o;
+					Condition condition = Condition.create(j.getString(TYPE));				
+					if (isSet(condition)) {
+						condition.parent(this);
+						conditions.add(condition.load(j));
+					}
 				}
 			}
 		}
-		super.load(json.getJSONArray(ACTIONS));
 		return this;
 	}
 

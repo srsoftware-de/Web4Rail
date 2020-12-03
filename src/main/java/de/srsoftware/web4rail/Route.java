@@ -53,19 +53,21 @@ public class Route extends BaseClass implements Comparable<Route>{
 	private static final Logger LOG             = LoggerFactory.getLogger(Route.class);
 
 	private static final String ACTIONS = "actions";
-	private static final String ACTION_LISTS = "action_lists";
 	private static final String BRAKE_TIMES = "brake_times";
-	private static final String CONDITIONS = "conditions";
+	private static final String CONDITION_LIST = "condition_list";
   	private static final String END_DIRECTION   = "direction_end";
 	private static final String ROUTES = "routes";
 	private static final String SETUP_ACTIONS = "setup_actions";
 	private static final String START_ACTIONS = "start_actions";
 	private static final String START_DIRECTION = "direction_start";
-	private static final String TRIGGER = "trigger";
 	static final String NAME     = "name";
 	static final String PATH     = "path";
 	static final String SIGNALS  = "signals";
 	static final String TURNOUTS = "turnouts";
+
+	private static final String ROUTE_START = "route_start";
+
+	private static final String ROUTE_SETUP = "route_setup";
 	
 	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
 	
@@ -144,17 +146,10 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public  Train                          train;
 	private HashMap<String,ActionList>     triggers = new HashMap<String, ActionList>();
 	private HashMap<Turnout,Turnout.State> turnouts;
-	private ActionList                     setupActions;
-	private ActionList                     startActions;
 	private Block                          startBlock = null;
 	public  Direction 					   startDirection;
 	private HashSet<Contact>			   triggeredContacts = new HashSet<>();
-	
-	public Route() {
-		setupActions = new ActionList(this);
-		startActions = new ActionList(this);
-	}
-	
+		
 	/**
 	 * process commands from the client
 	 * @param params
@@ -253,10 +248,10 @@ public class Route extends BaseClass implements Comparable<Route>{
 		Tag list = new Tag("ol");
 		
 		Tag setup = new Tag("li").content(t("Setup actions")+NBSP);
-		setupActions.list().addTo(setup).addTo(list);
+		triggers.get(ROUTE_SETUP).list().addTo(setup).addTo(list);
 
 		Tag start = new Tag("li").content(t("Start actions")+NBSP);
-		startActions.list().addTo(start).addTo(list);
+		triggers.get(ROUTE_START).list().addTo(start).addTo(list);
 
 		for (Contact c : contacts) {
 			Tag item = c.link("span", c).addTo(new Tag("li")).content(NBSP);
@@ -277,7 +272,6 @@ public class Route extends BaseClass implements Comparable<Route>{
 		
 		conditions.addAll(existingRoute.conditions);
 		
-		setupActions.addActionsFrom(existingRoute.setupActions);
 		for (Entry<String, ActionList> entry : triggers.entrySet()) {
 			String trigger = entry.getKey();
 			ActionList existingActionList = existingRoute.triggers.get(trigger);
@@ -376,8 +370,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 			add(lastContact.trigger(), new BrakeStop(this)); 
 			add(lastContact.trigger(), new FinishRoute(this));
 		}
-		for (Signal signal : signals) setupActions.add(new SetSignal(this).set(signal).to(Signal.GO));
-		startActions.add(new SetSpeed(this).to(999));
+		for (Signal signal : signals) add(ROUTE_SETUP,new SetSignal(this).set(signal).to(Signal.GO));
+		add(ROUTE_START,new SetSpeed(this).to(999));
 		return this;
 	}
 
@@ -437,7 +431,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	public boolean fireSetupActions(Context context) {
-		return setupActions.fire(context);
+		return triggers.get(ROUTE_SETUP).fire(context);
 	}
 	
 	private String generateName() {
@@ -492,21 +486,17 @@ public class Route extends BaseClass implements Comparable<Route>{
 		
 		json.put(BRAKE_TIMES, brakeTimes);
 		
-		if (!conditions.isEmpty()) json.put(CONDITIONS, conditions.jsonArray());
-		
-		JSONArray jTriggers = new JSONArray();
-		for (Entry<String, ActionList> entry : triggers.entrySet()) {
-			JSONObject trigger = new JSONObject();
-			trigger.put(TRIGGER, entry.getKey());
-			ActionList actionList = entry.getValue();
-			trigger.put(ACTIONS, actionList.jsonArray());
-			
-			jTriggers.put(trigger);
-
+		if (!conditions.isEmpty()) {
+			json.put(CONDITION_LIST, conditions.json());
 		}
-		if (!jTriggers.isEmpty()) json.put(ACTION_LISTS, jTriggers);
-		if (!setupActions.isEmpty()) json.put(SETUP_ACTIONS, setupActions.json());
-		if (!startActions.isEmpty()) json.put(START_ACTIONS, startActions.json());
+		
+		JSONObject jActions = new JSONObject();
+		for (Entry<String, ActionList> entry : triggers.entrySet()) {
+			String trigger = entry.getKey();
+			ActionList lst = entry.getValue();
+			jActions.put(trigger,lst.json());
+		}
+		json.put(ACTIONS, jActions);
 		
 		String name = name();		
 		if (isSet(name)) json.put(NAME, name);
@@ -550,10 +540,96 @@ public class Route extends BaseClass implements Comparable<Route>{
 		if (json.has(SIGNALS)) {
 			for (Object signalId : json.getJSONArray(SIGNALS)) addSignal((Signal) plan.get(new Id((String) signalId), false));
 		}
-		if (json.has(ACTION_LISTS)) loadActions(json.getJSONArray(ACTION_LISTS));
-		if (json.has(CONDITIONS)) conditions.load(json.getJSONArray(CONDITIONS)).parent(this);
-		if (json.has(SETUP_ACTIONS)) setupActions.load(json.getJSONArray(SETUP_ACTIONS)).parent(this);
-		if (json.has(START_ACTIONS)) startActions.load(json.getJSONArray(START_ACTIONS)).parent(this);
+		if (json.has(ACTIONS)) {
+			loadActions(json.getJSONObject(ACTIONS));
+		}
+		if (json.has("action_lists")) { // TODO: this is legacy!
+			JSONArray jarr = json.getJSONArray("action_lists");
+			for (Object o : jarr) {
+				if (o instanceof JSONObject) {
+					JSONObject jo = (JSONObject) o;
+					ActionList aList = new ActionList(this);
+					String trigger = jo.getString("trigger");
+					JSONArray jActions = jo.getJSONArray(ACTIONS);
+					for (Object ja : jActions) {
+						JSONObject jao = (JSONObject) ja;
+						String type = jao.getString(TYPE);
+						Action action = Action.create(type, aList);
+						if (isSet(action)) {
+							action.load(jao);
+							aList.add(action);
+						}
+					}
+					triggers.put(trigger, aList);
+				}
+			}
+		}
+		if (json.has("conditions")) { // TODO: this is legacy!
+			JSONArray jConditions = json.getJSONArray("conditions");
+			for (Object o : jConditions) {
+				if (o instanceof JSONObject) {
+					JSONObject jo = (JSONObject) o;
+					String type = jo.getString(TYPE);
+					Condition condition = Condition.create(type);
+					if (isSet(condition)) {
+						condition.load(jo);
+						conditions.add(condition);
+					}					
+				}
+			}
+		}
+		if (json.has(CONDITION_LIST)) conditions.load(json.getJSONObject(CONDITION_LIST)).parent(this);
+		if (json.has(SETUP_ACTIONS)) { // TODO: this is legacy!
+			Object so = json.get(SETUP_ACTIONS);
+			if (so instanceof JSONObject) {
+				JSONObject jo = (JSONObject) so;
+				ActionList setupActions = new ActionList(this);
+				setupActions.load(jo).parent(this);
+				triggers.put(ROUTE_SETUP, setupActions);
+			}
+			if (so instanceof JSONArray) {
+				JSONArray ja = (JSONArray) so;
+				ActionList setupActions = new ActionList(this);
+				for (Object o : ja) {
+					if (o instanceof JSONObject) {
+						JSONObject jo = (JSONObject) o;
+						String type = jo.getString(TYPE);
+						Action action = Action.create(type, setupActions);
+						if (isSet(action)) {
+							action.load(jo);
+							setupActions.add(action);
+						}
+					}
+				}
+				triggers.put(ROUTE_SETUP, setupActions);
+			}			
+		}
+		if (json.has(START_ACTIONS)) { // TODO: this is legacy!
+			Object so = json.get(START_ACTIONS);
+			if (so instanceof JSONObject) {
+				JSONObject jo = (JSONObject) so;
+				ActionList startActions = new ActionList(this);
+				startActions.load(jo).parent(this);
+				triggers.put(ROUTE_START, startActions);
+			}
+			if (so instanceof JSONArray) {
+				JSONArray ja = (JSONArray) so;
+				ActionList startActions = new ActionList(this);
+				for (Object o : ja) {
+					if (o instanceof JSONObject) {
+						JSONObject jo = (JSONObject) o;
+						String type = jo.getString(TYPE);
+						Action action = Action.create(type, startActions);
+						if (isSet(action)) {
+							action.load(jo);
+							startActions.add(action);
+						}
+					}
+				}
+				triggers.put(ROUTE_START, startActions);
+			}			
+		
+		}
 		if (json.has(DISABLED)) disabled = json.getBoolean(DISABLED);
 		if (json.has(BRAKE_TIMES)) {
 			JSONObject dummy = json.getJSONObject(BRAKE_TIMES);
@@ -561,15 +637,16 @@ public class Route extends BaseClass implements Comparable<Route>{
 		}
 		return plan.registerRoute(this);
 	}
-	
-	private void loadActions(JSONArray arr) {
-		for (int i=0; i<arr.length(); i++) {
-			JSONObject json = arr.getJSONObject(i);
-			String trigger = json.getString(TRIGGER);
-			ActionList actionList = new ActionList(this).load(json.getJSONArray(ACTIONS));
-			actionList.parent(this);
+
+	private void loadActions(JSONObject jsonObject) {
+		for (String trigger : jsonObject.keySet()) {
+			JSONObject json = jsonObject.getJSONObject(trigger);
+			String type = json.getString(TYPE);
+			ActionList actionList = Action.create(type, this);
+			if (isNull(actionList)) continue;
+			actionList.load(json);
 			triggers.put(trigger, actionList);
-		}
+		}		
 	}
 
 	public static void loadAll(String filename, Plan plan) throws IOException {
@@ -578,7 +655,9 @@ public class Route extends BaseClass implements Comparable<Route>{
 		JSONObject json = new JSONObject(tokener);
 		JSONArray routes = json.getJSONArray(ROUTES);
 		for (Object o : routes) {
-			if (o instanceof JSONObject) new Route().load((JSONObject)o, plan);
+			if (o instanceof JSONObject) {
+				new Route().load((JSONObject)o, plan);
+			}
 		}
 		fis.close();
 	}
@@ -659,8 +738,6 @@ public class Route extends BaseClass implements Comparable<Route>{
 			ActionList actionList = triggers.remove(key);
 			if (isSet(actionList)) actionList.remove();			
 		};
-		setupActions.remove();
-		startActions.remove();
 		return this;
 	}
 
@@ -674,8 +751,6 @@ public class Route extends BaseClass implements Comparable<Route>{
 		if (child == train) train = null;
 		for (ActionList list : triggers.values()) list.removeChild(child);
 		turnouts.remove(child);
-		setupActions.removeChild(child);
-		startActions.removeChild(child);
 		if (child == startBlock) startBlock = null;
 		triggeredContacts.remove(child);
 	}
@@ -771,7 +846,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public boolean train(Train newTrain) {
 		if (isSet(train) && newTrain != train) return false;
 		train = newTrain;
-		return isSet(train) ? startActions.fire(new Context(this).train(train)) : true;
+		return isSet(train) ? triggers.get(ROUTE_START).fire(new Context(this).train(train)) : true;
 	}
 	
 	public Route unlock() throws IOException {

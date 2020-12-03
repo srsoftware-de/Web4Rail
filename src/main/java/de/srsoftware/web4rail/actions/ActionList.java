@@ -22,7 +22,8 @@ import de.srsoftware.web4rail.tags.Input;
 
 public class ActionList extends Action implements Iterable<Action>{
 	static final Logger LOG = LoggerFactory.getLogger(ActionList.class);
-	
+	private static final String ACTIONS = "actions";
+
 	protected Vector<Action> actions;
 	
 	public ActionList(BaseClass parent) {
@@ -104,14 +105,11 @@ public class ActionList extends Action implements Iterable<Action>{
 	
 	@Override
 	public JSONObject json() {
-		String cls = getClass().getSimpleName();
-		throw new UnsupportedOperationException(cls+".json() not supported, use "+cls+".jsonArray instead!");
-	}
-	
-	public JSONArray jsonArray() {
-		JSONArray result = new JSONArray();
-		for (Action action : actions) result.put(action.json());
-		return result;
+		JSONObject json = super.json();
+		JSONArray jActions = new JSONArray();
+		actions.forEach(action -> jActions.put(action.json()));
+		json.put(ACTIONS,jActions);
+		return json;
 	}
 
 	public Tag list() {
@@ -136,12 +134,16 @@ public class ActionList extends Action implements Iterable<Action>{
 		return span;
 	}
 
-	public ActionList load(JSONArray list) {
-		for (Object o : list) {
-			if (o instanceof JSONObject) {
-				JSONObject json = (JSONObject) o;
-				Action action = Action.create(json.getString(TYPE),this);
-				if (action != null) add(action.load(json));
+	public Action load(JSONObject json) {
+		super.load(json);
+		if (json.has(ACTIONS)) {
+			JSONArray list = json.getJSONArray(ACTIONS);
+			for (Object o : list) {
+				if (o instanceof JSONObject) {
+					JSONObject jsonObject = (JSONObject) o;
+					Action action = Action.create(jsonObject.getString(TYPE),this);
+					if (action != null) add(action.load(jsonObject));
+				}
 			}
 		}
 		return this;
