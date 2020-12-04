@@ -56,7 +56,6 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	protected Direction       oneWay    = null;
 	protected Route           route     = null;
 	private   TreeSet<Route>  routes    = new TreeSet<>();
-	protected TreeSet<Shadow> shadows   = new TreeSet<>();
 	protected Train           train     = null;	
 	public    Integer         x         = null;
 	public    Integer         y         = null;
@@ -65,10 +64,6 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		this.routes.add(route);
 	}
 
-	public void addShadow(Shadow shadow) {
-		shadows.add(shadow);
-	}
-	
 	protected Vector<String> classes(){
 		Vector<String> classes = new Vector<String>();
 		classes.add("tile");
@@ -113,8 +108,9 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	private static void inflate(String clazz, JSONObject json, Plan plan) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, IOException {
 		clazz = Tile.class.getName().replace(".Tile", "."+clazz);
 		Tile tile = (Tile) Tile.class.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
-		tile.load(json).parent(plan);
-		plan.set(tile.x, tile.y, tile);
+		tile.load(json).register();
+		if (tile instanceof StretchableTile) ((StretchableTile)tile).placeShadows();
+		plan.place(tile);
 	}
 
 	public boolean isFreeFor(Train newTrain) {
@@ -382,14 +378,12 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	public BaseClass remove() {
 		super.remove();
 		while (!routes.isEmpty()) routes.first().remove();
-		while (!shadows.isEmpty()) shadows.first().remove();
 		return this;
 	}
 	
 	@Override
 	public void removeChild(BaseClass child) {
 		routes.remove(child);
-		if (child instanceof Shadow) shadows.remove(child);
 		if (child == train) train = null;
 		if (child == route) route = null;
 		plan.place(this);
@@ -420,5 +414,18 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	
 	public int width() {
 		return 1;
+	}
+
+	public boolean move(int dx, int dy) {
+		int destX = x+(dx > 0 ? width() : dx);
+		int destY = y+(dy > 0 ? height() : dy);
+		if (destX < 0 || destY < 0) return false;
+		
+		Tile tileAtDestination = plan.get(id(destX, destY),true);
+		if (isSet(tileAtDestination) && !tileAtDestination.move(dx, dy)) return false;
+		plan.drop(this);		
+		position(x+dx, y+dy);
+		plan.place(this);
+		return true;
 	}
 }

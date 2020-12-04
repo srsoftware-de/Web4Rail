@@ -25,7 +25,7 @@ public class StraightV extends StretchableTile{
 	
 	@Override
 	public int height() {
-		return stretch;
+		return stretch();
 	}
 	
 	@Override

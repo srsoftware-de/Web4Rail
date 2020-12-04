@@ -81,6 +81,6 @@ public class TextDisplay extends StretchableTile {
 	
 	@Override
 	public int width() {
-		return stretch;
+		return stretch();
 	}
 }

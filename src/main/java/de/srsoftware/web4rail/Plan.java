@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Stack;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -63,6 +62,7 @@ import de.srsoftware.web4rail.tiles.SignalS;
 import de.srsoftware.web4rail.tiles.SignalW;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
+import de.srsoftware.web4rail.tiles.StretchableTile;
 import de.srsoftware.web4rail.tiles.TextDisplay;
 import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.Turnout.State;
@@ -238,9 +238,8 @@ public class Plan extends BaseClass{
 			}
 			return null;
 		}
-		//if (configJson != null) tile.configure(new JSONObject(configJson));		
-		set(x, y, tile);
-		tile.parent(this);
+		if (tile instanceof StretchableTile) ((StretchableTile)tile).placeShadows();
+		place(tile.position(x, y));
 		return t("Added {}",tile.getClass().getSimpleName());
 	}
 	
@@ -503,13 +502,13 @@ public class Plan extends BaseClass{
 	private String moveTile(String direction, Id tileId) throws NumberFormatException, IOException {
 		switch (direction) {
 		case "south":
-			return moveTile(get(tileId,false),Direction.SOUTH);
+			return moveTile(get(tileId,true),Direction.SOUTH);
 		case "north":
-			return moveTile(get(tileId,false),Direction.NORTH);
+			return moveTile(get(tileId,true),Direction.NORTH);
 		case "east":
-			return moveTile(get(tileId,false),Direction.EAST);
+			return moveTile(get(tileId,true),Direction.EAST);
 		case "west":
-			return moveTile(get(tileId,false),Direction.WEST);
+			return moveTile(get(tileId,true),Direction.WEST);
 		}
 		throw new InvalidParameterException(t("\"{}\" is not a known direction!"));
 	}
@@ -527,49 +526,27 @@ public class Plan extends BaseClass{
 			LOG.debug("moveTile({},{},{})",direction,tile.x,tile.y);
 			switch (direction) {		
 				case EAST:
-					moved = moveTile(tile,+1,0);
+					moved = tile.move(+1,0);
 					break;
 				case WEST:
-					moved = moveTile(tile,-1,0);
+					moved = tile.move(-1,0);
 					break;
 				case NORTH:
-					moved = moveTile(tile,0,-1);
+					moved = tile.move(0,-1);
 					break;
 				case SOUTH:
-					moved = moveTile(tile,0,+1);
+					moved = tile.move(0,+1);
 					break;
 			}
 		}
 		return t(moved ? "Tile(s) moved.":"No tile(s) moved.");
 	}
 
-	/**
-	 * processes move-tile instructions sent from the client (subroutine)
-	 * @param tile
-	 * @param xstep
-	 * @param ystep
-	 * @return
-	 * @throws IOException
-	 */
-	private boolean moveTile(Tile tile,int xstep,int ystep) throws IOException {
-		LOG.error("moveTile({}  +{}/+{})",tile,xstep,ystep);
-		Stack<Tile> stack = new Stack<Tile>();
-		while (tile != null) {
-			LOG.debug("scheduling tile for movement: {}",tile);
-			stack.add(tile);
-			tile = get(Tile.id(tile.x+xstep, tile.y+ystep),false);
-		}
-		while (!stack.isEmpty()) {
-			tile = stack.pop();
-			if (!(tile instanceof Shadow)) {
-				LOG.debug("altering position of {}",tile);
-				tile.remove();
-				set(tile.x+xstep,tile.y+ystep,tile);
-			}
-		}
-		return false;
+	public void drop(Tile tile) {
+		tile.unregister();
+		stream("remove "+tile.id());		
 	}
-	
+
 	/**
 	 * adds a new tile to the plan on the client side
 	 * @param tile
@@ -578,6 +555,8 @@ public class Plan extends BaseClass{
 	 */
 	public Tile place(Tile tile) {
 		try {
+			tile.parent(this);
+			tile.register();
 			stream("place "+tile.tag(null));
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -659,22 +638,7 @@ public class Plan extends BaseClass{
 	
 	@Override
 	protected void removeChild(BaseClass child) {
-		if (child instanceof Tile) {
-			Tile tile = (Tile) child;
-			stream("remove "+tile.id());			
-			for (int i=1; i<tile.width(); i++) removeTile(tile.x+i, tile.y); // remove shadow tiles
-			for (int i=1; i<tile.height(); i++) removeTile(tile.x, tile.y+i); // remove shadow tiles
-		}
-	}
-
-	/**
-	 * removes a tile from the track layout (subroutine)
-	 * @param x
-	 * @param y
-	 */
-	private void removeTile(int x, int y) {
-		Tile tile = BaseClass.get(Tile.id(x, y));
-		if (isSet(tile)) tile.remove();
+		if (child instanceof Tile) drop((Tile) child);
 	}
 	
 	/**
@@ -713,31 +677,6 @@ public class Plan extends BaseClass{
 				.put(LENGTH_UNIT, lengthUnit);
 	}
 
-	/**
-	 * adds a tile to the plan at a specific position
-	 * @param x
-	 * @param y
-	 * @param tile
-	 * @throws IOException
-	 */
-	public void set(int x,int y,Tile tile) throws IOException {
-		if (isNull(tile)) return;
-		setIntern(x,y,tile);
-		for (int i=1; i<tile.width(); i++) set(x+i,y,new Shadow(tile,x+i,y));
-		for (int i=1; i<tile.height(); i++) set(x,y+i,new Shadow(tile,x,y+1));
-		place(tile);		
-	}
-	
-	/**
-	 * adds a tile to the plan at a specific position (subroutine)
-	 * @param x
-	 * @param y
-	 * @param tile
-	 */
-	private void setIntern(int x, int y, Tile tile) {
-		tile.position(x, y).register();
-	}
-	
 	public void sensor(int addr, boolean active) {
 		Contact contact = Contact.get(addr);
 		if (active && learningContact != null) {

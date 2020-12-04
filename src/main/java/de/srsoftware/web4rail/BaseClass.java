@@ -397,6 +397,10 @@ public abstract class BaseClass implements Constants{
 	protected static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
 	}
+	
+	public BaseClass unregister() {
+		return registry.remove(this.id());
+	}
 
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);

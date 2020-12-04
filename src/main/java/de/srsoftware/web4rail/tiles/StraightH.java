@@ -35,6 +35,6 @@ public class StraightH extends StretchableTile{
 	
 	@Override
 	public int width() {
-		return stretch;
+		return stretch();
 	}
 }

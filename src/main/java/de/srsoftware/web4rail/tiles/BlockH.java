@@ -36,7 +36,7 @@ public class BlockH extends Block{
 		
 	@Override
 	public int width() {
-		return stretch;
+		return stretch();
 	}
 	
 	@Override
