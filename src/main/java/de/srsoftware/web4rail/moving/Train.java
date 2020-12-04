@@ -574,7 +574,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void reserveNext() {
-		Context context = new Context(this).route(route).block(route.endBlock());
+		Context context = new Context(this).route(route).block(route.endBlock()).direction(route.endDirection);
 		Route nextRoute = PathFinder.chooseRoute(context);
 		if (isNull(nextRoute)) return;
 		
@@ -685,7 +685,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (maxSpeed() == 0) return t("Train has maximum speed of 0 {}, cannot go!",speedUnit);
 		if (isSet(route)) route.reset(); // reset route previously chosen
 
-		Context context = new Context(this).block(this.currentBlock);
+		Context context = new Context(this).block(currentBlock).direction(direction);
 		String error = null;
 		if (isSet(nextRoute)) {
 			route = nextRoute;

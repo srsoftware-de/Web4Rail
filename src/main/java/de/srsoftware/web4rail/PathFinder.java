@@ -36,7 +36,7 @@ public class PathFinder extends BaseClass{
 		if (error) return availableRoutes;
 		
 		Block destination = train.destination();
-		Direction direction = train.direction();
+		Direction direction = context.direction();
 /*		if (isSet(direction)) {
 			LOG.debug("{}Looking for {}-bound routes from {}",inset,direction,block);
 		} else {
@@ -68,8 +68,7 @@ public class PathFinder extends BaseClass{
 					priority = 1_000_000;
 				} else {
 					LOG.debug("{}- Candidate: {}",inset,routeCandidate.shortName());
-					Context forwardContext = new Context(train);
-					forwardContext.block(routeCandidate.endBlock()).route(null);
+					Context forwardContext = new Context(train).block(routeCandidate.endBlock()).route(null).direction(routeCandidate.endDirection);
 					visitedRoutes.add(routeCandidate);
 					TreeMap<Integer, List<Route>> forwardRoutes = availableRoutes(forwardContext,visitedRoutes);
 					visitedRoutes.remove(routeCandidate);
