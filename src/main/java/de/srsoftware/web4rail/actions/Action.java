@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -13,8 +14,14 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Window;
+import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Form;
+import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tags.TextArea;
 
 /**
  * Base Class for all other actions
@@ -25,12 +32,39 @@ public abstract class Action extends BaseClass {
 	private static final HashMap<Id,Action> actions = new HashMap<Id, Action>();
 	public static final Logger LOG = LoggerFactory.getLogger(Action.class);
 	private static final String PREFIX = Action.class.getPackageName();
+	private static final String JSON = "json";
 	
 	public Action(BaseClass parent) {
 		actions.put(id(), this);
 		parent(parent);
 	}
 	
+	public static List<Class<? extends Action>> classes() {
+		return List.of(
+			BrakeStart.class,
+			BrakeStop.class,
+			BrakeCancel.class,
+			ConditionalAction.class,
+			DelayedAction.class,
+			DetermineTrainInBlock.class,
+			FinishRoute.class,
+			PreserveRoute.class,
+			SendCommand.class,
+			SetContextTrain.class,
+			SetDisplayText.class,
+			SetPower.class,
+			SetRelay.class,
+			SetSignal.class,
+			SetSpeed.class,
+			SetTurnout.class,
+			ShowText.class,
+			StopAllTrains.class,
+			StartStopAuto.class,
+			TriggerContact.class,
+			TurnTrain.class
+		);
+	}
+
 	public BaseClass context() {
 		BaseClass context = this;
 		while (context instanceof Action && isSet(context.parent())) context = context.parent();
@@ -61,33 +95,28 @@ public abstract class Action extends BaseClass {
 		return new JSONObject().put(TYPE, getClass().getSimpleName());
 	}
 	
-	public static List<Class<? extends Action>> classes() {
-		return List.of(
-			BrakeStart.class,
-			BrakeStop.class,
-			BrakeCancel.class,
-			ConditionalAction.class,
-			DelayedAction.class,
-			DetermineTrainInBlock.class,
-			FinishRoute.class,
-			PreserveRoute.class,
-			SendCommand.class,
-			SetContextTrain.class,
-			SetDisplayText.class,
-			SetPower.class,
-			SetRelay.class,
-			SetSignal.class,
-			SetSpeed.class,
-			SetTurnout.class,
-			ShowText.class,
-			StopAllTrains.class,
-			StartStopAuto.class,
-			TriggerContact.class,
-			TurnTrain.class
-		);
+	protected Object jsonImportExport(HashMap<String, String> params) {
+		if (params.containsKey(JSON)) {
+			String jString = params.get(JSON);
+			JSONObject json = new JSONObject(jString);
+			if (this instanceof ActionList) {
+				((ActionList)this).clear();
+			}
+			load(json);
+			return context().properties();
+		}
+		Window win = new Window("json-import-export-"+id(), t("JSON code of {}",this));
+		Form form = new Form("json-form-"+id());
+		new Input(REALM, REALM_ACTIONS).hideIn(form);
+		new Input(ID, id()).hideIn(form);
+		new Input(ACTION, ACTION_SAVE).hideIn(form);
+		new TextArea(JSON).clazz("json").content(json().toString(4)).addTo(form).addTo(win);
+		new Button(t("update"),form).addTo(form);
+		return win;
 	}
-	
+		
 	public Action load(JSONObject json) {
+		super.load(json);
 		return this;
 	}
 	
@@ -101,10 +130,12 @@ public abstract class Action extends BaseClass {
 		return false;
 	}
 
-/*	@Override
-	public Window properties() { // goes up to first ancestor, which is not an Action
-		return parent().properties();
-	}*/
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+		formInputs.add(t("Edit json"),button(t("export"), Map.of(ACTION, ACTION_SAVE)));
+
+		return super.properties(preForm, formInputs, postForm);
+	}
 	
 	public static Tag selector() {
 		Select select = new Select(TYPE);

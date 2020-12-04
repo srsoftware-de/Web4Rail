@@ -824,6 +824,6 @@ public class Plan extends BaseClass{
 	 * @param contact
 	 */
 	public void warn(Contact contact) {
-		stream(t("Warning: {}",t("Ghost train @ {}",contact)));
+		//stream(t("Warning: {}",t("Ghost train @ {}",contact)));
 	}
 }

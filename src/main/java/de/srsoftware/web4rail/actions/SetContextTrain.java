@@ -35,19 +35,21 @@ public class SetContextTrain extends Action {
 	public Action load(JSONObject json) {
 		super.load(json);
 		if (json.has(REALM_TRAIN)) {
-			new Thread() { // load asynchronously, as referred tile may not be available,yet
-				public void run() {
-					try {
-						sleep(1000);
-						Id trainId = Id.from(json,REALM_TRAIN);
-						if (isSet(trainId)) train = Train.get(trainId);
-					} catch (InterruptedException e) {}						
-				};
-			}.start();
+			Id trainId = Id.from(json,REALM_TRAIN);
+			if (isSet(trainId)) {
+				train = Train.get(trainId);
+				if (isNull(train)) new Thread() { // load asynchronously, as referred tile may not be available,yet
+					public void run() {
+						try {
+							sleep(1000);
+							train = Train.get(trainId);
+						} catch (InterruptedException e) {}						
+					};
+				}.start();
+			}
 		}
 		return this;
 	}
-	
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {

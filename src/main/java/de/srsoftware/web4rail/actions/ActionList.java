@@ -82,6 +82,10 @@ public class ActionList extends Action implements Iterable<Action>{
 		actions.forEach(action -> other.removeChild(action)); // zugewiesene Aktionen von alter Liste löschen
 	}
 	
+	public void clear() {
+		while (!actions.isEmpty()) actions.firstElement().remove();
+	}
+
 	public boolean drop(Action action) {
 		return actions.remove(action);
 	}
@@ -199,15 +203,13 @@ public class ActionList extends Action implements Iterable<Action>{
 			case ACTION_PROPS:
 				return action.properties();
 			case ACTION_SAVE:
-				Window win = new Window("action-export", t("Export of {}",action));
-				new Tag("textarea").content(action.json().toString()).addTo(win);
-				return win;
+				return action.jsonImportExport(params);
 			case ACTION_UPDATE:
 				return action.update(params);
 		}
 		return t("Unknown action: {}",command);
 	}
-	
+
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		Fieldset fieldset = new Fieldset(t("Actions"));

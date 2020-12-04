@@ -320,3 +320,9 @@ polyline{
 svg.disconnected rect{
 	fill: red;
 }
+
+textarea.json {
+	width: 90%;
+	height: 33%;
+	margin-left: 5%;
+}
