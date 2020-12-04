@@ -109,9 +109,7 @@ svg circle{
 	text-align: center;
 }
 
-.Shadow{
-	z-index: 100;
-}
+.Shadow,
 .menu .list{
 	display: none;
 }
