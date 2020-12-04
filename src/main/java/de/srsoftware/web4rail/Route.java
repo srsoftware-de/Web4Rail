@@ -448,7 +448,9 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	public boolean fireSetupActions(Context context) {
-		return triggeredActions.get(ROUTE_SETUP).fire(context);
+		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
+		if (isNull(setupActions)) return true;
+		return setupActions.fire(context);
 	}
 	
 	private String generateName() {
@@ -863,7 +865,12 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public boolean train(Train newTrain) {
 		if (isSet(train) && newTrain != train) return false;
 		train = newTrain;
-		return isSet(train) ? triggeredActions.get(ROUTE_START).fire(new Context(this).train(train)) : true;
+		if (isSet(train)) {
+			ActionList startActions = triggeredActions.get(ROUTE_START);
+			if (isNull(startActions)) return true;
+			return startActions.fire(new Context(this).train(train));
+		}
+		return true;
 	}
 	
 	public Route unlock() throws IOException {
