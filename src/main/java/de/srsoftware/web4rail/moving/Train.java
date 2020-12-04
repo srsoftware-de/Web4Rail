@@ -197,6 +197,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(autopilot)) {
 			autopilot = new Autopilot();
 			autopilot.start();
+			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
 		return t("{} now in auto-mode",this);
 	}
@@ -276,7 +277,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String directedName() {
 		String result = name();
-		if (isSet(autopilot)) result="•"+result;
+		if (isSet(autopilot)) result="℗"+result;
 		if (isNull(direction)) return result;
 		switch (direction) {
 		case NORTH:
@@ -560,7 +561,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		if (isSet(autopilot)) {
 			autopilot.stop = true;
-			autopilot = null;			
+			autopilot = null;
+			if (isSet(currentBlock)) plan.place(currentBlock);
 			return t("{} stopping at next block.",this);
 		} else return t("autopilot not active.");
 	}

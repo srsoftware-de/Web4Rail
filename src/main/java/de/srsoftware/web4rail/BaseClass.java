@@ -88,7 +88,17 @@ public abstract class BaseClass implements Constants{
 		}
 		
 		public Context clone() {
-			return new Context(main);
+			Context clone = new Context(main);
+			clone.tile = tile;
+			clone.block = block;
+			clone.train = train;
+			clone.route = route;
+			clone.action = action;
+			clone.condition = condition;
+			clone.car = car;
+			clone.contact = contact;
+			clone.direction = direction;
+			return clone;
 		}
 		
 		public Condition condition() {

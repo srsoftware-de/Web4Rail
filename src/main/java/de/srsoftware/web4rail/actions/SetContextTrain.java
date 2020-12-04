@@ -70,7 +70,7 @@ public class SetContextTrain extends Action {
 		LOG.debug("update: {}",params);
 		Id trainId = Id.from(params,Train.class.getSimpleName());
 		if (isSet(trainId)) train = Train.get(trainId);
-		return properties();
+		return super.update(params);
 	}
 
 }

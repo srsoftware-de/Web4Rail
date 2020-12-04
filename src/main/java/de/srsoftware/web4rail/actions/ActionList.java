@@ -180,7 +180,7 @@ public class ActionList extends Action implements Iterable<Action>{
 				action.remove();
 				return context.properties();
 			case ACTION_MOVE:
-				return action.moveUp() ? action.properties() : t("No action with id {} found!",actionId);
+				return action.moveUp() ? action.context().properties() : t("No action with id {} found!",actionId);
 			case ACTION_PROPS:
 				return action.properties();
 			case ACTION_UPDATE:
