@@ -44,6 +44,7 @@ Click here to add conditions : Hier klicken, um Bedingungen hinzuzufügen
 Click here to select train! : Hier klicken, um Zug auszuwählen!
 click here to setup contact : Hier klicken, um Kontakt auszuwählen
 click here to setup relay : Hier klicken, um Relais einzurichten
+click here to setup turnout : Hier klicken, um Weiche einzurichten
 Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
 Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werden soll:
 ConditionalAction : bedingte Aktion
@@ -156,6 +157,7 @@ Select display : Anzeige auswählen
 Select from plan : Auf Plan auswählen
 Select relay\: : Relais auswählen:
 Select train : Zug auswählen
+Select turnout : Weiche wählen
 SendCommand : Kommando senden
 Send command "{}" to control unit : Kommando „{}“ an Zentrale senden
 Set {} as context : {} als Kontext setzen
@@ -170,6 +172,7 @@ Set speed to {} {} : Geschwindigkeit auf {} {} setzen
 Set {} to {} : {} auf {} setzen
 SetPower : Strom schalten
 Set speed to : Geschwindigkeit setzen
+SetTurnout : Weiche stellen
 Setup actions : Vorbereitung-Aktionen
 ShowText : Text anzeigen
 Signals : Signale

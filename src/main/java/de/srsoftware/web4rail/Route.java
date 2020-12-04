@@ -702,7 +702,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		for (Tile tile : path) {
 			if (ignoredPath.contains(tile)) continue;
 			try {
-				tile.setRoute(this);
+				alreadyLocked.add(tile.setRoute(this));
 			} catch (IllegalStateException e) {
 				success = false;
 				break;
@@ -839,16 +839,13 @@ public class Route extends BaseClass implements Comparable<Route>{
 	
 	public boolean setTurnouts() {
 		Turnout turnout = null;
-		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) try {
+		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) {
 			turnout = entry.getKey();
 			Turnout.State targetVal = entry.getValue();
 			if (!turnout.state(targetVal).succeeded()) return false;
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {}
-		} catch (IOException e) {
-			LOG.warn("Was not able to switch turnout {}!",turnout,e);
-			return false;
 		}
 		return true;
 	}

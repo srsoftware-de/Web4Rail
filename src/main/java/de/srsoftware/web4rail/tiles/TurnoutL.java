@@ -41,6 +41,11 @@ public abstract class TurnoutL extends Turnout {
 	}
 	
 	@Override
+	public List<State> states() {
+		return List.of(State.STRAIGHT,State.LEFT);
+	}
+	
+	@Override
 	public Tile update(HashMap<String, String> params) {
 		if (params.containsKey(STRAIGHT)) portA = Integer.parseInt(params.get(STRAIGHT));
 		if (params.containsKey(LEFT)) portB = Integer.parseInt(params.get(LEFT));

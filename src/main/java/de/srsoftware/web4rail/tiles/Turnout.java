@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import java.util.concurrent.TimeoutException;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Device;
@@ -17,6 +19,7 @@ import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
+import de.srsoftware.web4rail.tags.Select;
 
 /**
  * Base class for Turnouts
@@ -139,11 +142,23 @@ public abstract class Turnout extends Tile implements Device{
 		}		
 	}
 	
+	public static Select selector(Turnout preselect, Collection<Turnout> exclude) {
+		Select selector = new Select(TURNOUT);
+		List<Turnout> turnouts = BaseClass.listElements(Turnout.class);
+		turnouts.sort((t1,t2) -> t1.x == t2.x ? t1.y - t2.y : t1.x - t2.x);
+		for (Turnout turnout : turnouts) {
+			if (isSet(exclude) && exclude.contains(turnout)) continue;
+			Tag option = selector.addOption(turnout.id(), turnout);
+			if (turnout == preselect) option.attr("selected", "selected");
+		}
+		return selector;
+	}
+	
 	public State state() {
 		return state;
 	}
 	
-	public Reply state(State newState) throws IOException {
+	public Reply state(State newState) {
 		if (train != null && newState != state) return new Reply(415, t("{} locked by {}!",this,train));
 		if (address == 0) { 
 			state = newState;
@@ -173,9 +188,9 @@ public abstract class Turnout extends Tile implements Device{
 			LOG.warn(e.getMessage());			
 		}
 		return new Reply(417,t("Timeout while trying to switch {}.",this));
-	
-		
 	}
+	
+	public abstract List<State> states();
 	
 	public void success() {
 		this.error = false;

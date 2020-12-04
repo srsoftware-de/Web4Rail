@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import de.srsoftware.web4rail.Connector;
@@ -32,5 +33,10 @@ public class Turnout3E extends Turnout{
 			default:
 				return new HashMap<>();
 		}
+	}
+	
+	@Override
+	public List<State> states() {
+		return List.of(State.STRAIGHT,State.RIGHT,State.LEFT);
 	}
 }

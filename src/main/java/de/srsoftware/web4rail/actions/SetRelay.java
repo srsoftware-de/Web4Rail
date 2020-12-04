@@ -42,7 +42,7 @@ public class SetRelay extends Action {
 		super.load(json);
 		String relayId = json.getString(RELAY);
 		if (isSet(relayId)) {
-			relay = Relay.get(new Id(relayId));
+			relay = BaseClass.get(new Id(relayId));
 			state = json.getBoolean(Relay.STATE);
 		}
 		return this;

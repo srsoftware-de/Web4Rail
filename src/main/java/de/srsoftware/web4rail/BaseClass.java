@@ -247,20 +247,6 @@ public abstract class BaseClass implements Constants{
 	public Button button(String text) {		
 		return button(text,null);
 	}
-	
-	public String realm() {
-		if (this instanceof Tile) return REALM_PLAN;
-		if (this instanceof Contact) return REALM_CONTACT;
-
-		if (this instanceof Car) return REALM_CAR;
-		if (this instanceof Locomotive) return REALM_LOCO;
-		
-		if (this instanceof Action) return REALM_ACTIONS;
-		if (this instanceof Condition) return REALM_CONDITION;
-		if (this instanceof Route) return REALM_ROUTE;
-		if (this instanceof Train) return REALM_TRAIN;
-		return REALM_PLAN;
-	}
 		
 	public Form form(String id,List<Map.Entry<String, Tag>> elements) {
 		Form form = new Form(id);
@@ -280,14 +266,8 @@ public abstract class BaseClass implements Constants{
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <T> T get(Id id) {
-		BaseClass element = registry.get(id);
-		if (isNull(element)) return null;
-		try {
-			return (T) element;
-		} catch (ClassCastException e) {
-			return null;
-		}		
+	public static <T extends BaseClass> T get(Id id) {
+		return (T) registry.get(id);
 	}
 	
 	public Id id() {
@@ -392,6 +372,20 @@ public abstract class BaseClass implements Constants{
 		postForm.forEach(fieldset -> fieldset.addTo(win));
 		
 		return win;
+	}
+	
+	public String realm() {
+		if (this instanceof Tile) return REALM_PLAN;
+		if (this instanceof Contact) return REALM_CONTACT;
+
+		if (this instanceof Car) return REALM_CAR;
+		if (this instanceof Locomotive) return REALM_LOCO;
+		
+		if (this instanceof Action) return REALM_ACTIONS;
+		if (this instanceof Condition) return REALM_CONDITION;
+		if (this instanceof Route) return REALM_ROUTE;
+		if (this instanceof Train) return REALM_TRAIN;
+		return REALM_PLAN;
 	}
 	
 	private String title() {
