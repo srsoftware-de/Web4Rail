@@ -132,7 +132,7 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 	}
 	
 	@Override
-	protected void removeChild(BaseClass child) {
+	public void removeChild(BaseClass child) {
 		conditions.remove(child);
 	}
 

@@ -387,6 +387,7 @@ public abstract class BaseClass implements Constants{
 	}
 	
 	public BaseClass remove() {
+		LOG.debug("Called remove on {} ({})",id(),this);
 		if (isSet(parent)) parent.removeChild(this);
 		return registry.remove(id());
 	}

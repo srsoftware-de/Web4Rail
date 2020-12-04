@@ -74,11 +74,12 @@ public class ActionList extends Action implements Iterable<Action>{
 			}
 			if (exists) {
 				LOG.debug("action not added.");
-			} else {
+			} else { // bestehemde Aktion der neuen Liste zuweisen
 				this.add(otherAction);
 				LOG.debug("action added.");
 			}
 		}
+		actions.forEach(action -> other.removeChild(action)); // zugewiesene Aktionen von alter Liste löschen
 	}
 	
 	public boolean drop(Action action) {

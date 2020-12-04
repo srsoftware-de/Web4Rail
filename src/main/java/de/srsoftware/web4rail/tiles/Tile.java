@@ -389,7 +389,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	@Override
 	public void removeChild(BaseClass child) {
 		routes.remove(child);
-		shadows.remove(child);
+		if (child instanceof Shadow) shadows.remove(child);
 		if (child == train) train = null;
 		if (child == route) route = null;
 		plan.place(this);

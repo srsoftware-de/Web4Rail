@@ -286,8 +286,12 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public void addPropertiesFrom(Route existingRoute) {
 		LOG.debug("addPropertiesFrom({})",existingRoute);
 		disabled = existingRoute.disabled;
-		
-		conditions.addAll(existingRoute.conditions);
+
+		for (Condition condition : existingRoute.conditions) { // bestehende Bedingungen der neuen zuweisen
+			condition.parent(this);
+			conditions.add(condition);			
+		}
+		conditions.forEach(condition -> existingRoute.conditions.removeChild(condition));
 		
 		for (Entry<String, ActionList> entry : triggeredActions.entrySet()) {
 			String trigger = entry.getKey();
@@ -469,7 +473,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	public Id id() {
-		if (id == null) id = new Id(""+(generateName().hashCode()));
+		if (isNull(id)) id = new Id(""+(generateName().hashCode()));
 		return id;
 	}
 		
@@ -748,7 +752,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 	
 	@Override
-	public BaseClass remove() {		
+	public BaseClass remove() {
 		super.remove();
 		if (isSet(train)) train.removeChild(this);
 		path.forEach(tile -> tile.removeChild(this));

@@ -249,18 +249,23 @@ public class Plan extends BaseClass{
 	 * @return a string giving information how many routes have been found
 	 */
 	private String analyze() {
-		Vector<Route> routes = new Vector<Route>();
+		List<Route> oldRoutes = BaseClass.listElements(Route.class);
+		Vector<Route> newRoutes = new Vector<Route>();
 		for (Block block : BaseClass.listElements(Block.class)) {
 			if (block.name.equals("Huhu")) {
 				System.err.println("Here we go!");
 			}
 			for (Connector con : block.startPoints()) {
-				routes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
+				newRoutes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
 			}
 		}
 		for (Tile tile : BaseClass.listElements(Tile.class)) tile.routes().clear();
-		for (Route route : routes) registerRoute(route.complete());
-		return t("Found {} routes.",routes.size());
+		for (Route route : newRoutes) registerRoute(route.complete());
+		for (Route oldRoute : oldRoutes) {
+			oldRoute.id = new Id("test"); // new routes may have the same ids and shall not be deleted in the next step!
+			oldRoute.remove();
+		}
+		return t("Found {} routes.",newRoutes.size());
 	}
 
 	/**
