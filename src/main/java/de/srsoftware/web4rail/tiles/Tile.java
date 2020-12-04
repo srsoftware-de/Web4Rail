@@ -115,7 +115,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 
 	public boolean isFreeFor(Train newTrain) {
 		if (disabled) return false;
-		if (isSet(route) && route.train != newTrain) return false;
+		if (isSet(route) && isSet(route.train()) && route.train() != newTrain) return false;
 		if (isSet(train) && train != newTrain) return false;
 		return true;
 	}
@@ -223,7 +223,9 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		
 		if (isTrack) {
 			formInputs.add(t("Length"),new Input(LENGTH,length).numeric().addTo(new Tag("span")).content(NBSP+lengthUnit));
-			formInputs.add(t("State"),new Checkbox(DISABLED, t("disabled"), disabled));
+			Checkbox checkbox = new Checkbox(DISABLED, t("disabled"),disabled);
+			if (disabled) checkbox.clazz("disabled");
+			formInputs.add(t("State"),checkbox);
 		}
 		
 		List<Direction> pd = possibleDirections();

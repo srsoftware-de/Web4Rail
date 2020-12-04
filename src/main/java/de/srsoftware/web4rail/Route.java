@@ -42,7 +42,6 @@ import de.srsoftware.web4rail.tiles.Shadow;
 import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.Turnout;
-import de.srsoftware.web4rail.tiles.Turnout.State;
 /**
  * A route is a vector of tiles that leads from one block to another.
  * 
@@ -50,6 +49,10 @@ import de.srsoftware.web4rail.tiles.Turnout.State;
  *
  */
 public class Route extends BaseClass implements Comparable<Route>{
+	
+	public enum State {
+		FREE, LOCKED, PREPARED, STARTED;
+	}
 	private static final Logger LOG             = LoggerFactory.getLogger(Route.class);
 
 	private static final String ACTIONS = "actions";
@@ -64,6 +67,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	static final String PATH     = "path";
 	static final String SIGNALS  = "signals";
 	static final String TURNOUTS = "turnouts";
+	private State state = State.FREE;
 
 	private static final String ROUTE_START = "route_start";
 
@@ -125,7 +129,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 			timestamp = new Date().getTime();
 			if (train.speed == 0) aborted = true;
 			while (train.speed > ENDSPEED) {
-				if (aborted) break;
+				if (aborted || train.nextRoutePrepared()) break;
 				train.setSpeed(train.speed - 5);
 				try {
 					sleep(timeStep);
@@ -145,7 +149,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public  Direction					   endDirection;
 	private Vector<Tile>                   path;
 	private Vector<Signal>                 signals;
-	public  Train                          train;
+	private Train                          train;
 	private HashMap<String,ActionList>     triggeredActions = new HashMap<String, ActionList>();
 	private HashMap<Turnout,Turnout.State> turnouts;
 	private Block                          startBlock = null;
@@ -309,14 +313,14 @@ public class Route extends BaseClass implements Comparable<Route>{
 		signals.add(signal);
 	}
 	
-	void addTurnout(Turnout t, State s) {
+	void addTurnout(Turnout t, Turnout.State s) {
 		turnouts.put(t, s);
 	}
 
 	private Fieldset turnouts() {
 		Fieldset win = new Fieldset(t("Turnouts"));
 		Tag list = new Tag("ul");
-		for (Entry<Turnout, State> entry : turnouts.entrySet()) {
+		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) {
 			Turnout turnout = entry.getKey();
 			Plan.addLink(turnout, turnout+": "+t(entry.getValue().toString()), list);
 		}
@@ -351,7 +355,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	}
 
 	public void brakeStart() {
-		if (isNull(train)) return;
+		if (isNull(train)) return;		
 		brakeProcessor = new BrakeProcessor(this,train);
 	}
 	
@@ -453,8 +457,9 @@ public class Route extends BaseClass implements Comparable<Route>{
 	
 	public boolean fireSetupActions(Context context) {
 		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
-		if (isNull(setupActions)) return true;
-		return setupActions.fire(context);
+		if (isSet(setupActions) && !setupActions.fire(context)) return false;
+		state = State.PREPARED;
+		return true;
 	}
 	
 	private String generateName() {
@@ -499,7 +504,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		json.put(SIGNALS, signalIds);
 		
 		JSONArray turnouts = new JSONArray();
-		for (Entry<Turnout, State> entry : this.turnouts.entrySet()) {
+		for (Entry<Turnout, Turnout.State> entry : this.turnouts.entrySet()) {
 			Turnout t = entry.getKey();
 			turnouts.put(new JSONObject(Map.of(Turnout.ID,t.id().toString(),Turnout.STATE,entry.getValue())));
 		}
@@ -703,9 +708,9 @@ public class Route extends BaseClass implements Comparable<Route>{
 				break;
 			}			
 		}
-		if (!success) for (Tile tile :alreadyLocked) {
-			tile.setRoute(null);
-		}
+		if (success) {
+			state = State.LOCKED;
+		} else for (Tile tile :alreadyLocked) tile.setRoute(null);
 		return success;
 	}
 	
@@ -801,6 +806,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 			train = null;
 		}	
 		triggeredContacts.clear();
+		state = State.FREE;
 		return true;
 	}
 
@@ -818,8 +824,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 		file.close();
 	}
 
-	public void setLast(State state) {
-		if (isNull(state) || state == State.UNDEF) return;
+	public void setLast(Turnout.State state) {
+		if (isNull(state) || state == Turnout.State.UNDEF) return;
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Turnout) addTurnout((Turnout) lastTile,state);
 	}
@@ -833,9 +839,9 @@ public class Route extends BaseClass implements Comparable<Route>{
 	
 	public boolean setTurnouts() {
 		Turnout turnout = null;
-		for (Entry<Turnout, State> entry : turnouts.entrySet()) try {
+		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) try {
 			turnout = entry.getKey();
-			State targetVal = entry.getValue();
+			Turnout.State targetVal = entry.getValue();
 			if (!turnout.state(targetVal).succeeded()) return false;
 			try {
 				Thread.sleep(500);
@@ -850,6 +856,21 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public String shortName() {
 		String[] parts = name().split("-");
 		return parts[0].trim()+"–"+parts[parts.length-1].trim();
+	}
+	
+	public Route.State state(){
+		return state;
+	}
+	
+	public boolean start(Train newTrain) {
+		if (isNull(newTrain)) return false; // can't set route's train to null
+		if (isSet(train)) {
+			if (newTrain != train) return false; // can't alter route's train
+		} else train = newTrain; // set new train 
+		ActionList startActions = triggeredActions.get(ROUTE_START);
+		if (isSet(startActions) && !startActions.fire(new Context(this).train(train))) return false; // start actions failed
+		state = State.STARTED;
+		return true;
 	}
 
 	public Block startBlock() {
@@ -874,15 +895,8 @@ public class Route extends BaseClass implements Comparable<Route>{
 		if (isSet(train)) train.addToTrace(trace);
 	}
 	
-	public boolean train(Train newTrain) {
-		if (isSet(train) && newTrain != train) return false;
-		train = newTrain;
-		if (isSet(train)) {
-			ActionList startActions = triggeredActions.get(ROUTE_START);
-			if (isNull(startActions)) return true;
-			return startActions.fire(new Context(this).train(train));
-		}
-		return true;
+	public Train train() {
+		return train;
 	}
 	
 	public Route unlock() throws IOException {

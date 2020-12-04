@@ -127,6 +127,7 @@ public abstract class BaseClass implements Constants{
 			sb.append("(");
 			sb.append(t("Train: {}",train));
 			if (isSet(direction)) sb.append(", "+t("Direction: {}",direction));
+			if (isSet(block)) sb.append(", "+t("Block: {}",block));
 			if (isSet(route))   sb.append(", "+t("Route: {}",route));
 			if (isSet(contact)) sb.append(", "+t("Contact: {}",contact));
 			sb.append(")");

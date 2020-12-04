@@ -496,6 +496,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		this.name = newName;
 		return this;
 	}
+
+	public boolean nextRoutePrepared() {
+		return isSet(nextRoute) && nextRoute.state() == Route.State.PREPARED;
+	}
 			
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
@@ -696,11 +700,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 			if (isNull(route)) return t("No free routes from {}",currentBlock);
 			if (!route.lock()) return t("Was not able to lock {}",route);
 			if (!route.setTurnouts()) error = t("Was not able to set all turnouts!");
-			if (isNull(error) && !route.fireSetupActions(context)) error = t("Was not able to fire all setup actions of route!");
+			if (isNull(error) && !route.fireSetupActions(context.route(route))) error = t("Was not able to fire all setup actions of route!");
 		}
 		if (direction != route.startDirection) turn();
 		
-		if (isNull(error) && !route.train(this)) error = t("Was not able to assign {} to {}!",this,route);
+		if (isNull(error) && !route.start(this)) error = t("Was not able to assign {} to {}!",this,route);
 		if (isSet(error)) {
 			route.reset();
 			route = null;
