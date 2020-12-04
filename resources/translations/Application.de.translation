@@ -20,6 +20,9 @@ Analyze : analysieren
 and : und
 Apply : Übernehmen
 Auto pilot : Autopilot
+AutopilotActive : Autopilot aktiv
+autopilot active for train : Autopilot für Zug aktiviert
+autopilot inactive for train : Autopilot nicht aktiv für Zug
 Availability : Verfügbarkeit
 Back : zurück
 Basic properties : Grundlegende Eigenschaften
@@ -80,6 +83,7 @@ EAST : Osten
 Editable properties : veränderliche Eigenschaften
 editable train properties : veränderliche Zug-Eigenschaften
 Emergency : Notfall
+export : exportieren
 Faster (10 {}) : 10 {} schneller
 Firing {} : starte {}
 FinishRoute : Route abschließen
@@ -183,10 +187,12 @@ Speed unit : Geschwindigkeits-Einheit
 Start actions : Start-Aktionen
 Stock ID : Inventarnummer
 Stop settings : Halte-Einstellungen
+Start autopilot : Autopilot starten
 Started {} : {} gestartet
 State : Status
 StopAllTrains : Alle Züge stoppen
-StopAuto : Automatikmodus abschalten
+StartStopAuto : Automatikmodus an/abschalten
+Stop autopilot : Autopilot abschalten
 {} stopping at next block. : {} hält im nächsten Block.
 Stopsettings : Halte-Einstellungen
 Straight port\: : Port für gerade

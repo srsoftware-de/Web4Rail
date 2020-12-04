@@ -81,7 +81,7 @@ public abstract class Action extends BaseClass {
 			SetTurnout.class,
 			ShowText.class,
 			StopAllTrains.class,
-			StopAuto.class,
+			StartStopAuto.class,
 			TriggerContact.class,
 			TurnTrain.class
 		);
@@ -97,7 +97,7 @@ public abstract class Action extends BaseClass {
 			ActionList actionList = (ActionList) parent;
 			return actionList.moveUp(this);
 		}
-		LOG.error("Action.drop() called on Action ({}) whose parent ({}) is not an ActionList!",this,parent); 
+		LOG.error("Action.moveUp() called on Action ({}) whose parent ({}) is not an ActionList!",this,parent); 
 		return false;
 	}
 

@@ -114,6 +114,7 @@ public abstract class Condition extends BaseClass {
 		
 	private static List<Class<? extends Condition>> list() {
 		return List.of(
+				AutopilotActive.class,
 				BlockFree.class,
 				OrCondition.class,
 				PushPullTrain.class,
@@ -157,6 +158,6 @@ public abstract class Condition extends BaseClass {
 
 	protected Object update(HashMap<String, String> params) {
 		inverted = "on".equals(params.get(INVERTED));
-		return this;
+		return super.update(params);
 	}
 }

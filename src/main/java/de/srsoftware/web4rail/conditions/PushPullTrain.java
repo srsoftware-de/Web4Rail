@@ -1,7 +1,5 @@
 package de.srsoftware.web4rail.conditions;
 
-import de.srsoftware.web4rail.BaseClass;
-
 public class PushPullTrain extends Condition {
 	
 	@Override

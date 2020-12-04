@@ -116,16 +116,13 @@ public class ActionList extends Action implements Iterable<Action>{
 	public Tag list() {
 		Tag span = new Tag("span");
 		button(t("add action"), Map.of(ACTION, ACTION_ADD)).addTo(span);
-		
+		button(t("export"), Map.of(ACTION, ACTION_SAVE)).addTo(span);
 		if (!isEmpty()) {
 			Tag list = new Tag("ol");
-			boolean first = true;
 			for (Action action : actions) {
 				Tag item = action.link("span",action).addTo(new Tag("li")).content(NBSP);
 				action.button("-", Map.of(ACTION,ACTION_DROP)).addTo(item);
-				if (first) {
-					first = false;
-				} else action.button("↑", Map.of(ACTION,ACTION_MOVE)).addTo(item);
+				action.button("↑", Map.of(ACTION,ACTION_MOVE)).addTo(item);
 				if (action instanceof ActionList) ((ActionList) action).list().addTo(item);
 				item.addTo(list);
 			}
@@ -151,10 +148,25 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 	
 	public boolean moveUp(Action action) {
+		if (isNull(action)) return false;
+		if (actions.firstElement() == action && parent() instanceof ActionList) {
+			ActionList parentList = (ActionList) parent();
+			for (int i=0; i<parentList.actions.size(); i++) {
+				if (parentList.actions.get(i) == this) {
+					actions.remove(0);
+					parentList.actions.insertElementAt(action, i);
+					action.parent(parentList);
+					return true;
+				}
+			}
+		}
 		for (int i=1; i<actions.size(); i++) {
 			if (actions.elementAt(i) == action) {
 				actions.remove(i);
-				actions.insertElementAt(action, i-1);
+				Action aboveAction = actions.get(i-1);
+				if (aboveAction instanceof ActionList) {
+					((ActionList)aboveAction).add(action);
+				} else actions.insertElementAt(action, i-1);
 				return true;
 			}
 		}
@@ -180,9 +192,16 @@ public class ActionList extends Action implements Iterable<Action>{
 				action.remove();
 				return context.properties();
 			case ACTION_MOVE:
-				return action.moveUp() ? action.context().properties() : t("No action with id {} found!",actionId);
+				if (isNull(action)) return t("No action with id {} found!",actionId);
+				if (action.moveUp()) return action.context().properties();
+				Window result = action.context().properties();
+				return new Tag("fieldset").content(t("Was not able to move \"{}\" up!",action)).addTo(result); 
 			case ACTION_PROPS:
 				return action.properties();
+			case ACTION_SAVE:
+				Window win = new Window("action-export", t("Export of {}",action));
+				new Tag("textarea").content(action.json().toString()).addTo(win);
+				return win;
 			case ACTION_UPDATE:
 				return action.update(params);
 		}
