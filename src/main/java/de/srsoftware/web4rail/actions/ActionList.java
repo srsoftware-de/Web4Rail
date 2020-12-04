@@ -91,7 +91,7 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 
 	public boolean fire(Context context) {
-		if (!isEmpty())	LOG.debug(t("Firing {}"),this);
+		if (!isEmpty())	LOG.debug(t("Firing {}"),actions);
 		for (Action action : actions) {
 			if (!action.fire(context)) return false;			
 		}

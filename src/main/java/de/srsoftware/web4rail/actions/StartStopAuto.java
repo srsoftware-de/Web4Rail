@@ -22,7 +22,9 @@ public class StartStopAuto extends Action {
 	@Override
 	public boolean fire(Context context) {
 		if (isNull(context.train())) return false;
-		context.train().quitAutopilot();
+		if (inverted) {
+			context.train().automatic();
+		} else context.train().quitAutopilot();
 		return true;
 	}
 	

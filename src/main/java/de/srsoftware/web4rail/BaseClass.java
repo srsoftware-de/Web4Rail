@@ -135,7 +135,8 @@ public abstract class BaseClass implements Constants{
 		public String toString() {
 			StringBuffer sb = new StringBuffer(getClass().getSimpleName());
 			sb.append("(");
-			sb.append(t("Train: {}",train));
+			sb.append("main: "+main);
+			if (isSet(train)) sb.append(", "+t("Train: {}",train));
 			if (isSet(direction)) sb.append(", "+t("Direction: {}",direction));
 			if (isSet(block)) sb.append(", "+t("Block: {}",block));
 			if (isSet(route))   sb.append(", "+t("Route: {}",route));

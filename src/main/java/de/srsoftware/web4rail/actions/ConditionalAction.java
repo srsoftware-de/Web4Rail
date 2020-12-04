@@ -29,7 +29,7 @@ public class ConditionalAction extends ActionList {
 	@Override
 	public boolean fire(Context context) {
 		for (Condition condition : conditions) {
-			if (!condition.fulfilledBy(context)) return false;
+			if (!condition.fulfilledBy(context)) return true; // wenn die Bedingung nicht erfüllt ist, ist das kein Fehler!
 		}
 		return super.fire(context.clone()); // actions, that happen within the conditional action list must not modify the global context.
 	}

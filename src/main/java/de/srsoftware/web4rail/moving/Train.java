@@ -193,7 +193,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		car.train(this);
 	}
 	
-	private String automatic() {
+	public String automatic() {
 		if (isNull(autopilot)) {
 			autopilot = new Autopilot();
 			autopilot.start();
