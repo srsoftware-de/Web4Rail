@@ -77,9 +77,9 @@ public abstract class StretchableTile extends Tile {
 	
 	@Override
 	public BaseClass remove() {
-		super.remove();
+		LOG.debug("Removing stretchable Tile ({}) {}",id(),this);
 		removeShadows();
-		return this;
+		return super.remove();
 	}
 	
 	private void removeShadows() {

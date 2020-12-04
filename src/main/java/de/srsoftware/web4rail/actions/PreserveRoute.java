@@ -29,9 +29,4 @@ public class PreserveRoute extends Action {
 		train.reserveNext();
 		return true;
 	}
-	
-	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
-	}
 }

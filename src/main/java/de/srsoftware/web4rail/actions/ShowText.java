@@ -22,11 +22,6 @@ public class ShowText extends TextAction{
 	}
 	
 	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
-	}
-	
-	@Override
 	public String toString() {
 		return t("Display \"{}\" on clients.",text);
 	}

@@ -376,16 +376,24 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	
 	@Override
 	public BaseClass remove() {
-		super.remove();
-		while (!routes.isEmpty()) routes.first().remove();
-		return this;
+		while (!routes.isEmpty()) {
+			routes.first().remove();		
+		}
+		return super.remove();
 	}
 	
 	@Override
 	public void removeChild(BaseClass child) {
-		routes.remove(child);
+		String childAsString = child.toString();
+		if (childAsString.length()>20) childAsString = childAsString.substring(0, 20)+"…";
+		LOG.debug("Removing {} from {}",childAsString,this);
+		if (child instanceof Route) {
+			routes.remove(child);			
+		}
+		
 		if (child == train) train = null;
 		if (child == route) route = null;
+		super.removeChild(child);
 		plan.place(this);
 	}
 	

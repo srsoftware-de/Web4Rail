@@ -8,11 +8,6 @@ public class PushPullTrain extends Condition {
 	public boolean fulfilledBy(Context context) {
 		return context.train().pushPull != inverted;
 	}
-	
-	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements
-	}
 
 	@Override
 	public String toString() {

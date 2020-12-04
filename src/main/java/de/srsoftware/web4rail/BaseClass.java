@@ -387,12 +387,12 @@ public abstract class BaseClass implements Constants{
 	}
 	
 	public BaseClass remove() {
-		LOG.debug("Called remove on {} ({})",id(),this);
+		LOG.debug("BaseClass.Remove {} ({})",id(),this);
 		if (isSet(parent)) parent.removeChild(this);
 		return registry.remove(id());
 	}
 		
-	protected abstract void removeChild(BaseClass child);
+	protected void removeChild(BaseClass child) {}
 
 	protected static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);

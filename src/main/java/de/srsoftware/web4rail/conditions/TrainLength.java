@@ -40,11 +40,6 @@ public class TrainLength extends Condition {
 	}
 	
 	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements
-	}
-	
-	@Override
 	public String toString() {
 		return t(inverted ? "train is longer than {}" : "train is shorter than {}",maxLength) ;
 	}

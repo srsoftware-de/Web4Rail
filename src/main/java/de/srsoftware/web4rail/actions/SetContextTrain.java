@@ -57,7 +57,8 @@ public class SetContextTrain extends Action {
 	
 	@Override
 	protected void removeChild(BaseClass child) {
-		if (child == train) train = null;		
+		if (child == train) train = null;
+		super.removeChild(child);
 	}
 	
 	public String toString() {

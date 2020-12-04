@@ -39,11 +39,6 @@ public class TrainHasTag extends Condition {
 	}
 	
 	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements
-	}
-	
-	@Override
 	public String toString() {
 		if (tag == null) return "["+t("Click to setup tag")+"]";
 		return t(inverted ? "train does not have tag \"{}\"" : "train has tag \"{}\"",tag) ;

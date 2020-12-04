@@ -33,10 +33,11 @@ public class Shadow extends Tile{
 	
 	@Override
 	public void removeChild(BaseClass child) {
+		super.removeChild(child);
 		if (child == overlay) {
 			overlay = null;
 			remove();
-		}
+		}		
 	}
 	
 	@Override

@@ -45,11 +45,6 @@ public class SetSpeed extends Action{
 		formInputs.add(t("Set speed to"),new Input(MAX_SPEED, speed).numeric());
 		return super.properties(preForm, formInputs, postForm);
 	}
-		
-	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
-	}
 	
 	@Override
 	public String toString() {

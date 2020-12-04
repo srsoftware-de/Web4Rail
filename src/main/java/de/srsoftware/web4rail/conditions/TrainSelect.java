@@ -40,6 +40,7 @@ public class TrainSelect extends Condition {
 	@Override
 	protected void removeChild(BaseClass child) {
 		if (child == train) train = null;
+		super.removeChild(child);
 	}
 	
 	@Override

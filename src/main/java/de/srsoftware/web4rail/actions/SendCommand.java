@@ -55,11 +55,6 @@ public class SendCommand extends Action{
 	}
 	
 	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
-	}
-		
-	@Override
 	public String toString() {
 		return t("Send command \"{}\" to control unit",command);
 	}

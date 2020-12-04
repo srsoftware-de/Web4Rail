@@ -45,6 +45,7 @@ public class BlockFree extends Condition {
 	@Override
 	protected void removeChild(BaseClass child) {
 		if (child == block) block = null;
+		super.removeChild(child);
 	}	
 
 	@Override

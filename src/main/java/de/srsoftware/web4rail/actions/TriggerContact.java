@@ -48,6 +48,7 @@ public class TriggerContact extends Action {
 	@Override
 	protected void removeChild(BaseClass child) {
 		if (child == contact) contact = null;
+		super.removeChild(child);
 	}
 	
 	public String toString() {

@@ -49,6 +49,7 @@ public class DetermineTrainInBlock extends Action {
 	@Override
 	protected void removeChild(BaseClass child) {
 		if (child == block) block = null;
+		super.removeChild(child);
 	}
 	
 	public String toString() {

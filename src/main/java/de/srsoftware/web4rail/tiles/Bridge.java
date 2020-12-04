@@ -104,7 +104,7 @@ public abstract class Bridge extends Tile {
 	@Override
 	public void removeChild(BaseClass child) {
 		if (child == counterpart) counterpart = null;
-		plan.place(this);
+		super.removeChild(child);
 	}
 	
 	@Override

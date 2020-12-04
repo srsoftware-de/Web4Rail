@@ -70,6 +70,7 @@ public class SetSignal extends Action {
 	@Override
 	protected void removeChild(BaseClass child) {
 		if (child == signal) signal = null;
+		super.removeChild(child);
 	}
 		
 	public SetSignal set(Signal sig) {

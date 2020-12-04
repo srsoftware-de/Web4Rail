@@ -15,9 +15,4 @@ public class FinishRoute extends Action {
 		if (isSet(route)) route.finish();
 		return true;
 	}
-	
-	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
-	}
 }

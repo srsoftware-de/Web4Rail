@@ -639,6 +639,7 @@ public class Plan extends BaseClass{
 	@Override
 	protected void removeChild(BaseClass child) {
 		if (child instanceof Tile) drop((Tile) child);
+		super.removeChild(child);
 	}
 	
 	/**

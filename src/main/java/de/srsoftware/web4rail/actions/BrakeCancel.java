@@ -14,9 +14,4 @@ public class BrakeCancel extends Action {
 		context.route().brakeCancel();
 		return true;
 	}
-
-	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
-	}
 }

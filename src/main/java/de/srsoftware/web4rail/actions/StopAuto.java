@@ -14,9 +14,4 @@ public class StopAuto extends Action {
 		context.train().quitAutopilot();
 		return true;
 	}
-
-	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
-	}
 }

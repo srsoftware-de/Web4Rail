@@ -190,6 +190,7 @@ public class Contact extends Tile{
 	@Override
 	public void removeChild(BaseClass child) {
 		if (child == actions) actions = null;
+		super.removeChild(child);
 	}
 	
 	public static Select selector(Contact preselect) {

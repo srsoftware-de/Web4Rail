@@ -164,11 +164,6 @@ public class Application extends BaseClass{
 		return Files.probeContentType(file.toPath());
 	}
 	
-	@Override
-	protected void removeChild(BaseClass child) {
-		throw new RuntimeException(this.getClass().getSimpleName()+".removeChild should never be called!");
-	}
-	
 	/**
 	 * sends a response generated from the application to a given client
 	 * @param client

@@ -69,11 +69,6 @@ public class SetPower extends Action{
 	}
 	
 	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
-	}
-	
-	@Override
 	public String toString() {
 		switch (pc) {
 		case ON:

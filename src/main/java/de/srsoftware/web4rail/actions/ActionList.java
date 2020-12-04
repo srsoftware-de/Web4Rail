@@ -199,6 +199,7 @@ public class ActionList extends Action implements Iterable<Action>{
 	
 	@Override
 	public BaseClass remove() {
+		LOG.debug("Removing Action List ({}) {}",id(),this);
 		super.remove();
 		while (!actions.isEmpty()) actions.lastElement().remove();
 		return this;
@@ -207,5 +208,6 @@ public class ActionList extends Action implements Iterable<Action>{
 	@Override
 	public void removeChild(BaseClass child) {
 		actions.remove(child);
+		super.removeChild(child);
 	}
 }

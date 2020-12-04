@@ -570,6 +570,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		cars.remove(child);
 		locos.remove(child);
 		trace.remove(child);
+		super.removeChild(child);
 	}
 	
 	public void reserveNext() {

@@ -753,15 +753,20 @@ public class Route extends BaseClass implements Comparable<Route>{
 	
 	@Override
 	public BaseClass remove() {
-		super.remove();
+		LOG.debug("Removing route ({}) {}",id(),this);
 		if (isSet(train)) train.removeChild(this);
-		path.forEach(tile -> tile.removeChild(this));
+		for (Tile tile : path) {
+			if (tile.id().equals(Tile.id(4, 6))) {
+				System.err.println(tile);
+			}
+			tile.removeChild(this);
+		}
 		conditions.remove();
 		for (String key : new Vector<String>(triggeredActions.keySet())){
 			ActionList actionList = triggeredActions.remove(key);
 			if (isSet(actionList)) actionList.remove();			
 		};
-		return this;
+		return super.remove();
 	}
 
 	@Override
@@ -772,10 +777,13 @@ public class Route extends BaseClass implements Comparable<Route>{
 		path.remove(child);
 		signals.remove(child);
 		if (child == train) train = null;
-		for (ActionList list : triggeredActions.values()) list.removeChild(child);
+		for (ActionList list : triggeredActions.values()) {
+			list.removeChild(child);
+		}
 		turnouts.remove(child);
 		if (child == startBlock) startBlock = null;
 		triggeredContacts.remove(child);
+		super.removeChild(child);
 	}
 	
 	public boolean reset() {

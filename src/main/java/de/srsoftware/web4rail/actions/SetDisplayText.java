@@ -54,6 +54,7 @@ public class SetDisplayText extends TextAction{
 	@Override
 	protected void removeChild(BaseClass child) {
 		if (child == display) display = null;
+		super.removeChild(child);
 	}
 	
 	@Override

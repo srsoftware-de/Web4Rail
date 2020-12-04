@@ -14,9 +14,4 @@ public class BrakeStop extends Action {
 		context.route().brakeStop();
 		return true;
 	}
-
-	@Override
-	protected void removeChild(BaseClass child) {
-		// this class has no child elements		
-	}
 }

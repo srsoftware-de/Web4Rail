@@ -122,6 +122,7 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 	
 	@Override
 	public BaseClass remove() {
+		LOG.debug("Removing Condition List ({}) {}",id(),this);
 		super.remove();
 		while (!conditions.isEmpty()) conditions.lastElement().remove();
 		return this;
@@ -134,6 +135,7 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 	@Override
 	public void removeChild(BaseClass child) {
 		conditions.remove(child);
+		super.removeChild(child);
 	}
 
 

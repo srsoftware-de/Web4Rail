@@ -64,6 +64,7 @@ public class SetRelay extends Action {
 	@Override
 	protected void removeChild(BaseClass child) {
 		if (child == relay) relay = null;
+		super.removeChild(child);
 	}
 	
 	public String toString() {
