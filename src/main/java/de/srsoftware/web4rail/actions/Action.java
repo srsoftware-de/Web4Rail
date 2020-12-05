@@ -49,6 +49,7 @@ public abstract class Action extends BaseClass {
 			DetermineTrainInBlock.class,
 			FinishRoute.class,
 			PreserveRoute.class,
+			SavePlan.class,
 			SendCommand.class,
 			SetContextTrain.class,
 			SetDisplayText.class,

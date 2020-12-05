@@ -639,6 +639,10 @@ public class Plan extends BaseClass{
 		super.removeChild(child);
 	}
 	
+	public void save() throws IOException {
+		plan.stream(plan.saveTo("default"));		
+	}
+	
 	/**
 	 * saves the plan to a set of files, along with its cars, tiles, trains, routes and control unit settings
 	 * @param name

@@ -49,7 +49,7 @@ click here to setup contact : Hier klicken, um Kontakt auszuwählen
 click here to setup relay : Hier klicken, um Relais einzurichten
 click here to setup turnout : Hier klicken, um Weiche einzurichten
 Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
-Command to send to control unit\: : Kommando, welches zur Zentrale gesendet werden soll:
+Command to send : Kommando, welches gesendet werden soll
 ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
 Condition type\: : Bedingungs-Typ:
@@ -134,6 +134,7 @@ On : An
 One of : eine von
 One way : Richtung
 Online Documentation : Online-Dokumentation
+Operating System : Betriebssystem
 or : oder
 OrCondition : Oder-Bedingung
 other train properties : andere Zug-Eigenschaften
@@ -155,6 +156,7 @@ Right port\: : Port für rechts
 Routes using this tile : Fahrstraßen, die diesen Abschnitt verwenden
 Route will only be available, if all conditions are fulfilled. : Route ist nur verfügbar, wenn alle Bedingungen erfüllt sind.
 Save : speichern
+SavePlan : Plan speichern
 Select block : Block auswählen
 Select contact\: : Kotakt auswählen:
 Select display : Anzeige auswählen
@@ -163,7 +165,8 @@ Select relay\: : Relais auswählen:
 Select train : Zug auswählen
 Select turnout : Weiche wählen
 SendCommand : Kommando senden
-Send command "{}" to control unit : Kommando „{}“ an Zentrale senden
+Send command "{}" to {} : Kommando „{}“ an {} senden
+Send command to : Kommando senden an
 Set {} as context : {} als Kontext setzen
 SetContextTrain : Zug für Folgeaktionen festlegen
 SetDisplayText : Anzeige-Text setzen
@@ -184,6 +187,8 @@ Simulating movement of {}... : Simuliere Fahrt von {}...
 Slower (10 {}) : 10 {} langsamer
 SOUTH : Süden
 Speed unit : Geschwindigkeits-Einheit
+SRCP : SRCP-Dienst
+SRCP daemon : SRCP-Dienst
 Start actions : Start-Aktionen
 Stock ID : Inventarnummer
 Stop settings : Halte-Einstellungen
@@ -199,6 +204,7 @@ Straight port\: : Port für gerade
 STRAIGHT : gerade
 Switch power off : Strom ausschalten
 Switch power on : Strom anschalten
+SYSTEM : Betriebssystem
 Tag : Markierung
 Tags : Markierungen
 Text to display on clients\: : Text, welcher auf den Clients angezeigt werden soll:
