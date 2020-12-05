@@ -7,10 +7,6 @@ html{
 }
 body{
   min-height: 100%;  
-  background-size: 30px 30px;
-  background-image:
-    linear-gradient(to right, grey 1px, transparent 1px),
-    linear-gradient(to bottom, grey 1px, transparent 1px);
 }
 button{
 	border: 1px solid blue;
@@ -30,6 +26,9 @@ button{
 	width: 100%;
 	overflow: auto;
 	position: absolute;
+	  background-size: 30px 30px;
+	  background-image: linear-gradient(to right, grey 1px, transparent 1px), linear-gradient(to bottom, grey 1px, transparent 1px);
+    background-attachment: local;
 }
 
 .window{

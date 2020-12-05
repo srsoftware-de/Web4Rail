@@ -126,6 +126,7 @@ No free routes from {} : keine Route von {} frei
 NORTH : Norden
 Not connected to other bridge part! : Nicht mit anderem Brücken-Teil verbunden!
 Notes : Notizen
+No tile moved. : keine Kachel verschoben.
 {} now heading for {} : {} ist nun unterweg nach {}
 {} now in auto-mode : {} ist nun im Automatikmodus
 Occupied area\: : Belegte Abschnitte:
@@ -210,6 +211,7 @@ Tags : Markierungen
 Text to display on clients\: : Text, welcher auf den Clients angezeigt werden soll:
 Text to show on display\: : Text, welcher in der Anzeige dargestellt werden soll:
 Tile(s) : Kachel(n)
+Tile(s) moved. : Kachel(n) verschoben.
 Toggle : umschalten
 Toggle power : Stom umschalten
 Train : Zug

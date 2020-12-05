@@ -536,7 +536,7 @@ public class Plan extends BaseClass{
 					break;
 			}
 		}
-		return t(moved ? "Tile(s) moved.":"No tile(s) moved.");
+		return t(moved ? "Tile(s) moved.":"No tile moved.");
 	}
 
 	public void drop(Tile tile) {

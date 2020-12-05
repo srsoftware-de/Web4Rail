@@ -419,6 +419,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		disabled = "on".equals(params.get(DISABLED));
 		String len = params.get(LENGTH);
 		if (isSet(len)) length(Integer.parseInt(len));
+		super.update(params);
 		plan.place(this);
 		return this;
 	}
