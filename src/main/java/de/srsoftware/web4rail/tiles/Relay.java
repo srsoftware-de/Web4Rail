@@ -240,7 +240,7 @@ public class Relay extends Tile implements Device{
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
 		for (Relay relay : BaseClass.listElements(Relay.class)) {			
 			if (exclude.contains(relay)) continue;
-			Tag opt = select.addOption(relay.id, relay);
+			Tag opt = select.addOption(relay.id(), relay);
 			if (relay == preselected) opt.attr("selected", "selected");
 		}
 		return select;

@@ -251,9 +251,6 @@ public class Plan extends BaseClass{
 		List<Route> oldRoutes = BaseClass.listElements(Route.class);
 		Vector<Route> newRoutes = new Vector<Route>();
 		for (Block block : BaseClass.listElements(Block.class)) {
-			if (block.name.equals("Huhu")) {
-				System.err.println("Here we go!");
-			}
 			for (Connector con : block.startPoints()) {
 				newRoutes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
 			}

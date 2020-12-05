@@ -523,7 +523,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		
 		dest.addTo(propList);		
-		if (isSet(route)) link("li", route).addTo(propList);
+		if (isSet(route)) route.link("li", route).addTo(propList);
 		int ms = maxSpeed();
 		if (ms < Integer.MAX_VALUE) new Tag("li").content(t("Max. Speed")+": "+maxSpeed()+NBSP+speedUnit).addTo(propList);
 		
@@ -583,10 +583,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		Context context = new Context(this).route(route).block(route.endBlock()).direction(route.endDirection);
 		Route nextRoute = PathFinder.chooseRoute(context);
 		if (isNull(nextRoute)) return;
-		
+		nextRoute.set(context);
 		boolean error = !nextRoute.lockIgnoring(route);
 		error = error || !nextRoute.setTurnouts();
-		error = error || !nextRoute.fireSetupActions(context);
+		error = error || !nextRoute.fireSetupActions();
 
 		if (error) {
 			nextRoute.reset(); // may unlock tiles belonging to the current route. 
@@ -686,23 +686,26 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 
-	public String start() throws IOException {
+	public Object start() throws IOException {
 		if (isNull(currentBlock)) return t("{} not in a block",this);
 		if (maxSpeed() == 0) return t("Train has maximum speed of 0 {}, cannot go!",speedUnit);
 		if (isSet(route)) route.reset(); // reset route previously chosen
 
-		Context context = new Context(this).block(currentBlock).direction(direction);
 		String error = null;
 		if (isSet(nextRoute)) {
 			route = nextRoute;
 			if (!route.lock()) return t("Was not able to lock {}",route);
 			nextRoute = null;
+			route.set(new Context(this).block(currentBlock).direction(direction));			
 		} else {
+			Context context = new Context(this).block(currentBlock).direction(direction);
 			route = PathFinder.chooseRoute(context);
 			if (isNull(route)) return t("No free routes from {}",currentBlock);
 			if (!route.lock()) return t("Was not able to lock {}",route);
 			if (!route.setTurnouts()) error = t("Was not able to set all turnouts!");
-			if (isNull(error) && !route.fireSetupActions(context.route(route))) error = t("Was not able to fire all setup actions of route!");
+			context.train(this);
+			route.set(context);
+			if (isNull(error) && !route.fireSetupActions()) error = t("Was not able to fire all setup actions of route!");
 		}
 		if (direction != route.startDirection) turn();
 		
@@ -713,7 +716,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 			return error;
 		}
 		startSimulation();
-		return t("Started {}",this);
+		Window win = properties();
+		new Tag("p").content(t("Started {}",this)).addTo(win);
+		return win;
 	}
 	
 	public static void startAll() {

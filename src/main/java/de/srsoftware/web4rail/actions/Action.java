@@ -81,7 +81,7 @@ public abstract class Action extends BaseClass {
 		return null;
 	}
 	
-	public boolean equals(Action other) {
+	public boolean corresponsTo(Action other) {
 		return this.toString().equals(other.toString());
 	}
 

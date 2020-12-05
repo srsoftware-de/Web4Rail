@@ -48,7 +48,7 @@ import de.srsoftware.web4rail.tiles.Turnout;
  * @author Stephan Richter, SRSoftware
  *
  */
-public class Route extends BaseClass implements Comparable<Route>{
+public class Route extends BaseClass {
 	
 	public enum State {
 		FREE, LOCKED, PREPARED, STARTED;
@@ -106,7 +106,6 @@ public class Route extends BaseClass implements Comparable<Route>{
 		public void finish() {
 			long timestamp2 = new Date().getTime();
 			//int remainingSpeed = train.speed;
-			train.setSpeed(0);
 			if (aborted) return;
 			long runtime = timestamp2 - timestamp;
 			int quotient = startSpeed - ENDSPEED;
@@ -144,6 +143,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 	private HashMap<String,Integer>        brakeTimes = new HashMap<String, Integer>();
 	private ConditionList                  conditions;
 	private Vector<Contact>                contacts;
+	private Context                        context; // this context is passed to actions
 	private boolean                        disabled = false;
 	private Block                          endBlock = null;
 	public  Direction					   endDirection;
@@ -222,6 +222,46 @@ public class Route extends BaseClass implements Comparable<Route>{
 		conditions.add(condition);
 	}
 	
+	public void addPropertiesFrom(Route existingRoute) {
+		LOG.debug("addPropertiesFrom({})",existingRoute);
+		disabled = existingRoute.disabled;
+
+		for (Condition condition : existingRoute.conditions) { // bestehende Bedingungen der neuen zuweisen
+			condition.parent(this);
+			conditions.add(condition);			
+		}
+		conditions.forEach(condition -> existingRoute.conditions.removeChild(condition));
+		
+		for (Entry<String, ActionList> entry : triggeredActions.entrySet()) {
+			String trigger = entry.getKey();
+			ActionList existingActionList = existingRoute.triggeredActions.get(trigger);
+			if (isSet(existingActionList)) {
+				LOG.debug("found action list for {} on existing route {}: {}",trigger,existingRoute,existingActionList);
+				existingActionList.forEach(action -> LOG.debug("OLD Action: {}",action));
+				entry.getValue().merge(existingActionList);
+			}			
+		}
+		brakeTimes = new HashMap<String, Integer>(existingRoute.brakeTimes);
+	}
+	
+	void addSignal(Signal signal) {
+		signals.add(signal);
+	}
+	
+	void addTurnout(Turnout t, Turnout.State s) {
+		turnouts.put(t, s);
+	}
+	
+	/**
+	 * checks, whether the route may be used in a given context
+	 * @param context
+	 * @return false, if any of the associated conditions is not fulfilled
+	 */
+	public boolean allowed(Context context) {
+		if (disabled) return false;
+		return conditions.fulfilledBy(context);
+	}
+	
 	private Fieldset basicProperties() {
 		Fieldset fieldset = new Fieldset(t("Route properties"));
 		
@@ -253,7 +293,86 @@ public class Route extends BaseClass implements Comparable<Route>{
 		new Tag("p").content(t("1) Duration between 5 {} steps during brake process.",speedUnit)).addTo(fieldset);
 		return fieldset;
 	}
-		
+				
+	public Route begin(Block block,Direction to) {
+		// add those fields to clone, too!
+		contacts = new Vector<Contact>();
+		signals = new Vector<Signal>();
+		path = new Vector<Tile>();
+		turnouts = new HashMap<>();
+		startBlock = block;
+		startDirection = to;
+		path.add(block);
+		return this;
+	}
+	
+	public void brakeCancel() {
+		if (isSet(brakeProcessor)) brakeProcessor.abort();		
+	}
+
+	public void brakeStart() {
+		if (isNull(train)) return;		
+		brakeProcessor = new BrakeProcessor(this,train);
+	}
+	
+	public void brakeStop() {
+		train.setSpeed(0);
+		if (isSet(brakeProcessor)) brakeProcessor.finish();
+	}
+
+	protected Route clone() {
+		Route clone = new Route();
+		clone.startBlock = startBlock;
+		clone.startDirection = startDirection;
+		clone.endBlock = endBlock;
+		clone.endDirection = endDirection;
+		clone.contacts = new Vector<Contact>(contacts);
+		clone.signals = new Vector<Signal>(signals);
+		clone.turnouts = new HashMap<>(turnouts);
+		clone.path = new Vector<>(path);
+		clone.brakeTimes = new HashMap<String, Integer>(brakeTimes);
+		return clone;
+	}
+	
+	public Route complete() {
+		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
+			Contact nextToLastContact = contacts.get(contacts.size()-2);
+			String trigger = nextToLastContact.trigger();
+			add(trigger,new BrakeStart(this));
+			add(trigger,new PreserveRoute(this));
+			for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.STOP));
+		}
+		if (!contacts.isEmpty()) {
+			Contact lastContact = contacts.lastElement(); 
+			add(lastContact.trigger(), new BrakeStop(this)); 
+			add(lastContact.trigger(), new FinishRoute(this));
+		}
+		for (Signal signal : signals) add(ROUTE_SETUP,new SetSignal(this).set(signal).to(Signal.GO));
+		add(ROUTE_START,new SetSpeed(this).to(999));
+		return this;
+	}
+
+	/**
+	 * Kontakt der Route aktivieren
+	 * @param contact
+	 * @param trainHead
+	 */
+	public void contact(Contact contact) {
+		if (triggeredContacts.contains(contact)) return; // don't trigger contact a second time
+		triggeredContacts.add(contact);
+		LOG.debug("{} on {} activated {}.",train,this,contact);
+		traceTrainFrom(contact);
+		ActionList actions = triggeredActions.get(contact.trigger());
+		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),actions);
+		if (isNull(actions)) return;
+		context.contact(contact);
+		actions.fire(context);
+	}
+
+	public Vector<Contact> contacts() {
+		return new Vector<>(contacts);
+	}
+	
 	private Fieldset contactsAndActions() {
 		Fieldset win = new Fieldset(t("Actions and contacts"));
 		Tag list = new Tag("ol");
@@ -287,152 +406,12 @@ public class Route extends BaseClass implements Comparable<Route>{
 		return win;
 	}
 	
-	public void addPropertiesFrom(Route existingRoute) {
-		LOG.debug("addPropertiesFrom({})",existingRoute);
-		disabled = existingRoute.disabled;
-
-		for (Condition condition : existingRoute.conditions) { // bestehende Bedingungen der neuen zuweisen
-			condition.parent(this);
-			conditions.add(condition);			
-		}
-		conditions.forEach(condition -> existingRoute.conditions.removeChild(condition));
-		
-		for (Entry<String, ActionList> entry : triggeredActions.entrySet()) {
-			String trigger = entry.getKey();
-			ActionList existingActionList = existingRoute.triggeredActions.get(trigger);
-			if (isSet(existingActionList)) {
-				LOG.debug("found action list for {} on existing route {}: {}",trigger,existingRoute,existingActionList);
-				ActionList newActionList = entry.getValue();
-				newActionList.addActionsFrom(existingActionList);
-			}			
-		}
-		brakeTimes = new HashMap<String, Integer>(existingRoute.brakeTimes);
-	}
-	
-	void addSignal(Signal signal) {
-		signals.add(signal);
-	}
-	
-	void addTurnout(Turnout t, Turnout.State s) {
-		turnouts.put(t, s);
-	}
-
-	private Fieldset turnouts() {
-		Fieldset win = new Fieldset(t("Turnouts"));
-		Tag list = new Tag("ul");
-		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) {
-			Turnout turnout = entry.getKey();
-			Plan.addLink(turnout, turnout+": "+t(entry.getValue().toString()), list);
-		}
-		list.addTo(win);
-		return win;
-	}
-	
-	/**
-	 * checks, whether the route may be used in a given context
-	 * @param context
-	 * @return false, if any of the associated conditions is not fulfilled
-	 */
-	public boolean allowed(Context context) {
-		if (disabled) return false;
-		return conditions.fulfilledBy(context);
-	}
-	
-	public Route begin(Block block,Direction to) {
-		// add those fields to clone, too!
-		contacts = new Vector<Contact>();
-		signals = new Vector<Signal>();
-		path = new Vector<Tile>();
-		turnouts = new HashMap<>();
-		startBlock = block;
-		startDirection = to;
-		path.add(block);
-		return this;
-	}
-	
-	public void brakeCancel() {
-		if (isSet(brakeProcessor)) brakeProcessor.abort();		
-	}
-
-	public void brakeStart() {
-		if (isNull(train)) return;		
-		brakeProcessor = new BrakeProcessor(this,train);
-	}
-	
-	public void brakeStop() {
-		if (isSet(brakeProcessor)) brakeProcessor.finish();
-	}
-
-	protected Route clone() {
-		Route clone = new Route();
-		clone.startBlock = startBlock;
-		clone.startDirection = startDirection;
-		clone.endBlock = endBlock;
-		clone.endDirection = endDirection;
-		clone.contacts = new Vector<Contact>(contacts);
-		clone.signals = new Vector<Signal>(signals);
-		clone.turnouts = new HashMap<>(turnouts);
-		clone.path = new Vector<>(path);
-		clone.brakeTimes = new HashMap<String, Integer>(brakeTimes);
-		return clone;
-	}
-
-	@Override
-	public int compareTo(Route other) {
-		return name().compareTo(other.name());
-	}
-	
-	public Route complete() {
-		if (contacts.size()>1) { // mindestens 2 Kontakte: erster Kontakt aktiviert Block, vorletzter Kontakt leitet Bremsung ein
-			Contact nextToLastContact = contacts.get(contacts.size()-2);
-			String trigger = nextToLastContact.trigger();
-			add(trigger,new BrakeStart(this));
-			add(trigger,new PreserveRoute(this));
-			for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.STOP));
-		}
-		if (!contacts.isEmpty()) {
-			Contact lastContact = contacts.lastElement(); 
-			add(lastContact.trigger(), new BrakeStop(this)); 
-			add(lastContact.trigger(), new FinishRoute(this));
-		}
-		for (Signal signal : signals) add(ROUTE_SETUP,new SetSignal(this).set(signal).to(Signal.GO));
-		add(ROUTE_START,new SetSpeed(this).to(999));
-		return this;
-	}
-
-	/**
-	 * Kontakt der Route aktivieren
-	 * @param contact
-	 * @param trainHead
-	 */
-	public void contact(Contact contact) {
-		if (triggeredContacts.contains(contact)) return; // don't trigger contact a second time
-		triggeredContacts.add(contact);
-		LOG.debug("{} on {} activated {}.",train,this,contact);
-		traceTrainFrom(contact);
-		ActionList actions = triggeredActions.get(contact.trigger());
-		if (isNull(actions)) return;
-		Context context = new Context(contact).route(this).train(train);
-		actions.fire(context);
-	}
-
-	public Vector<Contact> contacts() {
-		return new Vector<>(contacts);
-	}
-	
-	public String context() {
-		return REALM_ROUTE+":"+id();
-	}
-	
-	public boolean isDisabled() {
-		return disabled;
-	}
-	
 	public Block endBlock() {
 		return endBlock;
 	}	
 	
 	public void finish() {
+		context.clear(); // prevent delayed actions from firing after route has finished
 		setSignals(Signal.STOP);
 		for (Tile tile : path) tile.setRoute(null);
 		Tile lastTile = path.lastElement();
@@ -455,7 +434,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 		triggeredContacts.clear();
 	}
 	
-	public boolean fireSetupActions(Context context) {
+	public boolean fireSetupActions() {
 		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
 		if (isSet(setupActions) && !setupActions.fire(context)) return false;
 		state = State.PREPARED;
@@ -480,6 +459,10 @@ public class Route extends BaseClass implements Comparable<Route>{
 	public Id id() {
 		if (isNull(id)) id = new Id(""+(generateName().hashCode()));
 		return id;
+	}
+	
+	public boolean isDisabled() {
+		return disabled;
 	}
 		
 	public boolean isFreeFor(Train newTrain) {
@@ -761,9 +744,6 @@ public class Route extends BaseClass implements Comparable<Route>{
 		LOG.debug("Removing route ({}) {}",id(),this);
 		if (isSet(train)) train.removeChild(this);
 		for (Tile tile : path) {
-			if (tile.id().equals(Tile.id(4, 6))) {
-				System.err.println(tile);
-			}
 			tile.removeChild(this);
 		}
 		conditions.remove();
@@ -823,6 +803,12 @@ public class Route extends BaseClass implements Comparable<Route>{
 		file.write("]}");
 		file.close();
 	}
+	
+	public Context set(Context newContext) {
+		context = newContext;
+		context.route(this);
+		return context;
+	}
 
 	public void setLast(Turnout.State state) {
 		if (isNull(state) || state == Turnout.State.UNDEF) return;
@@ -865,7 +851,7 @@ public class Route extends BaseClass implements Comparable<Route>{
 			if (newTrain != train) return false; // can't alter route's train
 		} else train = newTrain; // set new train 
 		ActionList startActions = triggeredActions.get(ROUTE_START);
-		if (isSet(startActions) && !startActions.fire(new Context(this).train(train))) return false; // start actions failed
+		if (isSet(startActions) && !startActions.fire(context)) return false; // start actions failed
 		state = State.STARTED;
 		return true;
 	}
@@ -894,6 +880,17 @@ public class Route extends BaseClass implements Comparable<Route>{
 	
 	public Train train() {
 		return train;
+	}
+	
+	private Fieldset turnouts() {
+		Fieldset win = new Fieldset(t("Turnouts"));
+		Tag list = new Tag("ul");
+		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) {
+			Turnout turnout = entry.getKey();
+			Plan.addLink(turnout, turnout+": "+t(entry.getValue().toString()), list);
+		}
+		list.addTo(win);
+		return win;
 	}
 	
 	public Route unlock() throws IOException {

@@ -87,17 +87,30 @@ public abstract class BaseClass implements Constants{
 			return car;
 		}
 		
+		public void clear() {
+			action = null;
+			block = null;
+			car = null;
+			condition = null;
+			contact = null;
+			direction = null;
+			main = null;
+			route = null;
+			tile = null;
+			train = null;
+		}
+		
 		public Context clone() {
 			Context clone = new Context(main);
-			clone.tile = tile;
-			clone.block = block;
-			clone.train = train;
-			clone.route = route;
 			clone.action = action;
-			clone.condition = condition;
+			clone.block = block;
 			clone.car = car;
+			clone.condition = condition;
 			clone.contact = contact;
 			clone.direction = direction;
+			clone.route = route;
+			clone.tile = tile;
+			clone.train = train;
 			return clone;
 		}
 		
@@ -109,6 +122,11 @@ public abstract class BaseClass implements Constants{
 			return contact;
 		}
 		
+		public void contact(Contact newContact) {
+			contact = newContact;
+		}
+
+		
 		public Direction direction() {
 			return direction;
 		}
@@ -117,6 +135,11 @@ public abstract class BaseClass implements Constants{
 			direction = newDirection;
 			return this;
 		}
+		
+		public boolean invalidated() {
+			return isNull(main);
+		}
+
 				
 		public Route route() {
 			return route;
@@ -376,11 +399,11 @@ public abstract class BaseClass implements Constants{
 	}
 	
 	public String realm() {
-		if (this instanceof Tile) return REALM_PLAN;
 		if (this instanceof Contact) return REALM_CONTACT;
+		if (this instanceof Tile) return REALM_PLAN;
 
-		if (this instanceof Car) return REALM_CAR;
 		if (this instanceof Locomotive) return REALM_LOCO;
+		if (this instanceof Car) return REALM_CAR;
 		
 		if (this instanceof Action) return REALM_ACTIONS;
 		if (this instanceof Condition) return REALM_CONDITION;

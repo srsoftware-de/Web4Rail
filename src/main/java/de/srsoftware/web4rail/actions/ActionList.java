@@ -58,30 +58,6 @@ public class ActionList extends Action implements Iterable<Action>{
 		return new Tag("span").content(t("Unknown action type: {}",type)).addTo(actionTypeForm());
 	}
 	
-	public void addActionsFrom(ActionList other) {
-		for (Action otherAction : other.actions) {
-			//LOG.debug("old action ({}): {}",otherAction.getClass().getSimpleName(),otherAction);
-			boolean exists = false;
-			int len = actions.size();
-			for (int i=0; i<len; i++) {
-				Action thisAction = actions.get(i);
-				LOG.debug("→ {} ?",thisAction);
-				if (thisAction.equals(otherAction)) {
-					LOG.debug("Action already existing!");
-					exists = true;
-					break;
-				}
-			}
-			if (exists) {
-				LOG.debug("action not added.");
-			} else { // bestehemde Aktion der neuen Liste zuweisen
-				this.add(otherAction);
-				LOG.debug("action added.");
-			}
-		}
-		actions.forEach(action -> other.removeChild(action)); // zugewiesene Aktionen von alter Liste löschen
-	}
-	
 	public void clear() {
 		while (!actions.isEmpty()) actions.firstElement().remove();
 	}
@@ -91,6 +67,10 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 
 	public boolean fire(Context context) {
+		if (context.invalidated()) {
+			LOG.debug("Context has been invalidated, aborting {}",this);
+			return false;
+		}
 		if (!isEmpty())	LOG.debug(t("Firing {}"),actions);
 		for (Action action : actions) {
 			if (!action.fire(context)) return false;			
@@ -149,6 +129,20 @@ public class ActionList extends Action implements Iterable<Action>{
 			}
 		}
 		return this;
+	}
+	
+	public void merge(ActionList oldActions) {
+		for (Action oldAction : oldActions.actions) {
+			for (Action newAction : actions) {
+				if (oldAction.corresponsTo(newAction)) {
+					actions.remove(newAction);
+					LOG.debug("new action {} replaced by {}",newAction,oldAction);
+					break;
+				}
+			}
+			add(oldAction);
+		}
+		oldActions.actions.clear();
 	}
 	
 	public boolean moveUp(Action action) {

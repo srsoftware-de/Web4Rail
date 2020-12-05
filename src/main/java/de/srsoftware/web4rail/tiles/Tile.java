@@ -55,7 +55,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	private   int             length    = DEFAUT_LENGTH;
 	protected Direction       oneWay    = null;
 	protected Route           route     = null;
-	private   TreeSet<Route>  routes    = new TreeSet<>();
+	private   TreeSet<Route>  routes    = new TreeSet<>((r1,r2)->r1.toString().compareTo(r2.toString()));
 	protected Train           train     = null;	
 	public    Integer         x         = null;
 	public    Integer         y         = null;
@@ -169,10 +169,11 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	}
 
 	public Tile load(JSONObject json) {
+		if (json.has(ID)) json.remove(ID); // id should be created from cordinates
 		super.load(json);
 		JSONObject pos = json.getJSONObject(POS);
 		x = pos.getInt(X);
-		y = pos.getInt(Y);
+		y = pos.getInt(Y);		
 		if (json.has(DISABLED))    disabled  = json.getBoolean(DISABLED);
 		if (json.has(LENGTH))	   length    = json.getInt(LENGTH);
 		if (json.has(ONEW_WAY))    oneWay    = Direction.valueOf(json.getString(ONEW_WAY));

@@ -20,6 +20,11 @@ public class SetSpeed extends Action{
 	private int speed = 0;
 
 	@Override
+	public boolean corresponsTo(Action other) {
+		return other instanceof SetSpeed;
+	}
+	
+	@Override
 	public boolean fire(Context context) {
 		if (isNull(context.train())) return false;
 		context.train().setSpeed(speed);
@@ -66,10 +71,7 @@ public class SetSpeed extends Action{
 			try {
 				int s = Integer.parseInt(ms);
 				if (s<0) error = t("Speed must not be less than zero!");
-				if (error == null) {
-					this.speed = s;
-					return t("Action updated!");
-				}
+				if (isNull(error)) speed = s;
 			} catch (NumberFormatException e) {
 				error = t("Not a valid number!");
 			}
