@@ -33,13 +33,6 @@ public class TextDisplay extends StretchableTile {
 	}
 	
 	@Override
-	public Tag tag(Map<String, Object> replacements) throws IOException {
-		if (isNull(replacements)) replacements = new HashMap<String, Object>();
-		replacements.put("%text%",text);
-		return super.tag(replacements);
-	}
-	
-	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		formInputs.add(t("Text"),new Input(TEXT, text));
 		return super.properties(preForm, formInputs, postForm);
@@ -60,6 +53,15 @@ public class TextDisplay extends StretchableTile {
 	@Override
 	protected String stretchType() {
 		return t("Width");
+	}
+	
+	
+	@Override
+	public Tag tag(Map<String, Object> replacements) throws IOException {
+		if (isNull(replacements)) replacements = new HashMap<String, Object>();
+		replacements.put("%text%",text);
+		Tag tag = super.tag(replacements);
+		return tag.clazz(tag.get("class")+" fill");
 	}
 
 	public TextDisplay text(String tx) {
