@@ -5,7 +5,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import org.json.JSONObject;
 
@@ -213,14 +212,6 @@ public class Locomotive extends Car implements Constants,Device{
 		return json;
 	}
 	
-	static Vector<Car> list() {
-		Vector<Car> locos = new Vector<Car>();
-		for (Car car : Car.cars.values()) {
-			if (car instanceof Locomotive) locos.add((Locomotive) car);
-		}
-		return locos;
-	}
-
 	@Override
 	public Car load(JSONObject json) {
 		super.load(json);

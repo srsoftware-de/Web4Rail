@@ -119,8 +119,9 @@ public abstract class Condition extends BaseClass {
 				OrCondition.class,
 				PushPullTrain.class,
 				TrainHasTag.class,
+				TrainLength.class,
 				TrainSelect.class,
-				TrainLength.class);
+				TrainSpeed.class);
 	}
 	
 	public Condition load(JSONObject json) {

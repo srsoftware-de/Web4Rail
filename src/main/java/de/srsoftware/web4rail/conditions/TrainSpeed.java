@@ -10,45 +10,44 @@ import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 
-public class TrainLength extends Condition {
+public class TrainSpeed extends Condition {
 	
-	private static final String LENGTH = "length";
+	private static final String SPEED = "speed";
 	private int treshold = 0;
 	
 	@Override
 	public boolean fulfilledBy(Context context) {
 		if (isNull(context.train())) return false;
-		int len = context.train().length();
-		return inverted ? len > treshold : len < treshold;
+		return inverted ? context.train().speed > treshold : context.train().speed < treshold;
 	}
 	
 	@Override
 	public JSONObject json() {
-		return super.json().put(LENGTH, treshold);
+		return super.json().put(SPEED, treshold);
 	}
 	
 	public Condition load(JSONObject json) {
 		super.load(json);
-		if (json.has(LENGTH)) treshold = json.getInt(LENGTH);
+		if (json.has(SPEED)) treshold = json.getInt(SPEED);
 		return this;
 	}
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Maximum train length"),new Input(LENGTH, treshold).numeric().addTo(new Tag("span")).content(lengthUnit));
+		formInputs.add(t("Train speed"),new Input(SPEED, treshold).numeric().addTo(new Tag("span")).content(speedUnit));
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	@Override
 	public String toString() {
-		return t(inverted ? "train is longer than {} {}" : "train is shorter than {} {}",treshold,lengthUnit) ;
+		return t(inverted ? "train is faster than {} {}" : "train is slower than {} {}",treshold,speedUnit) ;
 	}
 
 	@Override
 	protected Object update(HashMap<String, String> params) {
-		if (params.containsKey(LENGTH)) try {
-			int ml = Integer.parseInt(params.get(LENGTH));
-			if (ml < 1) throw new NumberFormatException(t("length must be larger than zero!"));
+		if (params.containsKey(SPEED)) try {
+			int ml = Integer.parseInt(params.get(SPEED));
+			if (ml < 0) throw new NumberFormatException(t("speed must be non-negative!"));
 			treshold = ml;
 		} catch (NumberFormatException nfe) {
 			Window win = properties();

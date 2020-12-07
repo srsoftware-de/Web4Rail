@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
-import java.util.Vector;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -119,14 +118,6 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return link(type, tx);
 	}
 	
-	static Vector<Car> list() {
-		Vector<Car> cars = new Vector<Car>();
-		for (Car car : Car.cars.values()) {
-			if (!(car instanceof Locomotive)) cars.add(car);
-		}
-		return cars;
-	}
-	
 	public static void loadAll(String filename, Plan plan) throws IOException {
 		cars.clear();
 		BufferedReader file = new BufferedReader(new FileReader(filename, UTF8));
@@ -157,15 +148,17 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Tag("h4").content(t("known cars")).addTo(win);
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
-		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Length"),t("Tags"),t("Actions"));
+		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Length"),t("Train"),t("Tags"),t("Actions"));
 		cars.values()
 			.stream()
 			.filter(car -> !(car instanceof Locomotive))
+			.sorted((c1,c2)->c2.stockId.compareTo(c1.stockId))
 			.forEach(car -> table.addRow(
 					car.stockId,
 					car.link(),
 					car.maxSpeed == 0 ? "–":(car.maxSpeed+NBSP+speedUnit),
 					car.length+NBSP+lengthUnit,
+					car.train,
 					String.join(", ", car.tags()),
 					car.cloneButton()
 			));

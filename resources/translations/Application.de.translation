@@ -54,8 +54,10 @@ ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
 Condition type\: : Bedingungs-Typ:
 Connected to {}. : Mit {} verbunden.
+Contact : Kontakt
 Control : Steuerung
 Control unit : Zentrale
+copy : kopieren
 Counterpart : Gegenstück
 Create action : Aktion erzeugen
 Current location\: : Aktueller Ort:
@@ -218,16 +220,20 @@ Train : Zug
 Train\: : Zug:
 train does not have tag "{}" : Zug hat keine Markierung „{}“
 train has tag "{}" : Zug hat Markierung „{}“
+TrainHasTag : Zug mit Tag
 train is a push-pull train : Zug ist ein Wendezug
-train is longer than {} : Zug ist länger als {}
+train is faster than {} {} : Zug ist schneller als {} {}
+train is longer than {} {} : Zug ist länger als {} {}
 train is not a push-pull train : Zug ist kein Wendezug
-train is shorter than {} : Zug ist kürzer als {}
+train is shorter than {} {} : Zug ist kürzer als {} {}
+train is slower than {} {} : Zug ist langsamer als {} {}
+TrainLength : Zug-Länge
 Train manager : Zug-Verwaltung
 Trains : Züge
 Trains\: : Züge:
-TrainHasTag : Zug mit Tag
-TrainLength : Zug-Länge
 TrainSelect : Zug-Auswahl
+TrainSpeed : Zug-Geschwindigkeit
+Train speed : Zug-Geschwindigkeit
 Trigger {} : {} betätigen
 TriggerContact : Kontakt auslösen
 Turn : Richtung wechseln

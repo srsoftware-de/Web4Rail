@@ -59,15 +59,7 @@ public abstract class BaseClass implements Constants{
 		private Direction direction;
 		
 		public Context(BaseClass object) {
-			main = object;
-			if (main instanceof Tile) this.tile = (Tile) main;
-			if (main instanceof Contact) this.contact = (Contact) main;
-			if (main instanceof Block) this.block = (Block) main;
-			if (main instanceof Train) this.train = (Train) main;
-			if (main instanceof Route) this.route = (Route) main;
-			if (main instanceof Action) this.action = (Action) main;
-			if (main instanceof Condition) this.condition = (Condition) main;
-			if (main instanceof Car) this.car = (Car) main;
+			setMain(object);
 		}
 		
 		public Action action() {
@@ -139,7 +131,19 @@ public abstract class BaseClass implements Constants{
 		public boolean invalidated() {
 			return isNull(main);
 		}
-
+		
+		public Context setMain(BaseClass object) {
+			main = object;
+			if (main instanceof Tile) this.tile = (Tile) main;
+			if (main instanceof Contact) this.contact = (Contact) main;
+			if (main instanceof Block) this.block = (Block) main;
+			if (main instanceof Train) this.train = (Train) main;
+			if (main instanceof Route) this.route = (Route) main;
+			if (main instanceof Action) this.action = (Action) main;
+			if (main instanceof Condition) this.condition = (Condition) main;
+			if (main instanceof Car) this.car = (Car) main;
+			return this;		
+		}
 				
 		public Route route() {
 			return route;

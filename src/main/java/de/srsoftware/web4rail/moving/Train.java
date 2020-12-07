@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -233,8 +234,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Input(ACTION, ACTION_ADD).hideIn(addCarForm);
 		new Input(ID,id).hideIn(addCarForm);
 		Select select = new Select(CAR_ID);
-		for (Car car : Car.list()) {
-			if (isNull(car.train())) select.addOption(car.id(), car+(car.stockId.isEmpty()?"":" ("+car.stockId+")"));
+		for (Car car : BaseClass.listElements(Car.class)) {
+			if (car instanceof Locomotive) continue;
+			if (isSet(car.train())) continue; 
+			select.addOption(car.id(), car+(car.stockId.isEmpty()?"":" ("+car.stockId+")"));
 		}
 		if (!select.children().isEmpty()) {
 			select.addTo(addCarForm);
@@ -259,7 +262,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		Train train = new Train(loco);
 		train.parent(plan);
 		if (params.containsKey(NAME)) train.name(params.get(NAME));
-		return train;
+		return train.properties();
 	}
 	
 	public Block currentBlock() {
@@ -368,8 +371,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return link(type, tx);
 	}
 	
-	public static TreeSet<Train> list() {
-		return new TreeSet<Train>(trains.values());
+	public static ArrayList<Train> list() {
+		ArrayList<Train> list = new ArrayList<Train>(trains.values());
+		list.sort((t1,t2)->t1.name.compareTo(t2.name));
+		return list;
 	}
 
 	public static void loadAll(String filename, Plan plan) throws IOException {
@@ -418,7 +423,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
 		new Input(ID,id).hideIn(addLocoForm);
 		Select select = new Select(CAR_ID);
-		for (Car loco : Locomotive.list()) {
+		for (Car loco : BaseClass.listElements(Locomotive.class)) {
 			if (isNull(loco.train())) select.addOption(loco.id(), loco);
 		}
 		if (!select.children().isEmpty()) {
@@ -456,19 +461,21 @@ public class Train extends BaseClass implements Comparable<Train> {
 		});
 		table.addTo(win);
 		
-		Form form = new Form();
+		Form form = new Form("create-train-form");
 		new Input(ACTION, ACTION_ADD).hideIn(form);
 		new Input(REALM,REALM_TRAIN).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("add new train"));
 		new Input(Train.NAME, t("new train")).addTo(new Label(t("Name:")+NBSP)).addTo(fieldset);
 
 		Select select = new Select(LOCO_ID);
-		for (Car loco : Locomotive.list()) select.addOption(loco.id(),loco.name());
+		for (Locomotive loco : BaseClass.listElements(Locomotive.class)) {
+			if (isSet(loco.train())) continue;
+			select.addOption(loco.id(),loco.name());
+		}
 		select.addTo(new Label(t("Locomotive:")+NBSP)).addTo(fieldset);
 
-		new Button(t("Apply")).addTo(fieldset);
+		new Button(t("Apply"),form).addTo(fieldset);
 		fieldset.addTo(form).addTo(win);
-
 
 		return win;
 	}
