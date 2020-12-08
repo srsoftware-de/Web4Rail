@@ -11,6 +11,7 @@ add car\: : Waggon hinzufügen:
 Add condition : Bedingung hinzufügen
 add locomotive\: : Lok hinzufügen:
 add new car : neuen Waggon anlegen
+Add new custom field : neues benutzerdefinierted Feld hinzufügen
 add new locomotive : neue Lok anlegen
 add new train : neuen Zug anlegen
 Add tile : Kachel hinzufügen
@@ -64,6 +65,7 @@ Current location\: : Aktueller Ort:
 Current location : Aufenthaltsort
 Current location\: {} : Aufenthaltsort: {}
 Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {}
+custom fields : benutzerdefinierte Felder
 Decoder address : Decoder-Adresse 
 Delay : Verzögerung
 DelayedAction : verzögerte Aktion

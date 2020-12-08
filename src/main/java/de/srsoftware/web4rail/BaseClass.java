@@ -6,9 +6,11 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -41,8 +43,12 @@ public abstract class BaseClass implements Constants{
 	protected Id id = null;
 	protected String notes;
 	private static HashMap<Id,BaseClass> registry = new HashMap<BaseClass.Id, BaseClass>();
+	private static HashMap<Class<? extends BaseClass>,Set<String>> customFieldNames = new HashMap<Class<? extends BaseClass>, Set<String>>();
 	
 	public static final Logger LOG = LoggerFactory.getLogger(BaseClass.class);
+	private static final String CUSTOM_FIELDS = "custom_Fields";
+	private static final String NEW_CUSTOM_FIELD_NAME = "new_custom_field_name";
+	private HashMap<String,String> customFieldValues = new HashMap<String, String>();	
 	private BaseClass parent;
 	
 	public static class Context {
@@ -315,6 +321,17 @@ public abstract class BaseClass implements Constants{
 		JSONObject json = new JSONObject();
 		if (isSet(id)) json.put(ID, id().toString());
 		if (isSet(notes) && !notes.isEmpty()) json.put(NOTES, notes);
+		Set<String> customFieldNames = BaseClass.customFieldNames.get(getClass());
+		JSONObject customFields = null;
+		if (isSet(customFieldNames)) for (String fieldName : customFieldNames){
+			String val = customFieldValues.get(fieldName);
+			if (isSet(val) && !val.trim().isEmpty()) {
+				if (isNull(customFields)) customFields = new JSONObject();
+				customFields.put(fieldName, val);
+			}
+		}
+		if (isSet(customFields)) json.put(CUSTOM_FIELDS, customFields);
+		
 		return json;
 	}
 	
@@ -344,6 +361,19 @@ public abstract class BaseClass implements Constants{
 			register();
 		}
 		if (json.has(NOTES)) notes = json.getString(NOTES);
+		if (json.has(CUSTOM_FIELDS)) {
+			JSONObject customFields = json.getJSONObject(CUSTOM_FIELDS);
+			for (String fieldName : customFields.keySet()) {
+				String val = customFields.getString(fieldName);
+				Set<String> customFieldNames = BaseClass.customFieldNames.get(getClass());
+				if (isNull(customFieldNames)) {
+					customFieldNames = new HashSet<String>();
+					BaseClass.customFieldNames.put(getClass(),customFieldNames);
+				}
+				customFieldNames.add(fieldName);
+				customFieldValues.put(fieldName, val);
+			}
+		}
 		return this;
 	}
 	
@@ -399,6 +429,26 @@ public abstract class BaseClass implements Constants{
 		
 		postForm.forEach(fieldset -> fieldset.addTo(win));
 		
+		Fieldset customFields = new Fieldset(t("custom fields"));
+		
+		Form customForm = new Form(CUSTOM_FIELDS);
+		new Input(ACTION, ACTION_UPDATE).hideIn(customForm);
+		new Input(REALM,realm()).hideIn(customForm);
+		new Input(ID,id()).hideIn(customForm);
+		
+		Table table = new Table();
+		
+		Set<String> fieldNames = customFieldNames.get(getClass());
+		if (isSet(fieldNames)) for (String fieldName : fieldNames) {
+			String val = customFieldValues.get(fieldName);
+			table.addRow(fieldName,new Input(fieldName,isNull(val) ? "" : val));
+		}
+
+		table.addRow(t("Add new custom field"),new Input(NEW_CUSTOM_FIELD_NAME));
+		table.addTo(customForm);
+		new Button(t("Apply"),customForm).addTo(customForm).addTo(customFields);
+		customFields.addTo(win);		
+		
 		return win;
 	}
 	
@@ -450,6 +500,20 @@ public abstract class BaseClass implements Constants{
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
 		if (params.containsKey(NOTES)) notes = params.get(NOTES).trim();
+		String newCustomFieldName = params.get(NEW_CUSTOM_FIELD_NAME);
+		Set<String> fieldNames = customFieldNames.get(getClass());
+		if (isSet(fieldNames)) for (String fieldName : fieldNames) {
+			String fieldValue = params.get(fieldName);
+			if (isSet(fieldValue)) customFieldValues.put(fieldName, fieldValue);
+		}
+		if (isSet(newCustomFieldName) && !newCustomFieldName.trim().isEmpty()) {
+			if (isNull(fieldNames)) {
+				fieldNames = new HashSet<String>();
+				customFieldNames.put(getClass(), fieldNames);
+			}
+			fieldNames.add(newCustomFieldName);
+		}
+		
 		return this;
 	}
 }
