@@ -48,7 +48,7 @@ public class Locomotive extends Car implements Constants,Device{
 		Locomotive loco = id == null ? null : Locomotive.get(id);
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
-				new Locomotive(params.get(Locomotive.NAME)).parent(plan);
+				new Locomotive(params.get(Locomotive.NAME)).parent(plan).register();
 				return Locomotive.manager();
 			case ACTION_FASTER10:
 				return loco.faster(10);
@@ -329,10 +329,10 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	@Override
-	protected Car update(HashMap<String, String> params) {
+	protected Window update(HashMap<String, String> params) {
 		super.update(params);
 		if (params.containsKey(PROTOCOL)) proto = Protocol.valueOf(params.get(PROTOCOL));
 		if (params.containsKey(ADDRESS)) address = Integer.parseInt(params.get(ADDRESS));
-		return this;
+		return properties();
 	}
 }

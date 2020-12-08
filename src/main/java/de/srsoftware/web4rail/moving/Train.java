@@ -795,12 +795,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public Tag turn() {
 		LOG.debug("train.turn()");
+		for (Locomotive loco : locos) loco.turn();
 		if (isSet(direction)) {
 			direction = direction.inverse();
-			for (Locomotive loco : locos) loco.turn();
 			reverseTrace();
-			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
+		if (isSet(currentBlock)) plan.place(currentBlock);
 		return properties();
 	}
 

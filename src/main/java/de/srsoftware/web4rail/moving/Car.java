@@ -70,8 +70,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 			case ACTION_PROPS:
 				return car == null ? Car.manager() : car.properties();
 			case ACTION_UPDATE:
-				car.update(params);
-				return Car.manager();
+				return car.update(params);
 		}
 		if (car instanceof Locomotive) return Locomotive.action(params,plan);
 		return t("Unknown action: {}",params.get(ACTION));
@@ -84,6 +83,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		clone.tags = new HashSet<String>(tags);
 		clone.notes = notes;
 		clone.parent(parent());
+		clone.register();
 		return clone;
 	}
 
@@ -152,13 +152,20 @@ public class Car extends BaseClass implements Comparable<Car>{
 		cars.values()
 			.stream()
 			.filter(car -> !(car instanceof Locomotive))
-			.sorted((c1,c2)->c2.stockId.compareTo(c1.stockId))
+			.sorted((c1,c2)->{
+				try {
+					return Integer.parseInt(c1.stockId)-Integer.parseInt(c2.stockId);
+				} catch (NumberFormatException nfe) {
+					return c1.stockId.compareTo(c2.stockId);	
+				}
+				
+			})
 			.forEach(car -> table.addRow(
 					car.stockId,
 					car.link(),
 					car.maxSpeed == 0 ? "–":(car.maxSpeed+NBSP+speedUnit),
 					car.length+NBSP+lengthUnit,
-					car.train,
+					isSet(car.train) ? car.train.link("span", car.train) : "",
 					String.join(", ", car.tags()),
 					car.cloneButton()
 			));
@@ -232,7 +239,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		this.train = train;
 	}
 
-	protected Car update(HashMap<String, String> params) {
+	protected Window update(HashMap<String, String> params) {
 		super.update(params);
 		if (params.containsKey(NAME)) name = params.get(NAME).trim();
 		if (params.containsKey(LENGTH)) length = Integer.parseInt(params.get(LENGTH));
@@ -246,7 +253,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 				if (!tag.isEmpty()) tags.add(tag);
 			}
 		}
-		return this;
+		return properties();
 	}
 
 	@Override
