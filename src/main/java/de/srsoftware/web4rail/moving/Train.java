@@ -222,9 +222,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		for (Car car : this.cars) {
 			Tag li = new Tag("li");
-			car.link(car.name()+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")")).addTo(li).content(NBSP);
-			Map<String, Object> params = Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_DROP,CAR_ID,car.id());
-			new Button(t("delete"),params).addTo(li);
+			car.link(car.name()+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")")).addTo(li).content(NBSP);			
+			button(t("delete"),Map.of(ACTION,ACTION_DROP,CAR_ID,car.id().toString())).addTo(li);
 			li.addTo(locoList);
 		}
 
@@ -411,10 +410,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		for (Locomotive loco : this.locos) {
 			Tag li = new Tag("li");
 			loco.link(loco.name()+(loco.stockId.isEmpty() ? "" : " ("+loco.stockId+")")).addTo(li);
-			Map<String, Object> props = Map.of(REALM,REALM_LOCO,ID,loco.id(),ACTION,ACTION_TURN);
-			new Button(t("turn within train"),props).addTo(li).addTo(locoList);
-			Map<String, Object> params = Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_DROP,LOCO_ID,loco.id()+(loco.stockId.isEmpty()?"":" ("+loco.stockId+")"));
-			new Button(t("delete"),params).addTo(li);
+			loco.button(t("turn within train"),Map.of(ACTION,ACTION_TURN)).addTo(li);
+			button(t("delete"),Map.of(ACTION,ACTION_DROP,LOCO_ID,loco.id().toString())).addTo(li);
+			li.addTo(locoList);
 		}
 
 		Form addLocoForm = new Form("append-loco-form");
@@ -518,7 +516,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		locoList().addTo(propList);
 		carList().addTo(propList);
 		
-		if (isSet(currentBlock)) currentBlock.link("span",currentBlock.toString()).addTo(new Tag("li").content(t("Current location:")+NBSP)).addTo(propList);
+		if (isSet(currentBlock)) currentBlock.button(currentBlock.toString()).addTo(new Tag("li").content(t("Current location:")+NBSP)).addTo(propList);
 		if (isSet(direction)) new Tag("li").content(t("Direction: heading {}",direction)).addTo(propList);
 
 		Tag dest = new Tag("li").content(t("Destination:")+NBSP);
