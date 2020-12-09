@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -31,7 +31,6 @@ import de.srsoftware.web4rail.tags.Table;
 
 public class Car extends BaseClass implements Comparable<Car>{
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
-	static HashMap<Id,Car> cars = new HashMap<Id, Car>();
 	
 	public static final String NAME = "name";
 	public static boolean FORWARD = true;
@@ -57,14 +56,13 @@ public class Car extends BaseClass implements Comparable<Car>{
 	
 	public Car(String name, Id id) {
 		this.name = name;
-		if (isNull(id)) id = new Id();
 		this.id = id;
-		cars.put(id, this);
+		register();		
 	}	
 	
 	public static Object action(HashMap<String, String> params,Plan plan) throws IOException {
 		String id = params.get(ID);
-		Car car = id == null ? null : Car.get(id);
+		Car car = id == null ? null : Car.get(new Id(id));
 
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
@@ -105,15 +103,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return (stockId+":"+name).compareTo(o.stockId+":"+o.name);
 	}
 
-	public static Car get(Object id) {		
-		return isNull(id) ? null : cars.get(new Id(""+id)); // try to get by id
-	}
-	
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(NAME, name);
 		json.put(LENGTH, length);
 		if (maxSpeedForward != 0) json.put(MAX_SPEED, maxSpeedForward);
+		if (maxSpeedReverse != 0) json.put(MAX_SPEED_REVERSE, maxSpeedReverse);
 		json.put(STOCK_ID, stockId);
 		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;
@@ -133,7 +128,6 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 	
 	public static void loadAll(String filename, Plan plan) throws IOException {
-		cars.clear();
 		BufferedReader file = new BufferedReader(new FileReader(filename, UTF8));
 		String line = file.readLine();
 		while (line != null) {
@@ -167,26 +161,30 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
 		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Length"),t("Train"),t("Tags"),t("Actions"));
-		cars.values()
-			.stream()
-			.filter(car -> !(car instanceof Locomotive))
-			.sorted((c1,c2)->{
-				try {
-					return Integer.parseInt(c1.stockId)-Integer.parseInt(c2.stockId);
-				} catch (NumberFormatException nfe) {
-					return c1.stockId.compareTo(c2.stockId);	
-				}
-				
-			})
-			.forEach(car -> table.addRow(
+		List<Car> cars = BaseClass.listElements(Car.class)
+				.stream()
+				.filter(car -> !(car instanceof Locomotive))
+				.sorted((c1,c2)->{
+					try {
+						return Integer.parseInt(c1.stockId)-Integer.parseInt(c2.stockId);
+					} catch (NumberFormatException nfe) {
+						return c1.stockId.compareTo(c2.stockId);	
+					}
+					
+				}).collect(Collectors.toList());
+		for (Car car : cars) {
+			String maxSpeed = (car.maxSpeedForward == 0 ? "–":""+car.maxSpeedForward)+NBSP;
+			if (car.maxSpeedReverse != car.maxSpeedForward) maxSpeed += "("+car.maxSpeedReverse+")"+NBSP;
+
+			table.addRow(
 					car.stockId,
 					car.link(),
-					car.maxSpeedForward == 0 ? "–":(car.maxSpeedForward+NBSP+speedUnit),
+					maxSpeed+speedUnit,
 					car.length+NBSP+lengthUnit,
 					isSet(car.train) ? car.train.link("span", car.train) : "",
 					String.join(", ", car.tags()),
-					car.cloneButton()
-			));
+					car.cloneButton());
+		}
 		table.addTo(win);
 		
 		Form form = new Form("add-car-form");
@@ -240,7 +238,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Entry<Id, Car> entry: cars.entrySet()) file.write(entry.getValue().json()+"\n");
+		for (Car car : BaseClass.listElements(Car.class)) file.write(car.json()+"\n");
 		file.close();
 	}
 	

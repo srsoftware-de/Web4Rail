@@ -178,8 +178,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private Object addCar(HashMap<String, String> params) {
 		LOG.debug("addCar({})",params);
-		if (!params.containsKey(CAR_ID)) return t("No car id passed to Train.addCar!");
-		Car car = Car.get(params.get(CAR_ID));
+		String carId = params.get(CAR_ID);
+		if (isNull(carId)) return t("No car id passed to Train.addCar!");
+		Car car = BaseClass.get(new Id(carId));
 		if (isNull(car)) return t("No car with id \"{}\" known!",params.get(CAR_ID));
 		add(car);
 		return properties();
@@ -266,7 +267,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	private static Object create(HashMap<String, String> params, Plan plan) {
-		Locomotive loco = (Locomotive) Locomotive.get(params.get(Train.LOCO_ID));
+		String locoId = params.get(Train.LOCO_ID);
+		if (isNull(locoId)) return t("Need loco id to create new train!");
+		Locomotive loco = BaseClass.get(new Id(locoId));
 		if (isNull(loco)) return t("unknown locomotive: {}",params.get(ID));
 		Train train = new Train(loco);
 		train.parent(plan);
@@ -307,8 +310,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 		
 	private Object dropCar(HashMap<String, String> params) {
-		Car car = Car.get(params.get(CAR_ID));
-		
+		String carId = params.get(CAR_ID);
+		if (isNull(carId)) return t("Cannot drop car without car id!");
+		Car car = BaseClass.get(new Id(carId));		
 		if (isSet(car)) {
 			cars.remove(car);
 			car.train(null);
@@ -402,9 +406,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(new Id(elem.toString()), false).set(this)); });
 		if (json.has(BLOCK)) currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false).set(this); // do not move this up! during set, other fields will be referenced!
 		if (json.has(LOCOS)) { // for downward compatibility
-			for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get(id));	
+			for (Object id : json.getJSONArray(LOCOS)) add(BaseClass.get(new Id(""+id)));	
 		}		
-		for (Object id : json.getJSONArray(CARS)) add(Car.get(id));
+		for (Object id : json.getJSONArray(CARS)) add(BaseClass.get(new Id(""+id)));
 		super.load(json);
 		return this;
 	}

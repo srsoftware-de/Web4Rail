@@ -45,7 +45,7 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String id = params.get(ID);
-		Locomotive loco = id == null ? null : Locomotive.get(id);
+		Locomotive loco = id == null ? null : BaseClass.get(new Id(id));
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
 				new Locomotive(params.get(Locomotive.NAME)).parent(plan).register();
@@ -161,12 +161,6 @@ public class Locomotive extends Car implements Constants,Device{
 	public Object faster(int steps) {
 		setSpeed(speed + steps);
 		return properties();
-	}
-	
-	public static Locomotive get(Object id) {		
-		Car car = Car.get(id);
-		if (car instanceof Locomotive) return (Locomotive) car;
-		return null;
 	}
 	
 	private void init() {
