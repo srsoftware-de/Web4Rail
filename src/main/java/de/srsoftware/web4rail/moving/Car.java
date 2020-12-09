@@ -76,6 +76,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 				return car.moveUp();
 			case ACTION_PROPS:
 				return car == null ? Car.manager() : car.properties();
+			case ACTION_TURN:
+				return car.turn();
 			case ACTION_UPDATE:
 				return car.update(params);
 		}
@@ -198,7 +200,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 
 	public int maxSpeed() {
-		return maxSpeedForward;
+		return orientation == FORWARD ? maxSpeedForward : maxSpeedReverse;
 	}
 	
 	protected Window moveUp() {

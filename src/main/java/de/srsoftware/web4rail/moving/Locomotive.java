@@ -9,6 +9,7 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Device;
@@ -232,13 +233,14 @@ public class Locomotive extends Car implements Constants,Device{
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
 		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Protocol"),t("Address"),t("Length"),t("Tags"));
-		cars.values()
-			.stream()
-			.filter(car -> car instanceof Locomotive)
-			.map(car -> (Locomotive)car)
-			.sorted(Comparator.comparing(loco -> loco.address))
-			.sorted(Comparator.comparing(loco -> loco.stockId))
-			.forEach(loco -> table.addRow(loco.stockId,loco.link(),loco.maxSpeedForward == 0 ? "–":loco.maxSpeedForward+NBSP+speedUnit,loco.proto,loco.address,loco.length+NBSP+lengthUnit,String.join(", ", loco.tags())));
+		List<Locomotive> locos = BaseClass.listElements(Locomotive.class);
+		locos.sort(Comparator.comparing(loco -> loco.address));
+		locos.sort(Comparator.comparing(loco -> loco.stockId));
+		for (Locomotive loco : locos) {
+			String maxSpeed = (loco.maxSpeedForward == 0 ? "–":""+loco.maxSpeedForward)+NBSP;
+			if (loco.maxSpeedReverse != loco.maxSpeedForward) maxSpeed += "("+loco.maxSpeedReverse+")"+NBSP;
+			table.addRow(loco.stockId,loco.link(),maxSpeed+speedUnit,loco.proto,loco.address,loco.length+NBSP+lengthUnit,String.join(", ", loco.tags()));
+		}
 		table.addTo(win);
 
 		

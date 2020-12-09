@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -215,12 +216,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		Tag locoProp = new Tag("li").content(t("Locomotives and cars:"));
 		Tag carList = new Tag("ul").clazz("carlist");
 
-		for (Car loco : this.cars) {
+		for (Car car : this.cars) {
 			Tag li = new Tag("li");
-			loco.link(loco.name()+(loco.stockId.isEmpty() ? "" : " ("+loco.stockId+")")).addTo(li).content(NBSP);
-			loco.button(t("turn within train"),Map.of(ACTION,ACTION_TURN)).addTo(li);
-			loco.button("↑",Map.of(ACTION,ACTION_MOVE)).addTo(li);
-			button(t("delete"),Map.of(ACTION,ACTION_DROP,LOCO_ID,loco.id().toString())).addTo(li);			
+			car.link(car.name()+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")")).addTo(li).content(NBSP);
+			car.button(t("turn within train"),Map.of(ACTION,ACTION_TURN)).addTo(li);
+			car.button("↑",Map.of(ACTION,ACTION_MOVE)).addTo(li);
+			button(t("delete"),Map.of(ACTION,ACTION_DROP,LOCO_ID,car.id().toString())).addTo(li);			
 			li.addTo(carList);
 		}
 
@@ -769,6 +770,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public Tag turn() {
 		LOG.debug("train.turn()");
+		 
+		for (Car car : cars) car.turn();
+		Collections.reverse(cars);
 		if (isSet(direction)) {
 			direction = direction.inverse();
 			reverseTrace();
