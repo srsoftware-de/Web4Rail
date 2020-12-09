@@ -91,6 +91,7 @@ export : exportieren
 Faster (10 {}) : 10 {} schneller
 Firing {} : starte {}
 FinishRoute : Route abschließen
+forward : vorwärts
 Found {} routes. : {} Routen gefunden.
 FreeStartBlock : Start-Block freigeben
 Fullscreen : Vollbild
@@ -156,6 +157,8 @@ quit autopilot : Autopilot beenden
 {} reached it`s destination! : {} ist am Ziel angekommen!
 Relay/Turnout : Relais/Weiche
 Report Issue : Problem melden
+reverse : rückwärts
+Reversed {}. : {} umgedreht.
 RIGHT : rechts
 Right port\: : Port für rechts
 Routes using this tile : Fahrstraßen, die diesen Abschnitt verwenden
@@ -210,7 +213,6 @@ STRAIGHT : gerade
 Switch power off : Strom ausschalten
 Switch power on : Strom anschalten
 SYSTEM : Betriebssystem
-Tag : Markierung
 Tags : Markierungen
 Text to display on clients\: : Text, welcher auf den Clients angezeigt werden soll:
 Text to show on display\: : Text, welcher in der Anzeige dargestellt werden soll:

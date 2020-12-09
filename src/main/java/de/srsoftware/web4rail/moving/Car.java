@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -31,20 +31,24 @@ import de.srsoftware.web4rail.tags.Table;
 
 public class Car extends BaseClass implements Comparable<Car>{
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
-	static HashMap<Id,Car> cars = new HashMap<Id, Car>();
 	
 	public static final String NAME = "name";
+	public static boolean FORWARD = true;
+	public static boolean REVERSE = false;
 	private static final String LENGTH = "length";
 	private static final String STOCK_ID = "stock-id";
 	private static final String TAGS = "tags";
 	private static final String MAX_SPEED = "max_speed";
+	private static final String MAX_SPEED_REVERSE = "max_speed_reverse";
 	protected HashSet<String> tags = new HashSet<String>();
 	
 	private String name;
 	public int length;
 	protected String stockId = "";
 	private Train train;
-	protected int maxSpeed = 0;
+	protected int maxSpeedForward = 0;
+	protected int maxSpeedReverse = 0;
+	protected boolean orientation = FORWARD;
 	
 	public Car(String name) {
 		this(name,null);
@@ -52,14 +56,13 @@ public class Car extends BaseClass implements Comparable<Car>{
 	
 	public Car(String name, Id id) {
 		this.name = name;
-		if (isNull(id)) id = new Id();
 		this.id = id;
-		cars.put(id, this);
+		register();		
 	}	
 	
 	public static Object action(HashMap<String, String> params,Plan plan) throws IOException {
 		String id = params.get(ID);
-		Car car = id == null ? null : Car.get(id);
+		Car car = id == null ? null : Car.get(new Id(id));
 
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
@@ -67,8 +70,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 					car.clone();
 				} else new Car(params.get(Car.NAME)).parent(plan);
 				return Car.manager();
+			case ACTION_MOVE:
+				return car.moveUp();
 			case ACTION_PROPS:
 				return car == null ? Car.manager() : car.properties();
+			case ACTION_TURN:
+				return car.turn();
 			case ACTION_UPDATE:
 				return car.update(params);
 		}
@@ -78,7 +85,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	
 	public Car clone() {
 		Car clone = new Car(name);
-		clone.maxSpeed = maxSpeed;
+		clone.maxSpeedForward = maxSpeedForward;
 		clone.length = length;
 		clone.tags = new HashSet<String>(tags);
 		clone.notes = notes;
@@ -90,16 +97,18 @@ public class Car extends BaseClass implements Comparable<Car>{
 	private Button cloneButton() {
 		return new Button(t("copy"),Map.of(REALM,REALM_CAR,ID,id(),ACTION,ACTION_ADD));
 	}
-
-	public static Car get(Object id) {		
-		return isNull(id) ? null : cars.get(new Id(""+id)); // try to get by id
-	}
 	
+	@Override
+	public int compareTo(Car o) {
+		return (stockId+":"+name).compareTo(o.stockId+":"+o.name);
+	}
+
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(NAME, name);
 		json.put(LENGTH, length);
-		if (maxSpeed != 0) json.put(MAX_SPEED, maxSpeed);
+		if (maxSpeedForward != 0) json.put(MAX_SPEED, maxSpeedForward);
+		if (maxSpeedReverse != 0) json.put(MAX_SPEED_REVERSE, maxSpeedReverse);
 		json.put(STOCK_ID, stockId);
 		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;
@@ -119,7 +128,6 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 	
 	public static void loadAll(String filename, Plan plan) throws IOException {
-		cars.clear();
 		BufferedReader file = new BufferedReader(new FileReader(filename, UTF8));
 		String line = file.readLine();
 		while (line != null) {
@@ -137,7 +145,11 @@ public class Car extends BaseClass implements Comparable<Car>{
 	public Car load(JSONObject json) {
 		super.load(json);
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
-		if (json.has(MAX_SPEED)) maxSpeed = json.getInt(MAX_SPEED);
+		if (json.has(MAX_SPEED)) {
+			maxSpeedForward = json.getInt(MAX_SPEED);
+			maxSpeedReverse = maxSpeedForward;
+		}
+		if (json.has(MAX_SPEED_REVERSE)) maxSpeedReverse = json.getInt(MAX_SPEED_REVERSE);
 		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
 		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
 		return this;
@@ -149,26 +161,30 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
 		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Length"),t("Train"),t("Tags"),t("Actions"));
-		cars.values()
-			.stream()
-			.filter(car -> !(car instanceof Locomotive))
-			.sorted((c1,c2)->{
-				try {
-					return Integer.parseInt(c1.stockId)-Integer.parseInt(c2.stockId);
-				} catch (NumberFormatException nfe) {
-					return c1.stockId.compareTo(c2.stockId);	
-				}
-				
-			})
-			.forEach(car -> table.addRow(
+		List<Car> cars = BaseClass.listElements(Car.class)
+				.stream()
+				.filter(car -> !(car instanceof Locomotive))
+				.sorted((c1,c2)->{
+					try {
+						return Integer.parseInt(c1.stockId)-Integer.parseInt(c2.stockId);
+					} catch (NumberFormatException nfe) {
+						return c1.stockId.compareTo(c2.stockId);	
+					}
+					
+				}).collect(Collectors.toList());
+		for (Car car : cars) {
+			String maxSpeed = (car.maxSpeedForward == 0 ? "–":""+car.maxSpeedForward)+NBSP;
+			if (car.maxSpeedReverse != car.maxSpeedForward) maxSpeed += "("+car.maxSpeedReverse+")"+NBSP;
+
+			table.addRow(
 					car.stockId,
 					car.link(),
-					car.maxSpeed == 0 ? "–":(car.maxSpeed+NBSP+speedUnit),
+					maxSpeed+speedUnit,
 					car.length+NBSP+lengthUnit,
 					isSet(car.train) ? car.train.link("span", car.train) : "",
 					String.join(", ", car.tags()),
-					car.cloneButton()
-			));
+					car.cloneButton());
+		}
 		table.addTo(win);
 		
 		Form form = new Form("add-car-form");
@@ -182,7 +198,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 
 	public int maxSpeed() {
-		return maxSpeed;
+		return orientation == FORWARD ? maxSpeedForward : maxSpeedReverse;
+	}
+	
+	protected Window moveUp() {
+		if (!isSet(train())) return properties();
+		return train().moveUp(this);
 	}
 	
 	String name(){
@@ -194,8 +215,11 @@ public class Car extends BaseClass implements Comparable<Car>{
 		formInputs.add(t("Name"),new Input(NAME,name));
 		formInputs.add(t("Stock ID"),new Input(STOCK_ID,stockId));
 		formInputs.add(t("Length"),new Input(LENGTH,length).attr("type", "number").addTo(new Tag("span")).content(NBSP+lengthUnit));
-		formInputs.add(t("Tag"), new Input(TAGS,String.join(", ", tags)));
-		formInputs.add(t("Maximum Speed"),new Input(MAX_SPEED, maxSpeed).numeric().addTo(new Tag("span")).content(NBSP+speedUnit));
+		formInputs.add(t("Tags"), new Input(TAGS,String.join(", ", tags)));
+		Tag div = new Tag("div");
+		new Input(MAX_SPEED,         maxSpeedForward).numeric().addTo(new Tag("p")).content(NBSP+speedUnit+NBSP+t("forward")).addTo(div);
+		new Input(MAX_SPEED_REVERSE, maxSpeedReverse).numeric().addTo(new Tag("p")).content(NBSP+speedUnit+NBSP+t("reverse")).addTo(div);
+		formInputs.add(t("Maximum Speed"),div);
 		
 		Fieldset fieldset = new Fieldset(t("Train"));
 		if (train != null) train.link().addTo(fieldset);
@@ -214,7 +238,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Entry<Id, Car> entry: cars.entrySet()) file.write(entry.getValue().json()+"\n");
+		for (Car car : BaseClass.listElements(Car.class)) file.write(car.json()+"\n");
 		file.close();
 	}
 	
@@ -243,7 +267,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 		super.update(params);
 		if (params.containsKey(NAME)) name = params.get(NAME).trim();
 		if (params.containsKey(LENGTH)) length = Integer.parseInt(params.get(LENGTH));
-		if (params.containsKey(MAX_SPEED)) maxSpeed  = Integer.parseInt(params.get(MAX_SPEED));
+		if (params.containsKey(MAX_SPEED)) maxSpeedForward  = Integer.parseInt(params.get(MAX_SPEED));
+		if (params.containsKey(MAX_SPEED_REVERSE)) maxSpeedReverse = Integer.parseInt(params.get(MAX_SPEED_REVERSE));
 		if (params.containsKey(STOCK_ID)) stockId  = params.get(STOCK_ID);
 		if (params.containsKey(TAGS)) {
 			String[] parts = params.get(TAGS).replace(",", " ").split(" ");
@@ -256,8 +281,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return properties();
 	}
 
-	@Override
-	public int compareTo(Car o) {
-		return (stockId+":"+name).compareTo(o.stockId+":"+o.name);
+	public String turn() {
+		orientation = !orientation;
+		return t("Reversed {}.",this);
 	}
 }

@@ -9,6 +9,7 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Device;
@@ -28,7 +29,6 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	private static final String REVERSE = "reverse";
 	public static final String LOCOMOTIVE = "locomotive";
-	boolean reverse = false;
 	private Protocol proto = Protocol.DCC128;
 	private int address = 3;
 	private int speed = 0;
@@ -45,13 +45,15 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String id = params.get(ID);
-		Locomotive loco = id == null ? null : Locomotive.get(id);
+		Locomotive loco = id == null ? null : BaseClass.get(new Id(id));
 		switch (params.get(ACTION)) {
 			case ACTION_ADD:
 				new Locomotive(params.get(Locomotive.NAME)).parent(plan).register();
 				return Locomotive.manager();
 			case ACTION_FASTER10:
 				return loco.faster(10);
+			case ACTION_MOVE:
+				return loco.moveUp();
 			case ACTION_PROPS:
 				return loco == null ? Locomotive.manager() : loco.properties();
 			case ACTION_SLOWER10:
@@ -75,7 +77,7 @@ public class Locomotive extends Car implements Constants,Device{
 		
 		return t("Unknown action: {}",params.get(ACTION));
 	}
-	
+
 	@Override
 	public int address() {
 		return address;
@@ -161,12 +163,6 @@ public class Locomotive extends Car implements Constants,Device{
 		return properties();
 	}
 	
-	public static Locomotive get(Object id) {		
-		Car car = Car.get(id);
-		if (car instanceof Locomotive) return (Locomotive) car;
-		return null;
-	}
-	
 	private void init() {
 		if (init) return;
 		String proto = null;
@@ -205,7 +201,7 @@ public class Locomotive extends Car implements Constants,Device{
 	public JSONObject json() {
 		JSONObject json = super.json();
 		JSONObject loco = new JSONObject();
-		loco.put(REVERSE, reverse);
+		loco.put(REVERSE, orientation);
 		loco.put(PROTOCOL, proto);
 		loco.put(ADDRESS, address);		
 		json.put(LOCOMOTIVE, loco);
@@ -217,7 +213,7 @@ public class Locomotive extends Car implements Constants,Device{
 		super.load(json);
 		if (json.has(LOCOMOTIVE)) {
 			JSONObject loco = json.getJSONObject(LOCOMOTIVE);
-			if (loco.has(REVERSE)) reverse = loco.getBoolean(REVERSE);
+			if (loco.has(REVERSE)) orientation = loco.getBoolean(REVERSE);
 			if (loco.has(PROTOCOL)) proto = Protocol.valueOf(loco.getString(PROTOCOL));
 			if (loco.has(ADDRESS)) address = loco.getInt(ADDRESS);
 		}
@@ -231,13 +227,14 @@ public class Locomotive extends Car implements Constants,Device{
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
 		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Protocol"),t("Address"),t("Length"),t("Tags"));
-		cars.values()
-			.stream()
-			.filter(car -> car instanceof Locomotive)
-			.map(car -> (Locomotive)car)
-			.sorted(Comparator.comparing(loco -> loco.address))
-			.sorted(Comparator.comparing(loco -> loco.stockId))
-			.forEach(loco -> table.addRow(loco.stockId,loco.link(),loco.maxSpeed == 0 ? "–":loco.maxSpeed+NBSP+speedUnit,loco.proto,loco.address,loco.length+NBSP+lengthUnit,String.join(", ", loco.tags())));
+		List<Locomotive> locos = BaseClass.listElements(Locomotive.class);
+		locos.sort(Comparator.comparing(loco -> loco.address));
+		locos.sort(Comparator.comparing(loco -> loco.stockId));
+		for (Locomotive loco : locos) {
+			String maxSpeed = (loco.maxSpeedForward == 0 ? "–":""+loco.maxSpeedForward)+NBSP;
+			if (loco.maxSpeedReverse != loco.maxSpeedForward) maxSpeed += "("+loco.maxSpeedReverse+")"+NBSP;
+			table.addRow(loco.stockId,loco.link(),maxSpeed+speedUnit,loco.proto,loco.address,loco.length+NBSP+lengthUnit,String.join(", ", loco.tags()));
+		}
 		table.addTo(win);
 
 		
@@ -264,8 +261,8 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	private void queue() {
-		int step = proto.steps * speed / (maxSpeed == 0 ? 100 : maxSpeed); 
-		plan.queue(new Command("SET {} GL "+address+" "+(reverse?1:0)+" "+step+" "+proto.steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
+		int step = proto.steps * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
+		plan.queue(new Command("SET {} GL "+address+" "+(orientation == FORWARD ? 0 : 1)+" "+step+" "+proto.steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
 
 			@Override
 			public void onFailure(Reply reply) {
@@ -284,7 +281,7 @@ public class Locomotive extends Car implements Constants,Device{
 		LOG.debug(this.detail()+".setSpeed({})",newSpeed);
 		init();
 		speed = newSpeed;
-		if (speed > maxSpeed && maxSpeed > 0) speed = maxSpeed();
+		if (speed > maxSpeedForward && maxSpeedForward > 0) speed = maxSpeed();
 		if (speed < 0) speed = 0;
 		
 		queue();
@@ -322,9 +319,9 @@ public class Locomotive extends Car implements Constants,Device{
 		return t("{} F{}",t(active?"Activated":"Deavtivated"),f);
 	}
 	
-	public Object turn() {
-		reverse = !reverse;
+	public String turn() {		
 		stop();
+		super.turn();
 		return t("Stopped and reversed {}.",this);
 	}
 	
