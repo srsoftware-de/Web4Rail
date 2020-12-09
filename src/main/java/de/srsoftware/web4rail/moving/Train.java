@@ -409,7 +409,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		for (Locomotive loco : this.locos) {
 			Tag li = new Tag("li");
-			loco.link(loco.name()+(loco.stockId.isEmpty() ? "" : " ("+loco.stockId+")")).addTo(li);
+			loco.link(loco.name()+(loco.stockId.isEmpty() ? "" : " ("+loco.stockId+")")).addTo(li).content(NBSP);
 			loco.button(t("turn within train"),Map.of(ACTION,ACTION_TURN)).addTo(li);
 			button(t("delete"),Map.of(ACTION,ACTION_DROP,LOCO_ID,loco.id().toString())).addTo(li);
 			li.addTo(locoList);
