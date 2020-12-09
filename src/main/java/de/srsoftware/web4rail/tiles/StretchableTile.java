@@ -3,7 +3,6 @@ package de.srsoftware.web4rail.tiles;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Vector;
 
 import org.json.JSONObject;
 
@@ -13,14 +12,9 @@ import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 
-public abstract class StretchableTile extends Tile {
+public abstract class StretchableTile extends TileWithShadow {
 	private static final String STRETCH_LENGTH = "stretch";
 	private int stretch = 1;
-	private Vector<Id> shadows = new Vector<Id>();
-	
-	public void add(Shadow shadow) {
-		shadows.add(shadow.id());
-	}
 	
 	@Override
 	public JSONObject config() {
@@ -58,17 +52,9 @@ public abstract class StretchableTile extends Tile {
 			if (!tileAtDest.move(dx, dy)) return false;
 		}
 
-		boolean moved = super.move(dx, dy);
-		if (moved) placeShadows();
-		return moved;
+		return super.move(dx, dy);
 	}
-	
-	public void placeShadows() {
-		removeShadows();
-		for (int dx=1; dx<width(); dx++) plan.place(new Shadow(this, x+dx, y));
-		for (int dy=1; dy<height(); dy++) plan.place(new Shadow(this, x, y+dy));
-	}
-	
+		
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		formInputs.add(stretchType(),new Input(STRETCH_LENGTH, stretch).numeric().addTo(new Tag("span")).content(NBSP+t("Tile(s)")));
@@ -80,13 +66,6 @@ public abstract class StretchableTile extends Tile {
 		LOG.debug("Removing stretchable Tile ({}) {}",id(),this);
 		removeShadows();
 		return super.remove();
-	}
-	
-	private void removeShadows() {
-		while (!shadows.isEmpty()) {
-			Tile tile = BaseClass.get(shadows.remove(0));
-			if (tile instanceof Shadow) tile.remove();
-		}
 	}
 
 	public int stretch() {

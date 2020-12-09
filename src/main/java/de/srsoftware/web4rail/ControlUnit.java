@@ -176,14 +176,14 @@ public class ControlUnit extends Thread implements Constants{
 	 */
 	public Object properties() {
 		Window win = new Window("cu-props", t("Properties of the control unit"));
-		Form form = new Form();
+		Form form = new Form("cu-prop-form");
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(REALM,REALM_CU).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("Server connection"));
 		new Input(HOST,host).addTo(new Label(t("Hostname"))).addTo(fieldset);
 		new Input(PORT,port).numeric().addTo(new Label(t("Port"))).addTo(fieldset);
 		new Input(BUS,bus).numeric().addTo(new Label(t("Bus"))).addTo(fieldset);
-		new Button(t("Apply")).addTo(fieldset).addTo(form).addTo(win);
+		new Button(t("Apply"),form).addTo(fieldset).addTo(form).addTo(win);
 		
 		fieldset = new Fieldset("Actions");
 		new Button(t("Connect"),"connectCu();").addTo(fieldset).addTo(win);

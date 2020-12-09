@@ -62,9 +62,9 @@ import de.srsoftware.web4rail.tiles.SignalS;
 import de.srsoftware.web4rail.tiles.SignalW;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
-import de.srsoftware.web4rail.tiles.StretchableTile;
 import de.srsoftware.web4rail.tiles.TextDisplay;
 import de.srsoftware.web4rail.tiles.Tile;
+import de.srsoftware.web4rail.tiles.TileWithShadow;
 import de.srsoftware.web4rail.tiles.Turnout.State;
 import de.srsoftware.web4rail.tiles.Turnout3E;
 import de.srsoftware.web4rail.tiles.TurnoutLE;
@@ -238,8 +238,9 @@ public class Plan extends BaseClass{
 			}
 			return null;
 		}
-		if (tile instanceof StretchableTile) ((StretchableTile)tile).placeShadows();
-		place(tile.position(x, y));
+		tile.position(x, y);
+		if (tile instanceof TileWithShadow) ((TileWithShadow)tile).placeShadows();
+		place(tile);
 		return t("Added {}",tile.getClass().getSimpleName());
 	}
 	

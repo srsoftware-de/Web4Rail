@@ -20,7 +20,7 @@ public class Shadow extends Tile{
 		return super.connections(from);
 	}
 
-	public Shadow(StretchableTile overlay, int x, int y) {		
+	public Shadow(TileWithShadow overlay, int x, int y) {		
 		this.overlay = overlay;
 		this.x = x;
 		this.y = y;

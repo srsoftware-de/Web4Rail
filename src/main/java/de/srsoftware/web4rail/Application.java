@@ -13,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
 
 import org.slf4j.Logger;
@@ -66,7 +67,7 @@ public class Application extends BaseClass{
         server.start();
         try {
         	Plan.load(Plan.DEFAULT_NAME);
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException|NoSuchFileException e) {
         	plan = new Plan();
 		}
         for (String arg : args) {

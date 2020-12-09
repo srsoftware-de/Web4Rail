@@ -109,7 +109,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		clazz = Tile.class.getName().replace(".Tile", "."+clazz);
 		Tile tile = (Tile) Tile.class.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
 		tile.load(json).register();
-		if (tile instanceof StretchableTile) ((StretchableTile)tile).placeShadows();
+		if (tile instanceof TileWithShadow) ((TileWithShadow)tile).placeShadows();
 		plan.place(tile);
 	}
 
