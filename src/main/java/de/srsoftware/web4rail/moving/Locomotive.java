@@ -237,7 +237,7 @@ public class Locomotive extends Car implements Constants,Device{
 			.map(car -> (Locomotive)car)
 			.sorted(Comparator.comparing(loco -> loco.address))
 			.sorted(Comparator.comparing(loco -> loco.stockId))
-			.forEach(loco -> table.addRow(loco.stockId,loco.link(),loco.maxSpeed == 0 ? "–":loco.maxSpeed+NBSP+speedUnit,loco.proto,loco.address,loco.length+NBSP+lengthUnit,String.join(", ", loco.tags())));
+			.forEach(loco -> table.addRow(loco.stockId,loco.link(),loco.maxSpeedForward == 0 ? "–":loco.maxSpeedForward+NBSP+speedUnit,loco.proto,loco.address,loco.length+NBSP+lengthUnit,String.join(", ", loco.tags())));
 		table.addTo(win);
 
 		
@@ -264,7 +264,7 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	private void queue() {
-		int step = proto.steps * speed / (maxSpeed == 0 ? 100 : maxSpeed); 
+		int step = proto.steps * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
 		plan.queue(new Command("SET {} GL "+address+" "+(reverse?1:0)+" "+step+" "+proto.steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
 
 			@Override
@@ -284,7 +284,7 @@ public class Locomotive extends Car implements Constants,Device{
 		LOG.debug(this.detail()+".setSpeed({})",newSpeed);
 		init();
 		speed = newSpeed;
-		if (speed > maxSpeed && maxSpeed > 0) speed = maxSpeed();
+		if (speed > maxSpeedForward && maxSpeedForward > 0) speed = maxSpeed();
 		if (speed < 0) speed = 0;
 		
 		queue();
