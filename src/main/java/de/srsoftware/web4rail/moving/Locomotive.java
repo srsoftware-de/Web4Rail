@@ -28,7 +28,6 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	private static final String REVERSE = "reverse";
 	public static final String LOCOMOTIVE = "locomotive";
-	boolean reverse = false;
 	private Protocol proto = Protocol.DCC128;
 	private int address = 3;
 	private int speed = 0;
@@ -205,7 +204,7 @@ public class Locomotive extends Car implements Constants,Device{
 	public JSONObject json() {
 		JSONObject json = super.json();
 		JSONObject loco = new JSONObject();
-		loco.put(REVERSE, reverse);
+		loco.put(REVERSE, orientation);
 		loco.put(PROTOCOL, proto);
 		loco.put(ADDRESS, address);		
 		json.put(LOCOMOTIVE, loco);
@@ -217,7 +216,7 @@ public class Locomotive extends Car implements Constants,Device{
 		super.load(json);
 		if (json.has(LOCOMOTIVE)) {
 			JSONObject loco = json.getJSONObject(LOCOMOTIVE);
-			if (loco.has(REVERSE)) reverse = loco.getBoolean(REVERSE);
+			if (loco.has(REVERSE)) orientation = loco.getBoolean(REVERSE);
 			if (loco.has(PROTOCOL)) proto = Protocol.valueOf(loco.getString(PROTOCOL));
 			if (loco.has(ADDRESS)) address = loco.getInt(ADDRESS);
 		}
@@ -265,7 +264,7 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	private void queue() {
 		int step = proto.steps * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
-		plan.queue(new Command("SET {} GL "+address+" "+(reverse?1:0)+" "+step+" "+proto.steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
+		plan.queue(new Command("SET {} GL "+address+" "+(orientation == FORWARD ? 0 : 1)+" "+step+" "+proto.steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
 
 			@Override
 			public void onFailure(Reply reply) {
@@ -322,9 +321,9 @@ public class Locomotive extends Car implements Constants,Device{
 		return t("{} F{}",t(active?"Activated":"Deavtivated"),f);
 	}
 	
-	public Object turn() {
-		reverse = !reverse;
+	public String turn() {		
 		stop();
+		super.turn();
 		return t("Stopped and reversed {}.",this);
 	}
 	

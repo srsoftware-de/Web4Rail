@@ -209,7 +209,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public String brakeId(boolean reversed) {
 		TreeSet<String> carIds = new TreeSet<String>();
-		locos.stream().map(loco -> loco.id()+":"+(reversed != loco.reverse?"r":"f")).forEach(carIds::add);
+		locos.stream().map(loco -> loco.id()+":"+(reversed != loco.orientation?"r":"f")).forEach(carIds::add);
 		cars.stream().map(car -> ""+car.id()).forEach(carIds::add);
 		String brakeId = md5sum(carIds);
 		LOG.debug("generated new brake id for {}: {}",this,brakeId);

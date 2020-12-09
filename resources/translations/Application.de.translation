@@ -158,6 +158,7 @@ quit autopilot : Autopilot beenden
 Relay/Turnout : Relais/Weiche
 Report Issue : Problem melden
 reverse : rückwärts
+Reversed {}. : {} umgedreht.
 RIGHT : rechts
 Right port\: : Port für rechts
 Routes using this tile : Fahrstraßen, die diesen Abschnitt verwenden

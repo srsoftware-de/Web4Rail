@@ -49,7 +49,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	private Train train;
 	protected int maxSpeedForward = 0;
 	protected int maxSpeedReverse = 0;
-	private boolean orientation = FORWARD;
+	protected boolean orientation = FORWARD;
 	
 	public Car(String name) {
 		this(name,null);
@@ -94,6 +94,11 @@ public class Car extends BaseClass implements Comparable<Car>{
 
 	private Button cloneButton() {
 		return new Button(t("copy"),Map.of(REALM,REALM_CAR,ID,id(),ACTION,ACTION_ADD));
+	}
+	
+	@Override
+	public int compareTo(Car o) {
+		return (stockId+":"+name).compareTo(o.stockId+":"+o.name);
 	}
 
 	public static Car get(Object id) {		
@@ -269,8 +274,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return properties();
 	}
 
-	@Override
-	public int compareTo(Car o) {
-		return (stockId+":"+name).compareTo(o.stockId+":"+o.name);
+	public String turn() {
+		orientation = !orientation;
+		return t("Reversed {}.",this);
 	}
 }
