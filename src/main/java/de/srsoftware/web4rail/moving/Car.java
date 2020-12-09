@@ -72,6 +72,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 					car.clone();
 				} else new Car(params.get(Car.NAME)).parent(plan);
 				return Car.manager();
+			case ACTION_MOVE:
+				return car.moveUp();
 			case ACTION_PROPS:
 				return car == null ? Car.manager() : car.properties();
 			case ACTION_UPDATE:
@@ -197,6 +199,11 @@ public class Car extends BaseClass implements Comparable<Car>{
 
 	public int maxSpeed() {
 		return maxSpeedForward;
+	}
+	
+	protected Window moveUp() {
+		if (!isSet(train())) return properties();
+		return train().moveUp(this);
 	}
 	
 	String name(){

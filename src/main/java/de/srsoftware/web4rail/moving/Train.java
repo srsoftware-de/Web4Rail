@@ -65,10 +65,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public boolean pushPull = false;
 	
 	private static final String CARS = "cars";
+	private static final String LOCOS = "locomotives";
 	private Vector<Car> cars = new Vector<Car>();
-
-	private static final String LOCOS = "locomotives";	
-	private Vector<Locomotive> locos = new Vector<Locomotive>();
 	
 	private static final String TAGS = "tags";
 
@@ -188,9 +186,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public void add(Car car) {
 		if (isNull(car)) return;
-		if (car instanceof Locomotive) {
-			locos.add((Locomotive) car);
-		} else cars.add(car);
+		cars.add(car);
 		car.train(this);
 	}
 	
@@ -209,41 +205,54 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public String brakeId(boolean reversed) {
 		TreeSet<String> carIds = new TreeSet<String>();
-		locos.stream().map(loco -> loco.id()+":"+(reversed != loco.orientation?"r":"f")).forEach(carIds::add);
-		cars.stream().map(car -> ""+car.id()).forEach(carIds::add);
+		cars.stream().map(car -> car.id()+":"+(car.orientation == reversed ? "r":"f")).forEach(carIds::add);		
 		String brakeId = md5sum(carIds);
 		LOG.debug("generated new brake id for {}: {}",this,brakeId);
 		return brakeId;
 	}
 	
 	private Tag carList() {
-		Tag locoProp = new Tag("li").content(t("Cars:"));
-		Tag locoList = new Tag("ul").clazz("carlist").content("");
+		Tag locoProp = new Tag("li").content(t("Locomotives and cars:"));
+		Tag carList = new Tag("ul").clazz("carlist");
 
-		for (Car car : this.cars) {
+		for (Car loco : this.cars) {
 			Tag li = new Tag("li");
-			car.link(car.name()+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")")).addTo(li).content(NBSP);			
-			button(t("delete"),Map.of(ACTION,ACTION_DROP,CAR_ID,car.id().toString())).addTo(li);
-			li.addTo(locoList);
+			loco.link(loco.name()+(loco.stockId.isEmpty() ? "" : " ("+loco.stockId+")")).addTo(li).content(NBSP);
+			loco.button(t("turn within train"),Map.of(ACTION,ACTION_TURN)).addTo(li);
+			loco.button("↑",Map.of(ACTION,ACTION_MOVE)).addTo(li);
+			button(t("delete"),Map.of(ACTION,ACTION_DROP,LOCO_ID,loco.id().toString())).addTo(li);			
+			li.addTo(carList);
 		}
 
-		Form addCarForm = new Form("append-car-form");
-		addCarForm.content(t("add car:")+"&nbsp;");
-		new Input(REALM, REALM_TRAIN).hideIn(addCarForm);
-		new Input(ACTION, ACTION_ADD).hideIn(addCarForm);
-		new Input(ID,id).hideIn(addCarForm);
-		Select select = new Select(CAR_ID);
-		for (Car car : BaseClass.listElements(Car.class)) {
-			if (car instanceof Locomotive) continue;
-			if (isSet(car.train())) continue; 
-			select.addOption(car.id(), car+(car.stockId.isEmpty()?"":" ("+car.stockId+")"));
+		List<Locomotive> locos = BaseClass.listElements(Locomotive.class).stream().filter(loco -> isNull(loco.train())).collect(Collectors.toList());
+		if (!locos.isEmpty()) {
+			Form addLocoForm = new Form("append-loco-form");
+			addLocoForm.content(t("add locomotive:")+"&nbsp;");
+			new Input(REALM, REALM_TRAIN).hideIn(addLocoForm);
+			new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
+			new Input(ID,id).hideIn(addLocoForm);
+			Select select = new Select(CAR_ID);
+			for (Car loco : locos) select.addOption(loco.id(), loco);
+			select.addTo(addLocoForm);
+			new Button(t("add"),addLocoForm).addTo(addLocoForm);
+			addLocoForm.addTo(new Tag("li")).addTo(carList);
 		}
-		if (!select.children().isEmpty()) {
-			select.addTo(addCarForm);
-			new Button(t("add"),addCarForm).addTo(addCarForm);
-			addCarForm.addTo(new Tag("li")).addTo(locoList);
-		}
-		return locoList.addTo(locoProp);
+		
+		List<Car> cars = BaseClass.listElements(Car.class).stream().filter(car -> !(car instanceof Locomotive)).filter(loco -> isNull(loco.train())).collect(Collectors.toList());
+		if (!cars.isEmpty()) {
+			Form addCarForm = new Form("append-car-form");
+			addCarForm.content(t("add car:")+"&nbsp;");
+			new Input(REALM, REALM_TRAIN).hideIn(addCarForm);
+			new Input(ACTION, ACTION_ADD).hideIn(addCarForm);
+			new Input(ID,id).hideIn(addCarForm);
+			Select select = new Select(CAR_ID);
+			for (Car car : cars) select.addOption(car.id(), car+(car.stockId.isEmpty()?"":" ("+car.stockId+")"));
+				select.addTo(addCarForm);
+				new Button(t("add"),addCarForm).addTo(addCarForm);
+				addCarForm.addTo(new Tag("li")).addTo(carList);
+			}
+		return carList.addTo(locoProp);
+	
 	}
 	
 	public List<Car> cars(){
@@ -298,14 +307,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 	private Object dropCar(HashMap<String, String> params) {
 		Car car = Car.get(params.get(CAR_ID));
+		
 		if (isSet(car)) {
 			cars.remove(car);
 			car.train(null);
-		}
-		Locomotive loco = Locomotive.get(params.get(LOCO_ID));
-		if (isSet(loco)) {
-			locos.remove(loco);			
-			loco.train(null);
 		}
 		return properties();
 	}
@@ -342,7 +347,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(route)) json.put(ROUTE, route.id());
 		if (isSet(direction)) json.put(DIRECTION, direction);
 		
-		json.put(LOCOS, locos.stream().map(l -> l.id().toString()).collect(Collectors.toList()));
 		json.put(CARS,cars.stream().map(c -> c.id().toString()).collect(Collectors.toList()));
 		json.put(TRACE, trace.stream().map(t -> t.id().toString()).collect(Collectors.toList()));
 		
@@ -352,7 +356,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 	public int length() {
 		int result = 0;		
-		for (Locomotive loco : locos) result += loco.length;
 		for (Car car : cars) result += car.length;
 		return result;
 	}
@@ -397,45 +400,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(TAGS))  json.getJSONArray(TAGS ).forEach(elem -> {  tags.add(elem.toString()); });
 		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(new Id(elem.toString()), false).set(this)); });
 		if (json.has(BLOCK)) currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false).set(this); // do not move this up! during set, other fields will be referenced!
+		if (json.has(LOCOS)) { // for downward compatibility
+			for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get(id));	
+		}		
 		for (Object id : json.getJSONArray(CARS)) add(Car.get(id));
-		for (Object id : json.getJSONArray(LOCOS)) add((Locomotive) Car.get(id));
 		super.load(json);
 		return this;
 	}
-	
-	private Tag locoList() {
-		Tag locoProp = new Tag("li").content(t("Locomotives:"));
-		Tag locoList = new Tag("ul").clazz("locolist");
-
-		for (Locomotive loco : this.locos) {
-			Tag li = new Tag("li");
-			loco.link(loco.name()+(loco.stockId.isEmpty() ? "" : " ("+loco.stockId+")")).addTo(li).content(NBSP);
-			loco.button(t("turn within train"),Map.of(ACTION,ACTION_TURN)).addTo(li);
-			button(t("delete"),Map.of(ACTION,ACTION_DROP,LOCO_ID,loco.id().toString())).addTo(li);
-			li.addTo(locoList);
-		}
-
-		Form addLocoForm = new Form("append-loco-form");
-		addLocoForm.content(t("add locomotive:")+"&nbsp;");
-		new Input(REALM, REALM_TRAIN).hideIn(addLocoForm);
-		new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
-		new Input(ID,id).hideIn(addLocoForm);
-		Select select = new Select(CAR_ID);
-		for (Car loco : BaseClass.listElements(Locomotive.class)) {
-			if (isNull(loco.train())) select.addOption(loco.id(), loco);
-		}
-		if (!select.children().isEmpty()) {
-			select.addTo(addLocoForm);
-			new Button(t("add"),addLocoForm).addTo(addLocoForm);
-			addLocoForm.addTo(new Tag("li")).addTo(locoList);
-		}
-		return locoList.addTo(locoProp);
-	}
-	
-	public List<Car> locos(){
-		return new Vector<Car>(locos);
-	}
-
 	
 	public static Object manager() {
 		Window win = new Window("train-manager", t("Train manager"));
@@ -481,11 +452,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	private int maxSpeed() {
 		int maxSpeed = Integer.MAX_VALUE;
-		for (Locomotive loco : locos) {
-			int max = loco.maxSpeed();
-			if (max == 0) continue;
-			maxSpeed = Math.min(max, maxSpeed);
-		}
 		for (Car car : cars) {
 			int max = car.maxSpeed();
 			if (max == 0) continue;
@@ -493,9 +459,21 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return maxSpeed;
 	}
+	
+	public Window moveUp(Car car) {
+		for (int i = 1; i<cars.size(); i++) {
+			if (cars.get(i) == car) {
+				cars.remove(i);
+				cars.insertElementAt(car, i-1);
+				break;
+			}
+		}
+		return properties();
+	}
+
 
 	public String name() {
-		return (isSet(name) ? name : locos.firstElement().name());
+		return (isSet(name) ? name : cars.stream().filter(car -> isSet(car.name())).findFirst().get().name());
 	}
 	
 	private Train name(String newName) {
@@ -513,7 +491,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		Tag propList = new Tag("ul").clazz("proplist");
 		
-		locoList().addTo(propList);
 		carList().addTo(propList);
 		
 		if (isSet(currentBlock)) currentBlock.button(currentBlock.toString()).addTo(new Tag("li").content(t("Current location:")+NBSP)).addTo(propList);
@@ -579,7 +556,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (child == currentBlock) currentBlock = null;
 		if (child == destination) destination = null;
 		cars.remove(child);
-		locos.remove(child);
 		trace.remove(child);
 		super.removeChild(child);
 	}
@@ -657,7 +633,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void setSpeed(int newSpeed) {
 		speed = Math.min(newSpeed,maxSpeed());
 		if (speed < 0) speed = 0;
-		for (Locomotive loco : locos) loco.setSpeed(speed);
+		cars.stream().filter(c -> c instanceof Locomotive).forEach(car -> ((Locomotive)car).setSpeed(speed));
 		plan.stream(t("Set {} to {} {}",this,speed,speedUnit));
 	}
 
@@ -781,19 +757,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public SortedSet<String> tags() {
 		TreeSet<String> list = new TreeSet<String>(tags);
-		for (Locomotive loco : locos) list.addAll(loco.tags());
+		//for (Locomotive loco : locos) list.addAll(loco.tags());
 		for (Car car:cars) list.addAll(car.tags());
 		return list;
 	}
 	
 	@Override
 	public String toString() {
-		return isSet(name) ? name : locos.firstElement().name();
+		return name();
 	}
 	
 	public Tag turn() {
 		LOG.debug("train.turn()");
-		for (Locomotive loco : locos) loco.turn();
 		if (isSet(direction)) {
 			direction = direction.inverse();
 			reverseTrace();

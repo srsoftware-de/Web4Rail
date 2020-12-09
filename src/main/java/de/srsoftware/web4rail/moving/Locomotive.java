@@ -51,6 +51,8 @@ public class Locomotive extends Car implements Constants,Device{
 				return Locomotive.manager();
 			case ACTION_FASTER10:
 				return loco.faster(10);
+			case ACTION_MOVE:
+				return loco.moveUp();
 			case ACTION_PROPS:
 				return loco == null ? Locomotive.manager() : loco.properties();
 			case ACTION_SLOWER10:
@@ -74,7 +76,7 @@ public class Locomotive extends Car implements Constants,Device{
 		
 		return t("Unknown action: {}",params.get(ACTION));
 	}
-	
+
 	@Override
 	public int address() {
 		return address;
