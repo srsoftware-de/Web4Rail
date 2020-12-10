@@ -11,7 +11,7 @@ public class StopAllTrains extends Action {
 
 	@Override
 	public boolean fire(Context context) {
-		Train.list().forEach(train -> train.stopNow());
+		BaseClass.listElements(Train.class).forEach(train -> train.stopNow());
 		return true;
 	}
 }

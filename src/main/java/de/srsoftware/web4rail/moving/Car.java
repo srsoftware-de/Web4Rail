@@ -5,11 +5,13 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.stream.Collectors;
 
 import org.json.JSONObject;
@@ -27,6 +29,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 
 public class Car extends BaseClass implements Comparable<Car>{
@@ -69,6 +72,9 @@ public class Car extends BaseClass implements Comparable<Car>{
 				if (isSet(car)) {
 					car.clone();
 				} else new Car(params.get(Car.NAME)).parent(plan);
+				return Car.manager();
+			case ACTION_DROP:
+				car.remove();
 				return Car.manager();
 			case ACTION_MOVE:
 				return car.moveUp();
@@ -176,6 +182,9 @@ public class Car extends BaseClass implements Comparable<Car>{
 			String maxSpeed = (car.maxSpeedForward == 0 ? "–":""+car.maxSpeedForward)+NBSP;
 			if (car.maxSpeedReverse != car.maxSpeedForward) maxSpeed += "("+car.maxSpeedReverse+")"+NBSP;
 
+			Tag actions = new Tag("span");
+			car.cloneButton().addTo(actions);
+			car.button(t("delete"),Map.of(ACTION,ACTION_DROP)).addTo(actions);
 			table.addRow(
 					car.stockId,
 					car.link(),
@@ -183,7 +192,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 					car.length+NBSP+lengthUnit,
 					isSet(car.train) ? car.train.link("span", car.train) : "",
 					String.join(", ", car.tags()),
-					car.cloneButton());
+					actions
+					);
 		}
 		table.addTo(win);
 		
@@ -208,6 +218,10 @@ public class Car extends BaseClass implements Comparable<Car>{
 	
 	String name(){
 		return name;
+	}
+	
+	public boolean orientation() {
+		return orientation;
 	}
 	
 	@Override
@@ -284,5 +298,22 @@ public class Car extends BaseClass implements Comparable<Car>{
 	public String turn() {
 		orientation = !orientation;
 		return t("Reversed {}.",this);
+	}
+
+	public static Select selector(Car preselected,Collection<Car> exclude) {
+		if (isNull(exclude)) exclude = new Vector<Car>();
+		Select select = new Select(Car.class.getSimpleName());
+		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
+		List<Car> cars = BaseClass.listElements(Car.class);
+		cars.sort((c1,c2) -> {
+			if (isSet(c1.stockId)) return c1.stockId.compareTo(c2.stockId);
+			return c1.name().compareTo(c2.name());
+		});
+		for (Car car : cars) {			
+			if (exclude.contains(car)) continue;
+			Tag opt = select.addOption(car.id(), (car.stockId.isEmpty() ? "" : "["+car.stockId+"] ") + car);
+			if (car == preselected) opt.attr("selected", "selected");
+		}
+		return select;
 	}
 }

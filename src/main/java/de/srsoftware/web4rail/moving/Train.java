@@ -5,7 +5,6 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -387,12 +386,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return link(type, tx);
 	}
 	
-	public static ArrayList<Train> list() {
-		ArrayList<Train> list = new ArrayList<Train>(trains.values());
-		list.sort((t1,t2)->t1.name.compareTo(t2.name));
-		return list;
-	}
-
 	public static void loadAll(String filename, Plan plan) throws IOException {
 		BufferedReader file = new BufferedReader(new FileReader(filename, UTF8));
 		String line = file.readLine();
@@ -429,7 +422,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
 		Table table = new Table().addHead(t("Name"),t("Length"),t("Max. Speed"),t("Tags"),t("Route"),t("Current location"),t("Destination"),t("Auto pilot"));
-		list().forEach(train -> {
+		BaseClass.listElements(Train.class).forEach(train -> {
 			int ms = train.maxSpeed();
 			table.addRow(		
 				train.link(),
@@ -614,7 +607,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(exclude)) exclude = new Vector<Train>();
 		Select select = new Select(Train.class.getSimpleName());
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
-		for (Train train : Train.list()) {			
+		for (Train train : BaseClass.listElements(Train.class)) {			
 			if (exclude.contains(train)) continue;
 			Tag opt = select.addOption(train.id, train);
 			if (train == preselected) opt.attr("selected", "selected");
@@ -743,10 +736,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public static void startAll() {
-		for (Train train : list()) {
-			String response = train.automatic();
-			LOG.info(response);
-		}
+		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.automatic());
 	}
 	
 	private void startSimulation() {

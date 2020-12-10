@@ -116,6 +116,8 @@ public abstract class Condition extends BaseClass {
 		return List.of(
 				AutopilotActive.class,
 				BlockFree.class,
+				CarInTrain.class,
+				CarOrientation.class,
 				OrCondition.class,
 				PushPullTrain.class,
 				TrainHasTag.class,

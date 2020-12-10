@@ -22,7 +22,9 @@ public class TrainSelect extends Condition {
 	
 	@Override
 	public JSONObject json() {
-		return super.json().put(REALM_TRAIN, train.id());
+		JSONObject json = super.json();
+		if (isSet(train)) json.put(REALM_TRAIN, train.id());
+		return json;
 	}
 	
 	public Condition load(JSONObject json) {

@@ -284,7 +284,7 @@ public class Route extends BaseClass {
 		Fieldset fieldset = new Fieldset(t("Brake time table"));
 		Table table = new Table();
 		table.addHead(t("Train"),t("Brake time¹, forward"),t("Brake time¹, reverse"));
-		for (Train t : Train.list()) {
+		for (Train t : BaseClass.listElements(Train.class)) {
 			Integer fTime = brakeTimes.get(t.brakeId());			 
 			Integer rTime = brakeTimes.get(t.brakeId(true));
 			table.addRow(t,isSet(fTime)? fTime+NBSP+"ms" : "–",isSet(rTime)? fTime+NBSP+"ms" : "–");			

@@ -27,6 +27,7 @@ autopilot active for train : Autopilot für Zug aktiviert
 autopilot inactive for train : Autopilot nicht aktiv für Zug
 Availability : Verfügbarkeit
 Back : zurück
+backward : rückwärts
 Basic properties : Grundlegende Eigenschaften
 BlockFree : Blockbelegung
 Block {} is free : Block {} ist frei
@@ -39,16 +40,18 @@ BrakeStop : Zug anhalten
 Brake time¹, forward : Bremszeit¹, vorwärts
 Brake time¹, reverse : Bremszeit¹, rückwärts
 Brake time table : Bremszeit-Tabelle
+CarInTrain : Wagen im Zug
 Car manager : Waggon-Verwaltung
+CarOrientation : Wagen-Laufrichtung
 Cars\: : Waggons:
-Click here to select train! : HIer klicken, um Zug auszuwählen!
-[Click here to select block!] : [Hier klicken, um Block auszuwählen!]
-Click to setup tag : Hier klicken, um Markierung anzugeben
 Click here to add conditions : Hier klicken, um Bedingungen hinzuzufügen
-[Click here to select display!] : [Hier klicken, um Anzeige auszuwählen!]
+Click here to select block! : Hier klicken, um Block auszuwählen!
+Click here to select car! : Hier klicken, um Fahrzeug auszuwählen!
+Click here to select display! : Hier klicken, um Anzeige auszuwählen!
 Click here to select train! : Hier klicken, um Zug auszuwählen!
 click here to setup contact : Hier klicken, um Kontakt auszuwählen
 click here to setup relay : Hier klicken, um Relais einzurichten
+Click here to setup tag : Hier klicken, um Markierung anzugeben
 click here to setup turnout : Hier klicken, um Weiche einzurichten
 Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
 Command to send : Kommando, welches gesendet werden soll
@@ -107,6 +110,7 @@ Help : Hilfe
 (id\: {}, length\: {}) : (Id: {}, Länge: {})
 if ({})\: : falls ({}):
 inverted : invertiert
+{} is oriented {} : {} ist {} gerichtet
 known cars : bekannte Waggons
 known locomotives : bekannte Lokomotiven
 known trains : bekannte Züge
@@ -172,6 +176,7 @@ Route will only be available, if all conditions are fulfilled. : Route ist nur v
 Save : speichern
 SavePlan : Plan speichern
 Select block : Block auswählen
+Select car : Fahrzeug auswählen
 Select contact\: : Kotakt auswählen:
 Select display : Anzeige auswählen
 Select from plan : Auf Plan auswählen
@@ -230,6 +235,8 @@ toggle {} : {} umschalten
 Toggle power : Stom umschalten
 Train : Zug
 Train\: : Zug:
+train contains {} : {} ist im Zug
+train does not contain {} : {} ist nicht im Zug
 train does not have tag "{}" : Zug hat keine Markierung „{}“
 train has tag "{}" : Zug hat Markierung „{}“
 TrainHasTag : Zug mit Tag
