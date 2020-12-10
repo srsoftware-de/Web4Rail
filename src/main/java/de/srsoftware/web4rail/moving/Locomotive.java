@@ -142,8 +142,8 @@ public class Locomotive extends Car implements Constants,Device{
 		}
 		direction.addTo(fieldset);
 		
-		Tag functions = new Tag("p");
-		Map.of("F1",ACTION_TOGGLE_F1,"F2",ACTION_TOGGLE_F2,"F3",ACTION_TOGGLE_F3,"F4",ACTION_TOGGLE_F4).entrySet().forEach(e -> {
+		Tag functions = new Tag("p");		
+		Map.of("F1",ACTION_TOGGLE_F1,"F2",ACTION_TOGGLE_F2,"F3",ACTION_TOGGLE_F3,"F4",ACTION_TOGGLE_F4).entrySet().stream().sorted((e1,e2)->(e1.getKey().compareTo(e2.getKey()))).forEach(e -> {
 			params.put(ACTION, e.getValue());
 			new Button(t(e.getKey()),params).addTo(functions);			
 		});
@@ -262,6 +262,7 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	private void queue() {
 		int step = proto.steps * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
+		init();
 		plan.queue(new Command("SET {} GL "+address+" "+(orientation == FORWARD ? 0 : 1)+" "+step+" "+proto.steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
 
 			@Override
@@ -271,6 +272,27 @@ public class Locomotive extends Car implements Constants,Device{
 			}			
 		});
 	}
+	
+	public String setFunction(int num, boolean active) {
+		switch (num) {
+		case 1:
+			f1 = active;	
+			break;
+		case 2:
+			f2 = active;	
+			break;
+		case 3:
+			f3 = active;	
+			break;
+		case 4:
+			f4 = active;
+			break;
+		default:
+			return t("Unknown function: {}",num);
+		}
+		queue();
+		return t("{} F{}",t(active?"Activated":"Deavtivated"),num);
+	}
 
 	/**
 	 * Sets the speed of the locomotive to the given velocity in [plan.speedUnit]s
@@ -279,7 +301,6 @@ public class Locomotive extends Car implements Constants,Device{
 	 */
 	public String setSpeed(int newSpeed) {
 		LOG.debug(this.detail()+".setSpeed({})",newSpeed);
-		init();
 		speed = newSpeed;
 		if (speed > maxSpeedForward && maxSpeedForward > 0) speed = maxSpeed();
 		if (speed < 0) speed = 0;
@@ -293,30 +314,18 @@ public class Locomotive extends Car implements Constants,Device{
 		return properties();
 	}
 	
-	private Object toggleFunction(int f) {
-		boolean active; 
+	Object toggleFunction(int f) {
 		switch (f) {
 		case 1:
-			f1 =! f1;	
-			active = f1;
-			break;
+			return setFunction(1, !f1);
 		case 2:
-			f2 =! f2;	
-			active = f2;
-			break;
+			return setFunction(2, !f2);
 		case 3:
-			f3 =! f3;	
-			active = f3;
-			break;
+			return setFunction(3, !f3);
 		case 4:
-			f4 =! f4;	
-			active = f4;
-			break;
-		default:
-			return t("Unknown function: {}",f);
+			return setFunction(4, !f4);
 		}
-		queue();
-		return t("{} F{}",t(active?"Activated":"Deavtivated"),f);
+		return t("Unknown function: {}",f);
 	}
 	
 	public String turn() {		
@@ -329,7 +338,13 @@ public class Locomotive extends Car implements Constants,Device{
 	protected Window update(HashMap<String, String> params) {
 		super.update(params);
 		if (params.containsKey(PROTOCOL)) proto = Protocol.valueOf(params.get(PROTOCOL));
-		if (params.containsKey(ADDRESS)) address = Integer.parseInt(params.get(ADDRESS));
+		if (params.containsKey(ADDRESS)) {
+			int newAddress = Integer.parseInt(params.get(ADDRESS));
+			if (newAddress != address) {
+				init = false;
+				address = newAddress;
+			}
+		}
 		return properties();
 	}
 }

@@ -74,6 +74,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static final String DESTINATION = "destination";
 	
 	private HashSet<String> tags = new HashSet<String>();
+	private boolean f1,f2,f3,f4;
 
 	private Block currentBlock,destination = null;
 	LinkedList<Tile> trace = new LinkedList<Tile>();
@@ -141,6 +142,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 				return train.automatic();
 			case ACTION_DROP:
 				return train.dropCar(params);
+			case ACTION_TOGGLE_F1:
+				return train.toggleFunction(1);
+			case ACTION_TOGGLE_F2:
+				return train.toggleFunction(2);
+			case ACTION_TOGGLE_F3:
+				return train.toggleFunction(3);
+			case ACTION_TOGGLE_F4:
+				return train.toggleFunction(4);
 			case ACTION_FASTER10:
 				return train.faster(10);
 			case ACTION_MOVE:
@@ -161,6 +170,37 @@ public class Train extends BaseClass implements Comparable<Train> {
 				return train.update(params);		 
 		}
 		return t("Unknown action: {}",params.get(ACTION));
+	}
+
+	Object toggleFunction(int f) {
+		boolean active; 
+		switch (f) {
+		case 1:
+			f1 =! f1;	
+			active = f1;
+			break;
+		case 2:
+			f2 =! f2;	
+			active = f2;
+			break;
+		case 3:
+			f3 =! f3;	
+			active = f3;
+			break;
+		case 4:
+			f4 =! f4;	
+			active = f4;
+			break;
+		default:
+			return t("Unknown function: {}",f);
+		}
+		for (Car car : cars) {
+			if (car instanceof Locomotive) {
+				Locomotive loco = (Locomotive) car;
+				loco.setFunction(f,active);
+			}
+		}
+		return properties();
 	}
 
 	public void addToTrace(Vector<Tile> newTiles) {
@@ -222,7 +262,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			car.link(car.name()+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")")).addTo(li).content(NBSP);
 			car.button(t("turn within train"),Map.of(ACTION,ACTION_TURN)).addTo(li);
 			car.button("↑",Map.of(ACTION,ACTION_MOVE)).addTo(li);
-			button(t("delete"),Map.of(ACTION,ACTION_DROP,LOCO_ID,car.id().toString())).addTo(li);			
+			button(t("delete"),Map.of(ACTION,ACTION_DROP,CAR_ID,car.id().toString())).addTo(li);			
 			li.addTo(carList);
 		}
 
@@ -234,7 +274,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
 			new Input(ID,id).hideIn(addLocoForm);
 			Select select = new Select(CAR_ID);
-			for (Car loco : locos) select.addOption(loco.id(), loco);
+			for (Car loco : locos) select.addOption(loco.id(), loco+(loco.stockId.isEmpty()?"":" ("+loco.stockId+")"));
 			select.addTo(addLocoForm);
 			new Button(t("add"),addLocoForm).addTo(addLocoForm);
 			addLocoForm.addTo(new Tag("li")).addTo(carList);
@@ -797,7 +837,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 				if (!tag.isEmpty()) tags.add(tag);
 			}
 		}
-
 		return this;
 	}
 	
