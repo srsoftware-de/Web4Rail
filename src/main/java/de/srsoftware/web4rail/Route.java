@@ -347,7 +347,7 @@ public class Route extends BaseClass {
 			add(lastContact.trigger(), new BrakeStop(this)); 
 			add(lastContact.trigger(), new FinishRoute(this));
 		}
-		for (Signal signal : signals) add(ROUTE_SETUP,new SetSignal(this).set(signal).to(Signal.GO));
+		for (Signal signal : signals) add(ROUTE_START,new SetSignal(this).set(signal).to(Signal.GO));
 		add(ROUTE_START,new SetSpeed(this).to(999));
 		return this;
 	}
@@ -363,7 +363,7 @@ public class Route extends BaseClass {
 		LOG.debug("{} on {} activated {}.",train,this,contact);
 		traceTrainFrom(contact);
 		ActionList actions = triggeredActions.get(contact.trigger());
-		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),actions);
+		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
 		if (isNull(actions)) return;
 		context.contact(contact);
 		actions.fire(context);

@@ -78,12 +78,16 @@ public class Contact extends Tile{
 			Context context = null;
 			if (isSet(route)) {
 				context = route.context();
+				actions.fire(context);
 				route.contact(this);
 			} else if (getClass() != Contact.class) {
 				plan.warn(this);	
 			}
-			if (isNull(context)) context = new Context(this);
-			actions.fire(context);
+			if (isNull(context)) {
+				context = new Context(this);
+				actions.fire(context);
+			}
+			
 			stream();
 		}
 	}

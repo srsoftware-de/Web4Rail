@@ -225,4 +225,9 @@ public class ActionList extends Action implements Iterable<Action>{
 		actions.remove(child);
 		super.removeChild(child);
 	}
+	
+	@Override
+	public String toString() {
+		return actions.toString();
+	}
 }

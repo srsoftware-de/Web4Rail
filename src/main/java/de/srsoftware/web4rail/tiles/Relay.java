@@ -174,7 +174,7 @@ public class Relay extends Tile implements Device{
 	public Reply state(boolean newState) {
 		Reply reply = init();
 		if (reply != null && !reply.succeeded()) return reply;
-		LOG.debug("Setting {} to {}",this,newState);
+		LOG.debug("Setting {} to {}",this,newState?1:0);
 		try {
 			String cmd = commandFor(newState);
 			return plan.queue(new Command(cmd) {
