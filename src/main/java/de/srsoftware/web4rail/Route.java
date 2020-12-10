@@ -733,6 +733,14 @@ public class Route extends BaseClass {
 		return result;
 	}
 	
+	private Tag previewScript() {
+		Tag script = new Tag("script").attr("type", "text/javascript");
+		for (Tile tile : path) {
+			script.content("$('#"+tile.id()+"').addClass('preview');\n");
+		}
+		return script;
+	}
+	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 
@@ -745,7 +753,10 @@ public class Route extends BaseClass {
 		postForm.add(basicProperties());
 		if (!turnouts.isEmpty()) postForm.add(turnouts());
 		postForm.add(brakeTimes());
-		return super.properties(preForm, formInputs, postForm);
+		Window win = super.properties(preForm, formInputs, postForm);
+		previewScript().addTo(win);
+		return win;
+
 	}
 	
 	@Override

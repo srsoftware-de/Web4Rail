@@ -331,3 +331,14 @@ textarea.json {
 	height: 33%;
 	margin-left: 5%;
 }
+
+svg.preview circle,
+svg.preview line,
+svg.preview polygon,
+svg.preview rect{
+	fill:peru;
+}
+
+svg.Block text{
+	fill: black;
+}

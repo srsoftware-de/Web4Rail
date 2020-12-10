@@ -23,8 +23,9 @@ public class Button extends Tag {
 		attr("onclick",action).content(text);
 	}
 	
-	public Button(String text,Form form) {
+	public Button(String text,Form form) {		
 		this(text,"return submitForm('"+form.get("id")+"');");
+		form.attr("onsubmit", "return submitForm('"+form.get("id")+"');");
 	}
 	
 	public Button(String text, Map<String, ? extends Object> props) {

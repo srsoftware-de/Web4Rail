@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -595,18 +596,30 @@ public class Plan extends BaseClass{
 		new Button(t("Save"), form).addTo(form);
 		form.addTo(win);
 		
-		new Tag("h4").content(t("turnout properties")).addTo(win);
+		new Tag("h4").content(t("Relays and Turnouts")).addTo(win);
 		Table table = new Table();
 		table.addHead(t("Address"),t("Relay/Turnout"));
-		BaseClass.listElements(Tile.class)
+		List<Device> devices = BaseClass.listElements(Tile.class)
 			.stream()
 			.filter(tile -> tile instanceof Device )
 			.map(tile -> (Device) tile)
 			.sorted(Comparator.comparing(Device::address))
-			.forEach(turnout -> {
-				table.addRow(turnout.address(),turnout);
-				if (turnout.address() % 4 == 1) table.children().lastElement().clazz("group");
-			});
+			.collect(Collectors.toList());
+		for (Device device : devices) {
+			Tile tile = (Tile) device;
+			table.addRow(device.address(),tile.link(tile.toString()));
+			if (device.address() % 4 == 1) table.children().lastElement().clazz("group");
+			
+		}
+		table.clazz("turnouts").addTo(win);
+		
+		new Tag("h4").content(t("Routes")).addTo(win);
+		table = new Table();
+		table.addHead(t("Name"),t("Start"),t("End"));
+		List<Route> routes = BaseClass.listElements(Route.class);
+		for (Route route : routes) {
+			table.addRow(route.link("span",route.name()),route.link("span", route.startBlock()),route.link("span", route.endBlock()));
+		}
 		table.clazz("turnouts").addTo(win);
 		
 		return win;

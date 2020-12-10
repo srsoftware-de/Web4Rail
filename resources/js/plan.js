@@ -57,6 +57,7 @@ function closeMenu(ev){
 
 function closeWindows(){
 	$('.window').remove();
+	$('.preview').removeClass('preview');
 	$('#plan').css('height','').css('width','');
 }
 
