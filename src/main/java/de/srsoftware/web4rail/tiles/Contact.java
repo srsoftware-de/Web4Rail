@@ -75,12 +75,15 @@ public class Contact extends Tile{
 			LOG.debug("{} activated.",this);
 			state = true;
 			if (isSet(timer)) timer.abort();
+			Context context = null;
 			if (isSet(route)) {
+				context = route.context();
 				route.contact(this);
 			} else if (getClass() != Contact.class) {
 				plan.warn(this);	
 			}
-			actions.fire(new Context(this));
+			if (isNull(context)) context = new Context(this);
+			actions.fire(context);
 			stream();
 		}
 	}

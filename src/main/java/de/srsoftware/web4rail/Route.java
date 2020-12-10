@@ -406,6 +406,10 @@ public class Route extends BaseClass {
 		return win;
 	}
 	
+	public Context context() {
+		return context.clone();
+	}
+	
 	public Block endBlock() {
 		return endBlock;
 	}	

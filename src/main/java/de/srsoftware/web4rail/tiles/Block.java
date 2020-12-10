@@ -274,6 +274,7 @@ public abstract class Block extends StretchableTile{
 			Id trainId = Id.from(params,Train.class.getSimpleName());
 			if (trainId.equals(0)) { // TODO: this is rubbish
 				if (isSet(train)) train.dropTrace();
+				train.set(null);
 				train = null;
 			} else {
 				Train newTrain = Train.get(trainId);
