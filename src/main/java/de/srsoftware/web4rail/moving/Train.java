@@ -172,37 +172,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 
-	Object toggleFunction(int f) {
-		boolean active; 
-		switch (f) {
-		case 1:
-			f1 =! f1;	
-			active = f1;
-			break;
-		case 2:
-			f2 =! f2;	
-			active = f2;
-			break;
-		case 3:
-			f3 =! f3;	
-			active = f3;
-			break;
-		case 4:
-			f4 =! f4;	
-			active = f4;
-			break;
-		default:
-			return t("Unknown function: {}",f);
-		}
-		for (Car car : cars) {
-			if (car instanceof Locomotive) {
-				Locomotive loco = (Locomotive) car;
-				loco.setFunction(f,active);
-			}
-		}
-		return properties();
-	}
-
 	public void addToTrace(Vector<Tile> newTiles) {
 		boolean active = trace.isEmpty();
 		for (Tile tile : newTiles) {
@@ -675,6 +644,32 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return t("{} is not a block!",tile);
 	}
 	
+	public Object setFunction(int num, boolean active) {
+		switch (num) {
+		case 1:
+			f1 = active;	
+			break;
+		case 2:
+			f2 = active;	
+			break;
+		case 3:
+			f3 = active;	
+			break;
+		case 4:
+			f4 = active;
+			break;
+		default:
+			return t("Unknown function: {}",num);
+		}
+		for (Car car : cars) {
+			if (car instanceof Locomotive) {
+				Locomotive loco = (Locomotive) car;
+				loco.setFunction(num,active);
+			}
+		}
+		return properties();
+	}
+	
 	public void setSpeed(int newSpeed) {
 		speed = Math.min(newSpeed,maxSpeed());
 		if (speed < 0) speed = 0;
@@ -802,9 +797,23 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public SortedSet<String> tags() {
 		TreeSet<String> list = new TreeSet<String>(tags);
-		//for (Locomotive loco : locos) list.addAll(loco.tags());
 		for (Car car:cars) list.addAll(car.tags());
 		return list;
+	}
+	
+	
+	public Object toggleFunction(int f) {
+		switch (f) {
+		case 1:
+			return setFunction(1, !f1);
+		case 2:
+			return setFunction(2, !f2);
+		case 3:
+			return setFunction(3, !f3);
+		case 4:
+			return setFunction(4, !f4);
+		}
+		return t("Unknown function: {}",f);
 	}
 	
 	@Override

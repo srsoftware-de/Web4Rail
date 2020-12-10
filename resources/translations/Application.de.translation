@@ -79,6 +79,7 @@ Determine, which train is in {} : Bestimmen, welcher Zug sich in {} befindet
 Direction : Richtung
 Direction\: heading {} : Richtung: nach {}
 disabled : deaktiviert
+disable {} : {} deaktivieren
 Display "{}" on {}. : „{}“ auf {} anzeigen.
 Drop : Verwerfen
 Dropped destination of {}. : Ziel von {} verworfen.
@@ -86,7 +87,10 @@ Dropped destination of {}. : Ziel von {} verworfen.
 EAST : Osten
 Editable properties : veränderliche Eigenschaften
 editable train properties : veränderliche Zug-Eigenschaften
+Edit json : JSON bearbeiten
+Effect : Effekt
 Emergency : Notfall
+enable {} : {} aktivieren
 export : exportieren
 Faster (10 {}) : 10 {} schneller
 Firing {} : starte {}
@@ -95,6 +99,7 @@ forward : vorwärts
 Found {} routes. : {} Routen gefunden.
 FreeStartBlock : Start-Block freigeben
 Fullscreen : Vollbild
+Function : Funktion
 Hardware settings : Hardware-Einstellungen
 Height : Höhe
 Help : Hilfe
@@ -210,6 +215,7 @@ Stop autopilot : Autopilot abschalten
 Stopsettings : Halte-Einstellungen
 Straight port\: : Port für gerade
 STRAIGHT : gerade
+SwitchFunction : Funktion schalten
 Switch power off : Strom ausschalten
 Switch power on : Strom anschalten
 SYSTEM : Betriebssystem
@@ -219,6 +225,7 @@ Text to show on display\: : Text, welcher in der Anzeige dargestellt werden soll
 Tile(s) : Kachel(n)
 Tile(s) moved. : Kachel(n) verschoben.
 Toggle : umschalten
+toggle {} : {} umschalten
 Toggle power : Stom umschalten
 Train : Zug
 Train\: : Zug:
