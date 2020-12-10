@@ -40,11 +40,8 @@ public class SetRelay extends Action {
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		String relayId = json.getString(RELAY);
-		if (isSet(relayId)) {
-			relay = BaseClass.get(new Id(relayId));
-			state = json.getBoolean(Relay.STATE);
-		}
+		if (json.has(RELAY)) relay = BaseClass.get(new Id(json.getString(RELAY)));
+		if (json.has(Relay.STATE)) state = json.getBoolean(Relay.STATE);
 		return this;
 	}
 	

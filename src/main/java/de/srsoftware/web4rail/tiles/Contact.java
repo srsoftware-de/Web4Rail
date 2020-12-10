@@ -1,7 +1,6 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,6 @@ import de.srsoftware.web4rail.tags.Select;
 public class Contact extends Tile{
 	
 	private static final String ADDRESS = "address";
-	private static final HashMap<Id, Contact> contactsById = new HashMap<Id, Contact>();
 	private static final HashMap<Integer, Contact> contactsByAddr = new HashMap<Integer, Contact>();
 	private boolean state = false;
 	private String trigger = null;
@@ -113,10 +111,6 @@ public class Contact extends Tile{
 		return contactsByAddr.get(addr);
 	}
 	
-	public static Contact get(Id contactId) {
-		return contactsById.get(contactId);
-	}
-	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
@@ -124,11 +118,6 @@ public class Contact extends Tile{
 		if (!actions.isEmpty()) json.put(REALM_ACTIONS, actions.json());
 		return json;
 	}
-	
-	public static Collection<Contact> list() {
-		return contactsById.values();
-	}
-
 	
 	@Override
 	public Tile load(JSONObject json) {
@@ -159,7 +148,6 @@ public class Contact extends Tile{
 	@Override
 	public Tile position(int x, int y) {
 		super.position(x, y);
-		contactsById.put(id(), this);
 		return this;
 	}
 	
@@ -171,12 +159,14 @@ public class Contact extends Tile{
 		switch (action) {
 			case ACTION_ANALYZE:
 				if (id == null) return t("Missing ID on call to {}.process()",Contact.class.getSimpleName());
-				contact = contactsById.get(id);
+				contact = BaseClass.get(id);
 				if (contact == null) return t("No contact with id {} found!",id);
 				Tag propMenu = contact.properties();
 				propMenu.children().insertElementAt(new Tag("div").content(t("Trigger a feedback sensor to assign it with this contact!")), 1);
 				plan.learn(contact);
 				return propMenu;
+			case ACTION_UPDATE:
+				return plan.update(params);
 		}
 		return t("Unknown action: {}",action);
 	}
@@ -202,7 +192,7 @@ public class Contact extends Tile{
 	
 	public static Select selector(Contact preselect) {
 		TreeMap<String,Contact> sortedSet = new TreeMap<String, Contact>(); // Map from Name to Contact
-		for (Contact contact : contactsById.values()) sortedSet.put(contact.toString(), contact);
+		for (Contact contact : BaseClass.listElements(Contact.class)) sortedSet.put(contact.toString(), contact);
 		Select select = new Select(CONTACT);
 		for (Entry<String, Contact> entry : sortedSet.entrySet()) {
 			Contact contact = entry.getValue();

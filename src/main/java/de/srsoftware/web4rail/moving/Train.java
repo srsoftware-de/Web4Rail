@@ -573,7 +573,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(nextRoute)) return;
 		nextRoute.set(context);
 		boolean error = !nextRoute.lockIgnoring(route);
-		error = error || !nextRoute.setTurnouts();
 		error = error || !nextRoute.fireSetupActions();
 
 		if (error) {
@@ -712,12 +711,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 			nextRoute = null;
 			route.set(new Context(this).block(currentBlock).direction(direction));			
 		} else {
-			Context context = new Context(this).block(currentBlock).direction(direction);
+			Context context = new Context(this).block(currentBlock).direction(direction).train(this);
 			route = PathFinder.chooseRoute(context);
 			if (isNull(route)) return t("No free routes from {}",currentBlock);
 			if (!route.lock()) return t("Was not able to lock {}",route);
-			if (!route.setTurnouts()) error = t("Was not able to set all turnouts!");
-			context.train(this);
 			route.set(context);
 			if (isNull(error) && !route.fireSetupActions()) error = t("Was not able to fire all setup actions of route!");
 		}

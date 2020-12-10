@@ -159,6 +159,18 @@ public class Relay extends Tile implements Device{
 			return 'P';
 		}		
 	}
+	
+	public static Select selector(Relay preselected, Collection<Relay> exclude) {
+		if (isNull(exclude)) exclude = new Vector<Relay>();
+		Select select = new Select(Relay.class.getSimpleName());
+		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
+		for (Relay relay : BaseClass.listElements(Relay.class)) {			
+			if (exclude.contains(relay)) continue;
+			Tag opt = select.addOption(relay.id(), relay);
+			if (relay == preselected) opt.attr("selected", "selected");
+		}
+		return select;
+	}
 		
 	public Relay setLabel(boolean state, String tx) {
 		if (state) {
@@ -223,6 +235,11 @@ public class Relay extends Tile implements Device{
 	}
 	
 	@Override
+	public String toString() {
+		return getClass().getSimpleName()+" ("+(isSet(name) && !name.isEmpty() ? name+")" : "")+" @("+x+", "+y+")";
+	}
+	
+	@Override
 	public Tile update(HashMap<String, String> params) {
 		if (params.containsKey(PROTOCOL)) protocol = Protocol.valueOf(params.get(PROTOCOL));
 		if (params.containsKey(ADDRESS)) address = Integer.parseInt(params.get(ADDRESS));
@@ -232,17 +249,5 @@ public class Relay extends Tile implements Device{
 		if (params.containsKey(LABEL_B)) stateLabelB = params.get(LABEL_B);
 		if (params.containsKey(NAME)) name = params.get(NAME);
 		return super.update(params);
-	}
-
-	public static Select selector(Relay preselected, Collection<Relay> exclude) {
-		if (isNull(exclude)) exclude = new Vector<Relay>();
-		Select select = new Select(Relay.class.getSimpleName());
-		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
-		for (Relay relay : BaseClass.listElements(Relay.class)) {			
-			if (exclude.contains(relay)) continue;
-			Tag opt = select.addOption(relay.id(), relay);
-			if (relay == preselected) opt.attr("selected", "selected");
-		}
-		return select;
 	}
 }

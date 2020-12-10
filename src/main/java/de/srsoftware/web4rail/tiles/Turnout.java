@@ -210,7 +210,7 @@ public abstract class Turnout extends Tile implements Device{
 	
 	@Override
 	public String title() {
-		return getClass().getSimpleName()+t("(Address: {}, Ports {} and {})",address,portA,portB);
+		return getClass().getSimpleName()+t("(Address: {}, Ports {} and {}) @ ({}, {})",address,portA,portB,x,y);
 	}
 	
 	@Override

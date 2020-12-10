@@ -171,6 +171,7 @@ reverse : rückwärts
 Reversed {}. : {} umgedreht.
 RIGHT : rechts
 Right port\: : Port für rechts
+Route properties : Routen-Eigenschaften
 Routes using this tile : Fahrstraßen, die diesen Abschnitt verwenden
 Route will only be available, if all conditions are fulfilled. : Route ist nur verfügbar, wenn alle Bedingungen erfüllt sind.
 Save : speichern

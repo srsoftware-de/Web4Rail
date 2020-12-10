@@ -25,7 +25,13 @@ public class SetTurnout extends Action {
 	@Override
 	public boolean fire(Context context) {
 		if (isNull(turnout)) return false;
-		return turnout.state(state).succeeded();		
+		if (!turnout.state(state).succeeded()) return false;
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return true;
 	}
 	
 	@Override
@@ -73,6 +79,16 @@ public class SetTurnout extends Action {
 		super.removeChild(child);
 	}
 	
+	public SetTurnout setState(State state) {
+		this.state = state;
+		return this;
+	}
+
+	public SetTurnout setTurnout(Turnout turnout) {
+		this.turnout = turnout;
+		return this;
+	}
+
 	public String toString() {
 		if (isNull(turnout)) return "["+t("click here to setup turnout")+"]";
 		return t("Set {} to {}",turnout,state);

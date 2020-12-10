@@ -29,6 +29,7 @@ import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.PreserveRoute;
 import de.srsoftware.web4rail.actions.SetSignal;
 import de.srsoftware.web4rail.actions.SetSpeed;
+import de.srsoftware.web4rail.actions.SetTurnout;
 import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.conditions.ConditionList;
 import de.srsoftware.web4rail.moving.Train;
@@ -231,7 +232,6 @@ public class Route extends BaseClass {
 			conditions.add(condition);			
 		}
 		conditions.forEach(condition -> existingRoute.conditions.removeChild(condition));
-		
 		for (Entry<String, ActionList> entry : triggeredActions.entrySet()) {
 			String trigger = entry.getKey();
 			ActionList existingActionList = existingRoute.triggeredActions.get(trigger);
@@ -346,6 +346,11 @@ public class Route extends BaseClass {
 			Contact lastContact = contacts.lastElement(); 
 			add(lastContact.trigger(), new BrakeStop(this)); 
 			add(lastContact.trigger(), new FinishRoute(this));
+		}
+		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) {
+			Turnout turnout = entry.getKey();
+			Turnout.State state = entry.getValue();
+			add(ROUTE_SETUP,new SetTurnout(this).setTurnout(turnout).setState(state));
 		}
 		for (Signal signal : signals) add(ROUTE_START,new SetSignal(this).set(signal).to(Signal.GO));
 		add(ROUTE_START,new SetSpeed(this).to(999));
@@ -823,19 +828,6 @@ public class Route extends BaseClass {
 	public boolean setSignals(String state) {
 		for (Signal signal : signals) {
 			if (!signal.state(isNull(state) ? Signal.GO : state)) return false;
-		}
-		return true;
-	}
-	
-	public boolean setTurnouts() {
-		Turnout turnout = null;
-		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) {
-			turnout = entry.getKey();
-			Turnout.State targetVal = entry.getValue();
-			if (!turnout.state(targetVal).succeeded()) return false;
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {}
 		}
 		return true;
 	}

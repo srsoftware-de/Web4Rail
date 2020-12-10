@@ -688,8 +688,8 @@ public class Plan extends BaseClass{
 				LOG.debug("unsibscribed {} from {}",contact,addr);
 			}
 			stream(learningContact.addr(addr).properties().toString());
-			learningContact = null;
 			LOG.debug("learned: {} = {}",addr,learningContact);			
+			learningContact = null;
 			return;
 		}
 		
@@ -799,7 +799,7 @@ public class Plan extends BaseClass{
 	 * @return
 	 * @throws IOException
 	 */
-	protected Object update(HashMap<String, String> params) {
+	public Object update(HashMap<String, String> params) {
 		super.update(params);
 		Tile tile = get(Id.from(params),true);
 		if (isSet(tile)) return tile.update(params);
