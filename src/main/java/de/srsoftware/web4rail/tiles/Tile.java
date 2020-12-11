@@ -242,14 +242,35 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		if (!routes.isEmpty()) {
 			fieldset = new Fieldset(t("Routes using this tile"));
 			Tag routeList = new Tag("ol");
+			boolean empty = true;
 			for (Route route : routes) {
+				if (route.isDisabled()) continue;
 				Tag li = route.link("span", route.name()+(route.isDisabled()?" ["+t("disabled")+"]" : "")+NBSP).addTo(new Tag("li").clazz("link"));
 				route.button(t("delete route"),Map.of(ACTION,ACTION_DROP)).addTo(li);
 				button(t("simplify name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())).addTo(li);
 				li.addTo(routeList);
+				empty = false;
 			}
-			routeList.addTo(fieldset);
-			postForm.add(fieldset);
+			if (!empty) {
+				routeList.addTo(fieldset);
+				postForm.add(fieldset);
+			}
+			
+			fieldset = new Fieldset(t("Disabled routes using this tile"));
+			routeList = new Tag("ol");
+			empty = true;
+			for (Route route : routes) {
+				if (!route.isDisabled()) continue;
+				Tag li = route.link("span", route.name()+(route.isDisabled()?" ["+t("disabled")+"]" : "")+NBSP).addTo(new Tag("li").clazz("link"));
+				route.button(t("delete route"),Map.of(ACTION,ACTION_DROP)).addTo(li);
+				button(t("simplify name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())).addTo(li);
+				li.addTo(routeList);
+				empty = false;
+			}
+			if (!empty) {
+				routeList.addTo(fieldset);
+				postForm.add(fieldset);
+			}
 		}
 		
 		return super.properties(preForm, formInputs, postForm);

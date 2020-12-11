@@ -750,9 +750,7 @@ public class Route extends BaseClass {
 		formInputs.add(t("Name"),new Input(NAME, name()));
 		Checkbox checkbox = new Checkbox(DISABLED, t("disabled"), disabled);
 		if (disabled) checkbox.clazz("disabled");
-		formInputs.add(t("State"),checkbox);
-		
-		
+		formInputs.add(t("State"),checkbox);		
 		
 		postForm.add(basicProperties());
 		if (!turnouts.isEmpty()) postForm.add(turnouts());

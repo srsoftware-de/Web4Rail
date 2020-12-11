@@ -84,6 +84,7 @@ Direction : Richtung
 Direction\: heading {} : Richtung: nach {}
 disabled : deaktiviert
 disable {} : {} deaktivieren
+Disabled routes using this tile : Deaktivierte Routen, die diesen Abschnitt verwenden
 Display "{}" on {}. : „{}“ auf {} anzeigen.
 Drop : Verwerfen
 Dropped destination of {}. : Ziel von {} verworfen.

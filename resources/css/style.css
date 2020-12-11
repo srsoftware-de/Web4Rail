@@ -336,7 +336,7 @@ svg.preview circle,
 svg.preview line,
 svg.preview polygon,
 svg.preview rect{
-	fill:peru;
+	fill:peru !important;
 }
 
 svg.Block text{
