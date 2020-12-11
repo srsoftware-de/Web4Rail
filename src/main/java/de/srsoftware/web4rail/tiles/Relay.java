@@ -137,10 +137,10 @@ public class Relay extends Tile implements Device{
 		}
 		formInputs.add(t("Decoder address"),div);
 		formInputs.add(t("Address"),new Input(ADDRESS, address).numeric());
-		formInputs.add(t("Port for state A"),new Input(PORT_A, portA).numeric());
-		formInputs.add(t("Label for state A"),new Input(LABEL_A, stateLabelA));
-		formInputs.add(t("Port for state B"),new Input(PORT_B, portB).numeric());
-		formInputs.add(t("Label for state B"),new Input(LABEL_B, stateLabelB));
+		formInputs.add(t("Label for state {}","A"),new Input(LABEL_A, stateLabelA));
+		formInputs.add(t("Label for state {}","B"),new Input(LABEL_B, stateLabelB));
+		formInputs.add(t("Port for state {}",stateLabelA),new Input(PORT_A, portA).numeric());
+		formInputs.add(t("Port for state {}",stateLabelB),new Input(PORT_B, portB).numeric());
 		return super.properties(preForm, formInputs, postForm);
 	}
 		

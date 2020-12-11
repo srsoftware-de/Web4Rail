@@ -40,7 +40,18 @@ public class SetRelay extends Action {
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		if (json.has(RELAY)) relay = BaseClass.get(new Id(json.getString(RELAY)));
+		if (json.has(RELAY)) {
+			String relayId = json.getString(RELAY);
+			relay = BaseClass.get(new Id(relayId));
+			if (isNull(relay)) new Thread() { // if relay not loaded, yet: wait one sec and try again
+				public void run() {
+					try {
+						sleep(1000);
+					} catch (InterruptedException e) {}
+					relay = BaseClass.get(new Id(relayId));
+				};
+			}.start();
+		}
 		if (json.has(Relay.STATE)) state = json.getBoolean(Relay.STATE);
 		return this;
 	}

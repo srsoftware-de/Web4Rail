@@ -12,7 +12,7 @@ add car\: : Waggon hinzufügen:
 Add condition : Bedingung hinzufügen
 add locomotive\: : Lok hinzufügen:
 add new car : neuen Waggon anlegen
-Add new custom field : neues benutzerdefinierted Feld hinzufügen
+Add new custom field : neues benutzerdefiniertes Feld hinzufügen
 add new locomotive : neue Lok anlegen
 add new train : neuen Zug anlegen
 Add tile : Kachel hinzufügen
@@ -114,6 +114,7 @@ inverted : invertiert
 known cars : bekannte Waggons
 known locomotives : bekannte Lokomotiven
 known trains : bekannte Züge
+Label for state {} : Beschriftung für Status {}
 learn : lernen
 LEFT : links
 Left port\: : Port für links
@@ -157,6 +158,7 @@ other train properties : andere Zug-Eigenschaften
 Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
 Plan saved as "{}". : Plan als „{}“ gespeichert.
+Port for state {} : Anschluss für Status {}
 PreserveRoute : Anschlußroute vorwählen
 Properties : Eigenschaften
 Properties of {} : Eigenschaften von {}
@@ -183,6 +185,7 @@ Select contact\: : Kotakt auswählen:
 Select display : Anzeige auswählen
 Select from plan : Auf Plan auswählen
 Select relay\: : Relais auswählen:
+Select state : Status auswählen
 Select train : Zug auswählen
 Select turnout : Weiche wählen
 SendCommand : Kommando senden
