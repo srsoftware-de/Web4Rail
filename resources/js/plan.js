@@ -163,6 +163,10 @@ function request(data){
 		method : POST,
 		data : data,
 		success: function(resp){
+			var win = $('.window');
+			var scroll = win.scrollTop();
+			var winId = win.attr('id');
+			
 			if (data.realm != 'car' && data.realm != 'loco') closeWindows();
 			if (resp.startsWith('<html')) return;
 			if (resp.startsWith('<svg')){
@@ -171,10 +175,15 @@ function request(data){
 				var isWindow = $(resp).attr('class') == 'window';
 				if (isWindow) $('.window').remove();
 				$(BODY).append($(resp));			
-				if (isWindow) tileWindow();
+				if (isWindow) {
+					tileWindow();
+					var win = $('.window');
+					if (win.attr('id')==winId) win.scrollTop(scroll);
+				}
 			} else {
 				addMessage(resp);
 			}
+			$("html").scrollTop(scroll);
 		}
 	});
 	return false;	

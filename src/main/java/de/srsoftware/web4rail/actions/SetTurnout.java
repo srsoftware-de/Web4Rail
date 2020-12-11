@@ -24,8 +24,9 @@ public class SetTurnout extends Action {
 
 	@Override
 	public boolean fire(Context context) {
-		if (isNull(turnout)) return false;
+		if (isNull(turnout)) return false;		
 		if (!turnout.state(state).succeeded()) return false;
+		if (turnout.address() == 0) return true;
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {

@@ -45,7 +45,6 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	private   static final String OCCUPIED   = "occupied";
 	private   static final String ONEW_WAY   = "one_way";
 	private   static final String POS        = "pos";
-	private   static final String ROUTE      = "route";
 	private   static final String TYPE       = "type";
 	private   static final String X          = "x";
 	private   static final String Y          = "y";
@@ -246,6 +245,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 			for (Route route : routes) {
 				Tag li = route.link("span", route.name()+(route.isDisabled()?" ["+t("disabled")+"]" : "")+NBSP).addTo(new Tag("li").clazz("link"));
 				route.button(t("delete route"),Map.of(ACTION,ACTION_DROP)).addTo(li);
+				button(t("simplify name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())).addTo(li);
 				li.addTo(routeList);
 			}
 			routeList.addTo(fieldset);

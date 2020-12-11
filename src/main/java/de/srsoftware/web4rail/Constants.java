@@ -61,6 +61,7 @@ public interface Constants {
 	public static final String  PARENT              = "parent";
 	public static final String  PORT                = "port";
 	public static final String  RELAY               = "relay";
+	public static final String  ROUTE               = "route";
 	public static final String  TURNOUT             = "turnout";
 	public static final String  TYPE                = "type";
 	public static final Charset UTF8                = StandardCharsets.UTF_8;

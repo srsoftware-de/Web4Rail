@@ -748,7 +748,11 @@ public class Route extends BaseClass {
 		preForm.add(contactsAndActions());
 
 		formInputs.add(t("Name"),new Input(NAME, name()));
-		formInputs.add(t("State"),new Checkbox(DISABLED, t("disabled"), disabled));
+		Checkbox checkbox = new Checkbox(DISABLED, t("disabled"), disabled);
+		if (disabled) checkbox.clazz("disabled");
+		formInputs.add(t("State"),checkbox);
+		
+		
 		
 		postForm.add(basicProperties());
 		if (!turnouts.isEmpty()) postForm.add(turnouts());
@@ -848,6 +852,11 @@ public class Route extends BaseClass {
 		return parts[0].trim()+"–"+parts[parts.length-1].trim();
 	}
 	
+	public void simplyfyName() {
+		String[] parts = name().split("-");
+		if (parts.length>1) name(parts[0]+" - "+parts[parts.length-1]);
+	}
+
 	public Route.State state(){
 		return state;
 	}

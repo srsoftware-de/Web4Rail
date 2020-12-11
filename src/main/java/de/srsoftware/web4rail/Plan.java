@@ -165,6 +165,8 @@ public class Plan extends BaseClass{
 			return addTile(params.get(TILE),params.get(X),params.get(Y),null);
 		case ACTION_ANALYZE:
 			return analyze();
+		case ACTION_AUTO:
+			return simplyfyRouteName(params);
 		case ACTION_CLICK:
 			return click(get(Id.from(params),true));
 		case ACTION_CONNECT:
@@ -615,10 +617,10 @@ public class Plan extends BaseClass{
 		
 		new Tag("h4").content(t("Routes")).addTo(win);
 		table = new Table();
-		table.addHead(t("Name"),t("Start"),t("End"));
+		table.addHead(t("Name"),t("Start"),t("End"),t("Actions"));
 		List<Route> routes = BaseClass.listElements(Route.class);
 		for (Route route : routes) {
-			table.addRow(route.link("span",route.name()),route.link("span", route.startBlock()),route.link("span", route.endBlock()));
+			table.addRow(route.link("span",route.name()),route.link("span", route.startBlock()),route.link("span", route.endBlock()),plan.button(t("simplyfy name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())));
 		}
 		table.clazz("turnouts").addTo(win);
 		
@@ -707,6 +709,19 @@ public class Plan extends BaseClass{
 		}
 		
 		if (isSet(contact)) contact.activate(active);
+	}
+	
+	private Object simplyfyRouteName(HashMap<String, String> params) {
+		String routeId = params.get(ROUTE);
+		if (isSet(routeId)) {
+			Route route = BaseClass.get(new Id(routeId));
+			if (isSet(route)) route.simplyfyName();
+		}
+		Id tileId = Id.from(params);
+		Tile tile = isSet(tileId)? BaseClass.get(tileId) : null;
+		if (isSet(tile)) return tile.properties();
+		params.remove(ID);
+		return plan.properties(params);
 	}
 	
 	/**
