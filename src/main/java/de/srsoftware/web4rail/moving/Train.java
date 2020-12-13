@@ -71,6 +71,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static final String TAGS = "tags";
 
 	private static final String DESTINATION = "destination";
+
+	private static final String ACTION_REVERSE = "reverse";
 	
 	private HashSet<String> tags = new HashSet<String>();
 	private boolean f1,f2,f3,f4;
@@ -134,7 +136,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		Id id = Id.from(params);
 		Train train = trains.get(id);
 		if (isNull(train)) return(t("No train with id {}!",id));
-		switch (action) {
+		switch (action) {		
 			case ACTION_ADD:
 				return train.addCar(params);
 			case ACTION_AUTO:
@@ -157,6 +159,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 				return train.properties();
 			case ACTION_QUIT:
 				return train.quitAutopilot();
+			case ACTION_REVERSE:
+				return train.reverse();
 			case ACTION_SLOWER10:
 				return train.slower(10);
 			case ACTION_START:
@@ -501,7 +505,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		carList().addTo(propList);
 		
 		if (isSet(currentBlock)) currentBlock.button(currentBlock.toString()).addTo(new Tag("li").content(t("Current location:")+NBSP)).addTo(propList);
-		if (isSet(direction)) new Tag("li").content(t("Direction: heading {}",direction)).addTo(propList);
+		Tag directionLi = null;
+		if (isSet(direction)) directionLi = new Tag("li").content(t("Direction: heading {}",direction)+NBSP);
+		if (isNull(directionLi)) directionLi = new Tag("li");
+		button(t("reverse"), Map.of(ACTION,ACTION_REVERSE)).title(t("Turns the train, as if it went through a loop.")).addTo(directionLi).addTo(propList);
 
 		Tag dest = new Tag("li").content(t("Destination:")+NBSP);
 		if (isNull(destination)) {
@@ -582,6 +589,22 @@ public class Train extends BaseClass implements Comparable<Train> {
 			this.nextRoute = nextRoute;
 			this.route.brakeCancel();
 		}
+	}
+	
+	/**
+	 * This turns the train as if it went through a loop. Example:
+	 * before: CabCar→ MiddleCar→ Loco→
+	 * after: ←Loco ←MiddleCar ←CabCar 
+	 */
+	private Tag reverse() {
+		LOG.debug("train.reverse();");
+
+		if (isSet(direction)) {
+			direction = direction.inverse();
+			reverseTrace();
+		}
+		if (isSet(currentBlock)) plan.place(currentBlock);
+		return properties();
 	}
 	
 	private void reverseTrace() {
@@ -808,17 +831,17 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return name();
 	}
 	
+	/**
+	 * this inverts the direction the train is heading to. Example:
+	 * before: CabCar→ MiddleCar→ Loco→
+	 * after: ←CabCar ←MiddleCar ←Loco 
+	 * @return 
+	 */
 	public Tag turn() {
 		LOG.debug("train.turn()");
-		 
 		for (Car car : cars) car.turn();
 		Collections.reverse(cars);
-		if (isSet(direction)) {
-			direction = direction.inverse();
-			reverseTrace();
-		}
-		if (isSet(currentBlock)) plan.place(currentBlock);
-		return properties();
+		return reverse();
 	}
 
 	protected Train update(HashMap<String, String> params) {

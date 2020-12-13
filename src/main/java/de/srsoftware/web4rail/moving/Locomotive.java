@@ -122,7 +122,7 @@ public class Locomotive extends Car implements Constants,Device{
 		}
 
 		params.put(ACTION, ACTION_TURN);
-		new Button(t("Turn"),params).clazz(ACTION_TURN).addTo(direction);			
+		new Button(t("Turn"),params).title(t("Inverts the direction {} is heading to.",locoOrTrain)).clazz(ACTION_TURN).addTo(direction);			
 
 		if (isSet(train)) {
 			Block currentBlock = train.currentBlock();
@@ -147,8 +147,7 @@ public class Locomotive extends Car implements Constants,Device{
 			params.put(ACTION, e.getValue());
 			new Button(t(e.getKey()),params).addTo(functions);			
 		});
-		functions.addTo(fieldset);
-		
+		functions.addTo(fieldset);		
 
 		return fieldset;
 	}

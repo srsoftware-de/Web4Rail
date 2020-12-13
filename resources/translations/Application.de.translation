@@ -100,6 +100,7 @@ export : exportieren
 Faster (10 {}) : 10 {} schneller
 Firing {} : starte {}
 FinishRoute : Route abschließen
+For each {} do: Für jede(n) {}:
 forward : vorwärts
 Found {} routes. : {} Routen gefunden.
 FreeStartBlock : Start-Block freigeben
@@ -111,6 +112,7 @@ Help : Hilfe
 (id\: {}, length\: {}) : (Id: {}, Länge: {})
 if ({})\: : falls ({}):
 inverted : invertiert
+Inverts the direction {} is heading to. : Kehrt die Richtung, in welche {} fährt, um.
 {} is oriented {} : {} ist {} gerichtet
 known cars : bekannte Waggons
 known locomotives : bekannte Lokomotiven
@@ -171,7 +173,7 @@ quit autopilot : Autopilot beenden
 Relays and Turnouts : Relais und Weichen
 Relay/Turnout : Relais/Weiche
 Report Issue : Problem melden
-reverse : rückwärts
+reverse : wenden
 Reversed {}. : {} umgedreht.
 RIGHT : rechts
 Right port\: : Port für rechts
@@ -272,6 +274,7 @@ TurnoutRW : WeicheRW
 Turnouts : Weichen
 TurnTrain : Fahrtrichtung umkehren
 turn within train : innerhalb des Zugs drehen
+Turns the train, as if it went through a loop. : Dreht den ZUg, als wenn er eine Wendeschleife passiert hätte. 
 Unknown action\: {} : Unbekannte Aktion: {}
 unset : ungesetzt
 Wait {} ms, then\: : {} ms warten, dann:

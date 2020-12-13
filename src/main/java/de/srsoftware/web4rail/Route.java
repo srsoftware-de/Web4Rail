@@ -265,7 +265,7 @@ public class Route extends BaseClass {
 	private Fieldset basicProperties() {
 		Fieldset fieldset = new Fieldset(t("Route properties"));
 		
-		if (isSet(train)) train.link("span",t("Train: {}",train)).addTo(fieldset);
+		if (isSet(train)) train.link("span",t("Train")+": "+train).addTo(fieldset);
 		Tag list = new Tag("ul");
 		Plan.addLink(startBlock, t("Origin: {} to {}",startBlock.name,startDirection), list);
 		Plan.addLink(endBlock, t("Destination: {} from {}",endBlock.name,endDirection.inverse()), list);
