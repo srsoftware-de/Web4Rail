@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
@@ -74,6 +75,7 @@ public class Contact extends Tile{
 			state = true;
 			if (isSet(timer)) timer.abort();
 			Context context = null;
+			Route route = route();
 			if (isSet(route)) {
 				context = route.context();
 				actions.fire(context);
@@ -95,7 +97,7 @@ public class Contact extends Tile{
 	}
 	
 	public Contact addr(int address) {
-		contactsByAddr.remove(addr); // alte ID aus der Map löschen
+		Contact oldContact = contactsByAddr.remove(addr); // alte ID aus der Map löschen
 		addr = address;
 		if (addr != 0) contactsByAddr.put(addr, this); // neue ID setzen
 		return this;
@@ -204,7 +206,7 @@ public class Contact extends Tile{
 	
 	public void stream() {
 		try {
-			Tag tag = super.tag(null);
+			Tag tag = tag(null);
 			if (state) tag.clazz(tag.get("class")+" active");
 			plan.stream("place "+tag);
 		} catch (IOException e) {

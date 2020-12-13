@@ -159,6 +159,10 @@ public abstract class Block extends StretchableTile{
 		return fieldset;
 	}
 	
+	public Collection<? extends Contact> contacts() {
+		return internalContacts;
+	}
+	
 	public abstract Direction directionA();
 	public abstract Direction directionB();
 	
@@ -194,6 +198,10 @@ public abstract class Block extends StretchableTile{
 		}
 		return getWaitTime(NO_TAG).get(dir);
 	}
+	
+	public int indexOf(BlockContact contact) {
+		return 1+internalContacts.indexOf(contact);
+	}
 		
 	@Override
 	public JSONObject json() {
@@ -203,6 +211,15 @@ public abstract class Block extends StretchableTile{
 		JSONArray jWaitTimes = new JSONArray();
 		for (WaitTime wt : waitTimes) jWaitTimes.put(wt.json());
 		json.put(WAIT_TIMES, jWaitTimes);
+		JSONObject jContacts = null;
+		for (BlockContact contact : internalContacts) {
+			int addr = contact.addr();
+			if (addr != 0) {
+				if (isNull(jContacts)) jContacts = new JSONObject();
+				jContacts.put(contact.id().toString(), contact.addr());
+			}
+		}
+		if (isSet(jContacts)) json.put(CONTACT, jContacts);
 		return json;
 	}
 	
@@ -229,6 +246,10 @@ public abstract class Block extends StretchableTile{
 			wtArr.forEach(object -> {
 				if (object instanceof JSONObject) waitTimes.add(new WaitTime(null).load((JSONObject) object));
 			});
+		}
+		if (json.has(CONTACT)) {
+			JSONObject jContact = json.getJSONObject(CONTACT);
+			for (String key : jContact.keySet()) new BlockContact(this).addr(jContact.getInt(key));
 		}
 		return super.load(json);
 	}
@@ -258,6 +279,16 @@ public abstract class Block extends StretchableTile{
 	public BlockContact register(BlockContact contact) {
 		internalContacts.add(contact);
 		return contact;
+	}
+	
+	@Override
+	public void removeChild(BaseClass child) {
+		super.removeChild(child);
+		internalContacts.remove(child);
+	}
+	
+	public void removeContact(BlockContact blockContact) {
+		internalContacts.remove(blockContact);
 	}
 	
 	public static Select selector(Block preselected,Collection<Block> exclude) {

@@ -33,6 +33,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.BlockV;
 import de.srsoftware.web4rail.tiles.Bridge;
@@ -301,7 +302,7 @@ public class Plan extends BaseClass{
 		Vector<Route> results = new Vector<>();
 		if (tile == null) return results;
 		Tile addedTile = route.add(tile,connector.from.inverse());
-		if (addedTile instanceof Block) {
+		if (addedTile instanceof Block) { // Route wird mit einem Block abgeschlossen
 			Map<Connector, State> cons = addedTile.connections(connector.from);
 			LOG.debug("Found {}, coming from {}.",addedTile,connector.from);
 			for (Connector con : cons.keySet()) { // falls direkt nach dem Block noch ein Kontakt kommt: diesen mit zu Route hinzufügen
@@ -711,7 +712,6 @@ public class Plan extends BaseClass{
 			learningContact = null;
 			return;
 		}
-		
 		if (isSet(contact)) contact.activate(active);
 	}
 	

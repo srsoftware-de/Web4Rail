@@ -194,6 +194,7 @@ public class Route extends BaseClass {
 		if (tile instanceof Block) {
 			endBlock = (Block) tile;
 			endDirection = direrction;
+			contacts.addAll(endBlock.contacts());
 		}
 		path.add(tile);
 		if (tile instanceof Contact) contacts.add((Contact) tile);
@@ -296,11 +297,11 @@ public class Route extends BaseClass {
 				
 	public Route begin(Block block,Direction to) {
 		// add those fields to clone, too!
-		contacts = new Vector<Contact>();
+		startBlock = block;
+		contacts = new Vector<Contact>(startBlock.contacts());
 		signals = new Vector<Signal>();
 		path = new Vector<Tile>();
 		turnouts = new HashMap<>();
-		startBlock = block;
 		startDirection = to;
 		path.add(block);
 		return this;
