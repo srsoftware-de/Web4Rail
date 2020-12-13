@@ -38,9 +38,11 @@ public abstract class Block extends StretchableTile{
 	public static final String TAG = "tag";
 	private static final String WAIT_TIMES = "wait_times";
 	private static final String RAISE = "raise";
+	public static final String ACTION_ADD_CONTACT = "add_contact";
 
 	public String  name        = "Block";
 	public boolean turnAllowed = false;
+	private Vector<BlockContact> internalContacts = new Vector<BlockContact>();
 	
 	public Block() {
 		super();
@@ -120,6 +122,12 @@ public abstract class Block extends StretchableTile{
 
 	
 	private Vector<WaitTime> waitTimes = new Vector<WaitTime>();
+
+	public Object addContact() {
+		BlockContact contact = new BlockContact(this);
+		plan.learn(contact);
+		return t("Trigger contact to learn new contact");
+	}
 	
 	@Override
 	public Object click() throws IOException {
@@ -136,6 +144,19 @@ public abstract class Block extends StretchableTile{
 		JSONObject config = super.config();
 		config.put(NAME, name);
 		return config;
+	}
+	
+	private Fieldset contactForm() {
+		Fieldset fieldset = new Fieldset("internal contacts");
+		this.button("new contact", Map.of(ACTION,ACTION_ADD_CONTACT)).addTo(fieldset);
+		if (!internalContacts.isEmpty()) {
+			Tag ul = new Tag("ul");
+			for (BlockContact contact : internalContacts) {
+				new Tag("li").content(contact.toString()).addTo(ul);
+			}
+			ul.addTo(fieldset);
+		}
+		return fieldset;
 	}
 	
 	public abstract Direction directionA();
@@ -217,7 +238,8 @@ public abstract class Block extends StretchableTile{
 		formInputs.add(t("Name"),new Input(NAME, name));
 		formInputs.add("",new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed));
 		formInputs.add(t("Train"),Train.selector(train, null));
-		postForm.add(waitTimeForm());
+		postForm.add(contactForm());
+		postForm.add(waitTimeForm());		
 		return super.properties(preForm, formInputs, postForm);
 	}
 			
@@ -231,6 +253,11 @@ public abstract class Block extends StretchableTile{
 			}
 		}
 		return this;
+	}
+
+	public BlockContact register(BlockContact contact) {
+		internalContacts.add(contact);
+		return contact;
 	}
 	
 	public static Select selector(Block preselected,Collection<Block> exclude) {
@@ -397,5 +424,4 @@ public abstract class Block extends StretchableTile{
 		
 		return win;
 	}
-
 }

@@ -163,6 +163,9 @@ public class Plan extends BaseClass{
 		switch (params.get(ACTION)) {
 		case ACTION_ADD:
 			return addTile(params.get(TILE),params.get(X),params.get(Y),null);
+		case Block.ACTION_ADD_CONTACT:
+			Block block = get(Id.from(params));
+			return block.addContact();
 		case ACTION_ANALYZE:
 			return analyze();
 		case ACTION_AUTO:
@@ -702,6 +705,7 @@ public class Plan extends BaseClass{
 				contact.addr(0);
 				LOG.debug("unsibscribed {} from {}",contact,addr);
 			}
+			
 			stream(learningContact.addr(addr).properties().toString());
 			LOG.debug("learned: {} = {}",addr,learningContact);			
 			learningContact = null;

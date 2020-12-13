@@ -111,6 +111,7 @@ Height : Höhe
 Help : Hilfe
 (id\: {}, length\: {}) : (Id: {}, Länge: {})
 if ({})\: : falls ({}):
+internal contacts : interne Kontakte
 inverted : invertiert
 Inverts the direction {} is heading to. : Kehrt die Richtung, in welche {} fährt, um.
 {} is oriented {} : {} ist {} gerichtet
@@ -137,6 +138,7 @@ Minimum and maximum times (in Miliseconds) trains with the respective tag have t
 Move tiles : Kacheln verschieben
 name\: : Name:
 new car : neuer Waggon
+new contact : neuer Kontakt
 new locomotive : neue Lok
 new tag : neue Markierung
 new train : neuer Zug

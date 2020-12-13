@@ -25,7 +25,7 @@ public class Contact extends Tile{
 	private static final HashMap<Integer, Contact> contactsByAddr = new HashMap<Integer, Contact>();
 	private boolean state = false;
 	private String trigger = null;
-	private int addr = 0;
+	protected int addr = 0;
 	private ActionList actions;
 	private OffTimer timer = null;
 	
