@@ -340,7 +340,11 @@ public abstract class BaseClass implements Constants{
 	}
 
 	public Tag link(String tagClass,Object caption,Map<String,String> additionalProps) {
-		String json = new JSONObject(props(additionalProps)).toString().replace("\"", "'");
+		return link(tagClass,caption.toString(),props(additionalProps));
+	}
+	
+	public static Tag link(String tagClass,String caption,Map<String,String> props) {
+		String json = new JSONObject(props).toString().replace("\"", "'");
 		return new Tag(tagClass).clazz("link").attr("onclick","request("+json+")").content(caption.toString());
 	}
 	

@@ -286,6 +286,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		Train train = new Train(loco);
 		train.parent(plan);
 		if (params.containsKey(NAME)) train.name(params.get(NAME));
+		train.register();
 		return train.properties();
 	}
 	

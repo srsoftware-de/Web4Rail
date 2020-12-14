@@ -43,6 +43,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	private static final String TAGS = "tags";
 	private static final String MAX_SPEED = "max_speed";
 	private static final String MAX_SPEED_REVERSE = "max_speed_reverse";
+	private static final String ORDER = "order";
 	protected HashSet<String> tags = new HashSet<String>();
 	
 	private String name;
@@ -72,14 +73,14 @@ public class Car extends BaseClass implements Comparable<Car>{
 				if (isSet(car)) {
 					car.clone();
 				} else new Car(params.get(Car.NAME)).parent(plan);
-				return Car.manager();
+				return Car.manager(params);
 			case ACTION_DROP:
 				car.remove();
-				return Car.manager();
+				return Car.manager(params);
 			case ACTION_MOVE:
 				return car.moveUp();
 			case ACTION_PROPS:
-				return car == null ? Car.manager() : car.properties();
+				return car == null ? Car.manager(params) : car.properties();
 			case ACTION_TURN:
 				return car.turn();
 			case ACTION_UPDATE:
@@ -92,6 +93,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	public Car clone() {
 		Car clone = new Car(name);
 		clone.maxSpeedForward = maxSpeedForward;
+		clone.maxSpeedReverse = maxSpeedReverse;
 		clone.length = length;
 		clone.tags = new HashSet<String>(tags);
 		clone.notes = notes;
@@ -161,23 +163,33 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return this;
 	}
 	
-	public static Object manager() {
+	public static Object manager(HashMap<String, String> params) {
 		Window win = new Window("car-manager", t("Car manager"));
 		new Tag("h4").content(t("known cars")).addTo(win);
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
-		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Length"),t("Train"),t("Tags"),t("Actions"));
+		String order = params.get(ORDER);
+		
+		Tag nameLink = link("span", t("Name"), Map.of(REALM,REALM_CAR,ACTION,ACTION_PROPS,ORDER,NAME));
+		Table table = new Table().addHead(t("Stock ID"),nameLink,t("Max. Speed",speedUnit),t("Length"),t("Train"),t("Tags"),t("Actions"));
 		List<Car> cars = BaseClass.listElements(Car.class)
 				.stream()
 				.filter(car -> !(car instanceof Locomotive))
-				.sorted((c1,c2)->{
+				.collect(Collectors.toList());
+				
+		cars.sort((c1,c2)->{
 					try {
 						return Integer.parseInt(c1.stockId)-Integer.parseInt(c2.stockId);
 					} catch (NumberFormatException nfe) {
 						return c1.stockId.compareTo(c2.stockId);	
 					}
-					
-				}).collect(Collectors.toList());
+			});
+		
+		if (isSet(order)) switch (order) {
+			case NAME:
+				cars.sort((c1,c2)->c1.name().compareTo(c2.name()));
+		}
+
 		for (Car car : cars) {
 			String maxSpeed = (car.maxSpeedForward == 0 ? "–":""+car.maxSpeedForward)+NBSP;
 			if (car.maxSpeedReverse != car.maxSpeedForward) maxSpeed += "("+car.maxSpeedReverse+")"+NBSP;
@@ -295,7 +307,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return properties();
 	}
 
-	public String turn() {
+	public Object turn() {
 		orientation = !orientation;
 		return t("Reversed {}.",this);
 	}

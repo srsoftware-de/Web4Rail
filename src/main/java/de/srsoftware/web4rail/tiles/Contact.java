@@ -97,7 +97,7 @@ public class Contact extends Tile{
 	}
 	
 	public Contact addr(int address) {
-		Contact oldContact = contactsByAddr.remove(addr); // alte ID aus der Map löschen
+		contactsByAddr.remove(addr); // alte ID aus der Map löschen
 		addr = address;
 		if (addr != 0) contactsByAddr.put(addr, this); // neue ID setzen
 		return this;

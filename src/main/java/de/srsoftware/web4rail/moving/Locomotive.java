@@ -327,10 +327,11 @@ public class Locomotive extends Car implements Constants,Device{
 		return t("Unknown function: {}",f);
 	}
 	
-	public String turn() {		
+	public Object turn() {		
 		stop();
 		super.turn();
-		return t("Stopped and reversed {}.",this);
+		plan.stream(t("Stopped and reversed {}.",this));
+		return properties();
 	}
 	
 	@Override
