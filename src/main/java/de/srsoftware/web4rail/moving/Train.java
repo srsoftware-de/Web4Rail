@@ -449,10 +449,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Input(Train.NAME, t("new train")).addTo(new Label(t("Name:")+NBSP)).addTo(fieldset);
 
 		Select select = new Select(LOCO_ID);
-		for (Locomotive loco : BaseClass.listElements(Locomotive.class)) {
-			if (isSet(loco.train())) continue;
-			select.addOption(loco.id(),loco.name());
-		}
+		BaseClass.listElements(Locomotive.class)
+			.stream()
+			.filter(loco -> isNull(loco.train()))
+			.sorted((l1,l2)->l1.name().compareTo(l2.name()))
+			.forEach(loco -> select.addOption(loco.id(),loco.name()));
 		select.addTo(new Label(t("Locomotive:")+NBSP)).addTo(fieldset);
 
 		new Button(t("Apply"),form).addTo(fieldset);
@@ -630,7 +631,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(exclude)) exclude = new Vector<Train>();
 		Select select = new Select(Train.class.getSimpleName());
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
-		for (Train train : BaseClass.listElements(Train.class)) {			
+
+		List<Train> trains = BaseClass.listElements(Train.class);
+		trains.sort((t1,t2)->t1.name().compareTo(t2.name()));
+		for (Train train : trains) {			
 			if (exclude.contains(train)) continue;
 			Tag opt = select.addOption(train.id, train);
 			if (train == preselected) opt.attr("selected", "selected");

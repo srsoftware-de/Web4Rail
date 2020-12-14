@@ -48,7 +48,7 @@ public abstract class BaseClass implements Constants{
 	public static final Logger LOG = LoggerFactory.getLogger(BaseClass.class);
 	private static final String CUSTOM_FIELDS = "custom_Fields";
 	private static final String NEW_CUSTOM_FIELD_NAME = "new_custom_field_name";
-	private HashMap<String,String> customFieldValues = new HashMap<String, String>();	
+	protected HashMap<String,String> customFieldValues = new HashMap<String, String>();	
 	private BaseClass parent;
 	
 	public static class Context {

@@ -83,7 +83,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 				return car == null ? Car.manager(params) : car.properties();
 			case ACTION_TURN:
 				return car.turn();
-			case ACTION_UPDATE:
+			case ACTION_UPDATE:				
 				return car.update(params);
 		}
 		if (car instanceof Locomotive) return Locomotive.action(params,plan);
@@ -99,6 +99,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		clone.notes = notes;
 		clone.parent(parent());
 		clone.register();
+		clone.customFieldValues.putAll(customFieldValues);
 		return clone;
 	}
 
@@ -163,7 +164,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return this;
 	}
 	
-	public static Object manager(HashMap<String, String> params) {
+	public static Object manager(Map<String, String> params) {
 		Window win = new Window("car-manager", t("Car manager"));
 		new Tag("h4").content(t("known cars")).addTo(win);
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
@@ -289,7 +290,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		this.train = train;
 	}
 
-	protected Window update(HashMap<String, String> params) {
+	protected Object update(HashMap<String, String> params) {
 		super.update(params);
 		if (params.containsKey(NAME)) name = params.get(NAME).trim();
 		if (params.containsKey(LENGTH)) length = Integer.parseInt(params.get(LENGTH));
@@ -304,7 +305,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 				if (!tag.isEmpty()) tags.add(tag);
 			}
 		}
-		return properties();
+		return Car.manager(Map.of());
 	}
 
 	public Object turn() {
