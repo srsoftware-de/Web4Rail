@@ -99,7 +99,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 						if (waitTime > 100) waitTime /=2;
 						if (stop) return;
 						if (isNull(route)) { // may have been set by start action in between
-							Train.this.start();
+							Object o = Train.this.start();
+							if (o instanceof String) plan.stream((String)o);
 							if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
 						}						
 					} else Thread.sleep(250);
@@ -742,11 +743,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 			Context context = new Context(this).block(currentBlock).direction(direction).train(this);
 			route = PathFinder.chooseRoute(context);
 			if (isNull(route)) return t("No free routes from {}",currentBlock);
-			if (!route.lock()) return t("Was not able to lock {}",route);
+			if (!route.lock()) error = t("Was not able to lock {}",route);
 			route.set(context);
 			if (isNull(error) && !route.fireSetupActions()) error = t("Was not able to fire all setup actions of route!");
 		}
-		if (direction != route.startDirection) turn();
+		if (isNull(error) && direction != route.startDirection) turn();
 		
 		if (isNull(error) && !route.start(this)) error = t("Was not able to assign {} to {}!",this,route);
 		if (isSet(error)) {
