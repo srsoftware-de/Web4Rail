@@ -25,7 +25,10 @@ public class PreserveRoute extends Action {
 		if (train.destination() == route.endBlock()) return true;
 
 		Range waitTime = route.endBlock().getWaitTime(train,route.endDirection);
-		if (waitTime.max > 0) return true; // train is expected to wait in next block.
+		if (waitTime.max > 0) {
+			LOG.debug("Not preserving route, as train needs to stop in following block!");
+			return true; // train is expected to wait in next block.
+		}
 
 		train.reserveNext();
 		return true;

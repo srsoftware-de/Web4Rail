@@ -77,6 +77,7 @@ public abstract class BaseClass implements Constants{
 		}
 		
 		public Context block(Block newBlock) {
+			LOG.debug("{}.block({})",this,newBlock);
 			block = newBlock;
 			return this;
 		}
@@ -130,6 +131,7 @@ public abstract class BaseClass implements Constants{
 		}
 
 		public Context direction(Direction newDirection) {
+			LOG.debug("{}.direction({})",this,newDirection);
 			direction = newDirection;
 			return this;
 		}
@@ -140,6 +142,7 @@ public abstract class BaseClass implements Constants{
 		
 		public Context setMain(BaseClass object) {
 			main = object;
+			LOG.debug("{}.setMain({})",this,object);
 			if (main instanceof Tile) this.tile = (Tile) main;
 			if (main instanceof Contact) this.contact = (Contact) main;
 			if (main instanceof Block) this.block = (Block) main;
@@ -183,6 +186,7 @@ public abstract class BaseClass implements Constants{
 		}
 
 		public Context train(Train newTrain) {
+			LOG.debug("{}.train({})",this,newTrain);
 			train = newTrain;
 			return this;
 		}

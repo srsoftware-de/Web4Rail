@@ -33,7 +33,6 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tiles.Block;
-import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.BlockV;
 import de.srsoftware.web4rail.tiles.Bridge;

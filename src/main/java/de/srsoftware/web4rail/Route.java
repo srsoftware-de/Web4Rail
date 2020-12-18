@@ -423,10 +423,10 @@ public class Route extends BaseClass {
 	public void finish() {
 		context.clear(); // prevent delayed actions from firing after route has finished
 		setSignals(Signal.STOP);
-		for (Tile tile : path) tile.setRoute(null);
+		for (Tile tile : path) tile.unset(this);
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Contact) {
-			lastTile.set(null);
+			lastTile.setTrain(null);
 			if (isSet(train)) train.removeChild(lastTile);
 		}
 		if (isSet(train)) { 
@@ -445,6 +445,7 @@ public class Route extends BaseClass {
 	}
 	
 	public boolean fireSetupActions() {
+		LOG.debug("{}.firesSetupActions({})",this);
 		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
 		if (isSet(setupActions) && !setupActions.fire(context)) return false;
 		state = State.PREPARED;
@@ -475,9 +476,13 @@ public class Route extends BaseClass {
 		return disabled;
 	}
 		
-	public boolean isFreeFor(Train newTrain) {
-		for (int i=1; i<path.size(); i++) { 
-			if (!path.get(i).isFreeFor(newTrain)) return false;
+	public boolean isFreeFor(Context context) {
+		LOG.debug("{}.isFreeFor({})",this,context);
+		for (int i=1; i<path.size(); i++) {
+			if (!path.get(i).isFreeFor(context)) {
+				LOG.debug("{}.isFreeFor(...) → false",this);
+				return false;
+			}
 		}
 		return true;
 	}
@@ -684,26 +689,25 @@ public class Route extends BaseClass {
 	}
 		
 	public boolean lock() {
+		LOG.debug("{}.lock({})",this);
 		return lockIgnoring(null);
 	}
 	
 	public boolean lockIgnoring(Route ignoredRoute) {
-		Vector<Tile> alreadyLocked = new Vector<Tile>();
 		HashSet<Tile> ignoredPath = new HashSet<Tile>();
 		if (isSet(ignoredRoute)) ignoredPath.addAll(ignoredRoute.path);
 		boolean success = true;
 		for (Tile tile : path) {
 			if (ignoredPath.contains(tile)) continue;
 			try {
-				alreadyLocked.add(tile.setRoute(this));
+				tile.setRoute(this);
 			} catch (IllegalStateException e) {
+				LOG.debug("{}.lockIgnoring(...) failed at {}, rolling back",this,tile);
 				success = false;
 				break;
 			}			
 		}
-		if (success) {
-			state = State.LOCKED;
-		} else for (Tile tile :alreadyLocked) tile.setRoute(null);
+		if (success) state = State.LOCKED;
 		return success;
 	}
 	
@@ -795,11 +799,16 @@ public class Route extends BaseClass {
 	}
 	
 	public boolean reset() {
+		LOG.debug("{}.reset()",this);
 		setSignals(Signal.STOP);
-		for (Tile tile : path) tile.setRoute(null);
+		for (Tile tile : path) {
+			try {
+				tile.unset(this);
+			} catch (IllegalArgumentException e) {}
+		}
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Contact) {
-			lastTile.set(null);
+			lastTile.setTrain(null);
 			if (isSet(train)) train.removeChild(lastTile);
 		}
 		if (isSet(train)) {
@@ -807,7 +816,8 @@ public class Route extends BaseClass {
 			train.heading(startDirection);
 			if (train.route == this) train.route = null;
 			train = null;
-		}	
+		}
+		LOG.debug("chlearing triggeredContacts of {}",this);
 		triggeredContacts.clear();
 		state = State.FREE;
 		return true;
@@ -840,6 +850,7 @@ public class Route extends BaseClass {
 	}
 	
 	public boolean setSignals(String state) {
+		LOG.debug("{}.setSignals({})",this,state);
 		for (Signal signal : signals) {
 			if (!signal.state(isNull(state) ? Signal.GO : state)) return false;
 		}
@@ -861,6 +872,7 @@ public class Route extends BaseClass {
 	}
 	
 	public boolean start(Train newTrain) {
+		LOG.debug("{}.start({})",this,newTrain);
 		if (isNull(newTrain)) return false; // can't set route's train to null
 		if (isSet(train)) {
 			if (newTrain != train) return false; // can't alter route's train

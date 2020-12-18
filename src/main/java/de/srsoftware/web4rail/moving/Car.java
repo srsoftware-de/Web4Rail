@@ -309,6 +309,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 
 	public Object turn() {
+		LOG.debug("{}.turn()",this);
 		orientation = !orientation;
 		return t("Reversed {}.",this);
 	}

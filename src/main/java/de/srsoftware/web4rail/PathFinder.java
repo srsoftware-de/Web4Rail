@@ -17,6 +17,7 @@ public class PathFinder extends BaseClass{
 	private static final Logger LOG = LoggerFactory.getLogger(PathFinder.class);
 
 	private static TreeMap<Integer,List<Route>> availableRoutes(Context context,HashSet<Route> visitedRoutes){
+		LOG.debug("PathFinder.availableRoutes({})",context);
 		TreeMap<Integer,List<Route>> availableRoutes = new TreeMap<Integer, List<Route>>();
 		
 		String inset = "";
@@ -53,7 +54,7 @@ public class PathFinder extends BaseClass{
 				continue;
 			}
 			if (!routeCandidate.allowed(context)) continue; // Zug darf auf Grund einer nicht erfüllten Bedingung nicht auf die Route
-			if (!routeCandidate.isFreeFor(train)) continue; // Route ist nicht frei
+			if (!routeCandidate.isFreeFor(context.route(routeCandidate))) continue; // Route ist nicht frei
 			int priority = 0;
 			if (isSet(direction) && routeCandidate.startDirection != direction) { // Route startet entgegen der aktuellen Fahrtrichtung des Zuges 
 				if (!train.pushPull) continue; // Zug kann nicht wenden
@@ -99,6 +100,7 @@ public class PathFinder extends BaseClass{
 	}
 	
 	public static Route chooseRoute(Context context) {
+		LOG.debug("PathFinder.chooseRoute({})",context);
 		TreeMap<Integer, List<Route>> availableRoutes = PathFinder.availableRoutes(context,new HashSet<Route>());
 		if (availableRoutes.isEmpty()) return null;
 		Entry<Integer, List<Route>> entry = availableRoutes.lastEntry();

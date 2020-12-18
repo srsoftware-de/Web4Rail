@@ -67,6 +67,7 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 
 	public boolean fire(Context context) {
+		LOG.debug("{}.fire({})",this,context);
 		if (context.invalidated()) {
 			LOG.debug("Context has been invalidated, aborting {}",this);
 			return false;

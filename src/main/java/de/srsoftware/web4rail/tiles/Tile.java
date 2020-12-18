@@ -112,10 +112,46 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		plan.place(tile);
 	}
 
-	public boolean isFreeFor(Train newTrain) {
-		if (disabled) return false;
-		if (isSet(route) && isSet(route.train()) && route.train() != newTrain) return false;
-		if (isSet(train) && train != newTrain) return false;
+	public boolean isFreeFor(Context context) {
+		LOG.debug("{}.isFreeFor({})",this,context);
+		if (disabled) {
+			LOG.debug("{} is disabled!",this);
+			return false;
+		}
+		if (isNull(context)) {
+			if (isSet(train)) {
+				LOG.debug("{} is occupied by {}",this,train);
+				return false;
+			}
+			if (isSet(route)) {
+				LOG.debug("{} is occupied by {}",this,route);
+				return false;
+				
+			}
+		}
+		if (isSet(train)) {
+			boolean free = train == context.train(); // during train.reserveNext, we may encounter, parts, that are already reserved by the respective train, but having another route. do not compare routes in that case!
+			if (free) {
+				LOG.debug("already reserved by {} → true",train);
+			} else {
+				LOG.debug("occupied by {} → false",train);
+			}
+			return free;
+		}
+		
+		// if we get here, the tile is not occupied by a train, but reserved by a route, yet. thus, the tile is not available for another route
+		if (isSet(route) && route != context.route()) {
+			LOG.debug("reserved by other route: {}",route);
+			if (isSet(route.train())) {				
+				if (route.train() == context.train()) {
+					LOG.debug("that route is used by {}, which is also requesting this tile → true",route.train());
+					return true;
+				}
+			}
+			LOG.debug("{}.route.train = {} → false",this,route.train());
+			return false;
+		}
+		LOG.debug("free");
 		return true;
 	}
 		
@@ -177,6 +213,19 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		if (json.has(LENGTH))	   length    = json.getInt(LENGTH);
 		if (json.has(ONEW_WAY))    oneWay    = Direction.valueOf(json.getString(ONEW_WAY));
 		return this;
+	}
+	
+	public boolean move(int dx, int dy) {
+		int destX = x+(dx > 0 ? width() : dx);
+		int destY = y+(dy > 0 ? height() : dy);
+		if (destX < 0 || destY < 0) return false;
+		
+		Tile tileAtDestination = plan.get(id(destX, destY),true);
+		if (isSet(tileAtDestination) && !tileAtDestination.move(dx, dy)) return false;
+		plan.drop(this);		
+		position(x+dx, y+dy);
+		plan.place(this);
+		return true;
 	}
 	
 	protected void noTrack() {
@@ -310,15 +359,20 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		file.close();
 	}
 	
-	public Tile set(Train newTrain) {
+	public Tile setTrain(Train newTrain) {
+		LOG.debug("{}.set({})",this,newTrain);
 		if (newTrain == train) return this; // nothing to update
 		this.train = newTrain;		
 		return plan.place(this);
 	}	
 
 	public Tile setRoute(Route lockingRoute) {
-		if (route == lockingRoute) return this; // nothing changed
-		if (isSet(route) && isSet(lockingRoute)) throw new IllegalStateException(this.toString()); // tile already locked by other route
+		LOG.debug("{}.setRoute({})",this,lockingRoute);
+		if (isNull(lockingRoute)) throw new NullPointerException();
+		if (isSet(route)) {
+			if (route == lockingRoute) return this; // nothing changed
+			throw new IllegalStateException(this.toString()); // tile already locked by other route
+		}
 		route = lockingRoute;
 		return plan.place(this);
 	}
@@ -426,6 +480,16 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		train = null;
 		plan.place(this);
 	}
+	
+	public Tile unset(Route oldRoute) {
+		LOG.debug("{}.unset({})",this,oldRoute);
+		if (route == null) return this;
+		if (route == oldRoute) {
+			route = null;			
+			return plan.place(this);
+		}
+		throw new IllegalArgumentException(t("{} not occupied by {}!",this,oldRoute));
+	}
 
 	public Tile update(HashMap<String, String> params) {
 		LOG.debug("{}.update({})",getClass().getSimpleName(),params);
@@ -449,16 +513,5 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		return 1;
 	}
 
-	public boolean move(int dx, int dy) {
-		int destX = x+(dx > 0 ? width() : dx);
-		int destY = y+(dy > 0 ? height() : dy);
-		if (destX < 0 || destY < 0) return false;
-		
-		Tile tileAtDestination = plan.get(id(destX, destY),true);
-		if (isSet(tileAtDestination) && !tileAtDestination.move(dx, dy)) return false;
-		plan.drop(this);		
-		position(x+dx, y+dy);
-		plan.place(this);
-		return true;
-	}
+
 }

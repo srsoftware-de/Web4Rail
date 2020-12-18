@@ -32,6 +32,7 @@ public abstract class Signal extends Tile {
 	public abstract boolean isAffectedFrom(Direction dir);
 
 	public boolean state(String state) {
+		LOG.debug("{}.state({})",this,state);
 		this.state = state;
 		plan.place(this);
 		return true;

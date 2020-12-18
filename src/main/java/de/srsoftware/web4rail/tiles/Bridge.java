@@ -66,16 +66,16 @@ public abstract class Bridge extends Tile {
 		return super.load(json);
 	}
 	
-	public Tile set(Train train) {
-		super.set(train);
-		if (isSet(counterpart) && counterpart.train != train) counterpart.set(train);
-		return this;
-	}
-	
 	@Override
 	public Tile setRoute(Route route) {
 		super.setRoute(route);
 		if (isSet(counterpart) && counterpart.route != route) counterpart.setRoute(route);
+		return this;
+	}
+	
+	public Tile setTrain(Train train) {
+		super.setTrain(train);
+		if (isSet(counterpart) && counterpart.train != train) counterpart.setTrain(train);
 		return this;
 	}
 	
@@ -112,5 +112,12 @@ public abstract class Bridge extends Tile {
 		Tag tag = super.tag(replacements);
 		if (isNull(counterpart)) tag.clazz(tag.get("class")+" disconnected");
 		return tag;
+	}
+	
+	@Override
+	public Tile unset(Route oldRoute) {
+		super.unset(oldRoute);
+		if (isSet(counterpart) && isSet(counterpart.route)) counterpart.unset(oldRoute);
+		return this;
 	}
 }

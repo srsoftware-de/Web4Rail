@@ -100,8 +100,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 						if (stop) return;
 						if (isNull(route)) { // may have been set by start action in between
 							Object o = Train.this.start();
-							if (o instanceof String) plan.stream((String)o);
-							if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
+							LOG.debug("Train.start called, route now is {}",route);
+							if (isSet(route)) {
+								if (o instanceof String) plan.stream((String)o);
+								//if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
+							} else Thread.sleep(1000); // limit load on PathFinder
 						}						
 					} else Thread.sleep(250);
 				}
@@ -306,15 +309,15 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String directedName() {
 		String result = name();
-		if (isSet(autopilot)) result="℗"+result;
+		String mark = isSet(autopilot) ? "ⓐ" : "";
 		if (isNull(direction)) return result;
 		switch (direction) {
 		case NORTH:
 		case WEST:
-			return '←'+result;
+			return '←'+mark+result;
 		case SOUTH:
 		case EAST:
-			return result+'→';
+			return result+mark+'→';
 		}
 		return result;
 	}
@@ -335,7 +338,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void dropTrace() {
-		while (!trace.isEmpty()) trace.removeFirst().set(null);
+		while (!trace.isEmpty()) trace.removeFirst().setTrain(null);
 	}
 	
 	private Tag faster(int steps) {
@@ -348,6 +351,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Train heading(Direction dir) {
+		LOG.debug("{}.heading({})",this,dir);
 		direction = dir;
 		if (isSet(currentBlock)) plan.place(currentBlock);
 		return this;
@@ -411,8 +415,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
 		if (json.has(NAME)) name = json.getString(NAME);
 		if (json.has(TAGS))  json.getJSONArray(TAGS ).forEach(elem -> {  tags.add(elem.toString()); });
-		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(new Id(elem.toString()), false).set(this)); });
-		if (json.has(BLOCK)) currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false).set(this); // do not move this up! during set, other fields will be referenced!
+		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(new Id(elem.toString()), false).setTrain(this)); });
+		if (json.has(BLOCK)) currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false).setTrain(this); // do not move this up! during set, other fields will be referenced!
 		if (json.has(LOCOS)) { // for downward compatibility
 			for (Object id : json.getJSONArray(LOCOS)) add(BaseClass.get(new Id(""+id)));	
 		}		
@@ -568,6 +572,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	@Override
 	public void removeChild(BaseClass child) {
+		LOG.debug("{}.removeChild({})",this,child);
 		if (child == route) route = null;
 		if (child == nextRoute) nextRoute = null;
 		if (child == currentBlock) currentBlock = null;
@@ -578,9 +583,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void reserveNext() {
+		LOG.debug("{}.reserveNext()",this);
 		Context context = new Context(this).route(route).block(route.endBlock()).direction(route.endDirection);
 		Route nextRoute = PathFinder.chooseRoute(context);
-		if (isNull(nextRoute)) return;
+		if (isNull(nextRoute)) {
+			LOG.debug("{}.reserveNext() found no available route!",this);
+			return;
+		}
 		nextRoute.set(context);
 		boolean error = !nextRoute.lockIgnoring(route);
 		error = error || !nextRoute.fireSetupActions();
@@ -644,8 +653,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public void set(Block newBlock) {
+		LOG.debug("{}.set({})",this,newBlock);
 		currentBlock = newBlock;
-		if (isSet(currentBlock)) currentBlock.set(this);
+		if (isSet(currentBlock)) currentBlock.setTrain(this);
 	}
 	
 	private String setDestination(HashMap<String, String> params) {
@@ -692,6 +702,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void setSpeed(int newSpeed) {
+		LOG.debug("{}.setSpeed({})",this,newSpeed);
 		speed = Math.min(newSpeed,maxSpeed());
 		if (speed < 0) speed = 0;
 		cars.stream().filter(c -> c instanceof Locomotive).forEach(car -> ((Locomotive)car).setSpeed(speed));
@@ -714,9 +725,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 			Tile tile = trace.get(i);
 			if (remainingLength>0) {
 				remainingLength-=tile.length();
-				tile.set(this);
+				tile.setTrain(this);
 			} else {
-				tile.set(null);
+				tile.setTrain(null);
 				trace.remove(i);
 				i--; // do not move to next index: remove shifted the next index towards us
 			}
@@ -729,18 +740,20 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public Object start() throws IOException {
+		LOG.debug("{}.start()",this);
 		if (isNull(currentBlock)) return t("{} not in a block",this);
 		if (maxSpeed() == 0) return t("Train has maximum speed of 0 {}, cannot go!",speedUnit);
 		if (isSet(route)) route.reset(); // reset route previously chosen
 
 		String error = null;
 		if (isSet(nextRoute)) {
+			LOG.debug("{}.nextRoute = {}",this,nextRoute);
 			route = nextRoute;
 			if (!route.lock()) return t("Was not able to lock {}",route);
 			nextRoute = null;
 			route.set(new Context(this).block(currentBlock).direction(direction));			
 		} else {
-			Context context = new Context(this).block(currentBlock).direction(direction).train(this);
+			Context context = new Context(this).block(currentBlock).direction(direction);
 			route = PathFinder.chooseRoute(context);
 			if (isNull(route)) return t("No free routes from {}",currentBlock);
 			if (!route.lock()) error = t("Was not able to lock {}",route);
@@ -751,6 +764,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		if (isNull(error) && !route.start(this)) error = t("Was not able to assign {} to {}!",this,route);
 		if (isSet(error)) {
+			LOG.debug("{}.start:error = {}",this,error);
 			route.reset();
 			route = null;
 			return error;
@@ -766,8 +780,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	private void startSimulation() {
+		LOG.debug("{}.startSimulation({})",this);
 		for (Contact contact : route.contacts()) {
-			if (contact.addr() != 0) return; // simulate train only when all contacts are non-physical
+			if (contact.addr() != 0) {
+				LOG.debug("{}.startSimulation aborted!",this);
+				return; // simulate train only when all contacts are non-physical
+			}
 		}
 		try {
 			Thread.sleep(1000);
@@ -844,7 +862,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	 * @return 
 	 */
 	public Tag turn() {
-		LOG.debug("train.turn()");
+		LOG.debug("{}.turn()",this);
 		for (Car car : cars) car.turn();
 		Collections.reverse(cars);
 		return reverse();
