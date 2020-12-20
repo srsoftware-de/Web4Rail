@@ -172,6 +172,7 @@ PushPullTrain : Wendezug
 Push-pull train : Wendezug
 quit autopilot : Autopilot beenden
 {} reached it`s destination! : {} ist am Ziel angekommen!
+Relay : Relais
 Relays and Turnouts : Relais und Weichen
 Relay/Turnout : Relais/Weiche
 Report Issue : Problem melden
@@ -212,6 +213,7 @@ SetTurnout : Weiche stellen
 Setup actions : Vorbereitung-Aktionen
 ShowText : Text anzeigen
 Signals : Signale
+simplify name : Name vereinfachen
 Simulating movement of {}... : Simuliere Fahrt von {}...
 Slower (10 {}) : 10 {} langsamer
 SOUTH : Süden
@@ -264,7 +266,9 @@ TrainSelect : Zug-Auswahl
 TrainSpeed : Zug-Geschwindigkeit
 Train speed : Zug-Geschwindigkeit
 Trigger {} : {} betätigen
+Trigger a feedback sensor to assign it with this contact! : Rückmeldekontakt auslösen, um ihn diesem Kontakt zuzuweisen!
 TriggerContact : Kontakt auslösen
+Trigger contact to learn new contact : Kontakt auslösen, um neuen Kontakt zu lernen
 Turn : Richtung wechseln
 Turn allowed : Wenden erlaubt
 {} turned. : {} gewendet.

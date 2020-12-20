@@ -33,6 +33,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.BlockH;
 import de.srsoftware.web4rail.tiles.BlockV;
 import de.srsoftware.web4rail.tiles.Bridge;
@@ -169,7 +170,7 @@ public class Plan extends BaseClass{
 		case ACTION_ANALYZE:
 			return analyze();
 		case ACTION_AUTO:
-			return simplyfyRouteName(params);
+			return simplifyRouteName(params);
 		case ACTION_CLICK:
 			return click(get(Id.from(params),true));
 		case ACTION_CONNECT:
@@ -623,7 +624,7 @@ public class Plan extends BaseClass{
 		table.addHead(t("Name"),t("Start"),t("End"),t("Actions"));
 		List<Route> routes = BaseClass.listElements(Route.class);
 		for (Route route : routes) {
-			table.addRow(route.link("span",route.name()),route.link("span", route.startBlock()),route.link("span", route.endBlock()),plan.button(t("simplyfy name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())));
+			table.addRow(route.link("span",route.name()),route.link("span", route.startBlock()),route.link("span", route.endBlock()),plan.button(t("simplify name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())));
 		}
 		table.clazz("turnouts").addTo(win);
 		
@@ -688,7 +689,7 @@ public class Plan extends BaseClass{
 		JSONArray jTiles = new JSONArray();
 		BaseClass.listElements(Tile.class)
 			.stream()
-			.filter(tile -> !(tile instanceof Shadow))
+			.filter(tile -> !(tile instanceof Shadow || tile instanceof BlockContact))
 			.map(tile -> tile.json())
 			.forEach(jTiles::put);
 		
@@ -700,7 +701,7 @@ public class Plan extends BaseClass{
 
 	public void sensor(int addr, boolean active) {
 		Contact contact = Contact.get(addr);
-		if (active && learningContact != null) {
+		if (active && isSet(learningContact)) {
 			if (isSet(contact)) {
 				contact.addr(0);
 				LOG.debug("unsibscribed {} from {}",contact,addr);
@@ -714,7 +715,7 @@ public class Plan extends BaseClass{
 		if (isSet(contact)) contact.activate(active);
 	}
 	
-	private Object simplyfyRouteName(HashMap<String, String> params) {
+	private Object simplifyRouteName(HashMap<String, String> params) {
 		String routeId = params.get(ROUTE);
 		if (isSet(routeId)) {
 			Route route = BaseClass.get(new Id(routeId));

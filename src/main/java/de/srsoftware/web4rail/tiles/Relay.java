@@ -236,7 +236,7 @@ public class Relay extends Tile implements Device{
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName()+" ("+(isSet(name) && !name.isEmpty() ? name+")" : "")+" @("+x+", "+y+")";
+		return t(getClass().getSimpleName())+" ("+(isSet(name) && !name.isEmpty() ? name+")" : "")+" @("+x+", "+y+")";
 	}
 	
 	@Override

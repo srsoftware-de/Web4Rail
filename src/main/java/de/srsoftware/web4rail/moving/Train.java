@@ -431,7 +431,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
-		Table table = new Table().addHead(t("Name"),t("Length"),t("Max. Speed"),t("Tags"),t("Route"),t("Current location"),t("Destination"),t("Auto pilot"));
+		Table table = new Table().addHead(t("Name"),t("Length"),t("Maximum Speed"),t("Tags"),t("Route"),t("Current location"),t("Destination"),t("Auto pilot"));
 		BaseClass.listElements(Train.class).forEach(train -> {
 			int ms = train.maxSpeed();
 			table.addRow(		
@@ -528,7 +528,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		dest.addTo(propList);		
 		if (isSet(route)) route.link("li", route).addTo(propList);
 		int ms = maxSpeed();
-		if (ms < Integer.MAX_VALUE) new Tag("li").content(t("Max. Speed")+": "+maxSpeed()+NBSP+speedUnit).addTo(propList);
+		if (ms < Integer.MAX_VALUE) new Tag("li").content(t("Maximum Speed")+": "+maxSpeed()+NBSP+speedUnit).addTo(propList);
 		
 		SortedSet<String> allTags = tags();
 		if (!allTags.isEmpty()) {

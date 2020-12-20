@@ -158,8 +158,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(TYPE, getClass().getSimpleName());
-		JSONObject pos = new JSONObject(Map.of(X,x,Y,y));
-		json.put(POS, pos);
+		json.put(POS, new JSONObject(Map.of(X,x,Y,y)));
 		if (isSet(route))     json.put(ROUTE, route.id());
 		if (isSet(oneWay))    json.put(ONEW_WAY, oneWay);
 		if (disabled)         json.put(DISABLED, true);
@@ -353,7 +352,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		for (Tile tile : BaseClass.listElements(Tile.class)) {
-			if (isNull(tile) || tile instanceof Shadow) continue;
+			if (isNull(tile) || tile instanceof Shadow || tile instanceof BlockContact) continue;
 			file.append(tile.json()+"\n");
 		}
 		file.close();
@@ -454,9 +453,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	
 	@Override
 	public BaseClass remove() {
-		while (!routes.isEmpty()) {
-			routes.first().remove();		
-		}
+		while (!routes.isEmpty()) routes.first().remove();
 		return super.remove();
 	}
 	
@@ -465,9 +462,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		String childAsString = child.toString();
 		if (childAsString.length()>20) childAsString = childAsString.substring(0, 20)+"…";
 		LOG.debug("Removing {} from {}",childAsString,this);
-		if (child instanceof Route) {
-			routes.remove(child);			
-		}
+		if (child instanceof Route) routes.remove(child);
 		
 		if (child == train) train = null;
 		if (child == route) route = null;

@@ -301,6 +301,10 @@ table.brake-times{
 	border-collapse: collapse;
 }
 
+table tr:hover td{
+	background: #cadbdb;
+}
+
 table.brake-times tr > *{
 	border-style: solid;
 	border-color: black;
@@ -339,7 +343,7 @@ svg.preview circle,
 svg.preview line,
 svg.preview polygon,
 svg.preview rect{
-	fill:peru !important;
+	fill:cyan !important;
 }
 
 svg.Block text{

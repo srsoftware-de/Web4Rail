@@ -18,7 +18,7 @@ public class BlockContact extends Contact {
 		super.addr(address);
 		Block block = (Block) parent();
 		block.removeContact(this);
-		if (address != 0) block.register(this); 	 
+		if (address != 0) block.register(this).register();
 		return this;		
 	}
 

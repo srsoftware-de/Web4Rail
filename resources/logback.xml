@@ -6,12 +6,12 @@
     </encoder>
   </appender>
   
-  <logger name="de.srsoftware.web4rail" level="DEBUG"/>
+  <logger name="de.srsoftware.web4rail" level="INFO"/>
   <logger name="de.srsoftware.web4rail.Application" level="INFO"/>
   <logger name="de.srsoftware.web4rail.Command" level="INFO"/>
   <logger name="de.srsoftware.web4rail.ControlUnit" level="INFO"/>
   
-  <root level="debug">
+  <root level="info">
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>

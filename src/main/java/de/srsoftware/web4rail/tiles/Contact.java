@@ -157,16 +157,21 @@ public class Contact extends Tile{
 		String action = params.get(ACTION);
 		Id id = Id.from(params);
 		if (action == null) return t("Missing ACTION on call to {}.process()",Contact.class.getSimpleName());
-		Contact contact;
+		Contact contact = isSet(id) ? BaseClass.get(id) : null;
 		switch (action) {
 			case ACTION_ANALYZE:
-				if (id == null) return t("Missing ID on call to {}.process()",Contact.class.getSimpleName());
-				contact = BaseClass.get(id);
-				if (contact == null) return t("No contact with id {} found!",id);
+				if (isNull(id)) return t("Missing ID on call to {}.process()",Contact.class.getSimpleName());
+				if (isNull(contact)) return t("No contact with id {} found!",id);
 				Tag propMenu = contact.properties();
 				propMenu.children().insertElementAt(new Tag("div").content(t("Trigger a feedback sensor to assign it with this contact!")), 1);
 				plan.learn(contact);
 				return propMenu;
+			case ACTION_DROP:
+				if (isNull(id)) return t("Missing ID on call to {}.process()",Contact.class.getSimpleName());
+				if (isNull(contact)) return t("No contact with id {} found!",id);
+				contact.remove();
+				if (contact instanceof BlockContact) return contact.properties();
+				return t("Removed {}.",id);
 			case ACTION_UPDATE:
 				return plan.update(params);
 		}

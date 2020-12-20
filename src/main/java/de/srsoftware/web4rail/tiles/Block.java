@@ -152,7 +152,11 @@ public abstract class Block extends StretchableTile{
 		if (!internalContacts.isEmpty()) {
 			Tag ul = new Tag("ul");
 			for (BlockContact contact : internalContacts) {
-				new Tag("li").content(contact.toString()).addTo(ul);
+				Tag li = new Tag("li").content(contact.toString()+NBSP);
+				contact.button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(li);
+				contact.button(t("delete"),Map.of(ACTION,ACTION_DROP)).addTo(li);
+				li.addTo(ul);
+			
 			}
 			ul.addTo(fieldset);
 		}
