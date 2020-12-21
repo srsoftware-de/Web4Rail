@@ -104,13 +104,15 @@ public class Train extends BaseClass implements Comparable<Train> {
 							if (isSet(route)) {
 								if (o instanceof String) plan.stream((String)o);
 								//if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
-							} else Thread.sleep(1000); // limit load on PathFinder
+							} else waitTime = 1000; // limit load on PathFinder
 						}						
 					} else Thread.sleep(250);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-			}			
+			}
+			autopilot = null;
+			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
 	}
 	
@@ -180,6 +182,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public void addToTrace(Vector<Tile> newTiles) {
+		Route.LOG.debug("{}.addToTrace({})",this,newTiles);
+		Route.LOG.debug("old trace: {}",trace);
 		boolean active = trace.isEmpty();
 		for (Tile tile : newTiles) {
 			if (active) {
@@ -189,6 +193,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				if (dummy == tile) active = true;
 			}			
 		}
+		Route.LOG.debug("new trace: {}",trace);
 		showTrace();
 	}
 
@@ -502,6 +507,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public boolean nextRoutePrepared() {
 		return isSet(nextRoute) && nextRoute.state() == Route.State.PREPARED;
 	}
+	
+	public boolean onTrace(Tile t) {
+		return trace.contains(t);
+	}
+
 			
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
@@ -719,10 +729,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void showTrace() {
+		Route.LOG.debug("{}.showTrace()",this);
  		int remainingLength = length();
  		if (remainingLength<1) remainingLength=1;
 		for (int i=0; i<trace.size(); i++) {
 			Tile tile = trace.get(i);
+			Route.LOG.debug("current tile: {}, remaining length: {}",tile,remainingLength);
 			if (remainingLength>0) {
 				remainingLength-=tile.length();
 				tile.setTrain(this);
@@ -732,6 +744,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				i--; // do not move to next index: remove shifted the next index towards us
 			}
 		}
+		Route.LOG.debug("remaining length: {}",remainingLength);
 	}
 	
 	private Tag slower(int steps) {

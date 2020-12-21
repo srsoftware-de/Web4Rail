@@ -49,7 +49,7 @@ public class Contact extends Tile{
 		@Override
 		public void run() {
 			try {
-				for (int ticks = 0; ticks<10; ticks++) {
+				for (int ticks = 0; ticks<50; ticks++) {
 					if (!aborted) sleep(10);
 				}
 				timer = null;
@@ -210,7 +210,7 @@ public class Contact extends Tile{
 	}
 	
 	public void stream() {
-		try {
+		try {			
 			Tag tag = tag(null);
 			if (state) tag.clazz(tag.get("class")+" active");
 			plan.stream("place "+tag);

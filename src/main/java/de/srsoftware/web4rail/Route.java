@@ -54,7 +54,7 @@ public class Route extends BaseClass {
 	public enum State {
 		FREE, LOCKED, PREPARED, STARTED;
 	}
-	private static final Logger LOG             = LoggerFactory.getLogger(Route.class);
+	public static final Logger LOG = LoggerFactory.getLogger(Route.class);
 
 	private static final String ACTIONS = "actions";
 	private static final String BRAKE_TIMES = "brake_times";
@@ -439,6 +439,7 @@ public class Route extends BaseClass {
 				train.setWaitTime(endBlock.getWaitTime(train,train.direction()));
 			}
 			if (train.route == this) train.route = null;
+			if (!train.onTrace(startBlock)) startBlock.setTrain(null);
 		}
 		train = null;
 		triggeredContacts.clear();
@@ -477,10 +478,10 @@ public class Route extends BaseClass {
 	}
 		
 	public boolean isFreeFor(Context context) {
-		LOG.debug("{}.isFreeFor({})",this,context);
+		PathFinder.LOG.debug("{}.isFreeFor({})",this,context);
 		for (int i=1; i<path.size(); i++) {
 			if (!path.get(i).isFreeFor(context)) {
-				LOG.debug("{}.isFreeFor(...) → false",this);
+				PathFinder.LOG.debug("{}.isFreeFor(...) → false",this);
 				return false;
 			}
 		}
@@ -900,6 +901,7 @@ public class Route extends BaseClass {
 	}
 	
 	private void traceTrainFrom(Tile tile) {
+		LOG.debug("{}.traceTrainFrom({})",this,tile);
 		Vector<Tile> trace = new Vector<Tile>();
 		for (Tile t:path) {
 			trace.add(t);

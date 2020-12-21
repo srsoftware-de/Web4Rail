@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.PathFinder;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
@@ -113,18 +114,18 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	}
 
 	public boolean isFreeFor(Context context) {
-		LOG.debug("{}.isFreeFor({})",this,context);
+		PathFinder.LOG.debug("{}.isFreeFor({})",this,context);
 		if (disabled) {
-			LOG.debug("{} is disabled!",this);
+			PathFinder.LOG.debug("{} is disabled!",this);
 			return false;
 		}
 		if (isNull(context)) {
 			if (isSet(train)) {
-				LOG.debug("{} is occupied by {}",this,train);
+				PathFinder.LOG.debug("{} is occupied by {}",this,train);
 				return false;
 			}
 			if (isSet(route)) {
-				LOG.debug("{} is occupied by {}",this,route);
+				PathFinder.LOG.debug("{} is occupied by {}",this,route);
 				return false;
 				
 			}
@@ -132,26 +133,26 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		if (isSet(train)) {
 			boolean free = train == context.train(); // during train.reserveNext, we may encounter, parts, that are already reserved by the respective train, but having another route. do not compare routes in that case!
 			if (free) {
-				LOG.debug("already reserved by {} → true",train);
+				PathFinder.LOG.debug("already reserved by {} → true",train);
 			} else {
-				LOG.debug("occupied by {} → false",train);
+				PathFinder.LOG.debug("occupied by {} → false",train);
 			}
 			return free;
 		}
 		
 		// if we get here, the tile is not occupied by a train, but reserved by a route, yet. thus, the tile is not available for another route
 		if (isSet(route) && route != context.route()) {
-			LOG.debug("reserved by other route: {}",route);
+			PathFinder.LOG.debug("reserved by other route: {}",route);
 			if (isSet(route.train())) {				
 				if (route.train() == context.train()) {
-					LOG.debug("that route is used by {}, which is also requesting this tile → true",route.train());
+					PathFinder.LOG.debug("that route is used by {}, which is also requesting this tile → true",route.train());
 					return true;
 				}
 			}
-			LOG.debug("{}.route.train = {} → false",this,route.train());
+			PathFinder.LOG.debug("{}.route.train = {} → false",this,route.train());
 			return false;
 		}
-		LOG.debug("free");
+		PathFinder.LOG.debug("free");
 		return true;
 	}
 		
@@ -359,14 +360,14 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	}
 	
 	public Tile setTrain(Train newTrain) {
-		LOG.debug("{}.set({})",this,newTrain);
+		Route.LOG.debug("{}.setTrain({})",this,newTrain);
 		if (newTrain == train) return this; // nothing to update
 		this.train = newTrain;		
 		return plan.place(this);
 	}	
 
 	public Tile setRoute(Route lockingRoute) {
-		LOG.debug("{}.setRoute({})",this,lockingRoute);
+		Route.LOG.debug("{}.setRoute({})",this,lockingRoute);
 		if (isNull(lockingRoute)) throw new NullPointerException();
 		if (isSet(route)) {
 			if (route == lockingRoute) return this; // nothing changed

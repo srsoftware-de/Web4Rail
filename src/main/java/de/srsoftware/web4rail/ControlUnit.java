@@ -256,7 +256,7 @@ public class ControlUnit extends Thread implements Constants{
 		if (command == null || command.toString() == null) return;
 		String data = command.toString().replace("{}", ""+bus);
 		commandSocket.getOutputStream().write((data+"\n").getBytes(StandardCharsets.US_ASCII));
-		LOG.info("sent {}.",data);
+		LOG.debug("sent {}.",data);
 		command.readReplyFrom(commandScanner);
 	}
 	
@@ -315,7 +315,12 @@ public class ControlUnit extends Thread implements Constants{
 							case FEEDBACK:
 								int addr = Integer.parseInt(parts[5]);
 								boolean active = !parts[6].equals("0");
-								ControlUnit.this.plan.sensor(addr,active);
+								new Thread() {
+									@Override
+									public void run() {
+										ControlUnit.this.plan.sensor(addr,active);
+									}
+								}.start();								
 							case ACESSORY:
 								break;
 							default:

@@ -38,7 +38,7 @@ public class Command {
 			milis = Integer.parseInt(word.substring(word.length()-3));
 			code = scanner.nextInt();
 			message = scanner.nextLine().trim();
-			LOG.info("recv {}.{} {} {}.",secs,milis,code,message);
+			LOG.debug("recv {}.{} {} {}.",secs,milis,code,message);
 		}		
 
 		/**

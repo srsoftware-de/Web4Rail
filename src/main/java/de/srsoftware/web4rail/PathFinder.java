@@ -14,7 +14,7 @@ import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Block;
 
 public class PathFinder extends BaseClass{
-	private static final Logger LOG = LoggerFactory.getLogger(PathFinder.class);
+	public static final Logger LOG = LoggerFactory.getLogger(PathFinder.class);
 
 	private static TreeMap<Integer,List<Route>> availableRoutes(Context context,HashSet<Route> visitedRoutes){
 		LOG.debug("PathFinder.availableRoutes({})",context);
