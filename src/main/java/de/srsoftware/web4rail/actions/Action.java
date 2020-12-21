@@ -50,6 +50,7 @@ public abstract class Action extends BaseClass {
 			FinishRoute.class,
 			Loop.class,
 			PreserveRoute.class,
+			ReactivateContact.class,
 			SavePlan.class,
 			SendCommand.class,
 			SetContextTrain.class,

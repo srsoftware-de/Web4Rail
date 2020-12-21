@@ -763,7 +763,10 @@ public class Route extends BaseClass {
 		Window win = super.properties(preForm, formInputs, postForm);
 		previewScript().addTo(win);
 		return win;
+	}
 
+	public boolean reactivate(Contact contact) {
+		return triggeredContacts.remove(contact);
 	}
 	
 	@Override
