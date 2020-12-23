@@ -197,6 +197,7 @@ public abstract class Block extends StretchableTile{
 	public Range getWaitTime(Train train,Direction dir) {
 		for (WaitTime wt : waitTimes) {
 			if (train.tags().contains(wt.tag)) {
+				LOG.info(t("{} using rule for \"{}\".",train,wt.tag));
 				return wt.get(train.direction());
 			}
 		}
