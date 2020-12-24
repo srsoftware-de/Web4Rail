@@ -114,6 +114,7 @@ public abstract class Condition extends BaseClass {
 		
 	private static List<Class<? extends Condition>> list() {
 		return List.of(
+				AndCondition.class,
 				AutopilotActive.class,
 				BlockFree.class,
 				CarInTrain.class,

@@ -148,7 +148,11 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 		if (conditions.isEmpty()) return "["+t("Click here to add conditions")+"]";
 		StringBuffer sb = new StringBuffer(conditions.firstElement().toString());
 		String glue = glue();
-		for (int i=1; i<conditions.size(); i++) sb.append(" ").append(glue).append(" "+conditions.get(i));
+		for (int i=1; i<conditions.size(); i++) {
+			Condition condition = conditions.get(i);
+			String cString = condition instanceof ConditionList ? " ("+condition+")" : " "+condition;
+			sb.append(" ").append(glue).append(cString);
+		}
 		return sb.toString();
 	}
 }

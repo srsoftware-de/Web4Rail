@@ -10,7 +10,7 @@ public class BrakeStop extends Action {
 	
 	@Override
 	public boolean fire(Context context) {
-		if (isNull(context.route())) return false;
+		if (isNull(context.route()) || isNull(context.route().train())) return false;
 		context.route().brakeStop();
 		return true;
 	}
