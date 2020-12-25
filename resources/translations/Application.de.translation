@@ -85,7 +85,7 @@ Direction : Richtung
 Direction\: heading {} : Richtung: nach {}
 disabled : deaktiviert
 disable {} : {} deaktivieren
-Disabled routes using this tile : Deaktivierte Routen, die diesen Abschnitt verwenden
+disabled routes : deaktivierte Fahrstraßen
 Display "{}" on {}. : „{}“ auf {} anzeigen.
 Drop : Verwerfen
 Dropped destination of {}. : Ziel von {} verworfen.
@@ -130,6 +130,7 @@ Length unit : Längeneinheit
 Locked by {} : Durch {} besetzt
 Locomotive manager : Lok-Verwaltung
 Locomotives\: : Lokomotiven:
+Locomotives and cars : Lokomotiven und Waggons
 Manage cars : Waggons verwalten
 Manage locos : Lokomotiven verwalten
 Manage trains : Züge verwalten
@@ -183,6 +184,7 @@ Reversed {}. : {} umgedreht.
 RIGHT : rechts
 Right port\: : Port für rechts
 Route properties : Routen-Eigenschaften
+Routes : Fahrstraßen
 Routes using this tile : Fahrstraßen, die diesen Abschnitt verwenden
 Route will only be available, if all conditions are fulfilled. : Route ist nur verfügbar, wenn alle Bedingungen erfüllt sind.
 Save : speichern

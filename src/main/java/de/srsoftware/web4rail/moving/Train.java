@@ -235,7 +235,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	private Tag carList() {
-		Tag locoProp = new Tag("li").content(t("Locomotives and cars:"));
+		Tag locoProp = new Tag("li").content(t("Locomotives and cars")+":");
 		Tag carList = new Tag("ul").clazz("carlist");
 
 		for (Car car : this.cars) {

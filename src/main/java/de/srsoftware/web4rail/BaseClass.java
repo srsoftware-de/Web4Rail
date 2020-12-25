@@ -438,6 +438,7 @@ public abstract class BaseClass implements Constants{
 		postForm.forEach(fieldset -> fieldset.addTo(win));
 		
 		Fieldset customFields = new Fieldset(t("custom fields"));
+		customFields.attr("id", "custom");
 		
 		Form customForm = new Form(CUSTOM_FIELDS);
 		new Input(ACTION, ACTION_UPDATE).hideIn(customForm);

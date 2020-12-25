@@ -289,7 +289,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 
 		
 		if (!routes.isEmpty()) {
-			fieldset = new Fieldset(t("Routes using this tile"));
+			fieldset = new Fieldset(t("Routes"));
 			Tag routeList = new Tag("ol");
 			boolean empty = true;
 			for (Route route : routes) {
@@ -301,11 +301,11 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 				empty = false;
 			}
 			if (!empty) {
+				new Tag("h4").content(t("Routes using this tile")).addTo(fieldset);
 				routeList.addTo(fieldset);
 				postForm.add(fieldset);
 			}
 			
-			fieldset = new Fieldset(t("Disabled routes using this tile"));
 			routeList = new Tag("ol");
 			empty = true;
 			for (Route route : routes) {
@@ -317,8 +317,8 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 				empty = false;
 			}
 			if (!empty) {
+				new Tag("h4").content(t("disabled routes")).addTo(fieldset);
 				routeList.addTo(fieldset);
-				postForm.add(fieldset);
 			}
 		}
 		

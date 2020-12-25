@@ -84,7 +84,7 @@ public class Route extends BaseClass {
 		private Train train;
 		private boolean aborted = false;
 		private String brakeId;
-		private static final int ENDSPEED = 5;
+		private static final int ENDSPEED = 10;
 		
 		public BrakeProcessor(Route route, Train train) {
 			this.train = train;

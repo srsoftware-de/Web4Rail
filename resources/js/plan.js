@@ -31,6 +31,29 @@ function addTile(x,y){
 	return request({realm:'plan',action:mode,tile:selected.id,x:x,y:y});
 }
 
+function arrangeTabs(){
+	var id = 0;
+	var tabs = $('<div/>',{'class':'tabs'});
+	tabs.insertAfter($('.swapbtn'));
+	$('.window > fieldset > legend').each(function(){
+		var fs = this.parentNode;
+		if (!fs.id) fs.id = 'fieldset-'+id;
+		$(this).appendTo(tabs).click(fs.id,clickLegend);
+		if (id > 0)	{
+			$(fs).hide();			
+		} else $(this).addClass('front');
+		id++;
+	});
+}
+
+function clickLegend(ev){
+	var fieldsetId = ev.data;
+	$('.window > .tabs > legend').removeClass('front');
+	$(ev.target).addClass('front');
+	$('.window > fieldset').hide();
+	$('#'+fieldsetId).show();
+}
+
 function clickTile(x,y){
 	var id = x+"-"+y;
 	var tiles = $('#'+id);
@@ -177,6 +200,7 @@ function request(data){
 				$(BODY).append($(resp));			
 				if (isWindow) {
 					tileWindow();
+					arrangeTabs();
 					var win = $('.window');
 					if (win.attr('id')==winId) win.scrollTop(scroll);
 				}

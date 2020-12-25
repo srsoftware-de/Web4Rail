@@ -349,3 +349,27 @@ svg.preview rect{
 svg.Block text{
 	fill: black;
 }
+
+.window > .tabs > legend {
+	float:left;
+	background: lightgray;
+	padding: 5px;
+	border: 1px solid black;
+	border-radius: 5px 5px 0 0;
+	margin: 0 3px;
+}
+
+.window legend.front{
+	background: white;
+	border-bottom-color: white;
+	position: relative;
+	z-index: 10;
+}
+
+.window fieldset {
+	position: relative;
+    top: -1px;
+    float: none;
+    clear:both;
+    border-radius: 0 5px 5px 5px;
+}
