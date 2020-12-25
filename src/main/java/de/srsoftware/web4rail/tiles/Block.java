@@ -147,8 +147,8 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	private Fieldset contactForm() {
-		Fieldset fieldset = new Fieldset("internal contacts");
-		this.button("new contact", Map.of(ACTION,ACTION_ADD_CONTACT)).addTo(fieldset);
+		Fieldset fieldset = new Fieldset(t("internal contacts"));
+		this.button(t("new contact"), Map.of(ACTION,ACTION_ADD_CONTACT)).addTo(fieldset);
 		if (!internalContacts.isEmpty()) {
 			Tag ul = new Tag("ul");
 			for (BlockContact contact : internalContacts) {
