@@ -1,3 +1,4 @@
+abort : abbrechen
 Actions : Aktionen
 Actions\: : Aktionen:
 Actions and contacts : Aktionen und Kontakte
@@ -18,7 +19,9 @@ add new train : neuen Zug anlegen
 Add tile : Kachel hinzufügen
 Address : Adresse
 Address\: : Adresse:
+analyze : analysieren
 Analyze : analysieren
+Analyze may overwrite these routes! : Durch die Analyse können diese Fahrstraßen überschrieben werden!
 and : und
 AndCondition : Und-Bedingung
 Apply : Übernehmen
@@ -60,6 +63,7 @@ ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
 Condition type\: : Bedingungs-Typ:
 Connected to {}. : Mit {} verbunden.
+Confirmation required : Bestätigung erforderlich
 Contact : Kontakt
 Control : Steuerung
 Control unit : Zentrale
@@ -167,7 +171,7 @@ Origin\: {} to {} : Start: {} nach {}
 Plan saved as "{}". : Plan als „{}“ gespeichert.
 Port for state {} : Anschluss für Status {}
 PreserveRoute : Anschlußroute vorwählen
-Properties : Eigenschaften
+Properties of plan : Plan-Eigenschaften
 Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
 PushPullTrain : Wendezug
@@ -296,3 +300,4 @@ Was not able to set all signals! : Konnte nicht alle Signale stellen!
 Was not able to set all turnouts! : Konnte nicht alle Weichen stellen!
 WEST : Westen
 Width : Breite
+Your plan currently has {} routes. : Ihr Plan hat im Moment {} Fahrstraßen.

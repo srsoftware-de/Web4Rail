@@ -136,6 +136,7 @@ public class Plan extends BaseClass{
 	private static final String FULLSCREEN = "fullscreen";
 	private static final String SPEED_UNIT = "speed_unit";
 	private static final String LENGTH_UNIT = "length_unit";
+	private static final String CONFIRM = "confirm";
 	
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
 	private Contact learningContact;
@@ -167,8 +168,8 @@ public class Plan extends BaseClass{
 		case Block.ACTION_ADD_CONTACT:
 			Block block = get(Id.from(params));
 			return block.addContact();
-		case ACTION_ANALYZE:
-			return analyze();
+		case ACTION_ANALYZE:	
+			return analyze(params);
 		case ACTION_AUTO:
 			return simplifyRouteName(params);
 		case ACTION_CLICK:
@@ -253,23 +254,41 @@ public class Plan extends BaseClass{
 	
 	/**
 	 * search all possible routes in the plan
+	 * @param params 
 	 * @return a string giving information how many routes have been found
 	 */
-	private String analyze() {
+	private Object analyze(HashMap<String, String> params) {
 		List<Route> oldRoutes = BaseClass.listElements(Route.class);
-		Vector<Route> newRoutes = new Vector<Route>();
-		for (Block block : BaseClass.listElements(Block.class)) {
-			for (Connector con : block.startPoints()) {
-				newRoutes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
+
+		if (!oldRoutes.isEmpty() && !"yes".equals(params.get(CONFIRM))) {
+			Window win = new Window("confirm-analyze", t("Confirmation required"));
+			new Tag("p").content(t("Your plan currently has {} routes.",oldRoutes.size())).addTo(win);
+			new Tag("p").content(t("Analyze may overwrite these routes!")).addTo(win);
+			button(t("analyze"), Map.of(ACTION,ACTION_ANALYZE,CONFIRM,"yes")).addTo(win);
+			button(t("abort")).addTo(win);
+			return win;
+		}
+		
+		new Thread() {
+			public void run() {				
+				Vector<Route> newRoutes = new Vector<Route>();
+				for (Block block : BaseClass.listElements(Block.class)) {
+					for (Connector con : block.startPoints()) {
+						newRoutes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
+					}
+				}
+				for (Tile tile : BaseClass.listElements(Tile.class)) tile.routes().clear();
+				for (Route route : newRoutes) registerRoute(route.complete());
+				for (Route oldRoute : oldRoutes) {
+					oldRoute.id = new Id("test"); // new routes may have the same ids and shall not be deleted in the next step!
+					oldRoute.remove();
+				}
+				
+				stream(t("Found {} routes.",newRoutes.size()));
 			}
-		}
-		for (Tile tile : BaseClass.listElements(Tile.class)) tile.routes().clear();
-		for (Route route : newRoutes) registerRoute(route.complete());
-		for (Route oldRoute : oldRoutes) {
-			oldRoute.id = new Id("test"); // new routes may have the same ids and shall not be deleted in the next step!
-			oldRoute.remove();
-		}
-		return t("Found {} routes.",newRoutes.size());
+		}.start();
+		
+		return t("Analyzing plan...");
 	}
 
 	/**
@@ -591,7 +610,7 @@ public class Plan extends BaseClass{
 			if (isSet(tile)) return tile.properties();
 		}
 		
-		Window win = new Window("plan-properties", t("Properties"));
+		Window win = new Window("plan-properties", t("Properties of plan"));
 		
 		new Tag("h4").content(t("Editable properties")).addTo(win);
 		Form form = new Form("plan-properties-form");
