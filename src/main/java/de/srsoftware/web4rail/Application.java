@@ -94,7 +94,7 @@ public class Application extends BaseClass{
 	 * @throws SecurityException
 	 */
 	private static Object handle(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		
+		LOG.debug("Application.handle({})",params);
 		String realm = params.get(REALM);
 		if (realm == null) throw new NullPointerException(REALM+" should not be null!");
 		
@@ -241,7 +241,11 @@ public class Application extends BaseClass{
 			}
 			
 			Object response = handle(params);
-			if (isSet(response)) LOG.debug("response ({}): {}",response.getClass().getSimpleName(),response);
+			if (isSet(response)) {
+				if (response instanceof Tag) {
+					LOG.debug("response ({}): {}",response.getClass().getSimpleName(),response.toString().substring(0,30)+"...");
+				} else LOG.debug("response ({}): {}",response.getClass().getSimpleName(),response);
+			}
 			send(client,response instanceof String || response instanceof Tag ? response : plan.html());
 			
 		} catch (Exception e) {

@@ -442,7 +442,6 @@ public class Route extends BaseClass {
 			if (!train.onTrace(startBlock)) startBlock.setTrain(null);
 		}
 		train = null;
-		triggeredContacts.clear();
 	}
 	
 	public boolean fireSetupActions() {
@@ -822,7 +821,6 @@ public class Route extends BaseClass {
 			train = null;
 		}
 		LOG.debug("chlearing triggeredContacts of {}",this);
-		triggeredContacts.clear();
 		state = State.FREE;
 		return true;
 	}
@@ -884,6 +882,7 @@ public class Route extends BaseClass {
 		ActionList startActions = triggeredActions.get(ROUTE_START);
 		if (isSet(startActions) && !startActions.fire(context)) return false; // start actions failed
 		state = State.STARTED;
+		triggeredContacts.clear();
 		return true;
 	}
 
