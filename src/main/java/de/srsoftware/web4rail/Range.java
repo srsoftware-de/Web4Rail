@@ -25,7 +25,7 @@ public class Range extends BaseClass{
 	}
 
 	public int random() {
-		if (max - min == 0) return max - min;
+		if (max == min) return min;
 		return min + random.nextInt(max - min);
 	}
 

@@ -52,6 +52,12 @@ public abstract class Block extends StretchableTile{
 		defaultWT.setMin(directionB(), 0);
 		defaultWT.setMax(directionB(), 10000);
 		waitTimes.add(defaultWT);
+		WaitTime learningWt = new WaitTime(t("learn"));
+		learningWt.setMin(directionA(), 1000);
+		learningWt.setMax(directionA(), 1000);
+		learningWt.setMin(directionB(), 1000);
+		learningWt.setMax(directionB(), 1000);
+		waitTimes.add(learningWt);
 	}
 	
 	/**
@@ -115,8 +121,7 @@ public abstract class Block extends StretchableTile{
 		}
 
 		public void validate() {
-			for (Entry<Direction, Range> entry: dirs.entrySet()) entry.getValue().validate();
-			
+			for (Entry<Direction, Range> entry: dirs.entrySet()) entry.getValue().validate();			
 		}
 	}
 
