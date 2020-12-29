@@ -14,6 +14,7 @@ var mode = null;
 var messageTimer = null;
 var messageOpacity = 0;
 var trainAwaitingDestination = null;
+var lastTab = null;
 
 function addClass(data){
 	parts = data.split(" ");
@@ -34,24 +35,29 @@ function addTile(x,y){
 function arrangeTabs(){
 	var id = 0;
 	var tabs = $('<div/>',{'class':'tabs'});
+	var winId = $('.window').attr('id')+"-";
+	
 	tabs.insertAfter($('.swapbtn'));
+	var target = null;
 	$('.window > fieldset > legend').each(function(){
-		var fs = this.parentNode;
-		if (!fs.id) fs.id = 'fieldset-'+id;
+		var fs = this.parentNode;		
+		if (!fs.id) fs.id = winId+id;
+		if (fs.id == lastTab) target = this;
 		$(this).appendTo(tabs).click(fs.id,clickLegend);
 		if (id > 0)	{
 			$(fs).hide();			
 		} else $(this).addClass('front');
 		id++;
 	});
+	if (target != null) clickLegend({'data':lastTab,'target':target});
 }
 
 function clickLegend(ev){
-	var fieldsetId = ev.data;
+	lastTab = ev.data;	
 	$('.window > .tabs > legend').removeClass('front');
 	$(ev.target).addClass('front');
 	$('.window > fieldset').hide();
-	$('#'+fieldsetId).show();
+	$('#'+lastTab).show();
 }
 
 function clickTile(x,y){
