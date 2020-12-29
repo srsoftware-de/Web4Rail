@@ -27,7 +27,9 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Div;
+import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
@@ -138,6 +140,7 @@ public class Plan extends BaseClass{
 	private static final String LENGTH_UNIT = "length_unit";
 	private static final String CONFIRM = "confirm";
 	private static final String FINAL_SPEED = "final_speed";
+	private static final String FREE_BEHIND_TRAIN = "free_behind_train";
 	
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
 	private Contact learningContact;
@@ -442,10 +445,11 @@ public class Plan extends BaseClass{
 			.forEach(jTiles::put);
 		
 		return new JSONObject()
-				.put(TILE, jTiles)
-				.put(SPEED_UNIT, speedUnit)
+				.put(FINAL_SPEED, Route.endSpeed)
+				.put(FREE_BEHIND_TRAIN, Route.freeBehindTrain)
 				.put(LENGTH_UNIT, lengthUnit)
-				.put(FINAL_SPEED, Route.endSpeed);
+				.put(SPEED_UNIT, speedUnit)
+				.put(TILE, jTiles);
 	}
 	
 	/**
@@ -475,6 +479,7 @@ public class Plan extends BaseClass{
 		if (json.has(LENGTH_UNIT)) lengthUnit = json.getString(LENGTH_UNIT);
 		if (json.has(SPEED_UNIT)) speedUnit = json.getString(SPEED_UNIT);
 		if (json.has(FINAL_SPEED)) Route.endSpeed = json.getInt(FINAL_SPEED);
+		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
 			
 		try {
 			Train.loadAll(filename+".trains",plan);
@@ -627,19 +632,21 @@ public class Plan extends BaseClass{
 			if (isSet(tile)) return tile.properties();
 		}
 		
-		Window win = new Window("plan-properties", t("Properties of plan"));
+		Window win = new Window("plan-properties", t("Properties of {}",t("Plan")));
 		
-		new Tag("h4").content(t("Editable properties")).addTo(win);
+		Fieldset fieldset = new Fieldset(t("Editable properties"));
+		//new Tag("h4").content(t("Editable properties")).addTo(win);
 		Form form = new Form("plan-properties-form");
 		new Input(REALM,REALM_PLAN).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(LENGTH_UNIT, lengthUnit).addTo(new Label(t("Length unit")+":"+NBSP)).addTo(form);
 		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+":"+NBSP)).addTo(form);
 		new Input(FINAL_SPEED, Route.endSpeed).addTo(new Label(t("Lower speed limit")+":"+NBSP)).attr("title", t("Final speed after breaking, before halting")).addTo(form);
+		new Checkbox(FREE_BEHIND_TRAIN, t("Free tiles behind train"), Route.freeBehindTrain).attr("title", t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.")).addTo(form);
 		new Button(t("Save"), form).addTo(form);
-		form.addTo(win);
+		form.addTo(fieldset).addTo(win);
 		
-		new Tag("h4").content(t("Relays and Turnouts")).addTo(win);
+		fieldset = new Fieldset(t("Relays and Turnouts"));
 		Table table = new Table();
 		table.addHead(t("Address"),t("Relay/Turnout"));
 		List<Device> devices = BaseClass.listElements(Tile.class)
@@ -654,16 +661,16 @@ public class Plan extends BaseClass{
 			if (device.address() % 4 == 1) table.children().lastElement().clazz("group");
 			
 		}
-		table.clazz("turnouts").addTo(win);
+		table.clazz("turnouts").addTo(fieldset).addTo(win);
 		
-		new Tag("h4").content(t("Routes")).addTo(win);
+		fieldset = new Fieldset(t("Routes"));
 		table = new Table();
 		table.addHead(t("Name"),t("Start"),t("End"),t("Actions"));
 		List<Route> routes = BaseClass.listElements(Route.class);
 		for (Route route : routes) {
 			table.addRow(route.link("span",route.name()),route.link("span", route.startBlock()),route.link("span", route.endBlock()),plan.button(t("simplify name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())));
 		}
-		table.clazz("turnouts").addTo(win);
+		table.clazz("turnouts").addTo(fieldset).addTo(win);
 		
 		return win;
 	}
@@ -862,6 +869,7 @@ public class Plan extends BaseClass{
 		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.get(LENGTH_UNIT);
 		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);
 		if (params.containsKey(FINAL_SPEED)) Route.endSpeed = Integer.parseInt(params.get(FINAL_SPEED));
+		Route.freeBehindTrain = "on".equalsIgnoreCase(params.get(FREE_BEHIND_TRAIN));
 		
 		return t("Plan updated.");
 		

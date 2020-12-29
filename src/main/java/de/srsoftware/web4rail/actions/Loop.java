@@ -20,8 +20,9 @@ import de.srsoftware.web4rail.tiles.Turnout;
 
 public class Loop extends ActionList {
 		
-	private String subject = Train.class.getSimpleName();
-	private static final String SUBJECT = "subject"; 
+	private String object = Train.class.getSimpleName();
+	private static final String SUBJECT = "subject";
+	private static final String OBJECT = "object"; 
 
 	public Loop(BaseClass parent) {
 		super(parent);
@@ -29,9 +30,9 @@ public class Loop extends ActionList {
 	
 	@Override
 	public boolean fire(Context context) {
-		if (isNull(subject)) return false;
+		if (isNull(object)) return false;
 		List<? extends BaseClass> elements = null;
-		switch (subject) {
+		switch (object) {
 			case "Block":
 				elements = BaseClass.listElements(Block.class);
 				break;
@@ -59,29 +60,30 @@ public class Loop extends ActionList {
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
-		if (isSet(subject)) json.put(SUBJECT, subject);
+		if (isSet(object)) json.put(OBJECT, object);
 		return json;
 	}
 	
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		if (json.has(SUBJECT)) subject = json.getString(SUBJECT); 
+		if (json.has(SUBJECT)) object = json.getString(SUBJECT); 
+		if (json.has(OBJECT)) object = json.getString(OBJECT);
 		return this;
 	}
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Select subject"),typeSelector());
+		formInputs.add(t("Select object"),typeSelector());
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	public String toString() {
-		return t("For each {} do:",subject);
+		return t("For each {} do:",object);
 	};
 	
 	private Tag typeSelector() {
-		Select select = new Select(SUBJECT);
+		Select select = new Select(OBJECT);
 		List<String> types = List.of(Block.class,Contact.class,Route.class,Signal.class,Train.class,Turnout.class)
 				.stream()
 				.map(cls -> cls.getSimpleName())
@@ -89,7 +91,7 @@ public class Loop extends ActionList {
 				.collect(Collectors.toList());
 		for (String cls : types) {
 			Tag option = select.addOption(cls,t(cls));
-			if (cls.equals(subject)) option.attr("selected", "selected");
+			if (cls.equals(object)) option.attr("selected", "selected");
 		}
 		return select;
 	}
@@ -97,8 +99,8 @@ public class Loop extends ActionList {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		String newSubject = params.get(SUBJECT);
-		if (isSet(newSubject)) subject = newSubject;
+		String newObject = params.get(OBJECT);
+		if (isSet(newObject)) object = newObject;
 		return super.update(params);
 	}
 

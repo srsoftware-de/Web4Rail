@@ -38,6 +38,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
 import de.srsoftware.web4rail.tiles.Signal;
@@ -70,7 +71,7 @@ public class Route extends BaseClass {
 	static final String TURNOUTS = "turnouts";
 	private State state = State.FREE;
 	public static int endSpeed = 10;
-	public static boolean freeBehindTrace = true;
+	public static boolean freeBehindTrain = true;
 
 	private static final String ROUTE_START = "route_start";
 
@@ -131,7 +132,8 @@ public class Route extends BaseClass {
 			if (train.speed == 0) aborted = true;
 			while (train.speed > endSpeed) {
 				if (aborted || train.nextRoutePrepared()) break;
-				train.setSpeed(train.speed - 5);
+				LOG.debug("BrakeProcessor({}) setting Speed of {}.",route,train);
+				train.setSpeed(Math.max(train.speed - 5,endSpeed));				
 				try {
 					sleep(timeStep);
 				} catch (InterruptedException e) {
@@ -904,12 +906,14 @@ public class Route extends BaseClass {
 	
 	private void traceTrainFrom(Tile tile) {
 		LOG.debug("{}.traceTrainFrom({})",this,tile);
+		if (isNull(train)) return;
 		Vector<Tile> trace = new Vector<Tile>();
+		if (tile instanceof BlockContact) tile = (Tile) ((BlockContact)tile).parent();
 		for (Tile t:path) {
 			trace.add(t);
 			if (t == tile) break;
 		}
-		if (isSet(train)) train.addToTrace(trace);
+		train.addToTrace(trace);
 	}
 	
 	public Train train() {

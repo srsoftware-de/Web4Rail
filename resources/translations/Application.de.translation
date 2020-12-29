@@ -40,7 +40,7 @@ Block properties : Block-Eigenschaften
 {}bound : nach {}
 BrakeCancel : Bremsvorgang abbrechen
 BrakeStart : Bremsvorgang starten
-BrakeStop : Zug anhalten
+BrakeStop : Bremsvorgang abschließen
 Brake time¹, forward : Bremszeit¹, vorwärts
 Brake time¹, reverse : Bremszeit¹, rückwärts
 Brake time table : Bremszeit-Tabelle
@@ -106,10 +106,11 @@ Faster (10 {}) : 10 {} schneller
 Final speed after breaking, before halting : Endgeschwindigkeit nach Bremsvorgang, vor dem Anhalten
 FinishRoute : Route abschließen
 Firing {} : starte {}
-For each {} do: Für jede(n) {}:
+For each {} do\: : Mit jedem {}:
 forward : vorwärts
 Found {} routes. : {} Routen gefunden.
 FreeStartBlock : Start-Block freigeben
+Free tiles behind train : Kacheln hinter dem Zug freigeben
 Fullscreen : Vollbild
 Function : Funktion
 Hardware settings : Hardware-Einstellungen
@@ -117,6 +118,8 @@ Height : Höhe
 Help : Hilfe
 (id\: {}, length\: {}) : (Id: {}, Länge: {})
 if ({})\: : falls ({}):
+If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.
+Falls aktiviert, wird die Strecke anhand von Zug- und Kachel-Länge hinter dem Zug freigegeben, Falls deaktiviert wird die Strecke hinter dem Zug erst bei Abschluss der Route freigegeben.
 internal contacts : interne Kontakte
 inverted : invertiert
 Inverts the direction {} is heading to. : Kehrt die Richtung, in welche {} fährt, um.
@@ -136,6 +139,7 @@ Locked by {} : Durch {} besetzt
 Locomotive manager : Lok-Verwaltung
 Locomotives\: : Lokomotiven:
 Locomotives and cars : Lokomotiven und Waggons
+Loop : Wiederholung
 Lower speed limit : Minimale Geschwindigkeit
 Manage cars : Waggons verwalten
 Manage locos : Lokomotiven verwalten
@@ -200,6 +204,7 @@ Select car : Fahrzeug auswählen
 Select contact\: : Kotakt auswählen:
 Select display : Anzeige auswählen
 Select from plan : Auf Plan auswählen
+Select object : Objekt auswählen
 Select relay\: : Relais auswählen:
 Select state : Status auswählen
 Select train : Zug auswählen
@@ -241,6 +246,8 @@ StartStopAuto : Automatikmodus an/abschalten
 Stop autopilot : Autopilot abschalten
 {} stopping at next block. : {} hält im nächsten Block.
 Stopsettings : Halte-Einstellungen
+StopTrain : Zug stoppen
+Stop train immediately : Zug sofort anhalten
 Straight port\: : Port für gerade
 STRAIGHT : gerade
 SwitchFunction : Funktion schalten
@@ -284,8 +291,12 @@ Turn allowed : Wenden erlaubt
 {} turned. : {} gewendet.
 Turnout : Weiche
 TurnoutLE : WeicheLE
+TurnoutLN : WeicheLN
+TurnoutLS : WeicheLS
 TurnoutLW : WeicheLW
 TurnoutRE : WeicheRE
+TurnoutRN : WeicheRN
+TurnoutRS : WeicheRS
 TurnoutRW : WeicheRW
 Turnouts : Weichen
 TurnTrain : Fahrtrichtung umkehren

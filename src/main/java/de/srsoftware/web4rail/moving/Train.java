@@ -101,7 +101,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 						if (stop) return;
 						if (isNull(route)) { // may have been set by start action in between
 							Object o = Train.this.start();
-							LOG.debug("Train.start called, route now is {}",route);
+							LOG.debug("{}.start called, route now is {}",this,route);
 							if (isSet(route)) {
 								if (o instanceof String) plan.stream((String)o);
 								//if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
@@ -190,9 +190,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 			if (active) {
 				trace.addFirst(tile);
 			} else {
-				Tile dummy = trace.getFirst();
-				if (dummy == tile) active = true;
+				if (trace.getFirst() == tile) active = true;
 			}			
+		}
+		if (!active) { // newTiles and old trace do not "touch" : add all new tiles
+			for (Tile tile : newTiles) trace.addFirst(tile);
 		}
 		Route.LOG.debug("new trace: {}",trace);
 		showTrace();
@@ -636,7 +638,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		while (!trace.isEmpty()) reversed.addFirst(trace.removeFirst());
 		trace = reversed;
 		LOG.debug("reversed: {}",trace);
-		reversed = null;
 	}
 
 	public static void saveAll(String filename) throws IOException {
@@ -714,6 +715,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public void setSpeed(int newSpeed) {
 		LOG.debug("{}.setSpeed({})",this,newSpeed);
+		if (speed == 0 && newSpeed > 0) Thread.dumpStack();
 		speed = Math.min(newSpeed,maxSpeed());
 		if (speed < 0) speed = 0;
 		cars.stream().filter(c -> c instanceof Locomotive).forEach(car -> ((Locomotive)car).setSpeed(speed));
@@ -741,7 +743,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				tile.setTrain(this);
 			} else {
 				tile.setTrain(null);
-				if (Route.freeBehindTrace) try {
+				if (Route.freeBehindTrain) try {
 					tile.unset(route);
 				} catch (IllegalArgumentException e) {}
 				trace.remove(i);
