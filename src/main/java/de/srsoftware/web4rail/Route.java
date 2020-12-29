@@ -69,22 +69,23 @@ public class Route extends BaseClass {
 	static final String SIGNALS  = "signals";
 	static final String TURNOUTS = "turnouts";
 	private State state = State.FREE;
+	public static int endSpeed = 10;
+	public static boolean freeBehindTrace = true;
 
 	private static final String ROUTE_START = "route_start";
 
 	private static final String ROUTE_SETUP = "route_setup";
 	
-	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
-	
-	private class BrakeProcessor extends Thread {
 		private int startSpeed;
+		private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
+		
+		private class BrakeProcessor extends Thread {
 		private long timestamp;
 		private Integer timeStep;
 		private Route route;
 		private Train train;
 		private boolean aborted = false;
 		private String brakeId;
-		private static final int ENDSPEED = 10;
 		
 		public BrakeProcessor(Route route, Train train) {
 			this.train = train;
@@ -109,7 +110,7 @@ public class Route extends BaseClass {
 			//int remainingSpeed = train.speed;
 			if (aborted) return;
 			long runtime = timestamp2 - timestamp;
-			int quotient = startSpeed - ENDSPEED;
+			int quotient = startSpeed - endSpeed;
 			if (quotient<1) quotient = 1;
 			int newTimeStep = 5*(int) runtime/quotient;
 			
@@ -128,7 +129,7 @@ public class Route extends BaseClass {
 		public void run() {
 			timestamp = new Date().getTime();
 			if (train.speed == 0) aborted = true;
-			while (train.speed > ENDSPEED) {
+			while (train.speed > endSpeed) {
 				if (aborted || train.nextRoutePrepared()) break;
 				train.setSpeed(train.speed - 5);
 				try {
@@ -423,7 +424,9 @@ public class Route extends BaseClass {
 	public void finish() {
 		context.clear(); // prevent delayed actions from firing after route has finished
 		setSignals(Signal.STOP);
-		for (Tile tile : path) tile.unset(this);
+		for (Tile tile : path) try {
+			tile.unset(this);
+		} catch (IllegalArgumentException e) {}
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Contact) {
 			lastTile.setTrain(null);
@@ -439,7 +442,7 @@ public class Route extends BaseClass {
 				train.setWaitTime(endBlock.getWaitTime(train,train.direction()));
 			}
 			if (train.route == this) train.route = null;
-			if (!train.onTrace(startBlock)) startBlock.setTrain(null);
+			if (!train.onTrace(startBlock) && startBlock.train() == train) startBlock.setTrain(null);
 		}
 		train = null;
 	}

@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
@@ -43,7 +44,7 @@ public class Contact extends Tile{
 		boolean aborted = false;
 		
 		public OffTimer() {
-			start();
+			Application.threadPool.execute(this);
 		}
 		
 		@Override
@@ -232,14 +233,14 @@ public class Contact extends Tile{
 	
 	public boolean trigger(int duration) {
 		activate(true);
-		new Thread() {
+		Application.threadPool.execute(new Thread() {
 			public void run() {
 				try {
 					sleep(duration);
 					activate(false);
 				} catch (Exception e) {}
 			}
-		}.start();
+		});
 		return true;
 	}
 	@Override

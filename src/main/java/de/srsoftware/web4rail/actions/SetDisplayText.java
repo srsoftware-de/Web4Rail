@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -39,14 +40,14 @@ public class SetDisplayText extends TextAction{
 	@Override
 	public Action load(JSONObject json) {
 		if (json.has(DISPLAY)) {
-			new Thread() { // load asynchronously, as referred tile may not be available,yet
+			Application.threadPool.execute(new Thread() { // load asynchronously, as referred tile may not be available,yet
 				public void run() {
 					try {
 						sleep(1000);
 						display = (TextDisplay) plan.get(Id.from(json,DISPLAY), false);
 					} catch (InterruptedException e) {}						
 				};
-			}.start();
+			});
 		}
 		return super.load(json);
 	}

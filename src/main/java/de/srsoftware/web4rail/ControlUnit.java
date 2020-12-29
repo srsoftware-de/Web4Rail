@@ -206,7 +206,7 @@ public class ControlUnit extends Thread implements Constants{
 	 */
 	public ControlUnit restart() {
 		end();
-		start();
+		Application.threadPool.execute(this);
 		return this;
 	}
 	
@@ -215,6 +215,16 @@ public class ControlUnit extends Thread implements Constants{
 	 */
 	@Override
 	public void run() {		
+		
+		try {
+			handshake(MODE_INFO);
+			stopped = false;
+			startInfoThread();
+			handshake(MODE_COMMAND);
+		} catch (IOException | TimeoutException e) {
+			throw new IllegalStateException(e);
+		}
+		
 		while (!stopped) {
 			try {	
 				if (queue.isEmpty()) {
@@ -281,23 +291,10 @@ public class ControlUnit extends Thread implements Constants{
 		return this;
 	}
 	
-	@Override
-	public synchronized void start() {
-		try {
-			handshake(MODE_INFO);
-			stopped = false;
-			startInfoThread();
-			handshake(MODE_COMMAND);
-		} catch (IOException | TimeoutException e) {
-			throw new IllegalStateException(e);
-		}
-		super.start();
-	}
-	
 	private void startInfoThread() {
 		infoSocket  = commandSocket; // handshake läuft immer über commandSocket und commandScanner
 		infoScanner = commandScanner;
-		new Thread(new Runnable() {
+		Runnable infoThread = new Runnable() {
 			
 			@Override
 			public void run() {
@@ -315,12 +312,12 @@ public class ControlUnit extends Thread implements Constants{
 							case FEEDBACK:
 								int addr = Integer.parseInt(parts[5]);
 								boolean active = !parts[6].equals("0");
-								new Thread() {
+								Application.threadPool.execute(new Thread() {
 									@Override
 									public void run() {
 										ControlUnit.this.plan.sensor(addr,active);
 									}
-								}.start();								
+								});								
 							case ACESSORY:
 								break;
 							default:
@@ -342,7 +339,8 @@ public class ControlUnit extends Thread implements Constants{
 				}
 				
 			}
-		}).start();
+		};
+		Application.threadPool.execute(infoThread);
 	}
 
 	/**

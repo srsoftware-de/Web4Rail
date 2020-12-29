@@ -6,6 +6,7 @@ import java.util.List;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -27,7 +28,7 @@ public class DelayedAction extends ActionList {
 		
 	@Override
 	public boolean fire(Context context) {
-		new Thread() {
+		Application.threadPool.execute(new Thread() {
 			public void run() {
 				try {
 					Thread.sleep(delay);
@@ -37,7 +38,7 @@ public class DelayedAction extends ActionList {
 				}
 				DelayedAction.super.fire(context);
 			};
-		}.start();
+		});
 		return true;		
 	}
 	

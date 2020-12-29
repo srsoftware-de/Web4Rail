@@ -137,6 +137,7 @@ public class Plan extends BaseClass{
 	private static final String SPEED_UNIT = "speed_unit";
 	private static final String LENGTH_UNIT = "length_unit";
 	private static final String CONFIRM = "confirm";
+	private static final String FINAL_SPEED = "final_speed";
 	
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
 	private Contact learningContact;
@@ -145,7 +146,7 @@ public class Plan extends BaseClass{
 	 * creates a new plan, starts to send heart beats
 	 */
 	public Plan() {
-		new Heartbeat().start();
+		Application.threadPool.execute(new Heartbeat());
 	}
 	
 	/**
@@ -269,7 +270,7 @@ public class Plan extends BaseClass{
 			return win;
 		}
 		
-		new Thread() {
+		Application.threadPool.execute(new Thread() {
 			public void run() {				
 				Vector<Route> newRoutes = new Vector<Route>();
 				for (Block block : BaseClass.listElements(Block.class)) {
@@ -286,7 +287,7 @@ public class Plan extends BaseClass{
 				
 				stream(t("Found {} routes.",newRoutes.size()));
 			}
-		}.start();
+		});
 		
 		return t("Analyzing plan...");
 	}
@@ -307,6 +308,11 @@ public class Plan extends BaseClass{
 	 */
 	public ControlUnit controlUnit() {
 		return controlUnit;
+	}
+	
+	public void drop(Tile tile) {
+		tile.unregister();
+		stream("remove "+tile.id());		
 	}
 
 	/**
@@ -427,6 +433,21 @@ public class Plan extends BaseClass{
 		LOG.debug("learning contact {}",learningContact);
 	}
 	
+	public JSONObject json() {
+		JSONArray jTiles = new JSONArray();
+		BaseClass.listElements(Tile.class)
+			.stream()
+			.filter(tile -> !(tile instanceof Shadow || tile instanceof BlockContact))
+			.map(tile -> tile.json())
+			.forEach(jTiles::put);
+		
+		return new JSONObject()
+				.put(TILE, jTiles)
+				.put(SPEED_UNIT, speedUnit)
+				.put(LENGTH_UNIT, lengthUnit)
+				.put(FINAL_SPEED, Route.endSpeed);
+	}
+	
 	/**
 	 * loads a track layout from a file, along with its assigned cars, trains, routes and control unit settings
 	 * @param filename
@@ -453,6 +474,7 @@ public class Plan extends BaseClass{
 		if (json.has(TILE)) json.getJSONArray(TILE).forEach(object -> Tile.load(object, plan));
 		if (json.has(LENGTH_UNIT)) lengthUnit = json.getString(LENGTH_UNIT);
 		if (json.has(SPEED_UNIT)) speedUnit = json.getString(SPEED_UNIT);
+		if (json.has(FINAL_SPEED)) Route.endSpeed = json.getInt(FINAL_SPEED);
 			
 		try {
 			Train.loadAll(filename+".trains",plan);
@@ -470,7 +492,7 @@ public class Plan extends BaseClass{
 			LOG.warn("Was not able to load control unit settings!",e);
 		}
 		try {
-			plan.controlUnit.start();
+			Application.threadPool.execute(plan.controlUnit);
 		} catch (Exception e) {
 			LOG.warn("Was not able to establish connection to control unit!");
 		}
@@ -566,11 +588,6 @@ public class Plan extends BaseClass{
 		return t(moved ? "Tile(s) moved.":"No tile moved.");
 	}
 
-	public void drop(Tile tile) {
-		tile.unregister();
-		stream("remove "+tile.id());		
-	}
-
 	/**
 	 * adds a new tile to the plan on the client side
 	 * @param tile
@@ -618,6 +635,7 @@ public class Plan extends BaseClass{
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(LENGTH_UNIT, lengthUnit).addTo(new Label(t("Length unit")+":"+NBSP)).addTo(form);
 		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+":"+NBSP)).addTo(form);
+		new Input(FINAL_SPEED, Route.endSpeed).addTo(new Label(t("Lower speed limit")+":"+NBSP)).attr("title", t("Final speed after breaking, before halting")).addTo(form);
 		new Button(t("Save"), form).addTo(form);
 		form.addTo(win);
 		
@@ -702,20 +720,6 @@ public class Plan extends BaseClass{
 		file.close();
 		
 		return t("Plan saved as \"{}\".",name);
-	}
-	
-	public JSONObject json() {
-		JSONArray jTiles = new JSONArray();
-		BaseClass.listElements(Tile.class)
-			.stream()
-			.filter(tile -> !(tile instanceof Shadow || tile instanceof BlockContact))
-			.map(tile -> tile.json())
-			.forEach(jTiles::put);
-		
-		return new JSONObject()
-				.put(TILE, jTiles)
-				.put(SPEED_UNIT, speedUnit)
-				.put(LENGTH_UNIT, lengthUnit);
 	}
 
 	public void sensor(int addr, boolean active) {
@@ -857,6 +861,7 @@ public class Plan extends BaseClass{
 		
 		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.get(LENGTH_UNIT);
 		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);
+		if (params.containsKey(FINAL_SPEED)) Route.endSpeed = Integer.parseInt(params.get(FINAL_SPEED));
 		
 		return t("Plan updated.");
 		

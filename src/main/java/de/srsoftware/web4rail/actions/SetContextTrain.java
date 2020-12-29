@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
@@ -38,14 +39,14 @@ public class SetContextTrain extends Action {
 			Id trainId = Id.from(json,REALM_TRAIN);
 			if (isSet(trainId)) {
 				train = Train.get(trainId);
-				if (isNull(train)) new Thread() { // load asynchronously, as referred tile may not be available,yet
+				if (isNull(train)) Application.threadPool.execute(new Thread() { // load asynchronously, as referred tile may not be available,yet
 					public void run() {
 						try {
 							sleep(1000);
 							train = Train.get(trainId);
 						} catch (InterruptedException e) {}						
 					};
-				}.start();
+				});
 			}
 		}
 		return this;

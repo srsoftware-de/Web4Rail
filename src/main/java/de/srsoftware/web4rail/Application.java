@@ -15,6 +15,8 @@ import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ import de.srsoftware.web4rail.tiles.Contact;
 public class Application extends BaseClass{
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 	private static final String START_TRAINS = "--start-trains";
+	public static final ExecutorService threadPool = Executors.newCachedThreadPool();
 	
 	/**
 	 * entry point for the application:<br/>
@@ -63,7 +66,7 @@ public class Application extends BaseClass{
 		server.createContext("/css" , client -> sendFile(client));
 		server.createContext("/js" , client -> sendFile(client));
 		server.createContext("/stream", client -> stream(client));
-        server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool());
+        server.setExecutor(threadPool);
         server.start();
         try {
         	Plan.load(Plan.DEFAULT_NAME);

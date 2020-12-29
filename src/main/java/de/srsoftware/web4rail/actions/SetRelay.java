@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -43,14 +44,14 @@ public class SetRelay extends Action {
 		if (json.has(RELAY)) {
 			String relayId = json.getString(RELAY);
 			relay = BaseClass.get(new Id(relayId));
-			if (isNull(relay)) new Thread() { // if relay not loaded, yet: wait one sec and try again
+			if (isNull(relay)) Application.threadPool.execute(new Thread() { // if relay not loaded, yet: wait one sec and try again
 				public void run() {
 					try {
 						sleep(1000);
 					} catch (InterruptedException e) {}
 					relay = BaseClass.get(new Id(relayId));
 				};
-			}.start();
+			});
 		}
 		if (json.has(Relay.STATE)) state = json.getBoolean(Relay.STATE);
 		return this;

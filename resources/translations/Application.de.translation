@@ -103,8 +103,9 @@ Emergency : Notfall
 enable {} : {} aktivieren
 export : exportieren
 Faster (10 {}) : 10 {} schneller
-Firing {} : starte {}
+Final speed after breaking, before halting : Endgeschwindigkeit nach Bremsvorgang, vor dem Anhalten
 FinishRoute : Route abschließen
+Firing {} : starte {}
 For each {} do: Für jede(n) {}:
 forward : vorwärts
 Found {} routes. : {} Routen gefunden.
@@ -135,6 +136,7 @@ Locked by {} : Durch {} besetzt
 Locomotive manager : Lok-Verwaltung
 Locomotives\: : Lokomotiven:
 Locomotives and cars : Lokomotiven und Waggons
+Lower speed limit : Minimale Geschwindigkeit
 Manage cars : Waggons verwalten
 Manage locos : Lokomotiven verwalten
 Manage trains : Züge verwalten
@@ -171,7 +173,7 @@ Origin\: {} to {} : Start: {} nach {}
 Plan saved as "{}". : Plan als „{}“ gespeichert.
 Port for state {} : Anschluss für Status {}
 PreserveRoute : Anschlußroute vorwählen
-Properties of plan : Plan-Eigenschaften
+Properties : Eigenschaften
 Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
 PushPullTrain : Wendezug

@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.PathFinder;
 import de.srsoftware.web4rail.Plan;
@@ -216,7 +217,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public String automatic() {
 		if (isNull(autopilot)) {
 			autopilot = new Autopilot();
-			autopilot.start();
+			Application.threadPool.execute(autopilot);
 			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
 		return t("{} now in auto-mode",this);
@@ -740,6 +741,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 				tile.setTrain(this);
 			} else {
 				tile.setTrain(null);
+				if (Route.freeBehindTrace) try {
+					tile.unset(route);
+				} catch (IllegalArgumentException e) {}
 				trace.remove(i);
 				i--; // do not move to next index: remove shifted the next index towards us
 			}
@@ -803,7 +807,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		try {
 			Thread.sleep(1000);
 			plan.stream(t("Simulating movement of {}...",this));
-			new Thread() {
+			Application.threadPool.execute(new Thread() {
 				public void run() {
 					for (Tile tile : route.path()) {
 						if (isNull(route)) break;
@@ -820,7 +824,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 						}
 					}
 				};
-			}.start();
+			});
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
