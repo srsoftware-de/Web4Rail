@@ -53,8 +53,14 @@ public class PathFinder extends BaseClass{
 				LOG.debug("{}→ Candidate {}  would create loop, skipping",inset,routeCandidate.shortName());
 				continue;
 			}
-			if (!routeCandidate.allowed(context)) continue; // Zug darf auf Grund einer nicht erfüllten Bedingung nicht auf die Route
-			if (!routeCandidate.isFreeFor(context.route(routeCandidate))) continue; // Route ist nicht frei
+			if (!routeCandidate.allowed(context)) { 
+				if (routeCandidate.endBlock() != destination) { // allowance may be overridden by destination
+					LOG.debug("{} not allowed for {}",routeCandidate,context);
+					continue; // Zug darf auf Grund einer nicht erfüllten Bedingung nicht auf die Route
+				}
+				LOG.debug("{} not allowed for {} – overridden by selected destination",routeCandidate,context);
+			}
+
 			int priority = 0;
 			if (isSet(direction) && routeCandidate.startDirection != direction) { // Route startet entgegen der aktuellen Fahrtrichtung des Zuges 
 				if (!train.pushPull) continue; // Zug kann nicht wenden
@@ -102,12 +108,21 @@ public class PathFinder extends BaseClass{
 	public static Route chooseRoute(Context context) {
 		LOG.debug("PathFinder.chooseRoute({})",context);
 		TreeMap<Integer, List<Route>> availableRoutes = PathFinder.availableRoutes(context,new HashSet<Route>());
-		if (availableRoutes.isEmpty()) return null;
-		Entry<Integer, List<Route>> entry = availableRoutes.lastEntry();
-		List<Route> preferredRoutes = entry.getValue();
-		Route selectetRoute = preferredRoutes.get(random.nextInt(preferredRoutes.size())); 
-		LOG.debug("Chose \"{}\" with priority {}.",selectetRoute,entry.getKey());
+		while (!availableRoutes.isEmpty()) {
+			LOG.debug("availableRoutes: {}",availableRoutes);
+			Entry<Integer, List<Route>> entry = availableRoutes.lastEntry();
+			List<Route> preferredRoutes = entry.getValue();
+			LOG.debug("preferredRoutes: {}",preferredRoutes);
+			Route selectedRoute = preferredRoutes.get(random.nextInt(preferredRoutes.size()));
+			if (selectedRoute.isFreeFor(context.route(selectedRoute))) {
+				LOG.debug("Chose \"{}\" with priority {}.",selectedRoute,entry.getKey());
+				return selectedRoute;
+			}
 		
-		return selectetRoute;
+			LOG.debug("Selected route \"{}\" is not free for {}",selectedRoute,context);
+			preferredRoutes.remove(selectedRoute);
+			if (preferredRoutes.isEmpty()) availableRoutes.remove(availableRoutes.lastKey());
+		}
+		return null;
 	}
 }
