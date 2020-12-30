@@ -135,7 +135,7 @@ public class ActionList extends Action implements Iterable<Action>{
 	public void merge(ActionList oldActions) {
 		for (Action oldAction : oldActions.actions) {
 			for (Action newAction : actions) {
-				if (oldAction.corresponsTo(newAction)) {
+				if (oldAction.correspondsTo(newAction)) {
 					actions.remove(newAction);
 					LOG.debug("new action {} replaced by {}",newAction,oldAction);
 					break;

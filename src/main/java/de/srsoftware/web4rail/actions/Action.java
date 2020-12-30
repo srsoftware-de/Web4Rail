@@ -41,9 +41,10 @@ public abstract class Action extends BaseClass {
 	
 	public static List<Class<? extends Action>> classes() {
 		return List.of(
+			AddRemoveTag.class,
+			BrakeCancel.class,
 			BrakeStart.class,
 			BrakeStop.class,
-			BrakeCancel.class,
 			ConditionalAction.class,
 			DelayedAction.class,
 			DetermineTrainInBlock.class,
@@ -85,7 +86,7 @@ public abstract class Action extends BaseClass {
 		return null;
 	}
 	
-	public boolean corresponsTo(Action other) {
+	public boolean correspondsTo(Action other) {
 		return this.toString().equals(other.toString());
 	}
 

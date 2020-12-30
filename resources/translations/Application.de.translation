@@ -16,7 +16,9 @@ add new car : neuen Waggon anlegen
 Add new custom field : neues benutzerdefiniertes Feld hinzufügen
 add new locomotive : neue Lok anlegen
 add new train : neuen Zug anlegen
+Add tag "{}" to train : Markierung "{}" zu Zug hinzufügen
 Add tile : Kachel hinzufügen
+AddRemoveTag : Markierung hinzufügen/entfernen
 Address : Adresse
 Address\: : Adresse:
 analyze : analysieren
@@ -188,6 +190,7 @@ ReactivateContact : Kontakt reaktivieren
 Relay : Relais
 Relays and Turnouts : Relais und Weichen
 Relay/Turnout : Relais/Weiche
+Remove tag "{}" from train : Markierung "{}" von Zug entfernen
 Report Issue : Problem melden
 reverse : wenden
 Reversed {}. : {} umgedreht.

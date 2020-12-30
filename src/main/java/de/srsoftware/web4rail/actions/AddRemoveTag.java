@@ -5,78 +5,68 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Radio;
 
-public class SetSpeed extends Action{
+public class AddRemoveTag extends Action{
 
-	public SetSpeed(BaseClass parent) {
+	private static final String TAG = "tag";
+
+	public AddRemoveTag(BaseClass parent) {
 		super(parent);
 	}
 
-	public static final String MAX_SPEED = "max_speed";
-	private int speed = 0;
-
-	@Override
-	public boolean correspondsTo(Action other) {
-		return other instanceof SetSpeed;
-	}
+	private String tag = "test";
+	private boolean add = true;
 	
 	@Override
 	public boolean fire(Context context) {
 		if (isNull(context.train())) return false;
-		context.train().setSpeed(speed);
+		if (add) {
+			context.train().tags().add(tag);
+		} else {
+			context.train().tags().remove(tag);
+		}
 		return true;
 	}
 	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
-		json.put(MAX_SPEED, speed);
+		json.put(TAG, tag);
 		return json;
 	}
 	
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		speed = json.getInt(MAX_SPEED);
+		tag = json.getString(TAG);
 		return this;	
 	}
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Set speed to"),new Input(MAX_SPEED, speed).numeric());
+		formInputs.add(t("Tag"),new Input(TAG, tag));
+		Tag div = new Tag("div");
+		new Radio(TYPE, ACTION_ADD, t("add"), add).addTo(div);
+		new Radio(TYPE, ACTION_DROP, t("delete"), !add).addTo(div);
+		formInputs.add(t("Action"),div);
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	@Override
 	public String toString() {
-		return t("Set speed to {} {}",speed,speedUnit);
+		return add ? t("Add tag \"{}\" to train",tag) : t("Remove tag \"{}\" from train",tag);
 	}
 	
-	public SetSpeed to(int newSpeed) {
-		speed = newSpeed;
-		return this;
-	}
-
 	@Override
 	protected Object update(HashMap<String, String> params) {
-		String error = null;
-		String ms = params.get(MAX_SPEED);
-		if (ms == null) {
-			ms = ""+128;
-		} else {
-			try {
-				int s = Integer.parseInt(ms);
-				if (s<0) error = t("Speed must not be less than zero!");
-				if (isNull(error)) speed = s;
-			} catch (NumberFormatException e) {
-				error = t("Not a valid number!");
-			}
-		}
-		if (isSet(error)) return error;
+		tag = params.get(TAG);
+		add = ACTION_ADD.equals(params.get(TYPE));
 		return super.update(params);
 	}
 }
