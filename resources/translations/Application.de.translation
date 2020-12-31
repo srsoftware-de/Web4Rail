@@ -6,12 +6,14 @@ Action type\: : Aktions-Typ
 Actions will only fire, if all conditions are fullfilled. : Aktionen werden nur ausgeführt, wenn alle Bedingungen erfüllt sind.
 ActivateRoute : Route aktivieren
 add : hinzufügen
+add command for {} : Kommando für {} hinzufügen
 Added {} : {} hinzugefügt
 add action : Aktion hinzufügen
 Add action to action list : Aktion zur Liste hinzufügen
 add car\: : Waggon hinzufügen:
 Add condition : Bedingung hinzufügen
 add locomotive\: : Lok hinzufügen:
+add new aspect : neues Signalbild hinzufügen
 add new car : neuen Waggon anlegen
 Add new custom field : neues benutzerdefiniertes Feld hinzufügen
 add new locomotive : neue Lok anlegen
@@ -27,6 +29,8 @@ Analyze may overwrite these routes! : Durch die Analyse können diese Fahrstraß
 and : und
 AndCondition : Und-Bedingung
 Apply : Übernehmen
+Aspect : Signalbild
+Aspects : Signalbilder
 Auto pilot : Autopilot
 AutopilotActive : Autopilot aktiv
 autopilot active for train : Autopilot für Zug aktiviert
@@ -57,6 +61,7 @@ Click here to select display! : Hier klicken, um Anzeige auszuwählen!
 Click here to select train! : Hier klicken, um Zug auszuwählen!
 click here to setup contact : Hier klicken, um Kontakt auszuwählen
 click here to setup relay : Hier klicken, um Relais einzurichten
+click here to setup signal : Hier klicken, um Signal einzurichten
 Click here to setup tag : Hier klicken, um Markierung anzugeben
 click here to setup turnout : Hier klicken, um Weiche einzurichten
 Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
@@ -118,6 +123,7 @@ Function : Funktion
 Hardware settings : Hardware-Einstellungen
 Height : Höhe
 Help : Hilfe
+Hold : an lassen
 (id\: {}, length\: {}) : (Id: {}, Länge: {})
 if ({})\: : falls ({}):
 If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.

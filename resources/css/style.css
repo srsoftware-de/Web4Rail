@@ -191,11 +191,14 @@ h2{
 	stroke: red;
 }
 
-.signal.stop .sig_a{
+.signal.red .sig_a{
 	fill: red;
 }
-.signal.go .sig_a{
+.signal.green .sig_a{
 	fill: lime;
+}
+.signal.HL2 .sig_a{
+	fill: yellow;
 }
 
 .sig_b{
@@ -372,4 +375,8 @@ svg.Block text{
     float: none;
     clear:both;
     border-radius: 0 5px 5px 5px;
+}
+
+#aspect-form td{
+	text-align: center;
 }

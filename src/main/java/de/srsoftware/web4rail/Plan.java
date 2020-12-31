@@ -60,6 +60,7 @@ import de.srsoftware.web4rail.tiles.EndW;
 import de.srsoftware.web4rail.tiles.Eraser;
 import de.srsoftware.web4rail.tiles.Relay;
 import de.srsoftware.web4rail.tiles.Shadow;
+import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.SignalE;
 import de.srsoftware.web4rail.tiles.SignalN;
 import de.srsoftware.web4rail.tiles.SignalS;
@@ -186,6 +187,13 @@ public class Plan extends BaseClass{
 			return moveTile(params.get(DIRECTION),Id.from(params));
 		case ACTION_PROPS:
 			return properties(params);
+		case ACTION_POWER:
+			Signal signal = get(Id.from(params));
+			if (isSet(signal)) {
+				signal.state(params.get(Signal.STATE));
+				return signal.properties();
+			}
+			return null;
 		case ACTION_SAVE:
 			return saveTo(DEFAULT_NAME);
 		case ACTION_TIMES:
@@ -316,6 +324,22 @@ public class Plan extends BaseClass{
 	public void drop(Tile tile) {
 		tile.unregister();
 		stream("remove "+tile.id());		
+	}
+	
+	
+	Fieldset editableProperties() {
+		Fieldset fieldset = new Fieldset(t("Editable properties"));
+		//new Tag("h4").content(t("Editable properties")).addTo(win);
+		Form form = new Form("plan-properties-form");
+		new Input(REALM,REALM_PLAN).hideIn(form);
+		new Input(ACTION,ACTION_UPDATE).hideIn(form);
+		new Input(LENGTH_UNIT, lengthUnit).addTo(new Label(t("Length unit")+":"+NBSP)).addTo(form);
+		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+":"+NBSP)).addTo(form);
+		new Input(FINAL_SPEED, Route.endSpeed).addTo(new Label(t("Lower speed limit")+":"+NBSP)).attr("title", t("Final speed after breaking, before halting")).addTo(form);
+		new Checkbox(FREE_BEHIND_TRAIN, t("Free tiles behind train"), Route.freeBehindTrain).attr("title", t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.")).addTo(form);
+		new Button(t("Save"), form).addTo(form);
+		form.addTo(fieldset);
+		return fieldset;
 	}
 
 	/**
@@ -634,43 +658,10 @@ public class Plan extends BaseClass{
 		
 		Window win = new Window("plan-properties", t("Properties of {}",t("Plan")));
 		
-		Fieldset fieldset = new Fieldset(t("Editable properties"));
-		//new Tag("h4").content(t("Editable properties")).addTo(win);
-		Form form = new Form("plan-properties-form");
-		new Input(REALM,REALM_PLAN).hideIn(form);
-		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(LENGTH_UNIT, lengthUnit).addTo(new Label(t("Length unit")+":"+NBSP)).addTo(form);
-		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+":"+NBSP)).addTo(form);
-		new Input(FINAL_SPEED, Route.endSpeed).addTo(new Label(t("Lower speed limit")+":"+NBSP)).attr("title", t("Final speed after breaking, before halting")).addTo(form);
-		new Checkbox(FREE_BEHIND_TRAIN, t("Free tiles behind train"), Route.freeBehindTrain).attr("title", t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.")).addTo(form);
-		new Button(t("Save"), form).addTo(form);
-		form.addTo(fieldset).addTo(win);
+		editableProperties().addTo(win);
+		relayProperties().addTo(win);
+		routeProperties().addTo(win);
 		
-		fieldset = new Fieldset(t("Relays and Turnouts"));
-		Table table = new Table();
-		table.addHead(t("Address"),t("Relay/Turnout"));
-		List<Device> devices = BaseClass.listElements(Tile.class)
-			.stream()
-			.filter(tile -> tile instanceof Device )
-			.map(tile -> (Device) tile)
-			.sorted(Comparator.comparing(Device::address))
-			.collect(Collectors.toList());
-		for (Device device : devices) {
-			Tile tile = (Tile) device;
-			table.addRow(device.address(),tile.link(tile.toString()));
-			if (device.address() % 4 == 1) table.children().lastElement().clazz("group");
-			
-		}
-		table.clazz("turnouts").addTo(fieldset).addTo(win);
-		
-		fieldset = new Fieldset(t("Routes"));
-		table = new Table();
-		table.addHead(t("Name"),t("Start"),t("End"),t("Actions"));
-		List<Route> routes = BaseClass.listElements(Route.class);
-		for (Route route : routes) {
-			table.addRow(route.link("span",route.name()),route.link("span", route.startBlock()),route.link("span", route.endBlock()),plan.button(t("simplify name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())));
-		}
-		table.clazz("turnouts").addTo(fieldset).addTo(win);
 		
 		return win;
 	}
@@ -697,10 +688,42 @@ public class Plan extends BaseClass{
 		return newRoute;
 	}
 	
+	private Fieldset relayProperties() {
+		Fieldset fieldset = new Fieldset(t("Relays and Turnouts"));
+		Table table = new Table();
+		table.addHead(t("Address"),t("Relay/Turnout"));
+		List<Device> devices = BaseClass.listElements(Tile.class)
+			.stream()
+			.filter(tile -> tile instanceof Device )
+			.map(tile -> (Device) tile)
+			.sorted(Comparator.comparing(Device::address))
+			.collect(Collectors.toList());
+		for (Device device : devices) {
+			Tile tile = (Tile) device;
+			table.addRow(device.address(),tile.link(tile.toString()));
+			if (device.address() % 4 == 1) table.children().lastElement().clazz("group");
+			
+		}
+		table.clazz("turnouts").addTo(fieldset);
+		return fieldset;
+	}
+	
 	@Override
 	protected void removeChild(BaseClass child) {
 		if (child instanceof Tile) drop((Tile) child);
 		super.removeChild(child);
+	}
+
+	private Tag routeProperties() {
+		Fieldset fieldset = new Fieldset(t("Routes"));
+		Table table = new Table();
+		table.addHead(t("Name"),t("Start"),t("End"),t("Actions"));
+		List<Route> routes = BaseClass.listElements(Route.class);
+		for (Route route : routes) {
+			table.addRow(route.link("span",route.name()),route.link("span", route.startBlock()),route.link("span", route.endBlock()),plan.button(t("simplify name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())));
+		}
+		table.clazz("turnouts").addTo(fieldset);
+		return fieldset;
 	}
 	
 	public void save() throws IOException {
@@ -864,7 +887,7 @@ public class Plan extends BaseClass{
 	public Object update(HashMap<String, String> params) {
 		super.update(params);
 		Tile tile = get(Id.from(params),true);
-		if (isSet(tile)) return tile.update(params);
+		if (isSet(tile)) return tile.update(params).properties();
 		
 		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.get(LENGTH_UNIT);
 		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);

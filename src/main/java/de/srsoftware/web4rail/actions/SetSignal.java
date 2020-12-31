@@ -21,7 +21,7 @@ public class SetSignal extends Action {
 
 	private static final String SIGNAL = "signal";
 	private Signal signal = null;
-	private String state = Signal.STOP;
+	private String state = Signal.RED;
 
 	@Override
 	public boolean fire(Context context) {

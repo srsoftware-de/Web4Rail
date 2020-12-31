@@ -344,7 +344,10 @@ public class Route extends BaseClass {
 			String trigger = nextToLastContact.trigger();
 			add(trigger,new BrakeStart(this));
 			add(trigger,new PreserveRoute(this));
-			for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.STOP));
+			
+			Contact secondContact = contacts.get(1);
+			trigger = secondContact.trigger();
+			for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.RED));
 		}
 		if (!contacts.isEmpty()) {
 			Contact lastContact = contacts.lastElement(); 
@@ -356,7 +359,7 @@ public class Route extends BaseClass {
 			Turnout.State state = entry.getValue();
 			add(ROUTE_SETUP,new SetTurnout(this).setTurnout(turnout).setState(state));
 		}
-		for (Signal signal : signals) add(ROUTE_START,new SetSignal(this).set(signal).to(Signal.GO));
+		for (Signal signal : signals) add(ROUTE_START,new SetSignal(this).set(signal).to(Signal.GREEN));
 		add(ROUTE_START,new SetSpeed(this).to(999));
 		return this;
 	}
@@ -425,7 +428,7 @@ public class Route extends BaseClass {
 	
 	public void finish() {
 		context.clear(); // prevent delayed actions from firing after route has finished
-		setSignals(Signal.STOP);
+		setSignals(Signal.RED);
 		for (Tile tile : path) try {
 			tile.unset(this);
 		} catch (IllegalArgumentException e) {}
@@ -808,7 +811,7 @@ public class Route extends BaseClass {
 	
 	public boolean reset() {
 		LOG.debug("{}.reset()",this);
-		setSignals(Signal.STOP);
+		setSignals(Signal.RED);
 		for (Tile tile : path) {
 			try {
 				tile.unset(this);
@@ -859,7 +862,7 @@ public class Route extends BaseClass {
 	public boolean setSignals(String state) {
 		LOG.debug("{}.setSignals({})",this,state);
 		for (Signal signal : signals) {
-			if (!signal.state(isNull(state) ? Signal.GO : state)) return false;
+			if (!signal.state(isNull(state) ? Signal.GREEN : state)) return false;
 		}
 		return true;
 	}
