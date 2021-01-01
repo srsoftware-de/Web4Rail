@@ -6,16 +6,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeSet;
+import java.util.Vector;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.TreeSet;
-import java.util.Vector;
-
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
@@ -30,10 +31,12 @@ public abstract class Signal extends Tile {
 	public static final String GREEN = "green";
 	public static final TreeSet<String> knownStates = new TreeSet<String>(List.of(RED, GREEN));
 	private final HashMap<String,HashSet<int[]>> aspects = new HashMap<String, HashSet<int[]>>();
+	private final HashSet<Integer> initialized = new HashSet<Integer>();
 	private static final String ADDRESS = "addr";
 	private static final String HOLD = "hold";
 	private static final String NEW_ASPECT = "new_aspect";
 	private static final String ASPECTS = "aspects";
+	private   Protocol protocol    = Protocol.DCC128;
 	
 	private String state = RED;
 
@@ -100,6 +103,22 @@ public abstract class Signal extends Tile {
 		return super.load(json);
 	}
 	
+	private char proto() {
+		switch (protocol) {
+		case DCC14:
+		case DCC27:
+		case DCC28:
+		case DCC128:
+			return 'N';
+		case MOTO:
+			return 'M';
+		case SELECTRIX:
+			return 'S';
+		default:
+			return 'P';
+		}		
+	}
+	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		Fieldset aspectEditor = new Fieldset(t("Aspects"));
@@ -142,6 +161,8 @@ public abstract class Signal extends Tile {
 		HashSet<int[]> commands = aspects.get(aspect);
 		if (isSet(commands)) {
 			for (int[] data : commands) {
+				int addr = data[0];
+				init(addr);
 				Command cmd = new Command("SET {} GA "+data[0]+" "+data[1]+" "+data[2]+" "+(data[3]==1?-1:200));
 				LOG.debug("new Command: {}",cmd);
 				plan.controlUnit().queue(cmd);
@@ -151,6 +172,31 @@ public abstract class Signal extends Tile {
 		return true;
 	}
 	
+	private void init(int addr) {
+		if (!initialized.contains(addr)) {
+			Command command = new Command("INIT {} GA "+addr+" "+proto()) {
+
+				@Override
+				public void onSuccess() {
+					super.onSuccess();
+					initialized.add(addr);
+				}
+
+				@Override
+				public void onFailure(Reply r) {
+					super.onFailure(r);
+				}
+				
+			};			
+			try {
+				plan.queue(command).reply();
+			} catch (TimeoutException e) {
+				LOG.warn(e.getMessage());
+			}
+
+		}
+	}
+
 	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {
 		Tag tag = super.tag(replacements);

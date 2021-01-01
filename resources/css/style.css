@@ -194,10 +194,11 @@ h2{
 .signal.red .sig_a{
 	fill: red;
 }
+.signal.HL2 .sig_a,
 .signal.green .sig_a{
 	fill: lime;
 }
-.signal.HL2 .sig_a{
+.signal.HL2 .sig_b{
 	fill: yellow;
 }
 

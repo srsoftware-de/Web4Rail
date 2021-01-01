@@ -80,7 +80,7 @@ public abstract class Turnout extends Tile implements Device{
 
 				@Override
 				public void onFailure(Reply r) {
-					super.onSuccess();
+					super.onFailure(r);
 					initialized = false;					
 				}
 				
