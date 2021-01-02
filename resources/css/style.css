@@ -355,7 +355,12 @@ svg.preview circle,
 svg.preview line,
 svg.preview polygon,
 svg.preview rect{
-	fill:cyan !important;
+	fill:cyan;
+}
+
+svg.preview rect.sig_a,
+svg.preview rect.sig_b{
+	fill: inherit;
 }
 
 svg.Block text{

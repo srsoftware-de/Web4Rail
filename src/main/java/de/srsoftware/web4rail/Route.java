@@ -181,6 +181,12 @@ public class Route extends BaseClass {
 				return plan.properties(new HashMap<String,String>());
 			case ACTION_PROPS:
 				return route.properties();
+			case ACTION_START:
+				route.set(new Context(route));
+				route.fireSetupActions();
+				route.context.clear();
+				
+				return route.properties();
 			case ACTION_UPDATE:
 				return route.update(params,plan);
 		}
@@ -282,6 +288,8 @@ public class Route extends BaseClass {
 			for (Signal s : signals) Plan.addLink(s,s.toString(),list);
 			list.addTo(fieldset);
 		}
+		
+		this.button(t("Test"),Map.of(ACTION,ACTION_START)).addTo(fieldset);
 		return fieldset;
 	}
 	
