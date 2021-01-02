@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -305,7 +306,9 @@ public abstract class Block extends StretchableTile{
 		if (isNull(exclude)) exclude = new Vector<Block>();
 		Select select = new Select(Block.class.getSimpleName());
 		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
-		for (Block block : BaseClass.listElements(Block.class)) {
+		List<Block> blocks = BaseClass.listElements(Block.class);
+		Collections.sort(blocks, (b1,b2) -> b1.name.compareTo(b2.name));
+		for (Block block : blocks) {
 			if (exclude.contains(block)) continue;
 			Tag opt = select.addOption(block.id(), block);
 			if (block == preselected) opt.attr("selected", "selected");

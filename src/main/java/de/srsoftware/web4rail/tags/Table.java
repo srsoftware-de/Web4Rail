@@ -10,7 +10,7 @@ public class Table extends Tag{
 		super("table");
 	}
 
-	public Table addRow(Object...cols) {
+	public Tag addRow(Object...cols) {
 		Tag row = new Tag("tr");
 		for (Object column : cols) {
 			Tag col = null;
@@ -22,12 +22,13 @@ public class Table extends Tag{
 			col.addTo(row);
 		}
 		row.addTo(this);
-		return this;
+		return row;
 	}
 	
 	public Table addHead(Object...cols) {
 		Object[] tags = new Tag[cols.length];
 		for (int i=0; i<cols.length; i++) tags[i]= cols[i] instanceof Tag ? ((Tag)cols[i]).addTo(new Tag("th")) : new Tag("th").content(cols[i].toString());
-		return addRow(tags);
+		addRow(tags);
+		return this;
 	}
 }

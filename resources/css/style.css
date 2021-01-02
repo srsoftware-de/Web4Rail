@@ -261,9 +261,13 @@ h4,ul{
 }
 
 .window .disabled{
-	background: red;
+	background: orange;
 	padding: 3px;
 	display: table;
+}
+
+.window tr.disabled {
+    display: table-row;
 }
 
 svg.disabled circle,
@@ -307,6 +311,10 @@ table.brake-times{
 
 table tr:hover td{
 	background: #cadbdb;
+}
+
+table tr.disabled:hover td {
+    background: yellow;
 }
 
 table.brake-times tr > *{

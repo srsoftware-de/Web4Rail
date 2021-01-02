@@ -1,4 +1,5 @@
 abort : abbrechen
+Accessory : Zubehör
 Actions : Aktionen
 Actions\: : Aktionen:
 Actions and contacts : Aktionen und Kontakte
@@ -26,6 +27,7 @@ Address\: : Adresse:
 analyze : analysieren
 Analyze : analysieren
 Analyze may overwrite these routes! : Durch die Analyse können diese Fahrstraßen überschrieben werden!
+Analyzing plan... : Plan wird analysiert...
 and : und
 AndCondition : Und-Bedingung
 Apply : Übernehmen
@@ -83,7 +85,6 @@ Current location\: {} : Aufenthaltsort: {}
 Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {}
 custom fields : benutzerdefinierte Felder
 Decoder address : Decoder-Adresse 
-Delay : Verzögerung
 DelayedAction : verzögerte Aktion
 delete : entfernen
 delete route : Route löschen
@@ -152,8 +153,10 @@ Lower speed limit : Minimale Geschwindigkeit
 Manage cars : Waggons verwalten
 Manage locos : Lokomotiven verwalten
 Manage trains : Züge verwalten
+Maximum delay : maximale Verzögerung
 Maximum Speed : Höchstgeschwindigkeit
 Maximum train length : maximale Zug-Länge
+Minimum delay : minimale Verzögerung
 Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block. : Minamle und maximale Block-Haltezeit (in Millisekunden) für Züge mit der entsprchender Markierung.
 Move tiles : Kacheln verschieben
 name\: : Name:
@@ -194,9 +197,9 @@ quit autopilot : Autopilot beenden
 {} reached it`s destination! : {} ist am Ziel angekommen!
 ReactivateContact : Kontakt reaktivieren
 Relay : Relais
-Relays and Turnouts : Relais und Weichen
-Relay/Turnout : Relais/Weiche
+Relay/Signal/Turnout : Relais/Signal/Weiche
 Remove tag "{}" from train : Markierung "{}" von Zug entfernen
+Removed {} : {} gelöscht
 Report Issue : Problem melden
 reverse : wenden
 Reversed {}. : {} umgedreht.

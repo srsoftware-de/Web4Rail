@@ -44,6 +44,14 @@ public abstract class Signal extends Tile {
 		super();
 	}
 	
+	public HashSet<Integer> addresses(){
+		HashSet<Integer> list = new HashSet<Integer>();
+		for (HashSet<int[]> commands : aspects.values()) {
+			for (int[] data : commands) list.add(data[0]);
+		}
+		return list;
+	}
+	
 	@Override
 	protected Vector<String> classes() {
 		Vector<String> classes = super.classes();

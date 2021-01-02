@@ -61,6 +61,20 @@ public class ActionList extends Action implements Iterable<Action>{
 	public void clear() {
 		while (!actions.isEmpty()) actions.firstElement().remove();
 	}
+	
+	@Override
+	public boolean correspondsTo(Action other) {
+		if (other instanceof ActionList) {
+			ActionList otherAL = (ActionList) other;
+			if (actions.size() != otherAL.actions.size()) return false;
+			for (int i=0; i<actions.size(); i++) {
+				if (!actions.get(i).correspondsTo(otherAL.actions.get(i))) return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
 
 	public boolean drop(Action action) {
 		return actions.remove(action);
@@ -125,7 +139,7 @@ public class ActionList extends Action implements Iterable<Action>{
 				if (o instanceof JSONObject) {
 					JSONObject jsonObject = (JSONObject) o;
 					Action action = Action.create(jsonObject.getString(TYPE),this);
-					if (action != null) add(action.load(jsonObject));
+					if (isSet(action)) add(action.load(jsonObject));
 				}
 			}
 		}

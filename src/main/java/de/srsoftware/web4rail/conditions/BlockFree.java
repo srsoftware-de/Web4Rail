@@ -50,7 +50,7 @@ public class BlockFree extends Condition {
 
 	@Override
 	public String toString() {
-		if (block == null) return t("[Click here to select block!]");
+		if (block == null) return "["+t("Click here to select block!")+"]";
 		return t(inverted ? "Block {} is occupied":"Block {} is free",block);
 	}
 

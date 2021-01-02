@@ -15,15 +15,18 @@ import de.srsoftware.web4rail.tags.Input;
 public class DelayedAction extends ActionList {
 	
 	public static final String DELAY = "delay";
+	public static final String MIN_DELAY = "min_delay";
+	public static final String MAX_DELAY = "max_delay";
 	private static final int DEFAULT_DELAY = 1000;
-	private int delay = DEFAULT_DELAY;
+	private int min_delay = DEFAULT_DELAY;
+	private int max_delay = DEFAULT_DELAY;
 		
 	public DelayedAction(BaseClass parent) {
 		super(parent);
 	}
-		
+			
 	public boolean equals(DelayedAction other) {
-		return (delay+":"+actions).equals(other.delay+":"+other.actions);
+		return (min_delay+":"+max_delay+":"+actions).equals(other.min_delay+":"+other.max_delay+":"+other.actions);
 	}
 		
 	@Override
@@ -31,8 +34,8 @@ public class DelayedAction extends ActionList {
 		Application.threadPool.execute(new Thread() {
 			public void run() {
 				try {
-					Thread.sleep(delay);
-					LOG.debug("{} ms passed by, firing actions:",delay);
+					Thread.sleep(min_delay + (min_delay < max_delay ? random.nextInt(max_delay - min_delay) : 0));
+					LOG.debug("{} ms passed by, firing actions:",min_delay);
 				} catch (InterruptedException e) {
 					LOG.warn("Interrupted Exception thrown while waiting:",e);
 				}
@@ -44,38 +47,69 @@ public class DelayedAction extends ActionList {
 	
 	@Override
 	public JSONObject json() {
-		return super.json().put(DELAY, delay);
+		return super.json().put(MIN_DELAY, min_delay).put(MAX_DELAY, max_delay);
 	}
 	
 	public DelayedAction load(JSONObject json) {
 		super.load(json);
-		delay = json.getInt(DELAY);
+		if (json.has(DELAY)) {
+			min_delay = json.getInt(DELAY);
+			max_delay = json.getInt(DELAY);
+		}		
+		if (json.has(MIN_DELAY)) min_delay = json.getInt(MIN_DELAY);
+		if (json.has(MAX_DELAY)) max_delay = json.getInt(MAX_DELAY);
 		return this;
 	}
 		
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Delay"),new Input(DELAY,delay).numeric().addTo(new Tag("span")).content(NBSP+"ms"));
+		formInputs.add(t("Minimum delay"),new Input(MIN_DELAY,min_delay).numeric().addTo(new Tag("span")).content(NBSP+"ms"));
+		formInputs.add(t("Maximum delay"),new Input(MAX_DELAY,max_delay).numeric().addTo(new Tag("span")).content(NBSP+"ms"));
 		return super.properties(preForm, formInputs, postForm);
+	}
+	
+	public DelayedAction setMaxDelay(int max_delay) {
+		this.max_delay = max_delay;
+		return this;
+	}
+
+	public DelayedAction setMinDelay(int min_delay) {
+		this.min_delay = min_delay;
+		return this;
 	}
 
 	@Override
-	public String toString() {	
-		return t("Wait {} ms, then:",delay);
+	public String toString() {
+		return t("Wait {} ms, then:",min_delay < max_delay ? min_delay+"…"+max_delay : min_delay);
 	}
 
 	@Override
 	protected Object update(HashMap<String, String> params) {
-		String d = params.get(DELAY);
-		if (d != null)	try {
+		String d = params.get(MIN_DELAY);
+		if (isSet(d))	try {
 			int ms = Integer.parseInt(d);
 			if (ms < 0) throw new NumberFormatException(t("Delay must not be less than zero!"));
-			delay = ms;
+			min_delay = ms;
 		} catch (NumberFormatException nfe) {
 			Window props = properties();
 			props.children().insertElementAt(new Tag("div").content(nfe.getMessage()), 2);
 			return props;
 		}		
+		d = params.get(MAX_DELAY);
+		if (isSet(d))	try {
+			int ms = Integer.parseInt(d);
+			if (ms < 0) throw new NumberFormatException(t("Delay must not be less than zero!"));
+			max_delay = ms;
+		} catch (NumberFormatException nfe) {
+			Window props = properties();
+			props.children().insertElementAt(new Tag("div").content(nfe.getMessage()), 2);
+			return props;
+		}		
+		if (min_delay > max_delay) {
+			int dummy = min_delay;
+			min_delay = max_delay;
+			max_delay = dummy;
+		}
 		return super.update(params);
 	}
 }

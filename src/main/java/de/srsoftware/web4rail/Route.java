@@ -24,7 +24,7 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.actions.BrakeStart;
-import de.srsoftware.web4rail.actions.BrakeStop;
+import de.srsoftware.web4rail.actions.DelayedAction;
 import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.PreserveRoute;
 import de.srsoftware.web4rail.actions.SetSignal;
@@ -177,7 +177,8 @@ public class Route extends BaseClass {
 		switch (params.get(ACTION)) {
 			case ACTION_DROP:
 				route.remove();
-				return t("Removed {}.",route);				
+				plan.stream(t("Removed {}.",route));				
+				return plan.properties(new HashMap<String,String>());
 			case ACTION_PROPS:
 				return route.properties();
 			case ACTION_UPDATE:
@@ -319,11 +320,6 @@ public class Route extends BaseClass {
 		brakeProcessor = new BrakeProcessor(this,train);
 	}
 	
-	public void brakeStop() {
-		train.setSpeed(0);
-		if (isSet(brakeProcessor)) brakeProcessor.finish();
-	}
-
 	protected Route clone() {
 		Route clone = new Route();
 		clone.startBlock = startBlock;
@@ -349,18 +345,19 @@ public class Route extends BaseClass {
 			trigger = secondContact.trigger();
 			for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.RED));
 		}
-		if (!contacts.isEmpty()) {
-			Contact lastContact = contacts.lastElement(); 
-			add(lastContact.trigger(), new BrakeStop(this)); 
-			add(lastContact.trigger(), new FinishRoute(this));
-		}
+		if (!contacts.isEmpty()) add(contacts.lastElement().trigger(), new FinishRoute(this));
 		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) {
 			Turnout turnout = entry.getKey();
 			Turnout.State state = entry.getValue();
 			add(ROUTE_SETUP,new SetTurnout(this).setTurnout(turnout).setState(state));
 		}
-		for (Signal signal : signals) add(ROUTE_START,new SetSignal(this).set(signal).to(Signal.GREEN));
-		add(ROUTE_START,new SetSpeed(this).to(999));
+		for (Signal signal : signals) add(ROUTE_SETUP,new SetSignal(this).set(signal).to(Signal.GREEN));
+		if (signals.isEmpty()) {
+			add(ROUTE_START,new SetSpeed(this).to(999));
+		} else {
+			DelayedAction da = new DelayedAction(this).setMinDelay(1000).setMaxDelay(7500);
+			add(ROUTE_START,da.add(new SetSpeed(this).to(999)));
+		}
 		return this;
 	}
 
@@ -427,11 +424,21 @@ public class Route extends BaseClass {
 	}	
 	
 	public void finish() {
+		if (isSet(train)) {
+			if (train.nextRoutePrepared()) {
+				if (isSet(brakeProcessor)) brakeProcessor.abort();
+			} else {
+				train.setSpeed(0);
+				if (isSet(brakeProcessor)) brakeProcessor.finish();
+			}
+		}		
+		
 		context.clear(); // prevent delayed actions from firing after route has finished
 		setSignals(Signal.RED);
-		for (Tile tile : path) try {
+		for (Tile tile : path) try { // remove route from tiles on path
 			tile.unset(this);
 		} catch (IllegalArgumentException e) {}
+		
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Contact) {
 			lastTile.setTrain(null);
@@ -447,7 +454,7 @@ public class Route extends BaseClass {
 				train.setWaitTime(endBlock.getWaitTime(train,train.direction()));
 			}
 			if (train.route == this) train.route = null;
-			if (!train.onTrace(startBlock) && startBlock.train() == train) startBlock.setTrain(null);
+			if (startBlock.train() == train && !train.onTrace(startBlock)) startBlock.setTrain(null); // withdraw train from start block only if trace does not go back there
 		}
 		train = null;
 	}

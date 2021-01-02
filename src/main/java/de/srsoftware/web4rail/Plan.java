@@ -9,7 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.security.InvalidParameterException;
 import java.util.Collection;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -650,7 +650,7 @@ public class Plan extends BaseClass{
 		return actions.addTo(actionMenu);
 	}
 	
-	private Window properties(HashMap<String, String> params) {
+	public Window properties(HashMap<String, String> params) {
 		if (params.containsKey(ID)) {
 			Tile tile = get(Id.from(params), true);
 			if (isSet(tile)) return tile.properties();
@@ -689,18 +689,41 @@ public class Plan extends BaseClass{
 	}
 	
 	private Fieldset relayProperties() {
-		Fieldset fieldset = new Fieldset(t("Relays and Turnouts"));
+		Fieldset fieldset = new Fieldset(t("Accessory"));
 		Table table = new Table();
-		table.addHead(t("Address"),t("Relay/Turnout"));
+		table.addHead(t("Address"),t("Relay/Signal/Turnout"));
+		
 		List<Device> devices = BaseClass.listElements(Tile.class)
 			.stream()
 			.filter(tile -> tile instanceof Device )
 			.map(tile -> (Device) tile)
-			.sorted(Comparator.comparing(Device::address))
 			.collect(Collectors.toList());
+
+		for (Signal signal : BaseClass.listElements(Signal.class)) {
+			for (int addr : signal.addresses()) {
+				devices.add(new Device() {					
+					@Override
+					public int address() {
+						return addr;
+					}
+
+					@Override
+					public Tag link(String... args) {
+						return signal.link(args);
+					}
+					
+					@Override
+					public String toString() {
+						return signal.toString();
+					}
+				});
+			}
+		}
+
+		Collections.sort(devices, (d1,d2) -> d1.address() - d2.address());
+
 		for (Device device : devices) {
-			Tile tile = (Tile) device;
-			table.addRow(device.address(),tile.link(tile.toString()));
+			table.addRow(device.address(),device.link(device.toString()));
 			if (device.address() % 4 == 1) table.children().lastElement().clazz("group");
 			
 		}
@@ -719,8 +742,17 @@ public class Plan extends BaseClass{
 		Table table = new Table();
 		table.addHead(t("Name"),t("Start"),t("End"),t("Actions"));
 		List<Route> routes = BaseClass.listElements(Route.class);
+		Collections.sort(routes, (r1,r2) -> r1.name().compareTo(r2.name()));
 		for (Route route : routes) {
-			table.addRow(route.link("span",route.name()),route.link("span", route.startBlock()),route.link("span", route.endBlock()),plan.button(t("simplify name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())));
+			Tag actions = new Tag("div");
+			plan.button(t("simplify name"), Map.of(ACTION,ACTION_AUTO,ROUTE,route.id().toString())).addTo(actions);
+			route.button(t("delete"), Map.of(ACTION,ACTION_DROP)).addTo(actions);
+			Tag row = table.addRow(
+					route.link("span",route.name()),
+					route.link("span", route.startBlock()),
+					route.link("span", route.endBlock()),
+					actions);
+			if (route.isDisabled())	row.clazz("disabled");
 		}
 		table.clazz("turnouts").addTo(fieldset);
 		return fieldset;

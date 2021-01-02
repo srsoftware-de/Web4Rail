@@ -24,6 +24,15 @@ public class SetSignal extends Action {
 	private String state = Signal.RED;
 
 	@Override
+	public boolean correspondsTo(Action other) {
+		if (other instanceof SetSignal) {
+			SetSignal otherSS = (SetSignal) other;
+			return otherSS.signal == this.signal;
+		}
+		return false;
+	}
+	
+	@Override
 	public boolean fire(Context context) {
 		if (isNull(signal)) return false;
 		return signal.state(state);
