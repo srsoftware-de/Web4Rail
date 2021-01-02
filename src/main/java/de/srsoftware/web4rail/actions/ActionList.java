@@ -93,6 +93,20 @@ public class ActionList extends Action implements Iterable<Action>{
 		return true;
 	}
 	
+	public Integer getSpeed(Context context) {
+		Integer speed = null;
+		for (Action action : this) {
+			if (action instanceof SetSpeed) {
+				speed = ((SetSpeed)action).getSpeed();
+			}
+			if (action instanceof ActionList) {
+				Integer listSpeed = ((ActionList)action).getSpeed(context);
+				if (isSet(listSpeed)) speed = listSpeed;
+			}
+		}
+		return speed;
+	}
+
 	@Override
 	public Iterator<Action> iterator() {
 		return actions.iterator();

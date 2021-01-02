@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -77,27 +76,31 @@ public class Route extends BaseClass {
 
 	private static final String ROUTE_SETUP = "route_setup";
 	
-		private int startSpeed;
-		private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
+	private int startSpeed;
+	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
 		
-		private class BrakeProcessor extends Thread {
+	private class BrakeProcessor extends Thread {
 		private long timestamp;
+		private static final int SPEED_STEP = 5;
 		private Integer timeStep;
 		private Route route;
 		private Train train;
 		private boolean aborted = false;
 		private String brakeId;
+		private long estimatedDistance; // Unit: s*km/h "km/h-Sekunden"
 		
 		public BrakeProcessor(Route route, Train train) {
 			this.train = train;
 			this.route = route;
 
-			startSpeed = train.speed;			
+
+			estimatedDistance = 0;
 			brakeId = train.brakeId();
+			startSpeed = train.speed;			
 			
 			timeStep = brakeTimes.get(brakeId);
 			// if no brake time is available for this train, use the fastest brake time already known for this route:
-			if (isNull(timeStep)) timeStep = route.brakeTimes.values().stream().min(Integer::compare).orElse(100);
+			if (isNull(timeStep)) timeStep = 100;
 			start();
 		}
 
@@ -106,19 +109,35 @@ public class Route extends BaseClass {
 			train.setSpeed(startSpeed);
 		}
 		
+		private long calcDistance(Integer ts) {
+			long dist = 0;
+			int s = startSpeed;
+			while (s > endSpeed) {
+				s -= SPEED_STEP;
+				dist += s*ts;
+			}
+			LOG.debug("Estimated distamce with {} ms timestep: {}",ts,dist);
+			return dist;
+		}
+		
+		/**
+		 * This is called from route.finish when train came to stop
+		 */
 		public void finish() {
-			long timestamp2 = new Date().getTime();
-			//int remainingSpeed = train.speed;
+			LOG.debug("BrakeProcessor.finish(){}",aborted?" got aborted":"");
 			if (aborted) return;
-			long runtime = timestamp2 - timestamp;
-			int quotient = startSpeed - endSpeed;
-			if (quotient<1) quotient = 1;
-			int newTimeStep = 5*(int) runtime/quotient;
-			
-			int diff = newTimeStep - timeStep;
-			int absDiff = diff < 0 ? -diff : diff;
-			if (absDiff > timeStep/4) absDiff=timeStep/4;
-			newTimeStep = diff < 0 ? timeStep - absDiff : timeStep + absDiff;			
+			long runtime = BaseClass.timestamp() - timestamp;
+			estimatedDistance += train.speed * runtime;
+			train.setSpeed(0);
+			LOG.debug("Estimated distance: {}",estimatedDistance);
+
+			Integer newTimeStep = timeStep;
+			while (calcDistance(newTimeStep) < estimatedDistance) {
+				newTimeStep += 1+newTimeStep/8;			
+			}
+			while (calcDistance(newTimeStep) > estimatedDistance) {
+				newTimeStep -= 1+newTimeStep/16;
+			}
 			
 			if (newTimeStep != timeStep) {
 				route.brakeTimes.put(brakeId,newTimeStep);
@@ -128,12 +147,29 @@ public class Route extends BaseClass {
 
 		@Override
 		public void run() {
-			timestamp = new Date().getTime();
+			timestamp = timestamp();
+			Integer nextRouteSpeed = null;
 			if (train.speed == 0) aborted = true;
 			while (train.speed > endSpeed) {
-				if (aborted || train.nextRoutePrepared()) break;
+				if (train.nextRoutePrepared()) {
+					if (isNull(nextRouteSpeed)) nextRouteSpeed = train.nextRoute().startSpeed(); // get the starting speed of the next route
+					if (isNull(nextRouteSpeed)) {
+						LOG.warn("Train has prepared next route, but that route seems to have no start speed!?");
+						nextRouteSpeed = 0; // assume starting speed of zero
+					}
+					if (train.speed < nextRouteSpeed) { // train already is slower: stop braking, set train speed to next route's start speed
+						train.setSpeed(nextRouteSpeed);
+						abort();
+					}
+					// if train is still faster than starting speed for next route: continue braking
+				}
+				if (aborted) break;				
+				
 				LOG.debug("BrakeProcessor({}) setting Speed of {}.",route,train);
-				train.setSpeed(Math.max(train.speed - 5,endSpeed));				
+				long runtime = BaseClass.timestamp() - timestamp;
+				timestamp = timestamp+runtime;
+				estimatedDistance += train.speed * runtime;
+				train.setSpeed(Math.max(train.speed - SPEED_STEP,endSpeed));				
 				try {
 					sleep(timeStep);
 				} catch (InterruptedException e) {
@@ -320,7 +356,8 @@ public class Route extends BaseClass {
 	}
 	
 	public void brakeCancel() {
-		if (isSet(brakeProcessor)) brakeProcessor.abort();		
+		if (isSet(brakeProcessor)) brakeProcessor.abort();	
+		brakeProcessor = null;
 	}
 
 	public void brakeStart() {
@@ -427,19 +464,30 @@ public class Route extends BaseClass {
 		return context.clone();
 	}
 	
+	public void dropBraketimes(String...brakeIds) {
+		for (String brakeId : brakeIds) brakeTimes.remove(brakeId);
+	}
+	
 	public Block endBlock() {
 		return endBlock;
 	}	
 	
 	public void finish() {
+		LOG.debug("{}.finish()",this);
 		if (isSet(train)) {
 			if (train.nextRoutePrepared()) {
+				LOG.debug("{} has prepared next route: {}",train,train.nextRoute());
 				if (isSet(brakeProcessor)) brakeProcessor.abort();
 			} else {
-				train.setSpeed(0);
-				if (isSet(brakeProcessor)) brakeProcessor.finish();
+				LOG.debug("{} has no next route.",train);
+				if (isSet(brakeProcessor)) {					
+					brakeProcessor.finish();
+				} else {
+					train.setSpeed(0);
+				}
 			}
-		}		
+		}
+		brakeProcessor = null;
 		
 		context.clear(); // prevent delayed actions from firing after route has finished
 		setSignals(Signal.RED);
@@ -911,7 +959,14 @@ public class Route extends BaseClass {
 
 	public Block startBlock() {
 		return startBlock;
-	}		
+	}
+	
+	public Integer startSpeed() {
+		ActionList startActions = triggeredActions.get(ROUTE_START);
+		Context context = new Context(this);
+		return isSet(startActions) ? startActions.getSpeed(context) : null;
+	}
+
 	
 	protected static String t(String txt, Object...fills) {
 		return Translation.get(Application.class, txt, fills);
@@ -967,5 +1022,9 @@ public class Route extends BaseClass {
 			conditions.add(condition);
 		}
 		return properties();
+	}
+
+	public Integer brakeTime(String brakeId) {
+		return brakeTimes.get(brakeId);
 	}
 }

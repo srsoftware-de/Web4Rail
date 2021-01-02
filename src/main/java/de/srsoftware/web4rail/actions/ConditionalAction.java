@@ -35,6 +35,14 @@ public class ConditionalAction extends ActionList {
 	}
 	
 	@Override
+	public Integer getSpeed(Context context) {
+		for (Condition condition : conditions) {
+			if (!condition.fulfilledBy(context)) return null; 
+		}
+		return super.getSpeed(context);
+	}
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		JSONArray conditions = new JSONArray();

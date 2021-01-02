@@ -174,6 +174,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 				return train.start();
 			case ACTION_STOP:
 				return train.stopNow();
+			case ACTION_TIMES:
+				return train.removeBrakeTimes();
 			case ACTION_TURN:
 				return train.turn();
 			case ACTION_UPDATE:
@@ -235,6 +237,25 @@ public class Train extends BaseClass implements Comparable<Train> {
 		String brakeId = md5sum(carIds);
 		LOG.debug("generated new brake id for {}: {}",this,brakeId);
 		return brakeId;
+	}
+	
+	private Fieldset brakeTimes() {
+		Fieldset fieldset = new Fieldset(t("Brake time table"));
+		Table timeTable = new Table();
+		timeTable.addRow(t("forward"),t("backward"),t("Route"));
+		List<Route> routes = BaseClass.listElements(Route.class);
+		Collections.sort(routes, (r1,r2)->r1.name().compareTo(r2.name()));
+		String forwardId = brakeId(false);
+		String backwardId = brakeId(true);
+		for (Route route: routes) {
+			Integer forwardTime = route.brakeTime(forwardId);
+			Integer reverseTime = route.brakeTime(backwardId);
+			timeTable.addRow(isSet(forwardTime)?forwardTime+" ms":"-",isSet(reverseTime)?reverseTime+" ms":"-",route.name());
+		}
+		
+		timeTable.addTo(fieldset);
+		this.button(t("Drop brake times"),Map.of(ACTION,ACTION_TIMES)).addTo(fieldset);
+		return fieldset;
 	}
 	
 	private Tag carList() {
@@ -506,6 +527,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		this.name = newName;
 		return this;
 	}
+	
+	public Route nextRoute() {
+		return nextRoute;
+	}
+
 
 	public boolean nextRoutePrepared() {
 		return isSet(nextRoute) && nextRoute.state() == Route.State.PREPARED;
@@ -518,7 +544,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		Fieldset otherTrainProsps = new Fieldset(t("other train properties"));
+		Fieldset otherTrainProps = new Fieldset(t("other train properties"));
 		
 		Tag propList = new Tag("ul").clazz("proplist");
 		
@@ -558,14 +584,15 @@ public class Train extends BaseClass implements Comparable<Train> {
 			ul.addTo(li).addTo(propList);
 		}
 		
-		propList.addTo(otherTrainProsps);
+		propList.addTo(otherTrainProps);
 		
 		formInputs.add(t("Name"), new Input(NAME,name));
 		formInputs.add(t("Push-pull train"),new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull));
 		formInputs.add(t("Tags"), new Input(TAGS,String.join(", ", tags)));
 		
 		preForm.add(Locomotive.cockpit(this));
-		postForm.add(otherTrainProsps);
+		postForm.add(otherTrainProps);
+		postForm.add(brakeTimes());
 		
 		return super.properties(preForm, formInputs, postForm);
 	}
@@ -581,6 +608,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 			if (isSet(currentBlock)) plan.place(currentBlock);
 			return t("{} stopping at next block.",this);
 		} else return t("autopilot not active.");
+	}
+	
+	private Window removeBrakeTimes() {
+		List<Route> routes = BaseClass.listElements(Route.class);
+		for (Route route: routes) route.dropBraketimes(brakeId(false),brakeId(true));
+		return properties();
 	}
 	
 	@Override
@@ -715,7 +748,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public void setSpeed(int newSpeed) {
 		LOG.debug("{}.setSpeed({})",this,newSpeed);
-		if (speed == 0 && newSpeed > 0) Thread.dumpStack();
 		speed = Math.min(newSpeed,maxSpeed());
 		if (speed < 0) speed = 0;
 		cars.stream().filter(c -> c instanceof Locomotive).forEach(car -> ((Locomotive)car).setSpeed(speed));
@@ -834,16 +866,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public Object stopNow() {
 		quitAutopilot();
-		setSpeed(0);
-		if (isSet(nextRoute)) {
-			nextRoute.reset();
-			nextRoute = null;
-		}
 		if (isSet(route)) {
 			route.brakeCancel();
 			route.reset();
 			route = null;
 		}
+		setSpeed(0);
 		
 		return properties();
 	}

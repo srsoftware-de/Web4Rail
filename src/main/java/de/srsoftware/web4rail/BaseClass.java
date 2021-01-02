@@ -502,6 +502,10 @@ public abstract class BaseClass implements Constants{
 		return Translation.get(Application.class, txt, fills);
 	}
 	
+	public static long timestamp() {
+		return new Date().getTime();
+	}
+	
 	public BaseClass unregister() {
 		return registry.remove(this.id());
 	}

@@ -51,6 +51,10 @@ public class SetSpeed extends Action{
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
+	public int getSpeed() {
+		return speed;
+	}
+	
 	@Override
 	public String toString() {
 		return t("Set speed to {} {}",speed,speedUnit);
