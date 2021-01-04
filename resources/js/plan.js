@@ -227,9 +227,9 @@ function runAction(ev){
 		window.open("https://api.qrserver.com/v1/create-qr-code/?data="+window.location.href,'_blank');
 	} else if (clicked.id == 'fullscreen'){
 		toggleFullscreen();
-	} else {
-		return request({action:ev.target.id,realm:realm}); // TODO: ask for name
-	}
+	} else if (clicked.id == 'save'){
+		alert('save');
+	} else return request({action:ev.target.id,realm:realm}); // TODO: ask for name
 	return false;
 }
 

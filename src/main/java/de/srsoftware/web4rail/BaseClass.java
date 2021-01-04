@@ -499,6 +499,9 @@ public abstract class BaseClass implements Constants{
 	protected void removeChild(BaseClass child) {}
 
 	protected static String t(String txt, Object...fills) {
+		if (isSet(fills)) for (int i=0; i<fills.length; i++) {
+			if ("\\".equals(fills[i])) fills[i]="\\\\";
+		}
 		return Translation.get(Application.class, txt, fills);
 	}
 	
