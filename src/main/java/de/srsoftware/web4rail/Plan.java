@@ -23,6 +23,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.keawe.localconfig.Configuration;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Train;
@@ -142,15 +143,20 @@ public class Plan extends BaseClass{
 	private static final String CONFIRM = "confirm";
 	private static final String FINAL_SPEED = "final_speed";
 	private static final String FREE_BEHIND_TRAIN = "free_behind_train";
+	private static final String RENAME = "rename";
+	private String name = DEFAULT_NAME;
 	
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
 	private Contact learningContact;
+	private Configuration appConfig;
 	
 	/**
 	 * creates a new plan, starts to send heart beats
 	 */
-	public Plan() {
+	public Plan() {	
+		BaseClass.resetRegistry();
 		Application.threadPool.execute(new Heartbeat());
+		name = DEFAULT_NAME;
 	}
 	
 	/**
@@ -194,8 +200,10 @@ public class Plan extends BaseClass{
 				return signal.properties();
 			}
 			return null;
+		case RENAME:
+			return rename(params);
 		case ACTION_SAVE:
-			return saveTo(DEFAULT_NAME);
+			return save();
 		case ACTION_TIMES:
 			return updateTimes(params);
 		case ACTION_UPDATE:
@@ -489,15 +497,16 @@ public class Plan extends BaseClass{
 	 * @throws NoSuchMethodException
 	 * @throws SecurityException
 	 */
-	public static void load(String filename) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public static void load(String name) throws IOException {
 		plan = new Plan();
+		plan.name = name;
 		try {
-			Car.loadAll(filename+".cars",plan);
+			Car.loadAll(name+".cars",plan);
 		} catch (Exception e) {
 			LOG.warn("Was not able to load cars!",e);
 		}
 
-		String content = new String(Files.readAllBytes(new File(filename+".plan").toPath()),UTF8);
+		String content = new String(Files.readAllBytes(new File(name+".plan").toPath()),UTF8);
 		JSONObject json = new JSONObject(content);
 		if (json.has(TILE)) json.getJSONArray(TILE).forEach(object -> Tile.load(object, plan));
 		if (json.has(LENGTH_UNIT)) lengthUnit = json.getString(LENGTH_UNIT);
@@ -506,17 +515,17 @@ public class Plan extends BaseClass{
 		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
 			
 		try {
-			Train.loadAll(filename+".trains",plan);
+			Train.loadAll(name+".trains",plan);
 		} catch (Exception e) {
 			LOG.warn("Was not able to load trains!",e);
 		}
 		try {
-			Route.loadAll(filename+".routes",plan);
+			Route.loadAll(name+".routes",plan);
 		} catch (Exception e) {
 			LOG.warn("Was not able to load routes!",e);
 		}
 		try {
-			plan.controlUnit.load(filename+".cu");			
+			plan.controlUnit.load(name+".cu");			
 		} catch (Exception e) {
 			LOG.warn("Was not able to load control unit settings!",e);
 		}
@@ -642,11 +651,13 @@ public class Plan extends BaseClass{
 	private Tag planMenu() throws IOException {
 		Tag actionMenu = new Tag("div").clazz("actions").content(t("Plan"));		
 		Tag actions = new Tag("div").clazz("list").content("");
-		new Div(ACTION_SAVE).clazz(REALM_PLAN).content(t("Save")).addTo(actions);
+		saveButton().addTo(actions);
 		new Div(ACTION_ANALYZE).clazz(REALM_PLAN).content(t("Analyze")).addTo(actions);
 		new Div(ACTION_QR).clazz(REALM_PLAN).content(t("QR-Code")).addTo(actions);
 		new Div(FULLSCREEN).clazz(REALM_PLAN).content(t("Fullscreen")).addTo(actions);
 		new Div(ACTION_PROPS).clazz(REALM_PLAN).content(t("Properties")).addTo(actions);
+		new Div(RENAME).clazz(REALM_PLAN).content(t("rename")).addTo(actions);
+		new Div(ACTION_OPEN).clazz(REALM_APP).content(t("open other plan")).addTo(actions);
 		return actions.addTo(actionMenu);
 	}
 	
@@ -727,8 +738,7 @@ public class Plan extends BaseClass{
 			if (device.address() % 4 == 1) table.children().lastElement().clazz("group");
 			
 		}
-		table.clazz("turnouts").addTo(fieldset);
-		return fieldset;
+		return table.clazz("turnouts").addTo(fieldset);
 	}
 	
 	@Override
@@ -736,6 +746,35 @@ public class Plan extends BaseClass{
 		if (child instanceof Tile) drop((Tile) child);
 		super.removeChild(child);
 	}
+	
+	private Object rename(HashMap<String, String> params) {
+		String newName = params.get(NAME);
+		Window win = new Window("rename-plan", t("Rename plan"));
+		if (isSet(newName)) {
+			newName = newName.trim();
+			if (!newName.isEmpty() && !newName.equals(name)) {
+				String old = name;
+				name = newName;				
+				try {
+					String saved = save();
+					appConfig.put(NAME, name);
+					appConfig.save();
+					stream("place "+saveButton());
+					return saved;
+				} catch (IOException e) {
+					new Tag("div").content(t("Was not able to save plan as \"{}\".",newName));
+					name = old;
+				}
+			}
+		}
+		Form form = new Form("rename-form");
+		new Input(REALM, REALM_PLAN).hideIn(form);
+		new Input(ACTION, RENAME).hideIn(form);
+		new Input(NAME,name).addTo(new Label(t("Enter new name for plan")+":"+NBSP)).addTo(form);
+		new Button(t("Save"), form).addTo(form);
+		return form.addTo(win);
+	}
+
 
 	private Tag routeProperties() {
 		Fieldset fieldset = new Fieldset(t("Routes"));
@@ -754,12 +793,7 @@ public class Plan extends BaseClass{
 					actions);
 			if (route.isDisabled())	row.clazz("disabled");
 		}
-		table.clazz("turnouts").addTo(fieldset);
-		return fieldset;
-	}
-	
-	public void save() throws IOException {
-		plan.stream(plan.saveTo("default"));		
+		return table.clazz("turnouts").addTo(fieldset);
 	}
 	
 	/**
@@ -768,8 +802,8 @@ public class Plan extends BaseClass{
 	 * @return
 	 * @throws IOException
 	 */
-	private String saveTo(String name) throws IOException {
-		if (name == null || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
+	public String save() throws IOException {
+		if (isNull(name) || name.isEmpty()) throw new NullPointerException("Name must not be empty!");
 		Car.saveAll(name+".cars");		
 		
 		Tile.saveAll(name+".plan");
@@ -782,6 +816,10 @@ public class Plan extends BaseClass{
 		file.close();
 		
 		return t("Plan saved as \"{}\".",name);
+	}
+	
+	private Tag saveButton() {
+		return new Div(ACTION_SAVE).clazz(REALM_PLAN).content(t("Save \"{}\"",name));
 	}
 
 	public void sensor(int addr, boolean active) {
@@ -799,6 +837,11 @@ public class Plan extends BaseClass{
 		}
 		if (isSet(contact)) contact.activate(active);
 	}
+	
+	public void setAppConfig(Configuration config) {
+		appConfig = config;
+	}
+
 	
 	private Object simplifyRouteName(HashMap<String, String> params) {
 		String routeId = params.get(ROUTE);
@@ -926,8 +969,7 @@ public class Plan extends BaseClass{
 		if (params.containsKey(FINAL_SPEED)) Route.endSpeed = Integer.parseInt(params.get(FINAL_SPEED));
 		Route.freeBehindTrain = "on".equalsIgnoreCase(params.get(FREE_BEHIND_TRAIN));
 		
-		return t("Plan updated.");
-		
+		return t("Plan updated.");		
 	}
 	
 	private Object updateTimes(HashMap<String, String> params) throws IOException {

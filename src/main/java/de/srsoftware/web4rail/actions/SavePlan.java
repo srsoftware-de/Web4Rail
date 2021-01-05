@@ -13,7 +13,7 @@ public class SavePlan extends Action{
 	@Override
 	public boolean fire(Context context) {
 		try {
-			plan.save();
+			plan.stream(plan.save());
 		} catch (IOException e) {
 			return false;
 		}

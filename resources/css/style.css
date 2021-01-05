@@ -394,3 +394,11 @@ svg.Block text{
 #aspect-form td{
 	text-align: center;
 }
+
+.directory{
+	color: blue;
+}
+
+.plan-file{
+	color: green;
+}

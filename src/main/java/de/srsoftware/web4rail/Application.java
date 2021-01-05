@@ -3,7 +3,6 @@ package de.srsoftware.web4rail;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -13,8 +12,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -43,6 +42,8 @@ public class Application extends BaseClass{
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
 	private static final String START_TRAINS = "--start-trains";
 	public static final ExecutorService threadPool = Executors.newCachedThreadPool();
+	private static final String FILENAME = "filename";
+	private static Configuration config;
 	
 	/**
 	 * entry point for the application:<br/>
@@ -57,10 +58,11 @@ public class Application extends BaseClass{
 	 * @throws NoSuchMethodException
 	 * @throws SecurityException
 	 */
-	public static void main(String[] args) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		Configuration config = new Configuration(Configuration.dir("Web4Rail")+"/app.config");
+	public static void main(String[] args) throws IOException {
+		config = new Configuration(Configuration.dir("Web4Rail")+"/app.config");
 		LOG.debug("config: {}",config);
 		InetSocketAddress addr = new InetSocketAddress(config.getOrAdd(PORT, 8080));
+		String planName = config.getOrAdd(Plan.NAME, Plan.DEFAULT_NAME);
 		HttpServer server = HttpServer.create(addr, 0);
 		server.createContext("/plan", client -> sendPlan(client));
 		server.createContext("/css" , client -> sendFile(client));
@@ -69,10 +71,17 @@ public class Application extends BaseClass{
         server.setExecutor(threadPool);
         server.start();
         try {
-        	Plan.load(Plan.DEFAULT_NAME);
-        } catch (FileNotFoundException|NoSuchFileException e) {
+        	Plan.load(planName);
+        } catch (IOException e) {
         	plan = new Plan();
 		}
+        plan.setAppConfig(config);
+        try {
+			Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)+"/plan"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
         for (String arg : args) {
         	switch (arg) {
         		case START_TRAINS:
@@ -80,9 +89,8 @@ public class Application extends BaseClass{
         			break;
         	}
         }
-        Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)+"/plan"));
 	}
-	
+
 	/**
 	 * handles request from clients by delegating them to respective classes
 	 * @param params
@@ -99,10 +107,12 @@ public class Application extends BaseClass{
 	private static Object handle(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		LOG.debug("Application.handle({})",params);
 		String realm = params.get(REALM);
-		if (realm == null) throw new NullPointerException(REALM+" should not be null!");
+		if (isNull(realm)) throw new NullPointerException(REALM+" should not be null!");
 		
 		String action = params.get(ACTION);
-		if (action == null) throw new NullPointerException(ACTION+" should not be null!");
+		if (isNull(action)) throw new NullPointerException(ACTION+" should not be null!");
+		
+		if (action.equals(ACTION_OPEN)) return open(params);
 
 		switch (realm) {
 			case REALM_ACTIONS:
@@ -167,6 +177,49 @@ public class Application extends BaseClass{
 		LOG.warn("No conten type stored for {}!",file);
 		return Files.probeContentType(file.toPath());
 	}
+	
+	private static Object open(HashMap<String, String> params) {
+		Window win = new Window("open-plan", t("Open plan..."));
+		String filename = params.get(FILENAME);
+		if (isNull(filename)) {
+			filename = ".";
+		} else if (filename.startsWith("."+File.separator)) {
+			filename = filename.substring(2);
+		}
+		File file = new File(filename);
+		if (file.isDirectory()) {
+			Tag ul = null;
+			File[] children = file.listFiles();
+			for (File child : children) {
+				if (child.isDirectory()) {
+					if (isNull(ul)) ul = new Tag("ul").addTo(win);
+					Plan.link("li", child.getName(), Map.of(REALM,REALM_APP,ACTION,ACTION_OPEN,FILENAME,filename+File.separator+child.getName())).clazz("directory").addTo(ul);
+				}
+			}
+			for (File child : children) {
+				if (!child.isDirectory() && child.getName().endsWith(".plan")) {
+					if (isNull(ul)) ul = new Tag("ul").addTo(win);
+					Plan.link("li", child.getName(), Map.of(REALM,REALM_APP,ACTION,ACTION_OPEN,FILENAME,filename+File.separator+child.getName())).clazz("plan-file").addTo(ul);
+				}
+			}
+		} else {
+			if (file.getName().endsWith(".plan")) {
+				String name = file.getPath();
+				config.put(NAME,name.substring(0,name.length()-5));
+				try {
+					config.save();
+					plan.controlUnit().set(false);
+					plan.stream(t("Application will load \"{}\" on next launch and will now quit!",file));
+					plan.controlUnit().end();
+					System.exit(0);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return win;
+	}
+
 	
 	/**
 	 * sends a response generated from the application to a given client

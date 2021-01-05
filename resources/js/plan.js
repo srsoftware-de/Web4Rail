@@ -157,9 +157,7 @@ function moveTile(x,y){
 }
 
 function place(data){
-	var tag = $(data);
-	$('#'+tag.attr('id')).remove();
-	$('#scroll').append(tag);
+	$('#'+$(data).attr('id')).replaceWith(data);
 	return false;
 }
 
@@ -227,8 +225,6 @@ function runAction(ev){
 		window.open("https://api.qrserver.com/v1/create-qr-code/?data="+window.location.href,'_blank');
 	} else if (clicked.id == 'fullscreen'){
 		toggleFullscreen();
-	} else if (clicked.id == 'save'){
-		alert('save');
 	} else return request({action:ev.target.id,realm:realm}); // TODO: ask for name
 	return false;
 }

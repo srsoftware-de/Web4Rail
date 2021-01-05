@@ -35,7 +35,6 @@ import de.srsoftware.web4rail.tags.Table;
 public class Car extends BaseClass implements Comparable<Car>{
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
 	
-	public static final String NAME = "name";
 	public static boolean FORWARD = true;
 	public static boolean REVERSE = false;
 	private static final String LENGTH = "length";

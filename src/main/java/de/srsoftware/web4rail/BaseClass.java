@@ -497,6 +497,12 @@ public abstract class BaseClass implements Constants{
 	}
 		
 	protected void removeChild(BaseClass child) {}
+	
+	public static void resetRegistry() {
+		registry = new HashMap<BaseClass.Id, BaseClass>();
+		customFieldNames = new HashMap<Class<? extends BaseClass>, Set<String>>();
+	}
+
 
 	protected static String t(String txt, Object...fills) {
 		if (isSet(fills)) for (int i=0; i<fills.length; i++) {

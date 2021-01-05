@@ -30,6 +30,7 @@ Analyze may overwrite these routes! : Durch die Analyse können diese Fahrstraß
 Analyzing plan... : Plan wird analysiert...
 and : und
 AndCondition : Und-Bedingung
+Application will load "{}" on next launch and will now quit! : Anwendung wird beim nächsten Start „{}“ laden und wird jetzt beendet. 
 Apply : Übernehmen
 Aspect : Signalbild
 Aspects : Signalbilder
@@ -109,6 +110,7 @@ Edit json : JSON bearbeiten
 Effect : Effekt
 Emergency : Notfall
 enable {} : {} aktivieren
+Enter new name for plan : Neuen Namen für den Plan eingeben
 export : exportieren
 Faster (10 {}) : 10 {} schneller
 Final speed after breaking, before halting : Endgeschwindigkeit nach Bremsvorgang, vor dem Anhalten
@@ -179,6 +181,8 @@ On : An
 One of : eine von
 One way : Richtung
 Online Documentation : Online-Dokumentation
+open other plan : anderen Plan öffnen
+Open plan... : Plan öffnen...
 Operating System : Betriebssystem
 or : oder
 OrCondition : Oder-Bedingung
@@ -200,6 +204,8 @@ Relay : Relais
 Relay/Signal/Turnout : Relais/Signal/Weiche
 Remove tag "{}" from train : Markierung "{}" von Zug entfernen
 Removed {} : {} gelöscht
+rename : umbenennen
+Rename plan : Plan umbenennen
 Report Issue : Problem melden
 reverse : wenden
 Reversed {}. : {} umgedreht.
@@ -209,6 +215,7 @@ Route properties : Routen-Eigenschaften
 Routes : Fahrstraßen
 Routes using this tile : Fahrstraßen, die diesen Abschnitt verwenden
 Route will only be available, if all conditions are fulfilled. : Route ist nur verfügbar, wenn alle Bedingungen erfüllt sind.
+Save "{}" : „{}“ speichern
 Save : speichern
 SavePlan : Plan speichern
 Select block : Block auswählen
