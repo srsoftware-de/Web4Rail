@@ -449,7 +449,7 @@ public class Plan extends BaseClass{
 	public Page html() throws IOException {
 		Page page = new Page().append("<div id=\"plan\"><div id=\"scroll\">");
 		for (Tile tile: BaseClass.listElements(Tile.class)) {
-			if (tile == null) continue;
+			if (tile instanceof BlockContact) continue;
 			page.append("\t\t"+tile.tag(null)+"\n");
 		}
 		return page
