@@ -158,7 +158,7 @@ public abstract class Block extends StretchableTile{
 		if (!internalContacts.isEmpty()) {
 			Tag ul = new Tag("ul");
 			for (BlockContact contact : internalContacts) {
-				Tag li = new Tag("li").content(contact.toString()+NBSP);
+				Tag li = contact.link("span", contact).content(NBSP).addTo(new Tag("li"));
 				contact.button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(li);
 				contact.button(t("delete"),Map.of(ACTION,ACTION_DROP)).addTo(li);
 				li.addTo(ul);
@@ -224,10 +224,9 @@ public abstract class Block extends StretchableTile{
 		json.put(WAIT_TIMES, jWaitTimes);
 		JSONObject jContacts = null;
 		for (BlockContact contact : internalContacts) {
-			int addr = contact.addr();
-			if (addr != 0) {
+			if (contact.addr() != 0) {
 				if (isNull(jContacts)) jContacts = new JSONObject();
-				jContacts.put(contact.id().toString(), contact.addr());
+				jContacts.put(contact.id().toString(), contact.json());
 			}
 		}
 		if (isSet(jContacts)) json.put(CONTACT, jContacts);
@@ -260,7 +259,9 @@ public abstract class Block extends StretchableTile{
 		}
 		if (json.has(CONTACT)) {
 			JSONObject jContact = json.getJSONObject(CONTACT);
-			for (String key : jContact.keySet()) new BlockContact(this).addr(jContact.getInt(key));
+			for (String key : jContact.keySet()) {
+				new BlockContact(this).load(jContact.getJSONObject(key));
+			}
 		}
 		return super.load(json);
 	}

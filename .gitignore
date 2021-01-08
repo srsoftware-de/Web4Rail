@@ -1,7 +1,11 @@
-/Debug/
 *.pyc
 *.log
-/bin/
-/target/
-/default.*
+*.plan
+*.cars
+*.cu
+*.routes
+*.trains
 /backup
+/bin/
+/Debug/
+/target/

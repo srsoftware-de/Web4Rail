@@ -159,7 +159,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(TYPE, getClass().getSimpleName());
-		json.put(POS, new JSONObject(Map.of(X,x,Y,y)));
+		if (isSet(x) && isSet(y)) json.put(POS, new JSONObject(Map.of(X,x,Y,y)));
 		if (isSet(route))     json.put(ROUTE, route.id());
 		if (isSet(oneWay))    json.put(ONEW_WAY, oneWay);
 		if (disabled)         json.put(DISABLED, true);
@@ -206,9 +206,11 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	public Tile load(JSONObject json) {
 		if (json.has(ID)) json.remove(ID); // id should be created from cordinates
 		super.load(json);
-		JSONObject pos = json.getJSONObject(POS);
-		x = pos.getInt(X);
-		y = pos.getInt(Y);		
+		if (json.has(POS)) {
+			JSONObject pos = json.getJSONObject(POS);
+			x = pos.getInt(X);
+			y = pos.getInt(Y);		
+		}
 		if (json.has(DISABLED))    disabled  = json.getBoolean(DISABLED);
 		if (json.has(LENGTH))	   length    = json.getInt(LENGTH);
 		if (json.has(ONEW_WAY))    oneWay    = Direction.valueOf(json.getString(ONEW_WAY));

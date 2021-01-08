@@ -5,7 +5,6 @@ import java.util.Map;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Route;
-import de.srsoftware.web4rail.Window;
 
 public class BlockContact extends Contact {
 	
@@ -27,12 +26,7 @@ public class BlockContact extends Contact {
 		Block block = ((Block)parent());
 		return new Id(block.name+":"+block.indexOf(this));
 	}
-	
-	@Override
-	public Window properties() {
-		return parent().properties();
-	}
-	
+		
 	@Override
 	public Route route() {
 		return ((Block)parent()).route();

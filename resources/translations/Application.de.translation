@@ -211,6 +211,9 @@ reverse : wenden
 Reversed {}. : {} umgedreht.
 RIGHT : rechts
 Right port\: : Port für rechts
+RouteEndBlock : Routen-End-Block
+Route does not end at {}. : Route endet nicht in {}.
+Route ends at {}. : Route endet in {}.
 Route properties : Routen-Eigenschaften
 Routes : Fahrstraßen
 Routes using this tile : Fahrstraßen, die diesen Abschnitt verwenden

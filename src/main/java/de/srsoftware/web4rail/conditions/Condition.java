@@ -121,6 +121,7 @@ public abstract class Condition extends BaseClass {
 				CarOrientation.class,
 				OrCondition.class,
 				PushPullTrain.class,
+				RouteEndBlock.class,
 				TrainHasTag.class,
 				TrainLength.class,
 				TrainSelect.class,

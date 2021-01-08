@@ -171,6 +171,8 @@ public class Contact extends Tile{
 				contact.remove();
 				if (contact instanceof BlockContact) return contact.properties();
 				return t("Removed {}.",id);
+			case ACTION_PROPS:
+				return contact.properties();
 			case ACTION_UPDATE:
 				return plan.update(params);
 		}
