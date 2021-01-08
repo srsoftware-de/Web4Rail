@@ -148,7 +148,15 @@ function heartbeat(data){
 }
 
 function keypress(ev){
-	if (ev.code === 'Escape') request({realm:"cu",action:"emergency"});
+	if (ev.code === 'Escape') return request({realm:"cu",action:"emergency"});
+	if (ev.code === 'Enter') {
+		elem = ev.target;
+		while (elem != undefined && elem != null){
+			if (elem.nodeName == 'FORM') return submitForm(elem.getAttribute('id'));
+			elem = elem.parentNode;
+		}		
+	}
+	return false;
 }
 
 function moveTile(x,y){	
@@ -257,6 +265,7 @@ function stream(ev){
 }
 
 function submitForm(formId){
+	console.log("submitForm("+formId+")");
 	return request($('#'+formId).serialize());
 }
 

@@ -314,8 +314,8 @@ public class Route extends BaseClass {
 		
 		if (isSet(train)) train.link("span",t("Train")+": "+train).addTo(fieldset);
 		Tag list = new Tag("ul");
-		Plan.addLink(startBlock, t("Origin: {} to {}",startBlock.name,startDirection), list);
-		Plan.addLink(endBlock, t("Destination: {} from {}",endBlock.name,endDirection.inverse()), list);
+		startBlock.link("li",t("Origin: {} to {}",startBlock.name,startDirection)).addTo(list);
+		endBlock.link("li",t("Destination: {} from {}",endBlock.name,endDirection.inverse())).addTo(list);
 		list.addTo(fieldset);
 		
 		if (!signals.isEmpty()) {
