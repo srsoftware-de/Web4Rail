@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
@@ -36,7 +37,22 @@ public class RouteEndBlock extends Condition{
 	
 	public Condition load(JSONObject json) {
 		super.load(json);
-		block(Block.get(new Id(json.getString(BLOCK))));
+		Id bid = new Id(json.getString(BLOCK));
+		Block block = BaseClass.get(bid);
+		if (isSet(block)) {
+			block(block);
+		} else {
+			Application.threadPool.execute(new Thread() {
+				@Override
+				public void run() {
+					try {
+						sleep(1000);
+					} catch (InterruptedException e) {}
+					block(BaseClass.get(bid));
+				}
+			});
+		}
+		
 		return this;
 	}
 
