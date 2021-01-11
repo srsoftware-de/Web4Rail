@@ -80,6 +80,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private Block currentBlock,destination = null;
 	LinkedList<Tile> trace = new LinkedList<Tile>();
+	private Vector<Block> lastBlocks = new Vector<Block>();
 	
 	public int speed = 0;
 	private Autopilot autopilot = null;
@@ -226,6 +227,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return t("{} now in auto-mode",this);
 	}
+	
+	private Fieldset blockHistory() {
+		Fieldset fieldset = new Fieldset(t("Last blocks"));
+		Tag list = new Tag("ol");
+		for (int i=lastBlocks.size(); i>0; i--) {
+			lastBlocks.get(i-1).link().addTo(new Tag("li")).addTo(list);
+		}
+		return list.addTo(fieldset);
+	}
+
 	
 	public String brakeId() {
 		return brakeId(false);
@@ -404,6 +415,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;
+	}
+	
+	public Collection<Block> lastBlocks(int count) {
+		Vector<Block> blocks = new Vector<Block>(count);
+		for (int i=0; i<count && i<lastBlocks.size(); i++) blocks.add(lastBlocks.get(i));
+		return blocks;
 	}
 		
 	public int length() {
@@ -593,6 +610,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		preForm.add(Locomotive.cockpit(this));
 		postForm.add(otherTrainProps);
 		postForm.add(brakeTimes());
+		postForm.add(blockHistory());
+		
 		
 		return super.properties(preForm, formInputs, postForm);
 	}
@@ -700,7 +719,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void set(Block newBlock) {
 		LOG.debug("{}.set({})",this,newBlock);
 		currentBlock = newBlock;
-		if (isSet(currentBlock)) currentBlock.setTrain(this);
+		if (isSet(currentBlock)) {
+			currentBlock.setTrain(this);
+			lastBlocks.add(newBlock);
+			if (lastBlocks.size()>32) lastBlocks.remove(0);
+		}
 	}
 	
 	private String setDestination(HashMap<String, String> params) {

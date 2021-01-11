@@ -125,7 +125,8 @@ public abstract class Condition extends BaseClass {
 				TrainHasTag.class,
 				TrainLength.class,
 				TrainSelect.class,
-				TrainSpeed.class);
+				TrainSpeed.class,
+				TrainWasInBlock.class);
 	}
 	
 	public Condition load(JSONObject json) {

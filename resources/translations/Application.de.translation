@@ -46,6 +46,7 @@ BlockFree : Blockbelegung
 Block {} is free : Block {} ist frei
 Block {} is occupied : Block {} ist belegt
 Block properties : Block-Eigenschaften
+blocks of train : Blöcke des Zugs
 {}bound : nach {}
 BrakeCancel : Bremsvorgang abbrechen
 BrakeStart : Bremsvorgang starten
@@ -139,6 +140,7 @@ known cars : bekannte Waggons
 known locomotives : bekannte Lokomotiven
 known trains : bekannte Züge
 Label for state {} : Beschriftung für Status {}
+Last blocks : Letzte Blöcke
 learn : lernen
 LEFT : links
 Left port\: : Port für links
@@ -173,6 +175,7 @@ NORTH : Norden
 Not connected to other bridge part! : Nicht mit anderem Brücken-Teil verbunden!
 Notes : Notizen
 No tile moved. : keine Kachel verschoben.
+{} not within last {} blocks of train : {} ist nicht in den letzten {} Blöcken des Zugs
 {} now heading for {} : {} ist nun unterwegs nach {}
 {} now in auto-mode : {} ist nun im Automatikmodus
 Occupied area\: : Belegte Abschnitte:
@@ -221,6 +224,7 @@ Route will only be available, if all conditions are fulfilled. : Route ist nur v
 Save "{}" : „{}“ speichern
 Save : speichern
 SavePlan : Plan speichern
+Seek in last : Durchsuche letzte
 Select block : Block auswählen
 Select car : Fahrzeug auswählen
 Select contact\: : Kotakt auswählen:
@@ -304,6 +308,7 @@ Trains\: : Züge:
 TrainSelect : Zug-Auswahl
 TrainSpeed : Zug-Geschwindigkeit
 Train speed : Zug-Geschwindigkeit
+TrainWasInBlock : Zug war im Block
 Trigger {} : {} betätigen
 Trigger a feedback sensor to assign it with this contact! : Rückmeldekontakt auslösen, um ihn diesem Kontakt zuzuweisen!
 TriggerContact : Kontakt auslösen
@@ -335,4 +340,5 @@ Was not able to set all signals! : Konnte nicht alle Signale stellen!
 Was not able to set all turnouts! : Konnte nicht alle Weichen stellen!
 WEST : Westen
 Width : Breite
+{} within last {} blocks of train : {} ist in den letzten {} Blöcken des Zugs
 Your plan currently has {} routes. : Ihr Plan hat im Moment {} Fahrstraßen.
