@@ -93,7 +93,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	public Map<Connector,Turnout.State> connections(Direction from){
 		return new HashMap<>();
 	}
-
+	
 	public int height() {
 		return 1;
 	}
@@ -474,6 +474,11 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		if (child == train) train = null;
 		if (child == route) route = null;
 		super.removeChild(child);
+		plan.place(this);
+	}
+	
+	public void setEnabled(boolean newState) {
+		disabled = !newState;
 		plan.place(this);
 	}
 	

@@ -44,6 +44,7 @@ Back : zurück
 backward : rückwärts
 Basic properties : Grundlegende Eigenschaften
 BlockFree : Blockbelegung
+block from context : Block aus Kontext
 Block {} is free : Block {} ist frei
 Block {} is occupied : Block {} ist belegt
 Block properties : Block-Eigenschaften
@@ -99,9 +100,11 @@ DetermineTrainInBlock : Zug im Block bestimmen
 Determine, which train is in {} : Bestimmen, welcher Zug sich in {} befindet
 Direction : Richtung
 Direction\: heading {} : Richtung: nach {}
+disable : deaktivieren
 disabled : deaktiviert
 disable {} : {} deaktivieren
 disabled routes : deaktivierte Fahrstraßen
+DisableEnableBlock : Block (de)aktivieren
 Display "{}" on {}. : „{}“ auf {} anzeigen.
 Drop : Verwerfen
 Dropped destination of {}. : Ziel von {} verworfen.
@@ -112,6 +115,7 @@ editable train properties : veränderliche Zug-Eigenschaften
 Edit json : JSON bearbeiten
 Effect : Effekt
 Emergency : Notfall
+enable : aktivieren
 enable {} : {} aktivieren
 Engage {} : {} aktivieren
 EngageDecoupler : Entkuppler aktivieren

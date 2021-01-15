@@ -47,7 +47,7 @@ public class CarInTrain extends Condition {
 	@Override
 	public String toString() {
 		if (isNull(car))  return "["+t("Click here to select car!")+"]";
-		return t(inverted ? "train does not contain {}" : "train cotains {}",car) ;
+		return t(inverted ? "train does not contain {}" : "train contains {}",car) ;
 	}
 
 	@Override

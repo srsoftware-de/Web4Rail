@@ -52,7 +52,7 @@ public class ActionList extends Action implements Iterable<Action>{
 		if (isNull(type)) return actionTypeForm();
 		Action action = Action.create(type,this);
 		if (action instanceof Action) {
-			prepend(action);
+			add(action);
 			return context().properties();
 		} 
 		return new Tag("span").content(t("Unknown action type: {}",type)).addTo(actionTypeForm());

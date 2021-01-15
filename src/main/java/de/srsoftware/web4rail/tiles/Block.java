@@ -297,10 +297,12 @@ public abstract class Block extends StretchableTile{
 		internalContacts.remove(blockContact);
 	}
 	
-	public static Select selector(Block preselected,Collection<Block> exclude) {
+	public static Select selector(Object preset,Collection<Block> exclude) {
+		Block preselected = preset instanceof Block ? (Block) preset : null;
+		String firstEntry = preset instanceof String ? (String) preset : t("unset"); 
 		if (isNull(exclude)) exclude = new Vector<Block>();
 		Select select = new Select(Block.class.getSimpleName());
-		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
+		new Tag("option").attr("value","0").content(firstEntry).addTo(select);
 		List<Block> blocks = BaseClass.listElements(Block.class);
 		Collections.sort(blocks, (b1,b2) -> b1.name.compareTo(b2.name));
 		for (Block block : blocks) {
