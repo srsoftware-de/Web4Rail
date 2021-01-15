@@ -365,7 +365,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			car.train(null);
 		}
 		if (cars.isEmpty()) {
-			this.remove();
+			remove();
 			return t("Removed train \"{}\"",this);
 		}
 		return properties();
@@ -582,7 +582,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		Tag dest = new Tag("li").content(t("Destination")+COL);
 		if (isNull(destination)) {
-			new Button(t("Select from plan"),"return selectDest("+id+");").addTo(dest);			
+			button(t("Select from plan"),Map.of(ACTION,ACTION_MOVE,ASSIGN,DESTINATION)).addTo(dest);
 		} else {
 			link("span",destination,Map.of(REALM,REALM_PLAN,ID,destination.id().toString(),ACTION,ACTION_CLICK)).addTo(dest);
 			new Button(t("Drop"),Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_MOVE,DESTINATION,"")).addTo(dest);
@@ -635,6 +635,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 			if (isSet(currentBlock)) plan.place(currentBlock);
 			return t("{} stopping at next block.",this);
 		} else return t("autopilot not active.");
+	}
+	
+	@Override
+	public BaseClass remove() {
+		if (isSet(currentBlock)) currentBlock.removeChild(this);
+		if (isSet(route)) route.removeChild(this);
+		for (Tile t:trace) t.removeChild(this);
+		return super.remove();
 	}
 	
 	private Window removeBrakeTimes() {

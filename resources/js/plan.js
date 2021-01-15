@@ -13,7 +13,7 @@ var selected = null;
 var mode = null;
 var messageTimer = null;
 var messageOpacity = 0;
-var trainAwaitingDestination = null;
+var pendingAssignment = null;
 var lastTab = null;
 
 function addClass(data){
@@ -52,6 +52,13 @@ function arrangeTabs(){
 	if (target != null) clickLegend({'data':lastTab,'target':target});
 }
 
+function assign(context){
+	pendingAssignment = context;
+	closeWindows();
+	$(PLAN).css('cursor','help');
+	return false;
+}
+
 function clickLegend(ev){
 	lastTab = ev.data;	
 	$('.window > .tabs > legend').removeClass('front');
@@ -64,9 +71,14 @@ function clickTile(x,y){
 	var id = x+"-"+y;
 	var tiles = $('#'+id);
 	if (tiles.length > 0) {
-		if (trainAwaitingDestination != null && tiles.hasClass("Block")) {
-			request({realm:'train',id:trainAwaitingDestination,action:MOVE,destination:id});
-			trainAwaitingDestination = null;
+		if (pendingAssignment != null) {
+			var key = pendingAssignment.assign;
+			delete pendingAssignment.assign;
+			console.log("assigning key:",key);
+			pendingAssignment[key] = id;
+			console.log("pA:",pendingAssignment);
+			request(pendingAssignment);
+			pendingAssignment = null;
 			$(PLAN).css('cursor','');
 			return false;
 		}
@@ -196,6 +208,7 @@ function remove(id){
 }
 
 function request(data){
+	console.log("request:",data);
 	$.ajax({
 		url : 'plan',
 		method : POST,
@@ -237,13 +250,6 @@ function runAction(ev){
 	} else if (clicked.id == 'fullscreen'){
 		toggleFullscreen();
 	} else return request({action:ev.target.id,realm:realm}); // TODO: ask for name
-	return false;
-}
-
-function selectDest(trainId){
-	trainAwaitingDestination = trainId;
-	closeWindows();
-	$(PLAN).css('cursor','help');
 	return false;
 }
 

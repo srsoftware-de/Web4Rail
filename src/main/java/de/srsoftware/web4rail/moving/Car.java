@@ -246,12 +246,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Input(MAX_SPEED,         maxSpeedForward).numeric().addTo(new Tag("p")).content(NBSP+speedUnit+NBSP+t("forward")).addTo(div);
 		new Input(MAX_SPEED_REVERSE, maxSpeedReverse).numeric().addTo(new Tag("p")).content(NBSP+speedUnit+NBSP+t("backward")).addTo(div);
 		formInputs.add(t("Maximum Speed"),div);
-		
-		Fieldset fieldset = new Fieldset(t("Train"));
-		if (train != null) train.link().addTo(fieldset);
-		
-		postForm.add(fieldset);
-		
+		if (train != null) formInputs.add(t("Train"), train.link());
+				
 		return super.properties(preForm,formInputs,postForm);
 	}
 	

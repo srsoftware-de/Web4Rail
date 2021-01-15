@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Constants;
 
 public class Button extends Tag {
 
@@ -29,8 +30,12 @@ public class Button extends Tag {
 	}
 	
 	public Button(String text, Map<String, ? extends Object> props) {
-		this(text,"request("+(new JSONObject(
+		this(text,actionFrom(props)+"("+(new JSONObject(
 				props.entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue().toString()))
 				).toString().replace("\"", "'"))+")");
+	}
+
+	private static String actionFrom(Map<String, ? extends Object> props) {
+		return props.containsKey(Constants.ASSIGN) ? Constants.ASSIGN : "request";
 	}
 }

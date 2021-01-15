@@ -211,6 +211,8 @@ public class Route extends BaseClass {
 		Route route = BaseClass.get(Id.from(params));
 		if (isNull(route)) return t("Unknown route: {}",params.get(ID));
 		switch (params.get(ACTION)) {
+			case ACTION_AUTO:
+				return route.simplyfyName().properties();
 			case ACTION_DROP:
 				route.remove();
 				plan.stream(t("Removed {}.",route));				
@@ -823,7 +825,10 @@ public class Route extends BaseClass {
 		preForm.add(conditions.list(t("Route will only be available, if all conditions are fulfilled.")));
 		preForm.add(contactsAndActions());
 
-		formInputs.add(t("Name"),new Input(NAME, name()));
+		Tag nameSpan = new Tag("span");
+		new Input(NAME, name()).addTo(nameSpan);
+		button(t("simplify name"), Map.of(ACTION,ACTION_AUTO,ROUTE,id().toString())).addTo(nameSpan);
+		formInputs.add(t("Name"),nameSpan);
 		Checkbox checkbox = new Checkbox(DISABLED, t("disabled"), disabled);
 		if (disabled) checkbox.clazz("disabled");
 		formInputs.add(t("State"),checkbox);		
@@ -935,9 +940,10 @@ public class Route extends BaseClass {
 		return parts[0].trim()+"–"+parts[parts.length-1].trim();
 	}
 	
-	public void simplyfyName() {
+	public Route simplyfyName() {
 		String[] parts = name().split("-");
 		if (parts.length>1) name(parts[0]+" - "+parts[parts.length-1]);
+		return this;
 	}
 
 	public Route.State state(){

@@ -291,8 +291,8 @@ public abstract class Block extends StretchableTile{
 		if (json.has(PARKED_TRAINS)) {
 			JSONArray ptids = json.getJSONArray(PARKED_TRAINS);
 			for (Object id : ptids) {
-				Id trainId = new Id(id.toString());
-				parkedTrains.add(BaseClass.get(trainId));
+				Train train = BaseClass.get(new Id(id.toString()));
+				if (isSet(train)) parkedTrains.add(train);
 			}
 		}
 		return super.load(json);
@@ -302,7 +302,7 @@ public abstract class Block extends StretchableTile{
 		Fieldset fieldset = new Fieldset(t("parked trains"));
 		Tag list = new Tag("ul");
 		for (Train t : parkedTrains) {
-			t.link("li", t).addTo(list);
+			if (isSet(t)) t.link("li", t).addTo(list);
 		}
 		list.addTo(fieldset);
 		return fieldset;
