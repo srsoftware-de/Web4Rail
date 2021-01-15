@@ -50,6 +50,8 @@ import de.srsoftware.web4rail.tiles.ContactV;
 import de.srsoftware.web4rail.tiles.CrossH;
 import de.srsoftware.web4rail.tiles.CrossPlus;
 import de.srsoftware.web4rail.tiles.CrossV;
+import de.srsoftware.web4rail.tiles.DecouplerH;
+import de.srsoftware.web4rail.tiles.DecouplerV;
 import de.srsoftware.web4rail.tiles.DiagES;
 import de.srsoftware.web4rail.tiles.DiagNE;
 import de.srsoftware.web4rail.tiles.DiagSW;
@@ -931,6 +933,8 @@ public class Plan extends BaseClass{
 		new TurnoutLW().tag(null).addTo(tiles);
 		new TurnoutLE().tag(null).addTo(tiles);
 		new Turnout3E().tag(null).addTo(tiles);
+		new DecouplerH().tag(null).addTo(tiles);
+		new DecouplerV().tag(null).addTo(tiles);
 		new Relay().setLabel(true,"RL").tag(null).addTo(tiles);
 		new Contact().tag(null).addTo(tiles);
 		new TextDisplay().text("tx").tag(null).addTo(tiles);

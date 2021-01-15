@@ -48,6 +48,7 @@ public abstract class Action extends BaseClass {
 			ConditionalAction.class,
 			DelayedAction.class,
 			DetermineTrainInBlock.class,
+			EngageDecoupler.class,
 			FinishRoute.class,
 			Loop.class,
 			PreserveRoute.class,

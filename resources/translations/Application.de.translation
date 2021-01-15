@@ -29,6 +29,7 @@ Analyze : analysieren
 Analyze may overwrite these routes! : Durch die Analyse können diese Fahrstraßen überschrieben werden!
 Analyzing plan... : Plan wird analysiert...
 and : und
+AlterDirection : Fahrtrichtung ändern
 AndCondition : Und-Bedingung
 Application will load "{}" on next launch and will now quit! : Anwendung wird beim nächsten Start „{}“ laden und wird jetzt beendet. 
 Apply : Übernehmen
@@ -64,6 +65,7 @@ Click here to select car! : Hier klicken, um Fahrzeug auszuwählen!
 Click here to select display! : Hier klicken, um Anzeige auszuwählen!
 Click here to select train! : Hier klicken, um Zug auszuwählen!
 click here to setup contact : Hier klicken, um Kontakt auszuwählen
+Click here to setup decoupler : Hier klicken, um Entkuppler einzurichten
 click here to setup relay : Hier klicken, um Relais einzurichten
 click here to setup signal : Hier klicken, um Signal einzurichten
 Click here to setup tag : Hier klicken, um Markierung anzugeben
@@ -111,6 +113,8 @@ Edit json : JSON bearbeiten
 Effect : Effekt
 Emergency : Notfall
 enable {} : {} aktivieren
+Engage {} : {} aktivieren
+EngageDecoupler : Entkuppler aktivieren
 Enter new name for plan : Neuen Namen für den Plan eingeben
 export : exportieren
 Faster (10 {}) : 10 {} schneller
@@ -166,6 +170,7 @@ Move tiles : Kacheln verschieben
 name\: : Name:
 new car : neuer Waggon
 new contact : neuer Kontakt
+new direction : neue Fahrtrichtung
 new locomotive : neue Lok
 new tag : neue Markierung
 new train : neuer Zug
@@ -211,6 +216,7 @@ rename : umbenennen
 Rename plan : Plan umbenennen
 Report Issue : Problem melden
 reverse : wenden
+reverse train : Zug wenden
 Reversed {}. : {} umgedreht.
 RIGHT : rechts
 Right port\: : Port für rechts
@@ -240,6 +246,7 @@ Send command "{}" to {} : Kommando „{}“ an {} senden
 Send command to : Kommando senden an
 Set {} as context : {} als Kontext setzen
 SetContextTrain : Zug für Folgeaktionen festlegen
+Set direction of train to {} : Setze Richtung des Zugs auf {}
 SetDisplayText : Anzeige-Text setzen
 SetRelay : Relais schalten
 SetSignal : Signal stellen
@@ -314,6 +321,7 @@ Trigger a feedback sensor to assign it with this contact! : Rückmeldekontakt au
 TriggerContact : Kontakt auslösen
 Trigger contact to learn new contact : Kontakt auslösen, um neuen Kontakt zu lernen
 Turn : Richtung wechseln
+turn train : Richtung des zuges Wechseln
 Turn allowed : Wenden erlaubt
 {} turned. : {} gewendet.
 Turnout : Weiche

@@ -24,6 +24,7 @@ import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.PathFinder;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.actions.AlterDirection;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
@@ -195,6 +196,9 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		if (object instanceof JSONObject) {
 			JSONObject json = (JSONObject) object;
 			String clazz = json.getString(TYPE);
+			if (clazz.equals("TurnTrain")) {
+				clazz = AlterDirection.class.getSimpleName();
+			}
 			try {
 				Tile.inflate(clazz,json,plan);
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | ClassNotFoundException | IOException e) {
