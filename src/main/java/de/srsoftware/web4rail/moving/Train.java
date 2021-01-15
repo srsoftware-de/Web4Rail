@@ -673,7 +673,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	 * before: CabCar→ MiddleCar→ Loco→
 	 * after: ←Loco ←MiddleCar ←CabCar 
 	 */
-	private Tag reverse() {
+	public Tag reverse() {
 		LOG.debug("train.reverse();");
 
 		if (isSet(direction)) {

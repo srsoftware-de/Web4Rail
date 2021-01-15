@@ -42,6 +42,7 @@ public abstract class Action extends BaseClass {
 	public static List<Class<? extends Action>> classes() {
 		return List.of(
 			AddRemoveTag.class,
+			AlterDirection.class,
 			BrakeCancel.class,
 			BrakeStart.class,
 			ConditionalAction.class,
@@ -64,8 +65,7 @@ public abstract class Action extends BaseClass {
 			StartStopAuto.class,
 			StopTrain.class,
 			SwitchFunction.class,
-			TriggerContact.class,
-			TurnTrain.class
+			TriggerContact.class
 		);
 	}
 
