@@ -187,6 +187,7 @@ public class Contact extends Tile{
 		formInputs.add(t("Address"),span);
 		
 		Fieldset fieldset = new Fieldset(t("Actions"));
+		fieldset.id("actions");
 		actions.list().addTo(fieldset);
 		postForm.add(fieldset);
 		return super.properties(preForm, formInputs, postForm);

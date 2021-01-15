@@ -66,7 +66,7 @@ public class SetDisplayText extends TextAction{
 		
 	@Override
 	public String toString() {
-		return isNull(display) ? t("[Click here to select display!]") : t("Display \"{}\" on {}.",text,display);
+		return isNull(display) ? "["+t("Click here to select display!")+"]" : t("Display \"{}\" on {}.",text,display);
 	}
 	
 	@Override

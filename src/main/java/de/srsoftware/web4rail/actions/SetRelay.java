@@ -85,7 +85,7 @@ public class SetRelay extends Action {
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
 		Id relayId = new Id(params.get(Relay.class.getSimpleName()));
-		relay = Relay.get(relayId);
+		relay = BaseClass.get(relayId);
 		String st = params.get(Relay.STATE);
 		if (isSet(st)) state = st.equals("true");
 		return context().properties();

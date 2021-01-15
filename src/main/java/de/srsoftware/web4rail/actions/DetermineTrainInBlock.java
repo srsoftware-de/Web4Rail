@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -36,7 +37,21 @@ public class DetermineTrainInBlock extends Action {
 	public Action load(JSONObject json) {
 		super.load(json);
 		Id blockId = Id.from(json,BLOCK);
-		if (isSet(blockId)) block = Block.get(blockId);
+		if (isSet(blockId)) {
+			block = Block.get(blockId);
+			if (isNull(block)) {
+				Application.threadPool.execute(new Thread() {
+					public void run() {
+						try {
+							sleep(1000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						block = Block.get(blockId);
+					};
+				});
+			}
+		}
 		return this;
 	}
 	

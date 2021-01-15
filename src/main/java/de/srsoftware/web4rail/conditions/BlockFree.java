@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -32,7 +33,23 @@ public class BlockFree extends Condition {
 	
 	public Condition load(JSONObject json) {
 		super.load(json);
-		if (json.has(BLOCK)) block(Block.get(new Id(json.getString(BLOCK))));
+		if (json.has(BLOCK)) {
+			Id bid = new Id(json.getString(BLOCK));
+			block(BaseClass.get(bid));
+			if (isNull(block)) {
+				Application.threadPool.execute(new Thread() {
+					@Override
+					public void run() {
+						try {
+							sleep(1000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						block(BaseClass.get(bid));
+					}
+				});
+			}
+		}
 		return this;
 	}
 

@@ -43,7 +43,7 @@ public class ActionList extends Action implements Iterable<Action>{
 	
 	public ActionList add(Action action) {
 		action.parent(this);
-		actions.add(action);
+		actions.add(action);		
 		return this;
 	}
 	
@@ -52,7 +52,7 @@ public class ActionList extends Action implements Iterable<Action>{
 		if (isNull(type)) return actionTypeForm();
 		Action action = Action.create(type,this);
 		if (action instanceof Action) {
-			add(action);
+			prepend(action);
 			return context().properties();
 		} 
 		return new Tag("span").content(t("Unknown action type: {}",type)).addTo(actionTypeForm());
@@ -198,6 +198,12 @@ public class ActionList extends Action implements Iterable<Action>{
 			}
 		}
 		return false;
+	}
+	
+	public ActionList prepend(Action action) {
+		action.parent(this);
+		actions.insertElementAt(action, 0);		
+		return this;
 	}
 	
 	public static Object process(HashMap<String, String> params, Plan plan) {

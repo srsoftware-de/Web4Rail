@@ -334,7 +334,6 @@ TurnoutRN : WeicheRN
 TurnoutRS : WeicheRS
 TurnoutRW : WeicheRW
 Turnouts : Weichen
-TurnTrain : Fahrtrichtung umkehren
 turn within train : innerhalb des Zugs drehen
 Turns the train, as if it went through a loop. : Dreht den ZUg, als wenn er eine Wendeschleife passiert hätte. 
 Unknown action\: {} : Unbekannte Aktion: {}

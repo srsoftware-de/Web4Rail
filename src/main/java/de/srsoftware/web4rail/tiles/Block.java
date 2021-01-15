@@ -186,12 +186,6 @@ public abstract class Block extends StretchableTile{
 		return this;
 	}
 	
-	public static Block get(Id blockId) {
-		Tile tile = plan.get(blockId, false);
-		if (tile instanceof Block) return (Block) tile;
-		return null;
-	}
-	
 	private WaitTime getWaitTime(String tag) {
 		if (tag == null) return null;
 		for (WaitTime wt : waitTimes) {

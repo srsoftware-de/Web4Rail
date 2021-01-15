@@ -6,6 +6,7 @@ import java.util.List;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -47,12 +48,25 @@ public class SetTurnout extends Action {
 	
 	@Override
 	public Action load(JSONObject json) {
-		super.load(json);
-		String turnoutId = json.getString(TURNOUT);
+		super.load(json);		
+		Id turnoutId = json.has(TURNOUT) ? new Id(json.getString(TURNOUT)) : null;
 		if (isSet(turnoutId)) {
-			turnout = BaseClass.get(new Id(turnoutId));
-			state = Turnout.State.valueOf(json.getString(Turnout.STATE));
+			turnout = BaseClass.get(turnoutId);
+			if (isNull(turnout)) {
+				Application.threadPool.execute(new Thread() {
+					@Override
+					public void run() {
+						try {
+							sleep(1000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						turnout = BaseClass.get(turnoutId);
+					}
+				});
+			}
 		}
+		if (json.has(Turnout.STATE)) state = Turnout.State.valueOf(json.getString(Turnout.STATE));
 		return this;
 	}
 	
