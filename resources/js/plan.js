@@ -165,7 +165,10 @@ function moveTile(x,y){
 }
 
 function place(data){
-	$('#'+$(data).attr('id')).replaceWith(data);
+	var elem = $('#'+$(data).attr('id'));
+	if (elem.length) {
+		elem.replaceWith(data);
+	} else $('#scroll').append(data);
 	return false;
 }
 
