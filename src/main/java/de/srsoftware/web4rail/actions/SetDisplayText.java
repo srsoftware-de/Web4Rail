@@ -34,7 +34,7 @@ public class SetDisplayText extends TextAction{
 
 	@Override
 	protected Label label() {
-		return new Label(t("Text to show on display:")+NBSP);
+		return new Label(t("Text to show on display")+COL);
 	}
 	
 	@Override

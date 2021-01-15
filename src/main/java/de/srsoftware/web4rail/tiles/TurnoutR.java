@@ -36,8 +36,8 @@ public abstract class TurnoutR extends Turnout {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Straight port:"),new Input(STRAIGHT, portA).numeric());
-		formInputs.add(t("Right port:"),new Input(RIGHT, portB).numeric());
+		formInputs.add(t("Straight port")+COL,new Input(STRAIGHT, portA).numeric());
+		formInputs.add(t("Right port")+COL,new Input(RIGHT, portB).numeric());
 		return super.properties(preForm, formInputs, postForm);
 	}
 	

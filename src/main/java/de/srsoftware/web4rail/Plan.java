@@ -343,9 +343,9 @@ public class Plan extends BaseClass{
 		Form form = new Form("plan-properties-form");
 		new Input(REALM,REALM_PLAN).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
-		new Input(LENGTH_UNIT, lengthUnit).addTo(new Label(t("Length unit")+":"+NBSP)).addTo(form);
-		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+":"+NBSP)).addTo(form);
-		new Input(FINAL_SPEED, Route.endSpeed).addTo(new Label(t("Lower speed limit")+":"+NBSP)).attr("title", t("Final speed after breaking, before halting")).addTo(form);
+		new Input(LENGTH_UNIT, lengthUnit).addTo(new Label(t("Length unit")+COL)).addTo(form);
+		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+COL)).addTo(form);
+		new Input(FINAL_SPEED, Route.endSpeed).addTo(new Label(t("Lower speed limit")+COL)).attr("title", t("Final speed after breaking, before halting")).addTo(form);
 		new Checkbox(FREE_BEHIND_TRAIN, t("Free tiles behind train"), Route.freeBehindTrain).attr("title", t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.")).addTo(form);
 		new Button(t("Save"), form).addTo(form);
 		form.addTo(fieldset);
@@ -772,7 +772,7 @@ public class Plan extends BaseClass{
 		Form form = new Form("rename-form");
 		new Input(REALM, REALM_PLAN).hideIn(form);
 		new Input(ACTION, RENAME).hideIn(form);
-		new Input(NAME,name).addTo(new Label(t("Enter new name for plan")+":"+NBSP)).addTo(form);
+		new Input(NAME,name).addTo(new Label(t("Enter new name for plan")+COL)).addTo(form);
 		new Button(t("Save"), form).addTo(form);
 		return form.addTo(win);
 	}

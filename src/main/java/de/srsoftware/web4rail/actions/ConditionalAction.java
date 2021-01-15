@@ -85,7 +85,7 @@ public class ConditionalAction extends ActionList {
 	@Override
 	public String toString() {
 		if (conditions.isEmpty()) return "["+t("Click here to add conditions")+"]";
-		return t("if ({}):",conditions);
+		return t("if ({})",conditions)+COL;
 	}
 
 	@Override

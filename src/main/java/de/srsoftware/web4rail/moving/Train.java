@@ -285,7 +285,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		List<Locomotive> locos = BaseClass.listElements(Locomotive.class).stream().filter(loco -> isNull(loco.train())).collect(Collectors.toList());
 		if (!locos.isEmpty()) {
 			Form addLocoForm = new Form("append-loco-form");
-			addLocoForm.content(t("add locomotive:")+"&nbsp;");
+			addLocoForm.content(t("add locomotive")+COL);
 			new Input(REALM, REALM_TRAIN).hideIn(addLocoForm);
 			new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
 			new Input(ID,id).hideIn(addLocoForm);
@@ -299,7 +299,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		List<Car> cars = BaseClass.listElements(Car.class).stream().filter(car -> !(car instanceof Locomotive)).filter(loco -> isNull(loco.train())).collect(Collectors.toList());
 		if (!cars.isEmpty()) {
 			Form addCarForm = new Form("append-car-form");
-			addCarForm.content(t("add car:")+"&nbsp;");
+			addCarForm.content(t("add car")+COL);
 			new Input(REALM, REALM_TRAIN).hideIn(addCarForm);
 			new Input(ACTION, ACTION_ADD).hideIn(addCarForm);
 			new Input(ID,id).hideIn(addCarForm);
@@ -497,7 +497,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Input(ACTION, ACTION_ADD).hideIn(form);
 		new Input(REALM,REALM_TRAIN).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("add new train"));
-		new Input(Train.NAME, t("new train")).addTo(new Label(t("Name:")+NBSP)).addTo(fieldset);
+		new Input(Train.NAME, t("new train")).addTo(new Label(t("Name")+COL)).addTo(fieldset);
 
 		Select select = new Select(LOCO_ID);
 		BaseClass.listElements(Locomotive.class)
@@ -505,7 +505,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			.filter(loco -> isNull(loco.train()))
 			.sorted((l1,l2)->l1.name().compareTo(l2.name()))
 			.forEach(loco -> select.addOption(loco.id(),loco.name()));
-		select.addTo(new Label(t("Locomotive:")+NBSP)).addTo(fieldset);
+		select.addTo(new Label(t("Locomotive")+COL)).addTo(fieldset);
 
 		new Button(t("Apply"),form).addTo(fieldset);
 		fieldset.addTo(form).addTo(win);
@@ -567,13 +567,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		carList().addTo(propList);
 		
-		if (isSet(currentBlock)) currentBlock.button(currentBlock.toString()).addTo(new Tag("li").content(t("Current location:")+NBSP)).addTo(propList);
+		if (isSet(currentBlock)) currentBlock.button(currentBlock.toString()).addTo(new Tag("li").content(t("Current location")+COL)).addTo(propList);
 		Tag directionLi = null;
 		if (isSet(direction)) directionLi = new Tag("li").content(t("Direction: heading {}",direction)+NBSP);
 		if (isNull(directionLi)) directionLi = new Tag("li");
 		button(t("reverse"), Map.of(ACTION,ACTION_REVERSE)).title(t("Turns the train, as if it went through a loop.")).addTo(directionLi).addTo(propList);
 
-		Tag dest = new Tag("li").content(t("Destination:")+NBSP);
+		Tag dest = new Tag("li").content(t("Destination")+COL);
 		if (isNull(destination)) {
 			new Button(t("Select from plan"),"return selectDest("+id+");").addTo(dest);			
 		} else {
@@ -584,7 +584,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		dest.addTo(propList);		
 		if (isSet(route)) route.link("li", route).addTo(propList);
 		int ms = maxSpeed();
-		if (ms < Integer.MAX_VALUE) new Tag("li").content(t("Maximum Speed")+": "+maxSpeed()+NBSP+speedUnit).addTo(propList);
+		if (ms < Integer.MAX_VALUE) new Tag("li").content(t("Maximum Speed")+COL+maxSpeed()+NBSP+speedUnit).addTo(propList);
 		
 		SortedSet<String> allTags = tags();
 		if (!allTags.isEmpty()) {
@@ -595,7 +595,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		new Tag("li").content(t("length: {}",length())+NBSP+lengthUnit).addTo(propList);
 		
 		if (!trace.isEmpty()) {
-			Tag li = new Tag("li").content(t("Occupied area:"));
+			Tag li = new Tag("li").content(t("Occupied area")+COL);
 			Tag ul = new Tag("ul");
 			for (Tile tile : trace) new Tag("li").content(tile.toString()).addTo(ul);
 			ul.addTo(li).addTo(propList);

@@ -80,7 +80,7 @@ public class DelayedAction extends ActionList {
 
 	@Override
 	public String toString() {
-		return t("Wait {} ms, then:",min_delay < max_delay ? min_delay+"…"+max_delay : min_delay);
+		return t("Wait {} ms, then",min_delay < max_delay ? min_delay+"…"+max_delay : min_delay)+COL;
 	}
 
 	@Override

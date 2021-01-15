@@ -117,8 +117,8 @@ public abstract class Decoupler extends Tile implements Device{
 			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == protocol).addTo(div);
 		}
 		formInputs.add(t("Protocol"),div);
-		formInputs.add(t("Address:"),new Input(ADDRESS, address).numeric());
-		formInputs.add(t("Port:"),new Input(PORT, port).numeric());
+		formInputs.add(t("Address"),new Input(ADDRESS, address).numeric());
+		formInputs.add(t("Port"),new Input(PORT, port).numeric());
 
 		return super.properties(preForm, formInputs, postForm);
 	}

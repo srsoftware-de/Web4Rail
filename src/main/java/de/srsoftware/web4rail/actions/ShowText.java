@@ -18,7 +18,7 @@ public class ShowText extends TextAction{
 
 	@Override
 	protected Label label() {
-		return new Label(t("Text to display on clients:")+NBSP);
+		return new Label(t("Text to display on clients")+COL);
 	}
 	
 	@Override

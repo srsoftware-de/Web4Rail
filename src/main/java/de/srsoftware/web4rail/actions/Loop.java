@@ -79,7 +79,7 @@ public class Loop extends ActionList {
 	}
 	
 	public String toString() {
-		return t("For each {} do:",object);
+		return t("For each {} do",object)+COL;
 	};
 	
 	private Tag typeSelector() {

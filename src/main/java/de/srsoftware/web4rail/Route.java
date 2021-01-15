@@ -431,7 +431,7 @@ public class Route extends BaseClass {
 		Fieldset win = new Fieldset(t("Actions and contacts"));
 		Tag list = new Tag("ol");
 		
-		Tag setup = new Tag("li").content(t("Setup actions")+NBSP);
+		Tag setup = new Tag("li").content(t("Setup actions")+COL);
 		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
 		if (isNull(setupActions)) {
 			setupActions = new ActionList(this);
@@ -439,7 +439,7 @@ public class Route extends BaseClass {
 		}
 		setupActions.list().addTo(setup).addTo(list);
 
-		Tag start = new Tag("li").content(t("Start actions")+NBSP);
+		Tag start = new Tag("li").content(t("Start actions")+COL);
 		ActionList startActions = triggeredActions.get(ROUTE_START);
 		if (isNull(startActions)) {
 			startActions = new ActionList(this);

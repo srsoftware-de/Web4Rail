@@ -213,7 +213,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Input(ACTION, ACTION_ADD).hideIn(form);
 		new Input(REALM,REALM_CAR).hideIn(form);
 		Fieldset fieldset = new Fieldset(t("add new car"));
-		new Input(Locomotive.NAME, t("new car")).addTo(new Label(t("Name:")+NBSP)).addTo(fieldset);
+		new Input(Locomotive.NAME, t("new car")).addTo(new Label(t("Name")+COL)).addTo(fieldset);
 		new Button(t("Apply"),form).addTo(fieldset);
 		fieldset.addTo(form).addTo(win);
 		return win;

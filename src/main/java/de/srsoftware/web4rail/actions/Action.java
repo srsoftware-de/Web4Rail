@@ -154,7 +154,7 @@ public abstract class Action extends BaseClass {
 		}
 		
 		for (Entry<String, String> entry : names.entrySet()) select.addOption(entry.getValue(), entry.getKey());
-		return select.addTo(new Label(t("Action type:")+NBSP));
+		return select.addTo(new Label(t("Action type")+COL));
 	}
 	
 	protected static String t(String tex,Object...fills) {

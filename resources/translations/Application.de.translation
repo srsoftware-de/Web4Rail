@@ -1,9 +1,8 @@
 abort : abbrechen
 Accessory : Zubehör
 Actions : Aktionen
-Actions\: : Aktionen:
 Actions and contacts : Aktionen und Kontakte
-Action type\: : Aktions-Typ
+Action type : Aktions-Typ
 Actions will only fire, if all conditions are fullfilled. : Aktionen werden nur ausgeführt, wenn alle Bedingungen erfüllt sind.
 ActivateRoute : Route aktivieren
 add : hinzufügen
@@ -11,9 +10,9 @@ add command for {} : Kommando für {} hinzufügen
 Added {} : {} hinzugefügt
 add action : Aktion hinzufügen
 Add action to action list : Aktion zur Liste hinzufügen
-add car\: : Waggon hinzufügen:
+add car : Waggon hinzufügen
 Add condition : Bedingung hinzufügen
-add locomotive\: : Lok hinzufügen:
+add locomotive : Lok hinzufügen
 add new aspect : neues Signalbild hinzufügen
 add new car : neuen Waggon anlegen
 Add new custom field : neues benutzerdefiniertes Feld hinzufügen
@@ -23,7 +22,6 @@ Add tag "{}" to train : Markierung "{}" zu Zug hinzufügen
 Add tile : Kachel hinzufügen
 AddRemoveTag : Markierung hinzufügen/entfernen
 Address : Adresse
-Address\: : Adresse:
 analyze : analysieren
 Analyze : analysieren
 Analyze may overwrite these routes! : Durch die Analyse können diese Fahrstraßen überschrieben werden!
@@ -59,7 +57,7 @@ Brake time table : Bremszeit-Tabelle
 CarInTrain : Wagen im Zug
 Car manager : Waggon-Verwaltung
 CarOrientation : Wagen-Laufrichtung
-Cars\: : Waggons:
+Cars : Waggons
 Click here to add conditions : Hier klicken, um Bedingungen hinzuzufügen
 Click here to select block! : Hier klicken, um Block auszuwählen!
 Click here to select car! : Hier klicken, um Fahrzeug auszuwählen!
@@ -75,7 +73,7 @@ Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu
 Command to send : Kommando, welches gesendet werden soll
 ConditionalAction : bedingte Aktion
 Conditions : Bedingungen
-Condition type\: : Bedingungs-Typ:
+Condition type : Bedingungs-Typ
 Connected to {}. : Mit {} verbunden.
 Confirmation required : Bestätigung erforderlich
 Contact : Kontakt
@@ -84,7 +82,6 @@ Control unit : Zentrale
 copy : kopieren
 Counterpart : Gegenstück
 Create action : Aktion erzeugen
-Current location\: : Aktueller Ort:
 Current location : Aufenthaltsort
 Current location\: {} : Aufenthaltsort: {}
 Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {}
@@ -94,7 +91,6 @@ DelayedAction : verzögerte Aktion
 delete : entfernen
 delete route : Route löschen
 Destination : Ziel
-Destination\: : Ziel:
 Destination\: {} from {} : Ziel: {} von {}
 DetermineTrainInBlock : Zug im Block bestimmen
 Determine, which train is in {} : Bestimmen, welcher Zug sich in {} befindet
@@ -125,7 +121,7 @@ Faster (10 {}) : 10 {} schneller
 Final speed after breaking, before halting : Endgeschwindigkeit nach Bremsvorgang, vor dem Anhalten
 FinishRoute : Route abschließen
 Firing {} : starte {}
-For each {} do\: : Mit jedem {}:
+For each {} do : Mit jedem {}
 forward : vorwärts
 Found {} routes. : {} Routen gefunden.
 FreeStartBlock : Start-Block freigeben
@@ -137,7 +133,7 @@ Height : Höhe
 Help : Hilfe
 Hold : an lassen
 (id\: {}, length\: {}) : (Id: {}, Länge: {})
-if ({})\: : falls ({}):
+if ({}) : falls ({})
 If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.
 Falls aktiviert, wird die Strecke anhand von Zug- und Kachel-Länge hinter dem Zug freigegeben, Falls deaktiviert wird die Strecke hinter dem Zug erst bei Abschluss der Route freigegeben.
 internal contacts : interne Kontakte
@@ -151,14 +147,14 @@ Label for state {} : Beschriftung für Status {}
 Last blocks : Letzte Blöcke
 learn : lernen
 LEFT : links
-Left port\: : Port für links
+Left port : Port für links
 Length : Länge
-length\: : Länge:
+length : Länge
 length\: {} : Länge: {}
 Length unit : Längeneinheit
 Locked by {} : Durch {} besetzt
 Locomotive manager : Lok-Verwaltung
-Locomotives\: : Lokomotiven:
+Locomotives : Lokomotiven
 Locomotives and cars : Lokomotiven und Waggons
 Loop : Wiederholung
 Lower speed limit : Minimale Geschwindigkeit
@@ -171,7 +167,7 @@ Maximum train length : maximale Zug-Länge
 Minimum delay : minimale Verzögerung
 Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block. : Minamle und maximale Block-Haltezeit (in Millisekunden) für Züge mit der entsprchender Markierung.
 Move tiles : Kacheln verschieben
-name\: : Name:
+name : Name
 new car : neuer Waggon
 new contact : neuer Kontakt
 new direction : neue Fahrtrichtung
@@ -187,7 +183,7 @@ No tile moved. : keine Kachel verschoben.
 {} not within last {} blocks of train : {} ist nicht in den letzten {} Blöcken des Zugs
 {} now heading for {} : {} ist nun unterwegs nach {}
 {} now in auto-mode : {} ist nun im Automatikmodus
-Occupied area\: : Belegte Abschnitte:
+Occupied area : Belegte Abschnitte
 Off : Aus
 On : An
 One of : eine von
@@ -224,7 +220,7 @@ reverse : wenden
 reverse train : Zug wenden
 Reversed {}. : {} umgedreht.
 RIGHT : rechts
-Right port\: : Port für rechts
+Right port : Port für rechts
 RouteEndBlock : Routen-End-Block
 Route does not end at {}. : Route endet nicht in {}.
 Route ends at {}. : Route endet in {}.
@@ -238,11 +234,11 @@ SavePlan : Plan speichern
 Seek in last : Durchsuche letzte
 Select block : Block auswählen
 Select car : Fahrzeug auswählen
-Select contact\: : Kotakt auswählen:
+Select contact : Kotakt auswählen
 Select display : Anzeige auswählen
 Select from plan : Auf Plan auswählen
 Select object : Objekt auswählen
-Select relay\: : Relais auswählen:
+Select relay : Relais auswählen
 Select state : Status auswählen
 Select train : Zug auswählen
 Select turnout : Weiche wählen
@@ -286,22 +282,21 @@ Stop autopilot : Autopilot abschalten
 Stopsettings : Halte-Einstellungen
 StopTrain : Zug stoppen
 Stop train immediately : Zug sofort anhalten
-Straight port\: : Port für gerade
+Straight port : Port für gerade
 STRAIGHT : gerade
 SwitchFunction : Funktion schalten
 Switch power off : Strom ausschalten
 Switch power on : Strom anschalten
 SYSTEM : Betriebssystem
 Tags : Markierungen
-Text to display on clients\: : Text, welcher auf den Clients angezeigt werden soll:
-Text to show on display\: : Text, welcher in der Anzeige dargestellt werden soll:
+Text to display on clients : Text, welcher auf den Clients angezeigt werden soll
+Text to show on display : Text, welcher in der Anzeige dargestellt werden soll
 Tile(s) : Kachel(n)
 Tile(s) moved. : Kachel(n) verschoben.
 Toggle : umschalten
 toggle {} : {} umschalten
 Toggle power : Stom umschalten
 Train : Zug
-Train\: : Zug:
 train contains {} : {} ist im Zug
 train does not contain {} : {} ist nicht im Zug
 train does not have tag "{}" : Zug hat keine Markierung „{}“
@@ -316,7 +311,6 @@ train is slower than {} {} : Zug ist langsamer als {} {}
 TrainLength : Zug-Länge
 Train manager : Zug-Verwaltung
 Trains : Züge
-Trains\: : Züge:
 TrainSelect : Zug-Auswahl
 TrainSpeed : Zug-Geschwindigkeit
 Train speed : Zug-Geschwindigkeit
@@ -345,7 +339,7 @@ Unknown action\: {} : Unbekannte Aktion: {}
 unset : ungesetzt
 WaitForContact : Auf Kontakt warten
 Wait for {}, then : auf {} warten, dann
-Wait {} ms, then\: : {} ms warten, dann:
+Wait {} ms, then : {} ms warten, dann
 {} waiting {} secs... : {} wartet {} Sekunden...
 Wait times : Wartezeiten
 Was not able to assign {} to {}! : Konnte {} nicht an {} zuweisen!
