@@ -23,7 +23,6 @@ public class PathFinder extends BaseClass{
 		LOG.debug(inset+"PathFinder.availableRoutes({})",context);
 		TreeMap<Integer,List<Route>> availableRoutes = new TreeMap<Integer, List<Route>>();
 		
-		
 		boolean error = false;
 		Block block = context.block();		
 		if (isNull(block)) {

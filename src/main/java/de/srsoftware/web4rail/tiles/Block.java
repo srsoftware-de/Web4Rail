@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -40,10 +41,12 @@ public abstract class Block extends StretchableTile{
 	private static final String WAIT_TIMES = "wait_times";
 	private static final String RAISE = "raise";
 	public static final String ACTION_ADD_CONTACT = "add_contact";
+	private static final String PARKED_TRAINS = "parked_trains";
 
 	public String  name        = "Block";
 	public boolean turnAllowed = false;
 	private Vector<BlockContact> internalContacts = new Vector<BlockContact>();
+	private Vector<Train> parkedTrains = new Vector<Train>();
 	
 	public Block() {
 		super();
@@ -128,11 +131,24 @@ public abstract class Block extends StretchableTile{
 
 	
 	private Vector<WaitTime> waitTimes = new Vector<WaitTime>();
+	
+	public void add(Train parkedTrain) {
+		parkedTrain.register();
+		parkedTrains.add(parkedTrain);
+	}
+
 
 	public Object addContact() {
 		BlockContact contact = new BlockContact(this);
 		plan.learn(contact);
 		return t("Trigger contact to learn new contact");
+	}
+	
+	@Override
+	protected HashSet<String> classes() {
+		HashSet<String> classes = super.classes();
+		if (!parkedTrains.isEmpty()) classes.add(OCCUPIED);
+		return classes;
 	}
 	
 	@Override
@@ -207,6 +223,14 @@ public abstract class Block extends StretchableTile{
 	public int indexOf(BlockContact contact) {
 		return 1+internalContacts.indexOf(contact);
 	}
+	
+	@Override
+	public boolean isFreeFor(Context context) {
+		if (!super.isFreeFor(context)) return false;
+		if (parkedTrains.isEmpty()) return true;
+		Train t = isSet(context) ? context.train() : null;
+		return isSet(t) ? t.isShunting() : false; // block contains train(s), thus it is olny free for shunting train
+	}
 		
 	@Override
 	public JSONObject json() {
@@ -224,6 +248,13 @@ public abstract class Block extends StretchableTile{
 			}
 		}
 		if (isSet(jContacts)) json.put(CONTACT, jContacts);
+		if (!parkedTrains.isEmpty()) {
+			JSONArray ptids = new JSONArray();
+			for (Train parked : parkedTrains) {
+				if (isSet(parked)) ptids.put(parked.id().toString());
+			}
+			json.put(PARKED_TRAINS, ptids);
+		}
 		return json;
 	}
 	
@@ -257,7 +288,24 @@ public abstract class Block extends StretchableTile{
 				new BlockContact(this).load(jContact.getJSONObject(key));
 			}
 		}
+		if (json.has(PARKED_TRAINS)) {
+			JSONArray ptids = json.getJSONArray(PARKED_TRAINS);
+			for (Object id : ptids) {
+				Id trainId = new Id(id.toString());
+				parkedTrains.add(BaseClass.get(trainId));
+			}
+		}
 		return super.load(json);
+	}
+	
+	private Fieldset parkedTrains() {
+		Fieldset fieldset = new Fieldset(t("parked trains"));
+		Tag list = new Tag("ul");
+		for (Train t : parkedTrains) {
+			t.link("li", t).addTo(list);
+		}
+		list.addTo(fieldset);
+		return fieldset;
 	}
 	
 	@Override
@@ -266,10 +314,11 @@ public abstract class Block extends StretchableTile{
 		formInputs.add("",new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed));
 		formInputs.add(t("Train"),Train.selector(train, null));
 		postForm.add(contactForm());
-		postForm.add(waitTimeForm());		
+		postForm.add(waitTimeForm());
+		if (!parkedTrains.isEmpty()) postForm.add(parkedTrains());
 		return super.properties(preForm, formInputs, postForm);
 	}
-			
+
 	public Tile raise(String tag) {
 		for (int i=1; i<waitTimes.size(); i++) {
 			WaitTime wt = waitTimes.get(i);
@@ -291,6 +340,7 @@ public abstract class Block extends StretchableTile{
 	public void removeChild(BaseClass child) {
 		super.removeChild(child);
 		internalContacts.remove(child);
+		parkedTrains.remove(child);
 	}
 	
 	public void removeContact(BlockContact blockContact) {
@@ -319,7 +369,12 @@ public abstract class Block extends StretchableTile{
 	public Tag tag(Map<String, Object> replacements) throws IOException {
 		if (isNull(replacements)) replacements = new HashMap<String, Object>();
 		replacements.put("%text%",name);
-		if (isSet(train)) replacements.put("%text%",train.directedName());
+		Vector<String> trainNames = new Vector<String>();
+		if (isSet(train)) trainNames.add(train.directedName());
+		for (Train t:parkedTrains) {
+			if (isSet(t)) trainNames.add(t.name());
+		}
+		if (!trainNames.isEmpty())replacements.put("%text%",String.join(" | ", trainNames));
 		Tag tag = super.tag(replacements);
 		tag.clazz(tag.get("class")+" Block");
 		return tag;

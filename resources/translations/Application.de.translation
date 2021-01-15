@@ -58,6 +58,7 @@ CarInTrain : Wagen im Zug
 Car manager : Waggon-Verwaltung
 CarOrientation : Wagen-Laufrichtung
 Cars : Waggons
+&nbsp;cars : &nbsp;Fahrzeugen teilen
 Click here to add conditions : Hier klicken, um Bedingungen hinzuzufügen
 Click here to select block! : Hier klicken, um Block auszuwählen!
 Click here to select car! : Hier klicken, um Fahrzeug auszuwählen!
@@ -199,6 +200,7 @@ OrCondition : Oder-Bedingung
 other train properties : andere Zug-Eigenschaften
 Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
+parked trains : abgestellte Züge
 Plan saved as "{}". : Plan als „{}“ gespeichert.
 Port for state {} : Anschluss für Status {}
 PreserveRoute : Anschlußroute vorwählen
@@ -214,6 +216,7 @@ Relay : Relais
 Relay/Signal/Turnout : Relais/Signal/Weiche
 Remove tag "{}" from train : Markierung "{}" von Zug entfernen
 Removed {} : {} gelöscht
+Removed train "{}" : Zug „{}“ gelöscht
 rename : umbenennen
 Rename plan : Plan umbenennen
 Report Issue : Problem melden
@@ -269,6 +272,9 @@ Simulating movement of {}... : Simuliere Fahrt von {}...
 Slower (10 {}) : 10 {} langsamer
 SOUTH : Süden
 Speed unit : Geschwindigkeits-Einheit
+Split behind : Nach 
+SplitTrain : Zug teilen
+Split train behind {} cars : Zug nach {} Fahrzeugen teilen
 SRCP : SRCP-Dienst
 SRCP daemon : SRCP-Dienst
 Start actions : Start-Aktionen

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
-import java.util.Vector;
 import java.util.concurrent.TimeoutException;
 
 import org.json.JSONArray;
@@ -53,8 +52,8 @@ public abstract class Signal extends Tile {
 	}
 	
 	@Override
-	protected Vector<String> classes() {
-		Vector<String> classes = super.classes();
+	protected HashSet<String> classes() {
+		HashSet<String> classes = super.classes();
 		classes.add("signal");
 		return classes;
 	}

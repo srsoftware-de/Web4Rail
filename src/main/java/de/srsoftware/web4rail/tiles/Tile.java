@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,7 +45,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	
 	private   static final String LENGTH     = "length";
 	private   static final String LOCKED     = "locked";
-	private   static final String OCCUPIED   = "occupied";
+	protected static final String OCCUPIED   = "occupied";
 	private   static final String ONEW_WAY   = "one_way";
 	private   static final String POS        = "pos";
 	private   static final String TYPE       = "type";
@@ -65,8 +66,8 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		this.routes.add(route);
 	}
 
-	protected Vector<String> classes(){
-		Vector<String> classes = new Vector<String>();
+	protected HashSet<String> classes(){
+		HashSet<String> classes = new HashSet<String>();
 		classes.add("tile");
 		classes.add(getClass().getSimpleName());
 		if (isSet(route)) classes.add(LOCKED);

@@ -830,6 +830,29 @@ public class Train extends BaseClass implements Comparable<Train> {
 		setSpeed(speed-steps);
 		return properties();
 	}
+	
+	public boolean splitAfter(int position) {
+		if (isNull(currentBlock)) return false; // can only split within blocks!
+		Train remaining = new Train();
+		int len = cars.size();
+		for (int i=0; i<len; i++) {
+			if (i>=position) {
+				Car car = cars.remove(position);
+				LOG.debug("Moving {} from {} to {}",car,this,remaining);
+				remaining.add(car);
+			} else {
+				LOG.debug("Skipping {}",cars.get(i));
+			}
+		}
+		if (remaining.cars.isEmpty()) return false;
+		remaining.name = this.name;
+		this.name = null;
+		currentBlock.add(remaining);
+		remaining.currentBlock = currentBlock;
+		plan.place(currentBlock);
+		return true;
+	}
+
 
 	public Object start() throws IOException {
 		LOG.debug("{}.start()",this);
