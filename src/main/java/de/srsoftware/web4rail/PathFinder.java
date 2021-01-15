@@ -17,11 +17,12 @@ public class PathFinder extends BaseClass{
 	public static final Logger LOG = LoggerFactory.getLogger(PathFinder.class);
 
 	private static TreeMap<Integer,List<Route>> availableRoutes(Context context,HashSet<Route> visitedRoutes){
-		LOG.debug("PathFinder.availableRoutes({})",context);
-		TreeMap<Integer,List<Route>> availableRoutes = new TreeMap<Integer, List<Route>>();
-		
 		String inset = "";
 		for (int i=0; i<visitedRoutes.size(); i++) inset+="    ";
+
+		LOG.debug(inset+"PathFinder.availableRoutes({})",context);
+		TreeMap<Integer,List<Route>> availableRoutes = new TreeMap<Integer, List<Route>>();
+		
 		
 		boolean error = false;
 		Block block = context.block();		
@@ -38,11 +39,11 @@ public class PathFinder extends BaseClass{
 		
 		Block destination = train.destination();
 		Direction direction = context.direction();
-/*		if (isSet(direction)) {
+		if (isSet(direction)) {
 			LOG.debug("{}Looking for {}-bound routes from {}",inset,direction,block);
 		} else {
 			LOG.debug("{}Looking for all routes from {}",inset,block);
-		}*/
+		}//*/
 		if (isSet(destination) && visitedRoutes.isEmpty())	LOG.debug("{}- Destination: {}",inset,destination);
 
 		Route currentRoute = context.route();

@@ -127,16 +127,19 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 			}
 			if (isSet(route)) {
 				PathFinder.LOG.debug("{} is occupied by {}",this,route);
-				return false;
-				
+				return false;				
 			}
 		}
 		if (isSet(train)) {
-			boolean free = train == context.train(); // during train.reserveNext, we may encounter, parts, that are already reserved by the respective train, but having another route. do not compare routes in that case!
+			Train contextTrain = context.train();
+			boolean free = train == contextTrain; // during train.reserveNext, we may encounter, parts, that are already reserved by the respective train, but having another route. do not compare routes in that case!
 			if (free) {
 				PathFinder.LOG.debug("already reserved by {} → true",train);
 			} else {
-				PathFinder.LOG.debug("occupied by {} → false",train);
+				if (isSet(contextTrain) && contextTrain.isShunting()) {
+					PathFinder.LOG.debug("occupied by {}. Allowed for shunting {}",train,contextTrain);
+					free = true;
+				} else PathFinder.LOG.debug("occupied by {} → false",train);				
 			}
 			return free;
 		}
@@ -262,7 +265,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 				fieldset.children().firstElement().content(" / "+t("Train"));
 			} else fieldset = new Fieldset(t("Train"));
 			train.link("span", t("Train")+":"+NBSP+train+NBSP).addTo(fieldset);
-			if (isSet(train.route)) {
+			if (isSet(train.route())) {
 				train.button(t("stop"), Map.of(ACTION,ACTION_STOP)).addTo(fieldset);
 			} else {
 				train.button(t("start"), Map.of(ACTION,ACTION_START)).addTo(fieldset);

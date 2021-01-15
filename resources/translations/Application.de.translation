@@ -262,6 +262,7 @@ Set speed to : Geschwindigkeit setzen
 SetTurnout : Weiche stellen
 Setup actions : Vorbereitung-Aktionen
 ShowText : Text anzeigen
+Shunting : Rangieren
 Signals : Signale
 simplify name : Name vereinfachen
 Simulating movement of {}... : Simuliere Fahrt von {}...
@@ -307,7 +308,10 @@ train is a push-pull train : Zug ist ein Wendezug
 train is faster than {} {} : Zug ist schneller als {} {}
 train is longer than {} {} : Zug ist länger als {} {}
 train is not a push-pull train : Zug ist kein Wendezug
+train is not shunting : Zug rangiert nicht
 train is shorter than {} {} : Zug ist kürzer als {} {}
+TrainIsShunting : Zug rangiert
+train is shunting : Zug rangiert
 train is slower than {} {} : Zug ist langsamer als {} {}
 TrainLength : Zug-Länge
 Train manager : Zug-Verwaltung

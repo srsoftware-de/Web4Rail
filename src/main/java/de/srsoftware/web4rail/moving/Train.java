@@ -54,7 +54,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	
 	private static final String ROUTE = "route";
-	public Route route;	
+	private Route route;	
 		
 	private static final String DIRECTION = "direction";
 	private Direction direction;
@@ -82,6 +82,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public int speed = 0;
 	private Autopilot autopilot = null;
 	private Route nextRoute;
+	private static final String SHUNTING = "shunting";
+	private boolean shunting = false;
 
 	
 	private class Autopilot extends Thread{
@@ -362,6 +364,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 			cars.remove(car);
 			car.train(null);
 		}
+		if (cars.isEmpty()) {
+			this.remove();
+			return t("Removed train \"{}\"",this);
+		}
 		return properties();
 	}
 	
@@ -372,6 +378,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Tag faster(int steps) {
 		setSpeed(speed+steps);
 		return properties();
+	}
+	
+	private boolean hasLoco() {
+		for (Car c:cars) {
+			if (c instanceof Locomotive) return true;
+		}
+		return false;
 	}
 		
 	public Train heading(Direction dir) {
@@ -384,6 +397,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Tile headPos() {
 		return trace.getFirst();
 	}
+	
+	public boolean isShunting() {
+		return shunting;
+	}
+
 	
 	public JSONObject json() {
 		JSONObject json = super.json();
@@ -592,11 +610,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 		propList.addTo(otherTrainProps);
 		
-		formInputs.add(t("Name"), new Input(NAME,name));
+		formInputs.add(t("Name"), new Input(NAME,name()));
+		formInputs.add(t("Shunting"),new Checkbox(SHUNTING, t("train is shunting"), shunting));
 		formInputs.add(t("Push-pull train"),new Checkbox(PUSH_PULL, t("Push-pull train"), pushPull));
 		formInputs.add(t("Tags"), new Input(TAGS,String.join(", ", tags)));
 		
-		preForm.add(Locomotive.cockpit(this));
+		if (this.hasLoco())	preForm.add(Locomotive.cockpit(this));
 		postForm.add(otherTrainProps);
 		postForm.add(brakeTimes());
 		postForm.add(blockHistory());
@@ -680,6 +699,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 		trace = reversed;
 		LOG.debug("reversed: {}",trace);
 	}
+	
+	public Route route() {
+		return route;
+	}
+	
+	public Train route(Route newRoute) {
+		route = newRoute;
+		if (isNull(route)) shunting = false; // quit shunting on finish route
+		return this;
+	}
+
+
 
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
@@ -704,6 +735,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public void set(Block newBlock) {
 		LOG.debug("{}.set({})",this,newBlock);
+		if (isSet(currentBlock)) currentBlock.setTrain(null);
 		currentBlock = newBlock;
 		if (isSet(currentBlock)) {
 			currentBlock.setTrain(this);
@@ -927,6 +959,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	protected Train update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
 		pushPull = params.containsKey(PUSH_PULL) && params.get(PUSH_PULL).equals("on");
+		shunting = params.containsKey(SHUNTING) && params.get(SHUNTING).equals("on");
 		if (params.containsKey(NAME)) name = params.get(NAME);
 		if (params.containsKey(TAGS)) {
 			String[] parts = params.get(TAGS).replace(",", " ").split(" ");

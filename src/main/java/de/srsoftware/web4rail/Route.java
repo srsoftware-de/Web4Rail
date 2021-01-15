@@ -126,7 +126,7 @@ public class Route extends BaseClass {
 		public void finish() {
 			LOG.debug("BrakeProcessor.finish(){}",aborted?" got aborted":"");
 			if (aborted) return;
-			long runtime = BaseClass.timestamp() - timestamp;
+			long runtime = 2+BaseClass.timestamp() - timestamp;
 			estimatedDistance += train.speed * runtime;
 			train.setSpeed(0);
 			LOG.debug("Estimated distance: {}",estimatedDistance);
@@ -509,7 +509,7 @@ public class Route extends BaseClass {
 			} else {
 				train.setWaitTime(endBlock.getWaitTime(train,train.direction()));
 			}
-			if (train.route == this) train.route = null;
+			if (train.route() == this) train.route(null);
 			if (startBlock.train() == train && !train.onTrace(startBlock)) startBlock.setTrain(null); // withdraw train from start block only if trace does not go back there
 		}
 		train = null;
@@ -888,7 +888,7 @@ public class Route extends BaseClass {
 		if (isSet(train)) {
 			train.set(startBlock);
 			train.heading(startDirection);
-			if (train.route == this) train.route = null;
+			if (train.route() == this) train.route(null);
 			train = null;
 		}
 		LOG.debug("chlearing triggeredContacts of {}",this);
@@ -1021,6 +1021,7 @@ public class Route extends BaseClass {
 			condition.parent(this);
 			conditions.add(condition);
 		}
+		super.update(params);
 		return properties();
 	}
 

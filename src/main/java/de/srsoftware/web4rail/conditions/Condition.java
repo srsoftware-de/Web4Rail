@@ -123,6 +123,7 @@ public abstract class Condition extends BaseClass {
 				PushPullTrain.class,
 				RouteEndBlock.class,
 				TrainHasTag.class,
+				TrainIsShunting.class,
 				TrainLength.class,
 				TrainSelect.class,
 				TrainSpeed.class,
