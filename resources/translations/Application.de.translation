@@ -189,6 +189,7 @@ On : An
 One of : eine von
 One way : Richtung
 Online Documentation : Online-Dokumentation
+On timeout (after {} ms) : Bei Zeitüberschreitung (nach {} ms)
 open other plan : anderen Plan öffnen
 Open plan... : Plan öffnen...
 Operating System : Betriebssystem
@@ -338,6 +339,8 @@ turn within train : innerhalb des Zugs drehen
 Turns the train, as if it went through a loop. : Dreht den ZUg, als wenn er eine Wendeschleife passiert hätte. 
 Unknown action\: {} : Unbekannte Aktion: {}
 unset : ungesetzt
+WaitForContact : Auf Kontakt warten
+Wait for {}, then : auf {} warten, dann
 Wait {} ms, then\: : {} ms warten, dann:
 {} waiting {} secs... : {} wartet {} Sekunden...
 Wait times : Wartezeiten

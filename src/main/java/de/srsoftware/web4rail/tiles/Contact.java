@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,6 +31,11 @@ public class Contact extends Tile{
 	protected int addr = 0;
 	private ActionList actions;
 	private OffTimer timer = null;
+	private HashSet<Listener> listeners = new HashSet<Listener>();
+
+	public interface Listener{
+		public void fired();
+	}
 	
 	public Contact() {
 		actions = new ActionList(this);
@@ -86,6 +92,9 @@ public class Contact extends Tile{
 				context = new Context(this);
 				actions.fire(context);
 			}
+			for (Listener listener : listeners) {
+				listener.fired();
+			}
 			
 			stream();
 		}
@@ -100,6 +109,10 @@ public class Contact extends Tile{
 		addr = address;
 		if (addr != 0) contactsByAddr.put(addr, this); // neue ID setzen
 		return this;
+	}
+
+	public void addListener(Listener l) {
+		listeners.add(l);
 	}
 
 	@Override
@@ -199,6 +212,10 @@ public class Contact extends Tile{
 		super.removeChild(child);
 	}
 	
+	public void removeListener(Listener listener) {
+		listeners.remove(listener);
+	}
+
 	public static Select selector(Contact preselect) {
 		TreeMap<String,Contact> sortedSet = new TreeMap<String, Contact>(); // Map from Name to Contact
 		for (Contact contact : BaseClass.listElements(Contact.class)) sortedSet.put(contact.toString(), contact);

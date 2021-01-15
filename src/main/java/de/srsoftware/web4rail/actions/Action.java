@@ -66,7 +66,8 @@ public abstract class Action extends BaseClass {
 			StartStopAuto.class,
 			StopTrain.class,
 			SwitchFunction.class,
-			TriggerContact.class
+			TriggerContact.class,
+			WaitForContact.class
 		);
 	}
 
