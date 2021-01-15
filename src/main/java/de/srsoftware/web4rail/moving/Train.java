@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -49,8 +48,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static final String CAR_ID  = "carId";
 	public  static final String LOCO_ID = "locoId";
 	private static final String TRACE   = "trace";
-	private static final HashMap<Id, Train> trains = new HashMap<>();
-	public static final String ID = "id";
 
 	private static final String NAME = "name";
 	private String name = null;
@@ -118,17 +115,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 	}
 	
-	public Train(Locomotive loco) {
-		this(loco,null);
-	}
-	
-	public Train(Locomotive loco, Id id) {
-		if (isNull(id)) id = new Id();
-		this.id = id;
-		add(loco);
-		trains.put(id, this);
-	}
-
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
 		if (isNull(action)) return t("No action passed to Train.action!");
@@ -142,7 +128,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			return t("No train id passed!");
 		}
 		Id id = Id.from(params);
-		Train train = trains.get(id);
+		Train train = BaseClass.get(id);
 		if (isNull(train)) return(t("No train with id {}!",id));
 		switch (action) {		
 			case ACTION_ADD:
@@ -213,10 +199,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 
-	public void add(Car car) {
-		if (isNull(car)) return;
-		cars.add(car);
-		car.train(this);
+	public Train add(Car car) {
+		if (isSet(car)) {
+			cars.add(car);
+			car.train(this);
+		}
+		return this;		
 	}
 	
 	public String automatic() {
@@ -327,7 +315,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(locoId)) return t("Need loco id to create new train!");
 		Locomotive loco = BaseClass.get(new Id(locoId));
 		if (isNull(loco)) return t("unknown locomotive: {}",params.get(ID));
-		Train train = new Train(loco);
+		Train train = new Train().add(loco);
 		train.parent(plan);
 		if (params.containsKey(NAME)) train.name(params.get(NAME));
 		train.register();
@@ -386,10 +374,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 		
-	public static Train get(Id id) {
-		return trains.get(id);
-	}
-	
 	public Train heading(Direction dir) {
 		LOG.debug("{}.heading({})",this,dir);
 		direction = dir;
@@ -448,8 +432,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		while (isSet(line)) {
 			JSONObject json = new JSONObject(line);
 			
-			Train train = new Train(null,Id.from(json));
-			train.load(json).parent(plan);			
+			new Train().load(json).parent(plan);			
 			
 			line = file.readLine();
 		}
@@ -537,7 +520,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 
 	public String name() {
-		return (isSet(name) ? name : cars.stream().filter(car -> isSet(car.name())).findFirst().get().name());
+		if (isSet(name)) return name;
+		if (cars.isEmpty()) return t("emtpy train");
+		for (Car car : cars) {
+			String name = car.name();
+			if (isSet(name)) return name;
+		}
+		return t("empty train");
 	}
 	
 	private Train name(String newName) {
@@ -694,10 +683,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
-		for (Entry<Id, Train> entry:trains.entrySet()) {
-			Train train = entry.getValue();
-			file.write(train.json()+"\n");
-		}
+		for (Train train:BaseClass.listElements(Train.class)) file.write(train.json()+"\n");
 		file.close();
 	}
 	

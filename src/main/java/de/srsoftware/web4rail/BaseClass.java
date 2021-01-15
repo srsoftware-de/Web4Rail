@@ -410,9 +410,10 @@ public abstract class BaseClass implements Constants{
 		return parent;
 	}
 	
-	public BaseClass parent(BaseClass parent) {
+	@SuppressWarnings("unchecked")
+	public <T extends BaseClass> T parent(BaseClass parent) {
 		this.parent = parent;
-		return this;
+		return (T) this;
 	}
 	
 	public Window properties() {
