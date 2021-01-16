@@ -900,7 +900,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				remaining.add(car);
 				if (isNull(remaining.name)) {
 					remaining.name = car.name();					
-				} else if (remaining.name.length()+car.name().length()<20){
+				} else if (remaining.name.length()+car.name().length()<30){
 					remaining.name += ", "+car.name();
 				}
 			} else {
