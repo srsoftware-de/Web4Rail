@@ -90,7 +90,9 @@ Current location : Aufenthaltsort
 Current location\: {} : Aufenthaltsort: {}
 Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {}
 custom fields : benutzerdefinierte Felder
-Decoder address : Decoder-Adresse 
+Decoder address : Decoder-Adresse
+decoupler : decoupler
+Decoupler : Entkuppler 
 DelayedAction : verzögerte Aktion
 delete : entfernen
 delete route : Route löschen

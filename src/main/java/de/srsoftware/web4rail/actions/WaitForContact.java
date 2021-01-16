@@ -133,9 +133,7 @@ public class WaitForContact extends ActionList {
 			Tile tile = BaseClass.get(new Id(params.get(CONTACT)));
 			if (tile instanceof Contact) {
 				contact = (Contact) tile;
-			} else {
-				return t("Clicked tile is not a {}!",t("contact"));
-			}
+			} else return t("Clicked tile is not a {}!",t("contact"));
 		}
 		if (params.containsKey(TIMEOUT)) timeout = Integer.parseInt(params.get(TIMEOUT));
 		return super.update(params);

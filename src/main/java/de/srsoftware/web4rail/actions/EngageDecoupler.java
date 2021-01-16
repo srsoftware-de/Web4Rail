@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -10,6 +11,7 @@ import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tiles.Decoupler;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class EngageDecoupler extends Action {
 	
@@ -57,8 +59,7 @@ public class EngageDecoupler extends Action {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-
-		formInputs.add(t("Select decoupler"),Decoupler.selector(decoupler,null));
+		formInputs.add(t("Decoupler")+": "+(isNull(decoupler) ? t("unset") : decoupler),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,DECOUPLER)));
 		
 		return super.properties(preForm, formInputs, postForm);
 	}
@@ -77,8 +78,12 @@ public class EngageDecoupler extends Action {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		Id decouplerId = new Id(params.get(DECOUPLER));
-		decoupler = BaseClass.get(decouplerId);
+		if (params.containsKey(DECOUPLER)) {
+			Tile tile = BaseClass.get(new Id(params.get(DECOUPLER)));
+			if (tile instanceof Decoupler) {
+				decoupler = (Decoupler) tile;				
+			} else return t("Clicked tile is not a {}!",t("decoupler"));
+		}
 		return context().properties();
 	}
 }
