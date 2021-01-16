@@ -75,6 +75,11 @@ public class Route extends BaseClass {
 	private static final String ROUTE_START = "route_start";
 
 	private static final String ROUTE_SETUP = "route_setup";
+
+	public static final String DESTINATION_PREFIX = "@";
+	public static final char TURN_FLAG = '±';
+	public static final char FLAG_SEPARATOR = '+';
+	public static final char SHUNTING_FLAG = '¥';
 	
 	private int startSpeed;
 	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
@@ -508,7 +513,7 @@ public class Route extends BaseClass {
 			if (endBlock == train.destination()) {
 				String destTag = null;
 				for (String tag : train.tags()) {
-					if (tag.startsWith("@")) {
+					if (tag.startsWith(DESTINATION_PREFIX)) {
 						destTag = tag;
 						break;
 					}
@@ -517,8 +522,19 @@ public class Route extends BaseClass {
 				if (isSet(destTag)) {
 					String[] parts = destTag.split("@");
 					String destId = parts[1];
-					boolean turn = destId.endsWith("+turn");
-					if (turn) destId = destId.substring(0,destId.length()-5);
+					boolean turn = false;
+					
+					for (int i=destId.length()-1; i>0; i--) {
+						switch (destId.charAt(i)) {
+							case FLAG_SEPARATOR:
+								destId = destId.substring(0,i);
+								i=0;
+								break;
+							case TURN_FLAG:
+								turn = true; 
+								break;
+						}
+					}
 					if (destId.equals(endBlock.id().toString())) {
 						if (turn) train.turn();
 						train.removeTag(destTag);

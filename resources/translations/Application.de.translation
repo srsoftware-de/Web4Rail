@@ -59,6 +59,8 @@ Brake time¹, reverse : Bremszeit¹, rückwärts
 Brake time table : Bremszeit-Tabelle
 CarInTrain : Fahrzeug im Zug
 Car manager : Waggon-Verwaltung
+Car of train : Fahrzeug des Zuges
+Car {} of train : Fahrzeug {} des Zuges
 CarOrientation : Wagen-Laufrichtung
 Cars : Waggons
 &nbsp;cars : &nbsp;Fahrzeugen teilen
@@ -89,9 +91,14 @@ Control : Steuerung
 Control unit : Zentrale
 copy : kopieren
 Counterpart : Gegenstück
+Couple : kupple
+Couple first parked train : ersten geparkten Zug kuppeln
+Couple last parked train : letzten geparkten Zug kuppeln
+CoupleTrain : Zug kuppeln
 Create action : Aktion erzeugen
 Current location : Aufenthaltsort
 Current location\: {} : Aufenthaltsort: {}
+Current orientation : aktuelle Fahrtrichtung
 Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {}
 custom fields : benutzerdefinierte Felder
 Decoder address : Decoder-Adresse
@@ -145,6 +152,7 @@ Help : Hilfe
 Hold : an lassen
 (id\: {}, length\: {}) : (Id: {}, Länge: {})
 if ({}) : falls ({})
+If car of train\: inspect car number : Falls Fahrzeug aus Zug: Untersuche Fahrzeug Nummer
 If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.
 Falls aktiviert, wird die Strecke anhand von Zug- und Kachel-Länge hinter dem Zug freigegeben, Falls deaktiviert wird die Strecke hinter dem Zug erst bei Abschluss der Route freigegeben.
 internal contacts : interne Kontakte
@@ -156,6 +164,7 @@ known locomotives : bekannte Lokomotiven
 known trains : bekannte Züge
 Label for state {} : Beschriftung für Status {}
 Last blocks : Letzte Blöcke
+last parked train : letzten geparkten Zug
 learn : lernen
 LEFT : links
 Left port : Port für links
@@ -295,12 +304,15 @@ State : Status
 StopAllTrains : Alle Züge stoppen
 StartStopAuto : Automatikmodus an/abschalten
 Stop autopilot : Autopilot abschalten
+Stopped and reversed {}. : {} angehalten und gewendet.
 {} stopping at next block. : {} hält im nächsten Block.
 Stopsettings : Halte-Einstellungen
 StopTrain : Zug stoppen
 Stop train immediately : Zug sofort anhalten
 Straight port : Port für gerade
 STRAIGHT : gerade
+Swap order : Reihenfolge umkehren
+Swap order of trains : Reihenfolge der Züge tauschen
 SwitchFunction : Funktion schalten
 Switch power off : Strom ausschalten
 Switch power on : Strom anschalten
@@ -325,7 +337,7 @@ train is longer than {} {} : Zug ist länger als {} {}
 train is not a push-pull train : Zug ist kein Wendezug
 train is not shunting : Zug rangiert nicht
 train is shorter than {} {} : Zug ist kürzer als {} {}
-TrainIsShunting : Zug rangiert
+TrainIsShunting : Rangierfahrt
 train is shunting : Zug rangiert
 train is slower than {} {} : Zug ist langsamer als {} {}
 TrainLength : Zug-Länge
@@ -357,6 +369,7 @@ Turnouts : Weichen
 turn within train : innerhalb des Zugs drehen
 Turns the train, as if it went through a loop. : Dreht den ZUg, als wenn er eine Wendeschleife passiert hätte. 
 Unknown action\: {} : Unbekannte Aktion: {}
+Use negative number to count from end. : Nutze negative Nummern, um von Ende zu zählen.
 unset : ungesetzt
 WaitForContact : Auf Kontakt warten
 Wait for {}, then : auf {} warten, dann

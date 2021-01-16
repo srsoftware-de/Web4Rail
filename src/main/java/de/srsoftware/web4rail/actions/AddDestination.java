@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
@@ -20,8 +21,10 @@ import de.srsoftware.web4rail.tiles.Tile;
 public class AddDestination extends Action {
 
 	private static final String TURN = "turn";
+	private static final String SHUNTING = "shunting";
 	private Block destination;
 	private boolean turnAtDestination;
+	private boolean shunting;
 	
 	public AddDestination(BaseClass parent) {
 		super(parent);
@@ -39,9 +42,12 @@ public class AddDestination extends Action {
 			}
 			return true;
 		} 
-		String dest = "@"+destination.id()+(turnAtDestination?"+turn":"");
+		String flags = "+";
+		if (turnAtDestination) flags += Route.TURN_FLAG;
+		if (shunting) flags += Route.SHUNTING_FLAG;
+		String dest = Route.DESTINATION_PREFIX+destination.id() + (flags.length()>1 ? flags : "");
 		for (String tag: train.tags()) {
-			if (tag.startsWith("@")) {
+			if (tag.startsWith(Route.DESTINATION_PREFIX)) {
 				train.removeTag(tag);
 				dest = tag+dest;				
 				break;
@@ -56,12 +62,14 @@ public class AddDestination extends Action {
 		JSONObject json = super.json();
 		if (isSet(destination)) json.put(Train.DESTINATION,destination.id().toString());
 		if (turnAtDestination) json.put(TURN,true);
+		if (shunting) json.put(SHUNTING, true);
 		return json;
 	}
 	
 	@Override
 	public Action load(JSONObject json) {
 		if (json.has(TURN)) turnAtDestination = json.getBoolean(TURN);
+		if (json.has(SHUNTING)) shunting = json.getBoolean(SHUNTING);
 		if (json.has(Train.DESTINATION)) {
 			Id blockId = new Id(json.getString(Train.DESTINATION));
 			destination = BaseClass.get(blockId);
@@ -89,6 +97,7 @@ public class AddDestination extends Action {
 		button(t("Clear destinations"),Map.of(ACTION,ACTION_UPDATE,Train.DESTINATION,"0")).addTo(span);
 		formInputs.add(t("Destination")+": "+(isNull(destination) ? t("Clear destinations") : destination),span);
 		formInputs.add(t("Turn at destination"),new Checkbox(TURN, t("Turn"), turnAtDestination));
+		formInputs.add(t("Shunting"),new Checkbox(SHUNTING, t("Shunting"), shunting));
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
@@ -113,6 +122,7 @@ public class AddDestination extends Action {
 			}
 		}
 		turnAtDestination = "on".equals(params.get(TURN));
+		shunting = "on".equals(params.get(SHUNTING));
 		return context().properties();
 	}
 }

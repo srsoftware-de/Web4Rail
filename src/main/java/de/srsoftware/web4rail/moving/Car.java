@@ -247,6 +247,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Input(MAX_SPEED_REVERSE, maxSpeedReverse).numeric().addTo(new Tag("p")).content(NBSP+speedUnit+NBSP+t("backward")).addTo(div);
 		formInputs.add(t("Maximum Speed"),div);
 		if (train != null) formInputs.add(t("Train"), train.link());
+		formInputs.add(t("Current orientation"),new Tag("span").content(orientation ? t("forward") : t("reverse")));
 				
 		return super.properties(preForm,formInputs,postForm);
 	}
@@ -309,10 +310,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return t("Reversed {}.",this);
 	}
 
-	public static Select selector(Car preselected,Collection<Car> exclude) {
+	public static Select selector(Object preset,Collection<Car> exclude) {
+		Car preselected = preset instanceof Car ? (Car) preset : null;
+		String firstEntry = preset instanceof String ? (String) preset : t("unset");
 		if (isNull(exclude)) exclude = new Vector<Car>();
 		Select select = new Select(Car.class.getSimpleName());
-		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
+		new Tag("option").attr("value","0").content(firstEntry).addTo(select);
 		List<Car> cars = BaseClass.listElements(Car.class);
 		cars.sort((c1,c2) -> {
 			if (isSet(c1.stockId)) return c1.stockId.compareTo(c2.stockId);

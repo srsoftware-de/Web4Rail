@@ -318,6 +318,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return name().compareTo(o.toString());
 	}
 	
+	public void coupleWith(Train parkingTrain,boolean swap) {
+		if (isSet(direction) && isSet(parkingTrain.direction) && parkingTrain.direction != direction) parkingTrain.turn();
+		if (swap) {
+			Vector<Car> dummy = new Vector<Car>(parkingTrain.cars);
+			dummy.addAll(cars);
+			cars = dummy;
+		} else cars.addAll(parkingTrain.cars);
+		parkingTrain.remove();
+	}
+	
 	private static Object create(HashMap<String, String> params, Plan plan) {
 		String locoId = params.get(Train.LOCO_ID);
 		if (isNull(locoId)) return t("Need loco id to create new train!");
@@ -336,18 +346,30 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public Block destination() {
 		if (isNull(destination)) {
-			String destTag = null;
+			String destId = null;
 			for (String tag : tags) {
-				if (tag.startsWith("@")) {
-					destTag = tag;
+				if (tag.startsWith(Route.DESTINATION_PREFIX)) {
+					destId = tag;
 					break;
 				}
 			}
-			if (isSet(destTag)) {
-				String[] parts = destTag.split("@");
-				destTag = parts[1];
-				if (destTag.endsWith("+turn")) destTag = destTag.substring(0,destTag.length()-5);
-				BaseClass object = BaseClass.get(new Id(destTag));
+			if (isSet(destId)) {
+				String[] parts = destId.split(Route.DESTINATION_PREFIX);
+				destId = parts[1];
+				
+				for (int i=destId.length()-1; i>0; i--) {
+					switch (destId.charAt(i)) {
+						case Route.FLAG_SEPARATOR:
+							destId = destId.substring(0,i);
+							i=0;
+							break;
+						case Route.SHUNTING_FLAG:
+							shunting = true; 
+							break;
+					}
+				}
+
+				BaseClass object = BaseClass.get(new Id(destId));
 				if (object instanceof Block) destination = (Block) object;
 			}
 		}
@@ -876,12 +898,17 @@ public class Train extends BaseClass implements Comparable<Train> {
 				Car car = cars.remove(position);
 				LOG.debug("Moving {} from {} to {}",car,this,remaining);
 				remaining.add(car);
+				if (isNull(remaining.name)) {
+					remaining.name = car.name();					
+				} else if (remaining.name.length()+car.name().length()<20){
+					remaining.name += ", "+car.name();
+				}
 			} else {
 				LOG.debug("Skipping {}",cars.get(i));
 			}
 		}
 		if (remaining.cars.isEmpty()) return false;
-		remaining.name = this.name;
+		remaining.direction = this.direction;
 		this.name = null;
 		currentBlock.add(remaining);
 		remaining.currentBlock = currentBlock;

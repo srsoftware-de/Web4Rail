@@ -47,6 +47,7 @@ public abstract class Action extends BaseClass {
 			BrakeCancel.class,
 			BrakeStart.class,
 			ConditionalAction.class,
+			CoupleTrain.class,
 			DelayedAction.class,
 			DetermineTrainInBlock.class,
 			DisableEnableBlock.class,

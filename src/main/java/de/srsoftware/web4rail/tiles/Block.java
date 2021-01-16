@@ -213,7 +213,7 @@ public abstract class Block extends StretchableTile{
 	public Range getWaitTime(Train train,Direction dir) {
 		for (WaitTime wt : waitTimes) {
 			if (train.tags().contains(wt.tag)) {
-				LOG.info(t("{} using rule for \"{}\".",train,wt.tag));
+				LOG.info(t("{} @ {} using rule for \"{}\".",train,this,wt.tag));
 				return wt.get(train.direction());
 			}
 		}
@@ -308,6 +308,12 @@ public abstract class Block extends StretchableTile{
 		return fieldset;
 	}
 	
+	public Train parkedTrains(boolean last) {
+		if (parkedTrains.isEmpty()) return null;
+		return last ? parkedTrains.lastElement() : parkedTrains.firstElement();
+	}
+
+	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		formInputs.add(t("Name"),new Input(NAME, name));
@@ -372,7 +378,7 @@ public abstract class Block extends StretchableTile{
 		Vector<String> trainNames = new Vector<String>();
 		if (isSet(train)) trainNames.add(train.directedName());
 		for (Train t:parkedTrains) {
-			if (isSet(t)) trainNames.add(t.name());
+			if (isSet(t)) trainNames.add(t.directedName());
 		}
 		if (!trainNames.isEmpty())replacements.put("%text%",String.join(" | ", trainNames));
 		Tag tag = super.tag(replacements);
