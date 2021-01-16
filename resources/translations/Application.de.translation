@@ -54,17 +54,18 @@ BrakeStop : Bremsvorgang abschließen
 Brake time¹, forward : Bremszeit¹, vorwärts
 Brake time¹, reverse : Bremszeit¹, rückwärts
 Brake time table : Bremszeit-Tabelle
-CarInTrain : Wagen im Zug
+CarInTrain : Fahrzeug im Zug
 Car manager : Waggon-Verwaltung
 CarOrientation : Wagen-Laufrichtung
 Cars : Waggons
 &nbsp;cars : &nbsp;Fahrzeugen teilen
+Clicked tile is not a block! : Angeklickte Kachel ist kein Block!
 Click here to add conditions : Hier klicken, um Bedingungen hinzuzufügen
 Click here to select block! : Hier klicken, um Block auszuwählen!
 Click here to select car! : Hier klicken, um Fahrzeug auszuwählen!
 Click here to select display! : Hier klicken, um Anzeige auszuwählen!
 Click here to select train! : Hier klicken, um Zug auszuwählen!
-click here to setup contact : Hier klicken, um Kontakt auszuwählen
+Click here to setup contact : Hier klicken, um Kontakt auszuwählen
 Click here to setup decoupler : Hier klicken, um Entkuppler einzurichten
 click here to setup relay : Hier klicken, um Relais einzurichten
 click here to setup signal : Hier klicken, um Signal einzurichten

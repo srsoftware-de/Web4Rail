@@ -53,8 +53,7 @@ public abstract class Condition extends BaseClass {
 			case ACTION_PROPS:
 				return condition.properties();
 			case ACTION_UPDATE:
-				condition.update(params);
-				return condition.context().properties();
+				return condition.update(params);				
 		}
 		return t("Unknown action: {}",action);
 	}
@@ -69,7 +68,9 @@ public abstract class Condition extends BaseClass {
 		ConditionList conditionList = BaseClass.get(parentId);
 		if (isNull(conditionList)) return t("No condition list with id {} found!",parentId);
 		
-		return conditionList.add(Condition.create(type)).properties();
+		Condition condition = Condition.create(type);
+		conditionList.add(condition);
+		return condition.properties();
 	}
 
 	public static Condition create(String type) {
@@ -165,6 +166,7 @@ public abstract class Condition extends BaseClass {
 
 	protected Object update(HashMap<String, String> params) {
 		inverted = "on".equals(params.get(INVERTED));
-		return super.update(params);
+		super.update(params);
+		return context().properties();
 	}
 }

@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.conditions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -10,6 +11,7 @@ import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class BlockFree extends Condition {
 	
@@ -55,7 +57,7 @@ public class BlockFree extends Condition {
 
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Select block"), Block.selector(block, null));
+		formInputs.add(t("Block: {}",isNull(block) ? t("unset") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,BLOCK)));
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
@@ -76,9 +78,14 @@ public class BlockFree extends Condition {
 	protected Object update(HashMap<String, String> params) {
 		if (!params.containsKey(BLOCK)) return t("No block id passed to BlockFree.update()!");
 		Id bid = new Id(params.get(BLOCK));
-		Block block = Block.get(bid);
-		if (isNull(block)) return t("No block with id {} found!",bid);
-		this.block = block;
+		
+		Tile tile = plan.get(bid, true);
+		if (tile instanceof Block) {
+			block = (Block) tile;
+		} else {
+			return t("Clicked tile is not a block!");
+		}
+		
 		return super.update(params);
 	}
 }
