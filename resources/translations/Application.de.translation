@@ -41,6 +41,7 @@ Availability : Verfügbarkeit
 Back : zurück
 backward : rückwärts
 Basic properties : Grundlegende Eigenschaften
+block : Block
 BlockFree : Blockbelegung
 block from context : Block aus Kontext
 Block {} is free : Block {} ist frei
@@ -59,7 +60,7 @@ Car manager : Waggon-Verwaltung
 CarOrientation : Wagen-Laufrichtung
 Cars : Waggons
 &nbsp;cars : &nbsp;Fahrzeugen teilen
-Clicked tile is not a block! : Angeklickte Kachel ist kein Block!
+Clicked tile is not a {}! : Angeklickte Kachel ist kein {}!
 Click here to add conditions : Hier klicken, um Bedingungen hinzuzufügen
 Click here to select block! : Hier klicken, um Block auszuwählen!
 Click here to select car! : Hier klicken, um Fahrzeug auszuwählen!
@@ -78,6 +79,7 @@ Conditions : Bedingungen
 Condition type : Bedingungs-Typ
 Connected to {}. : Mit {} verbunden.
 Confirmation required : Bestätigung erforderlich
+contact : Kontakt
 Contact : Kontakt
 Control : Steuerung
 Control unit : Zentrale

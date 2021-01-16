@@ -57,7 +57,7 @@ public class BlockFree extends Condition {
 
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Block: {}",isNull(block) ? t("unset") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,BLOCK)));
+		formInputs.add(t("Block")+": "+(isNull(block) ? t("unset") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,BLOCK)));
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
@@ -83,7 +83,7 @@ public class BlockFree extends Condition {
 		if (tile instanceof Block) {
 			block = (Block) tile;
 		} else {
-			return t("Clicked tile is not a block!");
+			return t("Clicked tile is not a {}!",t("block"));
 		}
 		
 		return super.update(params);

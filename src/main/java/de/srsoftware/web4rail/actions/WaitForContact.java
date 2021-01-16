@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -13,6 +14,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Contact.Listener;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class WaitForContact extends ActionList {
 
@@ -109,7 +111,7 @@ public class WaitForContact extends ActionList {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Contact"),Contact.selector(contact));
+		formInputs.add(t("Contact")+": "+(isNull(contact) ? t("unset") : contact),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,CONTACT)));
 		formInputs.add(t("Timeout"),new Input(TIMEOUT,timeout).numeric().addTo(new Tag("span")).content(NBSP+"ms"));
 		
 		Fieldset fieldset = new Fieldset(t("Actions on timeout"));
@@ -127,7 +129,14 @@ public class WaitForContact extends ActionList {
 	
 	@Override
 	protected Object update(HashMap<String, String> params) {
-		if (params.containsKey(CONTACT)) contact = BaseClass.get(new Id(params.get(CONTACT)));
+		if (params.containsKey(CONTACT)) {
+			Tile tile = BaseClass.get(new Id(params.get(CONTACT)));
+			if (tile instanceof Contact) {
+				contact = (Contact) tile;
+			} else {
+				return t("Clicked tile is not a {}!",t("contact"));
+			}
+		}
 		if (params.containsKey(TIMEOUT)) timeout = Integer.parseInt(params.get(TIMEOUT));
 		return super.update(params);
 	}
