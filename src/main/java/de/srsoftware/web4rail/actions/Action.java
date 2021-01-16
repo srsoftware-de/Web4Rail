@@ -41,6 +41,7 @@ public abstract class Action extends BaseClass {
 	
 	public static List<Class<? extends Action>> classes() {
 		return List.of(
+			AddDestination.class,
 			AddRemoveTag.class,
 			AlterDirection.class,
 			BrakeCancel.class,

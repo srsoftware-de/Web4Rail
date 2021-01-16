@@ -54,7 +54,7 @@ public abstract class TextAction extends Action {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		text = params.get(TEXT);
+		if (params.containsKey(TEXT)) text = params.get(TEXT);
 		return super.update(params);
 	}
 }

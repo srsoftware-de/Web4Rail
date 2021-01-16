@@ -243,6 +243,11 @@ public class Contact extends Tile{
 	public String title() {
 		return t("Contact {} @ ({}, {})",addr,x,y);
 	}
+	
+	@Override
+	public String toString() {
+		return t("Contact")+"("+x+","+y+")";
+	}
 
 	public String trigger() {
 		if (trigger == null) trigger = getClass().getSimpleName()+"-"+id();

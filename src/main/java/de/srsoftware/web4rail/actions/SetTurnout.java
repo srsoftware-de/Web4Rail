@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -73,8 +74,7 @@ public class SetTurnout extends Action {
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 
-		formInputs.add(t("Select turnout"),Turnout.selector(turnout,null));
-		
+		formInputs.add(t("Turnout")+": "+(isNull(turnout) ? t("unset") : turnout),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,TURNOUT)));
 		if (isSet(turnout)) {
 			Select select = new Select(Turnout.STATE);
 			
@@ -112,8 +112,12 @@ public class SetTurnout extends Action {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		Id turnoutId = new Id(params.get(TURNOUT));
-		turnout = BaseClass.get(turnoutId);
+		if (params.containsKey(TURNOUT)) {
+			BaseClass object = BaseClass.get(new Id(params.get(TURNOUT)));
+			if (object instanceof Turnout) {
+				turnout = (Turnout) object;
+			} else return t("Clicked tile is not a {}!",t("turnout"));
+		}
 		String st = params.get(Turnout.STATE);
 		if (isSet(st)) state = Turnout.State.valueOf(st);
 		return super.update(params);

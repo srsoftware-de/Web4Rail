@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +69,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	private static final String TAGS = "tags";
 
-	private static final String DESTINATION = "destination";
+	public static final String DESTINATION = "destination";
 
 	private static final String ACTION_REVERSE = "reverse";
 	
@@ -172,6 +173,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return t("Unknown action: {}",params.get(ACTION));
 	}
+	
+	public void addTag(String tag) {
+		tags.add(tag);
+	}
+
 
 	public void addToTrace(Vector<Tile> newTiles) {
 		Route.LOG.debug("{}.addToTrace({})",this,newTiles);
@@ -329,6 +335,22 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Block destination() {
+		if (isNull(destination)) {
+			String destTag = null;
+			for (String tag : tags) {
+				if (tag.startsWith("@")) {
+					destTag = tag;
+					break;
+				}
+			}
+			if (isSet(destTag)) {
+				String[] parts = destTag.split("@");
+				destTag = parts[1];
+				if (destTag.endsWith("+turn")) destTag = destTag.substring(0,destTag.length()-5);
+				BaseClass object = BaseClass.get(new Id(destTag));
+				if (object instanceof Block) destination = (Block) object;
+			}
+		}
 		return destination;
 	}
 	
@@ -662,6 +684,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		trace.remove(child);
 		super.removeChild(child);
 	}
+	
+	public Iterator<String> removeTag(String tag) {
+		tags.remove(tag);
+		return tags().iterator();
+	}
+
 	
 	public void reserveNext() {
 		LOG.debug("{}.reserveNext()",this);

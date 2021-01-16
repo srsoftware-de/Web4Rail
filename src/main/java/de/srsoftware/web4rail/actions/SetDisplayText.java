@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -11,6 +12,7 @@ import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tiles.TextDisplay;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class SetDisplayText extends TextAction{
 
@@ -29,7 +31,9 @@ public class SetDisplayText extends TextAction{
 	
 	@Override
 	public JSONObject json() {
-		return super.json().put(DISPLAY, display.id());
+		JSONObject json = super.json();
+		if (isSet(display)) json.put(DISPLAY, display.id());
+		return json;
 	}
 
 	@Override
@@ -60,7 +64,7 @@ public class SetDisplayText extends TextAction{
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Select display"),TextDisplay.selector(display, null));
+		formInputs.add(t("Display")+": "+(isNull(display) ? t("unset") : display),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,DISPLAY)));
 		return super.properties(preForm, formInputs, postForm);
 	}
 		
@@ -70,9 +74,14 @@ public class SetDisplayText extends TextAction{
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {		
-		String displayId = params.get(TextDisplay.class.getSimpleName());
-		if (isSet(displayId)) display = (TextDisplay) plan.get(new Id(displayId), false);
+	protected Object update(HashMap<String, String> params) {
+		if (params.containsKey(DISPLAY)) {
+			Tile object = plan.get(new Id(params.get(DISPLAY)), true);
+			if (object instanceof TextDisplay) {
+				display = (TextDisplay) object;
+			} else return t("Clicked tile is not a {}!",t("display"));
+
+		}
 		return super.update(params);
 	}
 }

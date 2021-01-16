@@ -77,9 +77,7 @@ public class BlockFree extends Condition {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		if (!params.containsKey(BLOCK)) return t("No block id passed to BlockFree.update()!");
-		Id bid = new Id(params.get(BLOCK));
-		
-		Tile tile = plan.get(bid, true);
+		Tile tile = plan.get(new Id(params.get(BLOCK)), true);
 		if (tile instanceof Block) {
 			block = (Block) tile;
 		} else {

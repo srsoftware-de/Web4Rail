@@ -151,6 +151,12 @@ public abstract class Decoupler extends Tile implements Device{
 		return select;
 	}
 	
+	
+	@Override
+	public String toString() {
+		return t("Decoupler")+"("+x+","+y+")";
+	}
+	
 	@Override
 	public Tile update(HashMap<String, String> params) {
 		if (params.containsKey(PROTOCOL)) protocol = Protocol.valueOf(params.get(PROTOCOL));

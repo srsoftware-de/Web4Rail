@@ -506,8 +506,33 @@ public class Route extends BaseClass {
 			train.set(endBlock);
 			train.heading(endDirection);
 			if (endBlock == train.destination()) {
-				train.destination(null).quitAutopilot();
-				plan.stream(t("{} reached it`s destination!",train));
+				String destTag = null;
+				for (String tag : train.tags()) {
+					if (tag.startsWith("@")) {
+						destTag = tag;
+						break;
+					}
+				}
+				train.destination(null);
+				if (isSet(destTag)) {
+					String[] parts = destTag.split("@");
+					String destId = parts[1];
+					boolean turn = destId.endsWith("+turn");
+					if (turn) destId = destId.substring(0,destId.length()-5);
+					if (destId.equals(endBlock.id().toString())) {
+						if (turn) train.turn();
+						train.removeTag(destTag);
+						destTag = destTag.substring(parts[1].length()+1);
+						if (destTag.isEmpty()) { // no further destinations
+							destTag = null;
+						} else train.addTag(destTag);
+					}					
+				}
+				
+				if (isNull(destTag)) {
+					train.quitAutopilot();
+					plan.stream(t("{} reached it`s destination!",train));
+				}
 			} else {
 				train.setWaitTime(endBlock.getWaitTime(train,train.direction()));
 			}

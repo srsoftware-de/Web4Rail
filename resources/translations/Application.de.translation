@@ -12,16 +12,18 @@ add action : Aktion hinzufügen
 Add action to action list : Aktion zur Liste hinzufügen
 add car : Waggon hinzufügen
 Add condition : Bedingung hinzufügen
+AddDestination : Ziel hinzufügen
 add locomotive : Lok hinzufügen
 add new aspect : neues Signalbild hinzufügen
 add new car : neuen Waggon anlegen
 Add new custom field : neues benutzerdefiniertes Feld hinzufügen
 add new locomotive : neue Lok anlegen
 add new train : neuen Zug anlegen
-Add tag "{}" to train : Markierung "{}" zu Zug hinzufügen
-Add tile : Kachel hinzufügen
 AddRemoveTag : Markierung hinzufügen/entfernen
 Address : Adresse
+Add tag "{}" to train : Markierung "{}" zu Zug hinzufügen
+Add tile : Kachel hinzufügen
+Add {} to destinations of train : {} zu den Zielen des Zugs hinzufügen
 analyze : analysieren
 Analyze : analysieren
 Analyze may overwrite these routes! : Durch die Analyse können diese Fahrstraßen überschrieben werden!
@@ -60,6 +62,8 @@ Car manager : Waggon-Verwaltung
 CarOrientation : Wagen-Laufrichtung
 Cars : Waggons
 &nbsp;cars : &nbsp;Fahrzeugen teilen
+Clear destinations : Ziele löschen
+Clear destinations of train : Ziele des Zugs löschen
 Clicked tile is not a {}! : Angeklickte Kachel ist kein {}!
 Click here to add conditions : Hier klicken, um Bedingungen hinzuzufügen
 Click here to select block! : Hier klicken, um Block auszuwählen!
@@ -336,8 +340,9 @@ Trigger a feedback sensor to assign it with this contact! : Rückmeldekontakt au
 TriggerContact : Kontakt auslösen
 Trigger contact to learn new contact : Kontakt auslösen, um neuen Kontakt zu lernen
 Turn : Richtung wechseln
-turn train : Richtung des zuges Wechseln
+turn train : Richtung des Zuges Wechseln
 Turn allowed : Wenden erlaubt
+Turn at destination : Richtung am Ziel umkehren
 {} turned. : {} gewendet.
 Turnout : Weiche
 TurnoutLE : WeicheLE

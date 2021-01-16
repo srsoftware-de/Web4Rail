@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -10,6 +11,7 @@ import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class DetermineTrainInBlock extends Action {
 		
@@ -57,7 +59,7 @@ public class DetermineTrainInBlock extends Action {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Select block"),Block.selector(block, null));
+		formInputs.add(t("Block")+": "+(isNull(block) ? t("unset") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,BLOCK)));
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
@@ -74,8 +76,12 @@ public class DetermineTrainInBlock extends Action {
 	@Override
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
-		Id blockId = Id.from(params,Block.class.getSimpleName());
-		if (isSet(blockId)) block = Block.get(blockId);
-		return properties();
+		if (params.containsKey(BLOCK)) {
+			Tile tile = plan.get(new Id(params.get(BLOCK)), true);
+			if (tile instanceof Block) {
+				block = (Block) tile;
+			} else return t("Clicked tile is not a {}!",t("block"));
+		}
+		return context().properties();
 	}
 }
