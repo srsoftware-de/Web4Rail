@@ -465,6 +465,21 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
+	public boolean getFunction(int num) {
+		switch (num) {
+		case 1:
+			return f1;
+		case 2:
+			return f2;
+		case 3:
+			return f3;
+		case 4:
+			return f4;
+		default:
+			return false;
+		}
+	}
+	
 	private boolean hasLoco() {
 		for (Car c:cars) {
 			if (c instanceof Locomotive) return true;

@@ -107,6 +107,7 @@ decouple : Abkuppeln
 decoupler : decoupler
 Decoupler : Entkuppler 
 DelayedAction : verzögerte Aktion
+Delay must not be less than zero! : Verzögerung darf nicht kleiner als null sein!
 delete : entfernen
 delete route : Route löschen
 Destination : Ziel

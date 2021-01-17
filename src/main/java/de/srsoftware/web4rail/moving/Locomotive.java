@@ -89,16 +89,25 @@ public class Locomotive extends Car implements Constants,Device{
 		String realm = null;
 		Train train = null;
 		Locomotive loco = null;
+		boolean fun1=false,fun2=false,fun3=false,fun4=false;
 		if (locoOrTrain instanceof Locomotive) {
 			loco = (Locomotive) locoOrTrain; 
 			realm = REALM_LOCO;
 			id = loco.id();
 			speed = loco.speed;
+			fun1 = loco.f1;
+			fun2 = loco.f2;
+			fun3 = loco.f3;
+			fun4 = loco.f4;
 		} else if (locoOrTrain instanceof Train) {
 			train = (Train)locoOrTrain;
 			realm = REALM_TRAIN;			
 			id = train.id();
 			speed = train.speed;
+			fun1 = train.getFunction(1);
+			fun2 = train.getFunction(2);
+			fun3 = train.getFunction(3);
+			fun4 = train.getFunction(4);
 		}
 		
 		HashMap<String,Object> params = new HashMap<String, Object>(Map.of(REALM,realm,ID,id));
@@ -109,10 +118,13 @@ public class Locomotive extends Car implements Constants,Device{
 		new Tag("span").content(t("Current velocity: {} {}",speed,speedUnit)).addTo(fieldset);
 		
 		Tag par = new Tag("p");
-		Map.of(t("Slower (10 {})",speedUnit),ACTION_SLOWER10,t("Faster (10 {})",speedUnit),ACTION_FASTER10).entrySet().forEach(e -> {
-			params.put(ACTION, e.getValue());
-			new Button(t(e.getKey()),params).addTo(par);			
-		});
+		
+		params.put(ACTION, ACTION_FASTER10);
+		new Button(t("Faster (10 {})",speedUnit),params).addTo(par);			
+
+		params.put(ACTION, ACTION_SLOWER10);
+		new Button(t("Slower (10 {})",speedUnit),params).addTo(par);			
+		
 		par.addTo(fieldset);
 
 		Tag direction = new Tag("p");
@@ -142,11 +154,27 @@ public class Locomotive extends Car implements Constants,Device{
 		}
 		direction.addTo(fieldset);
 		
-		Tag functions = new Tag("p");		
-		Map.of("F1",ACTION_TOGGLE_F1,"F2",ACTION_TOGGLE_F2,"F3",ACTION_TOGGLE_F3,"F4",ACTION_TOGGLE_F4).entrySet().stream().sorted((e1,e2)->(e1.getKey().compareTo(e2.getKey()))).forEach(e -> {
-			params.put(ACTION, e.getValue());
-			new Button(t(e.getKey()),params).addTo(functions);			
-		});
+		Tag functions = new Tag("p");	
+		
+		params.put(ACTION, ACTION_TOGGLE_F1);
+		Button b1 = new Button(t("F1"),params);
+		if (fun1) b1.clazz("active");
+		b1.addTo(functions);
+
+		params.put(ACTION, ACTION_TOGGLE_F2);
+		Button b2 = new Button(t("F2"),params);
+		if (fun2) b2.clazz("active");
+		b2.addTo(functions);
+		
+		params.put(ACTION, ACTION_TOGGLE_F3);
+		Button b3 = new Button(t("F3"),params);
+		if (fun3) b3.clazz("active");
+		b3.addTo(functions);
+
+		params.put(ACTION, ACTION_TOGGLE_F4);
+		Button b4 = new Button(t("F4"),params);
+		if (fun4) b4.clazz("active");
+		b4.addTo(functions);
 		functions.addTo(fieldset);		
 
 		return fieldset;
