@@ -8,9 +8,9 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Window;
 
 public abstract class StretchableTile extends TileWithShadow {
 	private static final String STRETCH_LENGTH = "stretch";

@@ -14,7 +14,6 @@ import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
@@ -22,6 +21,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.TextArea;
+import de.srsoftware.web4rail.tags.Window;
 
 /**
  * Base Class for all other actions

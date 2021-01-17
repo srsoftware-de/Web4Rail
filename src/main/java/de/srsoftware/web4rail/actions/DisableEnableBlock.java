@@ -8,9 +8,9 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
+import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
 
 public class DisableEnableBlock extends Action {

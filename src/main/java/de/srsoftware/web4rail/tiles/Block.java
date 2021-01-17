@@ -18,7 +18,6 @@ import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Range;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
@@ -26,6 +25,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tags.Window;
 
 /**
  * Base class for all kinds of Blocks
@@ -298,7 +298,7 @@ public abstract class Block extends StretchableTile{
 		return super.load(json);
 	}
 	
-	private Fieldset parkedTrains() {
+	private Fieldset parkedTrainList() {
 		Fieldset fieldset = new Fieldset(t("parked trains"));
 		Tag list = new Tag("ul");
 		for (Train t : parkedTrains) {
@@ -308,7 +308,11 @@ public abstract class Block extends StretchableTile{
 		return fieldset;
 	}
 	
-	public Train parkedTrains(boolean last) {
+	public List<Train> parkedTrains(){
+		return parkedTrains;
+	}
+	
+	public Train parkedTrain(boolean last) {
 		if (parkedTrains.isEmpty()) return null;
 		return last ? parkedTrains.lastElement() : parkedTrains.firstElement();
 	}
@@ -321,7 +325,7 @@ public abstract class Block extends StretchableTile{
 		formInputs.add(t("Train"),Train.selector(train, null));
 		postForm.add(contactForm());
 		postForm.add(waitTimeForm());
-		if (!parkedTrains.isEmpty()) postForm.add(parkedTrains());
+		if (!parkedTrains.isEmpty()) postForm.add(parkedTrainList());
 		return super.properties(preForm, formInputs, postForm);
 	}
 
@@ -346,7 +350,8 @@ public abstract class Block extends StretchableTile{
 	public void removeChild(BaseClass child) {
 		super.removeChild(child);
 		internalContacts.remove(child);
-		parkedTrains.remove(child);
+		if (parkedTrains.remove(child)) plan.place(this);		
+		if (train == child) setTrain(null);
 	}
 	
 	public void removeContact(BlockContact blockContact) {

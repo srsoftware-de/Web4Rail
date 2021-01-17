@@ -7,7 +7,7 @@ import de.srsoftware.tools.Tag;
 /**
  * 
  * helper class to create html pages
- * @author Stephan Richter, SRSoftware
+ * @author Stephan Richter, SRSoftware, 2020…2021
  *
  */
 public class Page {

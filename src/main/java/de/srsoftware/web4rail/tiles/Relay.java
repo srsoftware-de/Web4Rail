@@ -16,11 +16,11 @@ import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Protocol;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tags.Window;
 
 public class Relay extends Tile implements Device{
 	public static final String STATE = "state";

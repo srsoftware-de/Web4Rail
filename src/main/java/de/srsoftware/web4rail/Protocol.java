@@ -1,5 +1,8 @@
 package de.srsoftware.web4rail;
 
+/**
+ * @author Stephan Richter, SRSoftware 2020-2021 
+ */
 public enum Protocol{	
 	DCC14(14),
 	DCC27(27),

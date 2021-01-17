@@ -30,7 +30,6 @@ import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Route;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -39,10 +38,14 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
+import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
 
+/**
+ * @author Stephan Richter, SRSoftware 2020-2021 * 
+ */
 public class Train extends BaseClass implements Comparable<Train> {
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 
@@ -138,6 +141,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 				return train.addCar(params);
 			case ACTION_AUTO:
 				return train.automatic();
+			case ACTION_CONNECT:
+				return train.connect(params);
 			case ACTION_DROP:
 				return train.dropCar(params);
 			case ACTION_TOGGLE_F1:
@@ -267,21 +272,27 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	private Tag carList() {
 		Tag locoProp = new Tag("li").content(t("Locomotives and cars")+":");
-		Tag carList = new Tag("ul").clazz("carlist");
+		Table carList = new Table();
+		carList.addHead(t("Car"),t("Actions"));
 
+		boolean first = true;
 		for (Car car : this.cars) {
-			Tag li = new Tag("li");
-			car.link(car.name()+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")")).addTo(li).content(NBSP);
-			car.button(t("turn within train"),Map.of(ACTION,ACTION_TURN)).addTo(li);
-			car.button("↑",Map.of(ACTION,ACTION_MOVE)).addTo(li);
-			button(t("delete"),Map.of(ACTION,ACTION_DROP,CAR_ID,car.id().toString())).addTo(li);			
-			li.addTo(carList);
+			Tag link = car.link(car.name()+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")"));
+			Tag buttons = new Tag("span");
+			
+			car.button(t("turn within train"),Map.of(ACTION,ACTION_TURN)).addTo(buttons);
+			if (!first) {
+				car.button("↑",Map.of(ACTION,ACTION_MOVE)).addTo(buttons);
+				car.button(t("decouple"),Map.of(ACTION,ACTION_DECOUPLE)).addTo(buttons);
+			}			
+			button(t("delete"),Map.of(ACTION,ACTION_DROP,CAR_ID,car.id().toString())).addTo(buttons);			
+			carList.addRow(link,buttons);
+			first = false;
 		}
-
+		carList.addTo(locoProp);
 		List<Locomotive> locos = BaseClass.listElements(Locomotive.class).stream().filter(loco -> isNull(loco.train())).collect(Collectors.toList());
 		if (!locos.isEmpty()) {
 			Form addLocoForm = new Form("append-loco-form");
-			addLocoForm.content(t("add locomotive")+COL);
 			new Input(REALM, REALM_TRAIN).hideIn(addLocoForm);
 			new Input(ACTION, ACTION_ADD).hideIn(addLocoForm);
 			new Input(ID,id).hideIn(addLocoForm);
@@ -289,23 +300,35 @@ public class Train extends BaseClass implements Comparable<Train> {
 			for (Car loco : locos) select.addOption(loco.id(), loco+(loco.stockId.isEmpty()?"":" ("+loco.stockId+")"));
 			select.addTo(addLocoForm);
 			new Button(t("add"),addLocoForm).addTo(addLocoForm);
-			addLocoForm.addTo(new Tag("li")).addTo(carList);
+			carList.addRow(t("add locomotive"),addLocoForm);
 		}
 		
 		List<Car> cars = BaseClass.listElements(Car.class).stream().filter(car -> !(car instanceof Locomotive)).filter(loco -> isNull(loco.train())).collect(Collectors.toList());
 		if (!cars.isEmpty()) {
 			Form addCarForm = new Form("append-car-form");
-			addCarForm.content(t("add car")+COL);
 			new Input(REALM, REALM_TRAIN).hideIn(addCarForm);
 			new Input(ACTION, ACTION_ADD).hideIn(addCarForm);
 			new Input(ID,id).hideIn(addCarForm);
 			Select select = new Select(CAR_ID);
 			for (Car car : cars) select.addOption(car.id(), car+(car.stockId.isEmpty()?"":" ("+car.stockId+")"));
-				select.addTo(addCarForm);
-				new Button(t("add"),addCarForm).addTo(addCarForm);
-				addCarForm.addTo(new Tag("li")).addTo(carList);
+			select.addTo(addCarForm);
+			new Button(t("add"),addCarForm).addTo(addCarForm);
+			carList.addRow(t("add car"),addCarForm);
+		}
+		if (isSet(currentBlock)) {
+			Tag ul = new Tag("ul");
+			if (isSet(currentBlock.train()) && currentBlock.train() != this) currentBlock.train().link().addTo(new Tag("li")).addTo(ul);
+			for (Train tr : currentBlock.parkedTrains()) {
+				if (tr == this) continue;
+				Tag li = new Tag("li").addTo(ul);
+				tr.link().addTo(li);
+				button(t("couple"),Map.of(ACTION,ACTION_CONNECT,REALM_TRAIN,tr.id().toString())).addTo(li);
 			}
-		return carList.addTo(locoProp);
+			carList.addRow(t("other trains in {}",currentBlock),ul);
+			
+		}
+		
+		return locoProp;
 	
 	}
 	
@@ -318,13 +341,23 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return name().compareTo(o.toString());
 	}
 	
+	public Window connect(HashMap<String, String> params) {
+		Train other = BaseClass.get(new Id(params.get(REALM_TRAIN)));
+		if (isSet(other)) coupleWith(other, false);
+		return properties();
+	}
+	
 	public void coupleWith(Train parkingTrain,boolean swap) {
 		if (isSet(direction) && isSet(parkingTrain.direction) && parkingTrain.direction != direction) parkingTrain.turn();
 		if (swap) {
-			Vector<Car> dummy = new Vector<Car>(parkingTrain.cars);
+			Vector<Car> dummy = new Vector<Car>();
+			for (Car car : parkingTrain.cars) dummy.add(car.train(this));
 			dummy.addAll(cars);
 			cars = dummy;
-		} else cars.addAll(parkingTrain.cars);
+		} else {
+			for (Car car : parkingTrain.cars) cars.add(car.train(this));
+		}
+		
 		parkingTrain.remove();
 	}
 	
@@ -342,6 +375,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public Block currentBlock() {
 		return currentBlock;
+	}
+	
+
+	public Object decoupleAfter(Car car) {
+		for (int i=0; i<cars.size();i++) {
+			if (car == cars.get(i) && splitAfter(i)) break;
+		}
+		return properties();
 	}
 	
 	public Block destination() {
@@ -612,11 +653,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		Fieldset otherTrainProps = new Fieldset(t("other train properties"));
-		
-		Tag propList = new Tag("ul").clazz("proplist");
-		
-		carList().addTo(propList);
+		Tag propList = new Tag("ul").clazz("proplist");		
 		
 		if (isSet(currentBlock)) currentBlock.button(currentBlock.toString()).addTo(new Tag("li").content(t("Current location")+COL)).addTo(propList);
 		Tag directionLi = null;
@@ -651,8 +688,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 			for (Tile tile : trace) new Tag("li").content(tile.toString()).addTo(ul);
 			ul.addTo(li).addTo(propList);
 		}
-		
-		propList.addTo(otherTrainProps);
+		carList().addTo(propList);
+
 		
 		formInputs.add(t("Name"), new Input(NAME,name()));
 		formInputs.add(t("Shunting"),new Checkbox(SHUNTING, t("train is shunting"), shunting));
@@ -660,7 +697,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		formInputs.add(t("Tags"), new Input(TAGS,String.join(", ", tags)));
 		
 		if (this.hasLoco())	preForm.add(Locomotive.cockpit(this));
-		postForm.add(otherTrainProps);
+		postForm.add(propList.addTo(new Fieldset(t("other train properties")).attr("id", "train-props")));
 		postForm.add(brakeTimes());
 		postForm.add(blockHistory());
 		

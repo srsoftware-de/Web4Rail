@@ -27,12 +27,12 @@ import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.AlterDirection;
 import de.srsoftware.web4rail.Route;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
+import de.srsoftware.web4rail.tags.Window;
 
 /**
  * Base class for all tiles

@@ -11,9 +11,9 @@ import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Route;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Window;
 
 public abstract class Bridge extends Tile {
 	private static final String COUNTERPART = "counterpart";

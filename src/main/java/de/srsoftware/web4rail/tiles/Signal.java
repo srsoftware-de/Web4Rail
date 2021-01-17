@@ -16,13 +16,13 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Protocol;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
+import de.srsoftware.web4rail.tags.Window;
 
 public abstract class Signal extends Tile {
 	public static final String STATE = "state";

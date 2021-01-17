@@ -30,6 +30,7 @@ import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Contact;
 
 /**

@@ -6,7 +6,8 @@ import org.json.JSONObject;
 
 /**
  * Class for integer ranges (min…max)
- * @author Stephan Richter
+ * @author Stephan Richter, SRSoftware 2020-2021 
+ *  
  */
 public class Range extends BaseClass{
 	private static final String MAX = "max";

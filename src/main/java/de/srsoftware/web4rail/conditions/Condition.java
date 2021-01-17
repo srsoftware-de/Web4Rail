@@ -15,11 +15,11 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tags.Window;
 
 public abstract class Condition extends BaseClass {
 	public static final Logger LOG = LoggerFactory.getLogger(Condition.class);

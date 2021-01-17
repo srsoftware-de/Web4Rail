@@ -12,10 +12,10 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tags.Window;
 
 public class TextDisplay extends StretchableTile {
 	private static final String TEXT = "text";

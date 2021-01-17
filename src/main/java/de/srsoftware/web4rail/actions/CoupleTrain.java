@@ -6,10 +6,10 @@ import java.util.List;
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
 
 public class CoupleTrain extends Action {
@@ -29,7 +29,7 @@ public class CoupleTrain extends Action {
 		if (isNull(train)) return false;		
 		Block block = train.currentBlock();
 		if (isNull(block)) return false;
-		Train parkingTrain = block.parkedTrains(last);
+		Train parkingTrain = block.parkedTrain(last);
 		if (isNull(parkingTrain)) return false;
 		train.coupleWith(parkingTrain,swap);
 		return true;

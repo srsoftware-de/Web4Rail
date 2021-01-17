@@ -7,9 +7,9 @@ import org.json.JSONObject;
 
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Relay;
 
 public class SetRelay extends Action {

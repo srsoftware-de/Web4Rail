@@ -17,6 +17,7 @@ public interface Constants {
 	public static final String ACTION_AUTO = "auto";
 	public static final String ACTION_CLICK = "click";
 	public static final String ACTION_CONNECT = "connect";
+	public static final String ACTION_DECOUPLE = "decouple";	
 	public static final String ACTION_DROP = "drop";
 	public static final String ACTION_EMERGENCY = "emergency";
 	public static final String ACTION_FASTER10 = "faster10";

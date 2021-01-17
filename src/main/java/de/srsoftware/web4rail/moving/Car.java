@@ -23,7 +23,6 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
@@ -31,7 +30,11 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
+import de.srsoftware.web4rail.tags.Window;
 
+/**
+ * @author Stephan Richter, SRSoftware 2020-2021 * 
+ */
 public class Car extends BaseClass implements Comparable<Car>{
 	protected static final Logger LOG = LoggerFactory.getLogger(Car.class);
 	
@@ -73,6 +76,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 					car.clone();
 				} else new Car(params.get(Car.NAME)).parent(plan);
 				return Car.manager(params);
+			case ACTION_DECOUPLE:
+				return car.train().decoupleAfter(car);
 			case ACTION_DROP:
 				car.remove();
 				return Car.manager(params);
@@ -282,8 +287,9 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return train;
 	}
 
-	public void train(Train train) {
+	public Car train(Train train) {
 		this.train = train;
+		return this;
 	}
 
 	protected Object update(HashMap<String, String> params) {

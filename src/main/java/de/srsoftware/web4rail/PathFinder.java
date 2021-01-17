@@ -13,6 +13,9 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Block;
 
+/**
+ * @author Stephan Richter, SRSoftware 2020-2021 
+ */
 public class PathFinder extends BaseClass{
 	public static final Logger LOG = LoggerFactory.getLogger(PathFinder.class);
 

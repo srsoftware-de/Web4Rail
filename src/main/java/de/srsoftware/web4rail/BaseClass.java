@@ -30,10 +30,14 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.TextArea;
+import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
 
+/**
+ * @author Stephan Richter, SRSoftware 2020…2021 
+ */
 public abstract class BaseClass implements Constants{
 	protected static Plan plan; // the track layout in use
 	public static final Random random = new Random();

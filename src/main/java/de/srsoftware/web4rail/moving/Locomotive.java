@@ -15,7 +15,6 @@ import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Protocol;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
@@ -23,6 +22,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Table;
+import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
 
 public class Locomotive extends Car implements Constants,Device{

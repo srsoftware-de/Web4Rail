@@ -15,12 +15,12 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Route;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Select;
+import de.srsoftware.web4rail.tags.Window;
 
 public class Contact extends Tile{
 	

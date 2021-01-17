@@ -57,6 +57,7 @@ BrakeStop : Bremsvorgang abschließen
 Brake time¹, forward : Bremszeit¹, vorwärts
 Brake time¹, reverse : Bremszeit¹, rückwärts
 Brake time table : Bremszeit-Tabelle
+Car : Fahrzeug
 CarInTrain : Fahrzeug im Zug
 Car manager : Waggon-Verwaltung
 Car of train : Fahrzeug des Zuges
@@ -91,7 +92,7 @@ Control : Steuerung
 Control unit : Zentrale
 copy : kopieren
 Counterpart : Gegenstück
-Couple : kupple
+couple : kuppeln
 Couple first parked train : ersten geparkten Zug kuppeln
 Couple last parked train : letzten geparkten Zug kuppeln
 CoupleTrain : Zug kuppeln
@@ -102,6 +103,7 @@ Current orientation : aktuelle Fahrtrichtung
 Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {}
 custom fields : benutzerdefinierte Felder
 Decoder address : Decoder-Adresse
+decouple : Abkuppeln
 decoupler : decoupler
 Decoupler : Entkuppler 
 DelayedAction : verzögerte Aktion
@@ -216,6 +218,7 @@ Operating System : Betriebssystem
 or : oder
 OrCondition : Oder-Bedingung
 other train properties : andere Zug-Eigenschaften
+other trains in {} : andere Züge in {}
 Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
 parked trains : abgestellte Züge

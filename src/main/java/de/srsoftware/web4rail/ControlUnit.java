@@ -22,6 +22,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Window;
 
 /**
  * abstraction of a SRCP daemon (control unit)

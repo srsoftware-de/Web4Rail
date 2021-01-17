@@ -7,10 +7,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Window;
 import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.conditions.ConditionList;
 import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Window;
 
 public class ConditionalAction extends ActionList {
 	
