@@ -83,6 +83,7 @@ public class Application extends BaseClass{
 			e.printStackTrace();
 		}
 
+        LOG.debug("Processing arguments:");
         for (String arg : args) {
         	LOG.debug("processing {}",arg);
         	switch (arg) {
