@@ -1006,6 +1006,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public static void startAll() {
+		LOG.debug("Train.startAll()");
 		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.automatic());
 	}
 	
