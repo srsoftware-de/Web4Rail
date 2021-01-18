@@ -84,6 +84,7 @@ public class Application extends BaseClass{
 		}
 
         for (String arg : args) {
+        	LOG.debug("processing {}",arg);
         	switch (arg) {
         		case START_TRAINS:
         			Train.startAll();
