@@ -107,7 +107,7 @@ public class Route extends BaseClass {
 			timeStep = brakeTimes.get(brakeId);
 			// if no brake time is available for this train, use the fastest brake time already known for this route:
 			if (isNull(timeStep)) timeStep = 100;
-			start();
+			Application.threadPool.execute(this);
 		}
 
 		public void abort() {

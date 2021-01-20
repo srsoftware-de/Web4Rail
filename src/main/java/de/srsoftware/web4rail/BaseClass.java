@@ -348,7 +348,9 @@ public abstract class BaseClass implements Constants{
 	}
 
 	public Tag link(String tagClass,Object caption,Map<String,String> additionalProps) {
-		return link(tagClass,caption.toString(),props(additionalProps));
+		Tag link = link(tagClass,caption.toString(),props(additionalProps));
+		if (isSet(notes) && !notes.isEmpty()) link.title(notes);
+		return link;
 	}
 	
 	public static Tag link(String tagClass,String caption,Map<String,String> props) {
