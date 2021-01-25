@@ -106,6 +106,12 @@ function connectCu(){
 	return request({realm:CU,action:"connect"});
 }
 
+function copyCv(ev){
+	var td = ev.parentNode.previousSibling;
+	$('input[name=cv]').val(td.previousSibling.innerText);
+	$('input[name=val]').val(td.innerText);
+}
+
 function dropClass(data){
 	var parts = data.split(" ");
 	for (var i=1; i<parts.length; i++) $('#'+parts[0]).removeClass(parts[i]);

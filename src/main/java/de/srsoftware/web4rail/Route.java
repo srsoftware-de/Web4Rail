@@ -138,11 +138,11 @@ public class Route extends BaseClass {
 			LOG.debug("Estimated distance: {}",estimatedDistance);
 
 			Integer newTimeStep = timeStep;
-			while (calcDistance(newTimeStep) < estimatedDistance) {
-				newTimeStep += 1+newTimeStep/8;			
+			while (calcDistance(newTimeStep) < estimatedDistance) { // zu schnell gebremst
+				newTimeStep += (1+newTimeStep/8);			
 			}
-			while (calcDistance(newTimeStep) > estimatedDistance) {
-				newTimeStep -= 1+newTimeStep/16;
+			while (calcDistance(newTimeStep) > estimatedDistance) { // zu langsam gebremst
+				newTimeStep -= 1+(newTimeStep/16);
 			}
 			
 			if (newTimeStep != timeStep) {

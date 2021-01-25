@@ -52,6 +52,7 @@ Block properties : Block-Eigenschaften
 blocks of train : Blöcke des Zugs
 {}bound : nach {}
 BrakeCancel : Bremsvorgang abbrechen
+braking delay : Bremsverzögerung
 BrakeStart : Bremsvorgang starten
 BrakeStop : Bremsvorgang abschließen
 Brake time¹, forward : Bremszeit¹, vorwärts
@@ -126,6 +127,7 @@ Drop : Verwerfen
 Dropped destination of {}. : Ziel von {} verworfen.
 1) Duration between 5 {} steps during brake process. : 1) Zeit zwischen 5 {}-Schritten beim Bremsvorgang.
 EAST : Osten
+edit : bearbeiten
 Editable properties : veränderliche Eigenschaften
 editable train properties : veränderliche Zug-Eigenschaften
 Edit json : JSON bearbeiten
@@ -137,6 +139,7 @@ enable {} : {} aktivieren
 Engage {} : {} aktivieren
 EngageDecoupler : Entkuppler aktivieren
 Enter new name for plan : Neuen Namen für den Plan eingeben
+extended address : erweiterte Adresse
 export : exportieren
 Faster (10 {}) : 10 {} schneller
 Final speed after breaking, before halting : Endgeschwindigkeit nach Bremsvorgang, vor dem Anhalten
@@ -186,9 +189,12 @@ Manage locos : Lokomotiven verwalten
 Manage trains : Züge verwalten
 Maximum delay : maximale Verzögerung
 Maximum Speed : Höchstgeschwindigkeit
+maximum speed v<sub>max</sub> : Höchstgeschwindigkeit v<sub>max</sub>
 Maximum train length : maximale Zug-Länge
+mid speed v<sub>mid</sub> : mittlere Geschwindigeit v<sub>mid</sub>
 Minimum delay : minimale Verzögerung
 Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block. : Minamle und maximale Block-Haltezeit (in Millisekunden) für Züge mit der entsprchender Markierung.
+minimum starting voltage v<sub>min</sub> : Mindestanfahrspannung v<sub>min</sub>
 Move tiles : Kacheln verschieben
 name : Name
 new car : neuer Waggon
@@ -208,7 +214,9 @@ No tile moved. : keine Kachel verschoben.
 {} now in auto-mode : {} ist nun im Automatikmodus
 Occupied area : Belegte Abschnitte
 Off : Aus
+OFF : aus
 On : An
+ON: an
 One of : eine von
 One way : Richtung
 Online Documentation : Online-Dokumentation
@@ -226,11 +234,13 @@ parked trains : abgestellte Züge
 Plan saved as "{}". : Plan als „{}“ gespeichert.
 Port for state {} : Anschluss für Status {}
 PreserveRoute : Anschlußroute vorwählen
+Programming : Programmierung
 Properties : Eigenschaften
 Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
 PushPullTrain : Wendezug
 Push-pull train : Wendezug
+PWM rate : PWM-Frequenz
 quit autopilot : Autopilot beenden
 {} reached it`s destination! : {} ist am Ziel angekommen!
 ReactivateContact : Kontakt reaktivieren
@@ -282,6 +292,7 @@ SetSpeed : Geschwindigkeit ändern
 Set {} to {} {} : {} auf {} {} gesetzt
 Set speed to {} {} : Geschwindigkeit auf {} {} setzen
 Set {} to {} : {} auf {} setzen
+setting : Einstellung
 SetPower : Strom schalten
 Set speed to : Geschwindigkeit setzen
 SetTurnout : Weiche stellen
@@ -304,6 +315,7 @@ Stock ID : Inventarnummer
 Stop settings : Halte-Einstellungen
 Start autopilot : Autopilot starten
 Started {} : {} gestartet
+starting delay : Anfahrverzögerung
 State : Status
 StopAllTrains : Alle Züge stoppen
 StartStopAuto : Automatikmodus an/abschalten
@@ -360,6 +372,7 @@ turn train : Richtung des Zuges Wechseln
 Turn allowed : Wenden erlaubt
 Turn at destination : Richtung am Ziel umkehren
 {} turned. : {} gewendet.
+Turned power {}. : Strom {}geschaltet.
 Turnout : Weiche
 TurnoutLE : WeicheLE
 TurnoutLN : WeicheLN
@@ -375,6 +388,7 @@ Turns the train, as if it went through a loop. : Dreht den ZUg, als wenn er eine
 Unknown action\: {} : Unbekannte Aktion: {}
 Use negative number to count from end. : Nutze negative Nummern, um von Ende zu zählen.
 unset : ungesetzt
+value : Wert
 WaitForContact : Auf Kontakt warten
 Wait for {}, then : auf {} warten, dann
 Wait {} ms, then : {} ms warten, dann

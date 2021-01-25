@@ -365,7 +365,7 @@ public class ControlUnit extends Thread implements Constants{
 			
 			@Override
 			public void onSuccess() {
-				plan.stream(t("Turned power {}.",PW));				
+				plan.stream(t("Turned power {}.",t(PW)));				
 			}
 
 			@Override

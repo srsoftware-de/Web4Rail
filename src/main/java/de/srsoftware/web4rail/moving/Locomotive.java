@@ -5,12 +5,16 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
+import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Plan;
@@ -29,11 +33,20 @@ public class Locomotive extends Car implements Constants,Device{
 	
 	private static final String REVERSE = "reverse";
 	public static final String LOCOMOTIVE = "locomotive";
+	private static final Integer CV_ADDR = 1;
+	private static final String CVS = "cvs";
+	private static final String ACTION_PROGRAM = "program";
+	private static final String CV = "cv";
+	private static final String VALUE = "val";
+	private static final String MODE = "mode";
+	private static final String POM = "pom";
+	private static final String TRACK = "track";
 	private Protocol proto = Protocol.DCC128;
 	private int address = 3;
 	private int speed = 0;
 	private boolean f1,f2,f3,f4;
 	private boolean init = false;
+	private TreeMap<Integer,Integer> cvs = new TreeMap<Integer, Integer>();
 
 	public Locomotive(String name) {
 		super(name);
@@ -54,6 +67,8 @@ public class Locomotive extends Car implements Constants,Device{
 				return loco.faster(10);
 			case ACTION_MOVE:
 				return loco.moveUp();
+			case ACTION_PROGRAM:
+				return loco.update(params);
 			case ACTION_PROPS:
 				return loco == null ? Locomotive.manager() : loco.properties();
 			case ACTION_SLOWER10:
@@ -230,8 +245,8 @@ public class Locomotive extends Car implements Constants,Device{
 		JSONObject loco = new JSONObject();
 		loco.put(REVERSE, orientation);
 		loco.put(PROTOCOL, proto);
-		loco.put(ADDRESS, address);		
 		json.put(LOCOMOTIVE, loco);
+		loco.put(CVS, cvs);
 		return json;
 	}
 	
@@ -242,7 +257,12 @@ public class Locomotive extends Car implements Constants,Device{
 			JSONObject loco = json.getJSONObject(LOCOMOTIVE);
 			if (loco.has(REVERSE)) orientation = loco.getBoolean(REVERSE);
 			if (loco.has(PROTOCOL)) proto = Protocol.valueOf(loco.getString(PROTOCOL));
-			if (loco.has(ADDRESS)) address = loco.getInt(ADDRESS);
+			if (loco.has(ADDRESS)) setAddress(loco.getInt(ADDRESS));
+			if (loco.has(CVS)) {
+				JSONObject jCvs = loco.getJSONObject(CVS);
+				for (String key : jCvs.keySet()) cvs.put(Integer.parseInt(key),jCvs.getInt(key));
+				address = cvs.get(CV_ADDR);
+			}
 		}
 		return this;
 	}	
@@ -275,6 +295,51 @@ public class Locomotive extends Car implements Constants,Device{
 		return win;
 	}
 	
+	private String program(int cv,int val,boolean pom) {
+		if (cv != 0) {			
+			if (val < 0) {
+				cvs.remove(cv);
+				return null;
+			}
+			init();
+			Command command = new Command("SET {} SM "+(pom?address:-1)+" CV "+cv+" "+val);
+			try {
+				Reply reply = plan.queue(command).reply();
+				if (reply.succeeded()) {
+					cvs.put(cv, val);
+					if (cv == CV_ADDR) address = val;
+					return null;
+				}
+				return reply.message();				
+			} catch (TimeoutException e) {
+				return t("Timeout while sending programming command!");		
+			}	
+		}
+		return null;
+	}
+	
+	private Fieldset programming() {
+		Fieldset fieldset = new Fieldset(t("Programming"));
+
+		Form form = new Form("cv-form");
+		new Input(REALM,REALM_LOCO).hideIn(form);
+		new Input(ID,id()).hideIn(form);
+		new Input(ACTION,ACTION_PROGRAM).hideIn(form);
+
+		Table table = new Table();
+		table.addHead(t("setting"),t("CV"),t("value"),t("actions"));
+		for (Entry<Integer, Integer> entry : cvs.entrySet()){
+			int cv = entry.getKey();
+			int val = entry.getValue();
+			table.addRow(setting(cv),cv,val,new Button(t("edit"), "copyCv(this);"));
+		}
+		Tag mode = new Tag("div");
+		new Radio(MODE, POM, t("program on main"), true).addTo(mode);
+		new Radio(MODE, TRACK, t("prgramming track"), false).addTo(mode);
+		table.addRow(mode,new Input(CV,0).numeric(),new Input(VALUE,0).numeric(),new Button(t("Apply"),form));
+		return table.addTo(form).addTo(fieldset);
+	}
+	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		preForm.add(cockpit(this));
@@ -284,9 +349,10 @@ public class Locomotive extends Car implements Constants,Device{
 		}
 		formInputs.add(t("Protocol"),div);
 		formInputs.add(t("Address"),new Input(ADDRESS, address).numeric());
+		postForm.add(programming());
 		return super.properties(preForm, formInputs, postForm);
 	}
-	
+
 	private void queue() {
 		int step = proto.steps * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
 		init();
@@ -298,6 +364,12 @@ public class Locomotive extends Car implements Constants,Device{
 				plan.stream(t("Failed to send command to {}: {}",this,reply.message()));
 			}			
 		});
+	}
+	
+	private Locomotive setAddress(int newAddress) {
+		address = newAddress;
+		cvs.put(CV_ADDR, newAddress);
+		return this;
 	}
 	
 	public String setFunction(int num, boolean active) {
@@ -336,6 +408,30 @@ public class Locomotive extends Car implements Constants,Device{
 		return t("Speed of {} set to {}.",this,speed);
 	}
 	
+	private Object setting(int cv) {
+		switch (cv) {
+		case 1:
+			return t("Address");
+		case 2:
+			return t("minimum starting voltage v<sub>min</sub>");
+		case 3:
+			return t("starting delay");
+		case 4:
+			return t("braking delay");
+		case 5:
+			return t("maximum speed v<sub>max</sub>");
+		case 6:
+			return t("mid speed v<sub>mid</sub>");
+		case 8:
+			return t("PWM rate");
+		case 17:
+		case 18:
+			return t("extended address");
+		}
+		return "";
+	}
+
+	
 	public Object stop() {
 		setSpeed(0);
 		return properties();
@@ -370,9 +466,19 @@ public class Locomotive extends Car implements Constants,Device{
 			int newAddress = Integer.parseInt(params.get(ADDRESS));
 			if (newAddress != address) {
 				init = false;
-				address = newAddress;
+				setAddress(newAddress);
 			}
 		}
-		return properties();
+		String error = null; 
+		if (params.get(ACTION).equals(ACTION_PROGRAM)) try {
+			int cv = Integer.parseInt(params.get(CV));
+			int val = Integer.parseInt(params.get(VALUE));
+			boolean pom = !params.get(MODE).equals(TRACK);
+			error = program(cv,val,pom);
+			
+		} catch (NumberFormatException e) {}
+		Window props = properties();
+		if (isSet(error)) new Tag("span").content(error).addTo(props);
+		return props;
 	}
 }
