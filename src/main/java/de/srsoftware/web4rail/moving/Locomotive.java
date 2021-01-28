@@ -369,6 +369,7 @@ public class Locomotive extends Car implements Constants,Device{
 	private Locomotive setAddress(int newAddress) {
 		address = newAddress;
 		cvs.put(CV_ADDR, newAddress);
+		init = false;
 		return this;
 	}
 	
@@ -464,10 +465,7 @@ public class Locomotive extends Car implements Constants,Device{
 		if (params.containsKey(PROTOCOL)) proto = Protocol.valueOf(params.get(PROTOCOL));
 		if (params.containsKey(ADDRESS)) {
 			int newAddress = Integer.parseInt(params.get(ADDRESS));
-			if (newAddress != address) {
-				init = false;
-				setAddress(newAddress);
-			}
+			if (newAddress != address) setAddress(newAddress);
 		}
 		String error = null; 
 		if (params.get(ACTION).equals(ACTION_PROGRAM)) try {

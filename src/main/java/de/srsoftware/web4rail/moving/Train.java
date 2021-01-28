@@ -310,7 +310,15 @@ public class Train extends BaseClass implements Comparable<Train> {
 			new Input(ACTION, ACTION_ADD).hideIn(addCarForm);
 			new Input(ID,id).hideIn(addCarForm);
 			Select select = new Select(CAR_ID);
-			for (Car car : cars) select.addOption(car.id(), car+(car.stockId.isEmpty()?"":" ("+car.stockId+")"));
+			 
+			for (Car car : cars) {
+				String caption = null;
+				
+				if (!car.stockId.isEmpty()) caption = car.stockId;
+				if (!car.tags().isEmpty()) caption = (isSet(caption) ? caption+" / " :"") + String.join(" ",car.tags());
+				caption = car.toString() + (isNull(caption) ? "" : " ("+caption+")");
+				select.addOption(car.id(), caption);
+			}
 			select.addTo(addCarForm);
 			new Button(t("add"),addCarForm).addTo(addCarForm);
 			carList.addRow(t("add car"),addCarForm);
