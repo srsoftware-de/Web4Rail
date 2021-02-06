@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -16,8 +17,11 @@ public class TrainHasTag extends Condition {
 	
 	@Override
 	public boolean fulfilledBy(Context context) {
-		if (tag == null) return true;
-		return context.train().tags().contains(tag) != inverted;
+		if (isNull(tag)) return true;
+		Train train = context.train();
+		if (isNull(train)) return false;
+		if (isNull(train.tags())) return false;
+		return train.tags().contains(tag) != inverted;
 	}
 	
 	@Override
