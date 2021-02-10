@@ -34,9 +34,9 @@ public abstract class Decoupler extends Tile implements Device{
 	}
 	
 	@Override
-	public Object click() throws IOException {
-		Object o = super.click();
-		engage();
+	public Object click(boolean shift) throws IOException {
+		Object o = super.click(shift);
+		if (!shift) engage();
 		return o;
 	}
 	

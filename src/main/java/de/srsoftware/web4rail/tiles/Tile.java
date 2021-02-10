@@ -76,8 +76,9 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		return classes;
 	}
 
-	public Object click() throws IOException {
+	public Object click(boolean shift) throws IOException {
 		LOG.debug("{}.click()",getClass().getSimpleName());
+		if (isSet(train) && shift) return train.properties();
 		return properties();
 	}
 	

@@ -152,9 +152,9 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
-	public Object click() throws IOException {
-		if (isSet(train) && train.currentBlock() == this) return train.properties();
-		return super.click();
+	public Object click(boolean shift) throws IOException {
+		if (isSet(train) && !shift) return train.properties();
+		return super.click(false);
 	}
 	
 	public int compareTo(Block other) {

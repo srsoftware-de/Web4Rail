@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
@@ -32,7 +33,22 @@ public class SwitchIsOn extends Condition {
 	
 	public Condition load(JSONObject json) {
 		super.load(json);
-		if (json.has(SWITCH)) swtch = BaseClass.get(new Id(json.getString(SWITCH)));
+		if (json.has(SWITCH)) {
+			swtch = BaseClass.get(new Id(json.getString(SWITCH)));
+			if (isNull(swtch)) {
+				Application.threadPool.execute(new Thread() {
+					
+					@Override
+					public void run() {
+						try {
+							sleep(1000);
+						} catch (InterruptedException e) {
+						}
+						swtch = BaseClass.get(new Id(json.getString(SWITCH)));
+					}
+				});
+			}
+		}
 		return this;
 	}
 	

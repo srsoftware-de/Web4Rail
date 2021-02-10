@@ -67,7 +67,8 @@ function clickLegend(ev){
 	$('#'+lastTab).show();
 }
 
-function clickTile(x,y){
+function clickTile(x,y,shift){
+	console.log("clickTile("+x+","+y+")");
 	var id = x+"-"+y;
 	var tiles = $('#'+id);
 	if (tiles.length > 0) {
@@ -82,7 +83,9 @@ function clickTile(x,y){
 			$(PLAN).css('cursor','');
 			return false;
 		}
-		request({realm:'plan',action:'click',id:id});
+		var json = {realm:'plan',action:'click',id:id};
+		if (shift) json.shift=1;
+		request(json);
 	}
 	return false;
 }
@@ -191,7 +194,7 @@ function place(data){
 }
 
 function planClick(ev){
-	//console.log('planClick:',ev);
+	console.log('planClick:',ev);
 	var plan=$('#scroll').get(0);
 	var x = Math.floor((plan.scrollLeft+ev.clientX)/SQUARE);
 	var y = Math.floor((plan.scrollTop+ev.clientY)/SQUARE);
@@ -199,7 +202,7 @@ function planClick(ev){
 	switch (mode){
 		case undefined:
 		case null:
-			return clickTile(x,y);
+			return clickTile(x,y,ev.shiftKey);
 		case ADD:
 			return addTile(x,y);
 		case MOVE:

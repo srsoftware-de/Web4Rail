@@ -1,17 +1,14 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.concurrent.TimeoutException;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Device;
@@ -19,11 +16,9 @@ import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
-import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
 
 public class Relay extends Tile implements Device{
-	public static final String STATE = "state";
 	private static final String PORT_A = "port_a";
 	private static final String PORT_B = "port_b";	
 	protected static final String STRAIGHT = "straight";
@@ -51,9 +46,9 @@ public class Relay extends Tile implements Device{
 	}
 	
 	@Override
-	public Object click() throws IOException {
-		Object o = super.click();
-		state(!state);
+	public Object click(boolean shift) throws IOException {
+		Object o = super.click(shift);
+		if (!shift) state(!state);
 		return o;
 	}
 
@@ -158,18 +153,6 @@ public class Relay extends Tile implements Device{
 		default:
 			return 'P';
 		}		
-	}
-	
-	public static Select selector(Relay preselected, Collection<Relay> exclude) {
-		if (isNull(exclude)) exclude = new Vector<Relay>();
-		Select select = new Select(Relay.class.getSimpleName());
-		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
-		for (Relay relay : BaseClass.listElements(Relay.class)) {			
-			if (exclude.contains(relay)) continue;
-			Tag opt = select.addOption(relay.id(), relay);
-			if (relay == preselected) opt.attr("selected", "selected");
-		}
-		return select;
 	}
 		
 	public Relay setLabel(boolean state, String tx) {

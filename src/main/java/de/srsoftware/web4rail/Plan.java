@@ -188,7 +188,7 @@ public class Plan extends BaseClass{
 		case ACTION_AUTO:
 			return simplifyRouteName(params);
 		case ACTION_CLICK:
-			return click(get(Id.from(params),true));
+			return click(get(Id.from(params),true),params.get("shift"));
 		case ACTION_CONNECT:
 			Tile tile = get(Id.from(params), false);
 			if (tile instanceof Bridge) return ((Bridge)tile).requestConnect();
@@ -321,9 +321,9 @@ public class Plan extends BaseClass{
 	 * @return
 	 * @throws IOException
 	 */
-	private Object click(Tile tile) throws IOException {
+	private Object click(Tile tile,String shift) throws IOException {
 		if (tile == null) return null;
-		return tile.click();
+		return tile.click("1".equals(shift));
 	}
 	
 	/**

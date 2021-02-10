@@ -79,7 +79,7 @@ Click here to select display! : Hier klicken, um Anzeige auszuwählen!
 Click here to select train! : Hier klicken, um Zug auszuwählen!
 Click here to setup contact : Hier klicken, um Kontakt auszuwählen
 Click here to setup decoupler : Hier klicken, um Entkuppler einzurichten
-click here to setup relay : Hier klicken, um Relais einzurichten
+click here to setup relay or switch : Hier klicken, um Relais oder Schalter einzurichten
 click here to setup signal : Hier klicken, um Signal einzurichten
 Click here to setup tag : Hier klicken, um Markierung anzugeben
 click here to setup turnout : Hier klicken, um Weiche einzurichten
@@ -291,7 +291,7 @@ Set {} as context : {} als Kontext setzen
 SetContextTrain : Zug für Folgeaktionen festlegen
 Set direction of train to {} : Setze Richtung des Zugs auf {}
 SetDisplayText : Anzeige-Text setzen
-SetRelay : Relais schalten
+SetRelayOrSwitch : Relais oder Schalter schalten
 SetSignal : Signal stellen
 SetSignalsToStop : Signale auf Halt stellen
 SetSpeed : Geschwindigkeit ändern

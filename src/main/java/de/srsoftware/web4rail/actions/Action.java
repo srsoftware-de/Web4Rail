@@ -61,7 +61,7 @@ public abstract class Action extends BaseClass {
 			SetContextTrain.class,
 			SetDisplayText.class,
 			SetPower.class,
-			SetRelay.class,
+			SetRelayOrSwitch.class,
 			SetSignal.class,
 			SetSpeed.class,
 			SetTurnout.class,

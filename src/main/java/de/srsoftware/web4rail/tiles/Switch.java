@@ -40,20 +40,9 @@ public class Switch extends Tile{
 
 	
 	@Override
-	public Object click() throws IOException {
-		state = !state;
-		Application.threadPool.execute(new Runnable() {
-			
-			@Override
-			public void run() {
-				Context context = new Context(Switch.this);
-				if (state) {
-					actionsOn.fire(context);
-				} else actionsOff.fire(context);
-			}
-		});
-		stream();
-		return super.click();
+	public Object click(boolean shift) throws IOException {
+		if (!shift) state(!state);
+		return super.click(shift);
 	}
 	
 	@Override
@@ -170,6 +159,21 @@ public class Switch extends Tile{
 	
 	public boolean isOn() {
 		return state;
+	}
+	
+	public void state(boolean newState) {
+		state = newState;
+		Application.threadPool.execute(new Runnable() {
+			
+			@Override
+			public void run() {
+				Context context = new Context(Switch.this);
+				if (state) {
+					actionsOn.fire(context);
+				} else actionsOff.fire(context);
+			}
+		});
+		stream();
 	}
 	
 	public void stream() {

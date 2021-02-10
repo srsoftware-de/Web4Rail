@@ -21,9 +21,9 @@ public abstract class Bridge extends Tile {
 	protected Bridge counterpart = null;
 	
 	@Override
-	public Object click() throws IOException {
+	public Object click(boolean shift) throws IOException {
 		if (pendingConnection != null) return connect();
-		return super.click();
+		return super.click(shift);
 	}
 	
 	private Object connect() {

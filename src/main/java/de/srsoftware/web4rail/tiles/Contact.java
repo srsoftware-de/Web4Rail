@@ -116,9 +116,9 @@ public class Contact extends Tile{
 	}
 
 	@Override
-	public Object click() throws IOException {
-		trigger(200);
-		return super.click();
+	public Object click(boolean shift) throws IOException {
+		if (!shift) trigger(200);
+		return super.click(shift);
 	}
 	
 	public static Contact get(int addr) {

@@ -49,10 +49,10 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	@Override
-	public Object click() throws IOException {
+	public Object click(boolean shift) throws IOException {
 		LOG.debug(getClass().getSimpleName()+".click()");
-		init();
-		return super.click();
+		if (!shift) init();
+		return super.click(shift);
 	}
 
 	protected abstract String commandFor(State newState);

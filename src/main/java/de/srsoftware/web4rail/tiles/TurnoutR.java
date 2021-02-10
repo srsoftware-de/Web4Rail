@@ -13,11 +13,13 @@ public abstract class TurnoutR extends Turnout {
 	private static final String RIGHT = "right";
 
 	@Override
-	public Object click() throws IOException {
-		Object o = super.click();
-		if (route != null) {
-			plan.stream(t("{} is locked by {}!",this,route)); 
-		} else state(state == State.STRAIGHT ? State.RIGHT : State.STRAIGHT);
+	public Object click(boolean shift) throws IOException {
+		Object o = super.click(shift);
+		if (!shift) {
+			if (route != null) {
+				plan.stream(t("{} is locked by {}!",this,route)); 
+			} else state(state == State.STRAIGHT ? State.RIGHT : State.STRAIGHT);
+		}
 		return o;
 	}
 	
