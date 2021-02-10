@@ -1,6 +1,9 @@
 abort : abbrechen
 Accessory : Zubehör
+Action : Aktion
 Actions : Aktionen
+Actions (On) : Aktionen (Ein)
+Actions (Off) : Aktionen (Aus)
 Actions and contacts : Aktionen und Kontakte
 Action type : Aktions-Typ
 Actions will only fire, if all conditions are fullfilled. : Aktionen werden nur ausgeführt, wenn alle Bedingungen erfüllt sind.
@@ -164,6 +167,8 @@ Falls aktiviert, wird die Strecke anhand von Zug- und Kachel-Länge hinter dem Z
 internal contacts : interne Kontakte
 inverted : invertiert
 Inverts the direction {} is heading to. : Kehrt die Richtung, in welche {} fährt, um.
+{} is off : {} ist Aus
+{} is on : {} ist Ein
 {} is oriented {} : {} ist {} gerichtet
 known cars : bekannte Waggons
 known locomotives : bekannte Lokomotiven
@@ -276,6 +281,7 @@ Select from plan : Auf Plan auswählen
 Select object : Objekt auswählen
 Select relay : Relais auswählen
 Select state : Status auswählen
+Select switch : Schalter auswählen
 Select train : Zug auswählen
 Select turnout : Weiche wählen
 SendCommand : Kommando senden
@@ -330,6 +336,7 @@ STRAIGHT : gerade
 Swap order : Reihenfolge umkehren
 Swap order of trains : Reihenfolge der Züge tauschen
 SwitchFunction : Funktion schalten
+SwitchIsOn : Schalter is an
 Switch power off : Strom ausschalten
 Switch power on : Strom anschalten
 SYSTEM : Betriebssystem

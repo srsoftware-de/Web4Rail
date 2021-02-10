@@ -407,3 +407,19 @@ svg.Block text{
 .plan-file{
 	color: green;
 }
+
+.Switch rect{
+	fill:none;
+}
+
+.Switch.off rect.enabled,
+.Switch.on rect.disabled{
+	display: none;	
+}
+
+.Switch.off rect.disabled{
+	fill: red;
+}
+.Switch.on rect.enabled{
+	fill: forestgreen;	
+}

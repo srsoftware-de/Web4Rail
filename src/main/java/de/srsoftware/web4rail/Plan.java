@@ -71,6 +71,7 @@ import de.srsoftware.web4rail.tiles.SignalS;
 import de.srsoftware.web4rail.tiles.SignalW;
 import de.srsoftware.web4rail.tiles.StraightH;
 import de.srsoftware.web4rail.tiles.StraightV;
+import de.srsoftware.web4rail.tiles.Switch;
 import de.srsoftware.web4rail.tiles.TextDisplay;
 import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.TileWithShadow;
@@ -938,6 +939,7 @@ public class Plan extends BaseClass{
 		new DecouplerV().tag(null).addTo(tiles);
 		new Relay().setLabel(true,"RL").tag(null).addTo(tiles);
 		new Contact().tag(null).addTo(tiles);
+		new Switch().tag(null).addTo(tiles);
 		new TextDisplay().text("tx").tag(null).addTo(tiles);
 		new Eraser().tag(null).addTo(tiles);
 		return tiles.addTo(tileMenu);
