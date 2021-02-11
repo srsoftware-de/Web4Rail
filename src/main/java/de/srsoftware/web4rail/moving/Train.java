@@ -188,25 +188,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		tags.add(tag);
 	}
 
-
-	public void addToTrace(Vector<Tile> newTiles) {
-		Route.LOG.debug("{}.addToTrace({})",this,newTiles);
-		Route.LOG.debug("old trace: {}",trace);
-		boolean active = trace.isEmpty();
-		for (Tile tile : newTiles) {
-			if (active) {
-				trace.addFirst(tile);
-			} else {
-				if (trace.getFirst() == tile) active = true;
-			}			
-		}
-		if (!active) { // newTiles and old trace do not "touch" : add all new tiles
-			for (Tile tile : newTiles) trace.addFirst(tile);
-		}
-		Route.LOG.debug("new trace: {}",trace);
-		showTrace();
-	}
-
 	private Object addCar(HashMap<String, String> params) {
 		LOG.debug("addCar({})",params);
 		String carId = params.get(CAR_ID);
@@ -508,10 +489,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(currentBlock)) plan.place(currentBlock);
 		return this;
 	}	
-	
-	public Tile headPos() {
-		return trace.getFirst();
-	}
 	
 	public boolean isShunting() {
 		return shunting;
@@ -919,6 +896,22 @@ public class Train extends BaseClass implements Comparable<Train> {
 		cars.stream().filter(c -> c instanceof Locomotive).forEach(car -> ((Locomotive)car).setSpeed(speed));
 		plan.stream(t("Set {} to {} {}",this,speed,speedUnit));
 	}
+	
+	public void setTrace(LinkedList<Tile> newTrace) {
+		LOG.debug("{}.setTrace({})",this,newTrace);
+		LOG.debug("old trace: {}",trace);
+		if (isSet(trace)) {
+			trace.removeAll(newTrace);
+			
+			for (Tile tile : trace) {
+				tile.setTrain(null);
+			}
+		};
+		trace = newTrace;
+		for (Tile tile : trace) tile.setTrain(this);
+		
+		LOG.debug("new trace of {}: {}",this,trace);	
+	}
 
 	public void setWaitTime(Range waitTime) {
 		if (isNull(autopilot)) return; 
@@ -926,29 +919,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		String msg = t("{} waiting {} secs...",this,autopilot.waitTime/1000d);
 		LOG.debug(msg);
 		plan.stream(msg);
-
-	}
-	
-	public void showTrace() {
-		Route.LOG.debug("{}.showTrace()",this);
- 		int remainingLength = length();
- 		if (remainingLength<1) remainingLength=1;
-		for (int i=0; i<trace.size(); i++) {
-			Tile tile = trace.get(i);
-			Route.LOG.debug("current tile: {}, remaining length: {}",tile,remainingLength);
-			if (remainingLength>0) {
-				remainingLength-=tile.length();
-				tile.setTrain(this);
-			} else {
-				tile.setTrain(null);
-				if (Route.freeBehindTrain) try {
-					tile.unset(route);
-				} catch (IllegalArgumentException e) {}
-				trace.remove(i);
-				i--; // do not move to next index: remove shifted the next index towards us
-			}
-		}
-		Route.LOG.debug("remaining length: {}",remainingLength);
 	}
 	
 	private Tag slower(int steps) {
@@ -1015,6 +985,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			return error;
 		}
 		startSimulation();
+
 		plan.stream(t("Started {}",this));
 		return this;
 	}
@@ -1094,6 +1065,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	@Override
 	public String toString() {
 		return name();
+	}
+	
+	public Tile traceHead() {		
+		return trace == null || trace.isEmpty() ? null : trace.getFirst();
 	}
 	
 	/**

@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -422,8 +423,8 @@ public class Route extends BaseClass {
 		ActionList actions = triggeredActions.get(contact.trigger());
 		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
 		if (isNull(actions)) return;
-		actions.fire(context);
 		traceTrainFrom(contact);		
+		actions.fire(context);
 	}
 
 	public Vector<Contact> contacts() {
@@ -1025,16 +1026,32 @@ public class Route extends BaseClass {
 		return getClass().getSimpleName()+"("+(isSet(train)?train+":":"")+name()+")";
 	}
 	
-	private void traceTrainFrom(Tile tile) {
-		LOG.debug("{}.traceTrainFrom({})",this,tile);
+	private void traceTrainFrom(Tile newHead) {
+		LOG.debug("{}.traceTrainFrom({})",this,newHead);
 		if (isNull(train)) return;
-		Vector<Tile> trace = new Vector<Tile>();
-		if (tile instanceof BlockContact) tile = (Tile) ((BlockContact)tile).parent();
-		for (Tile t:path) {
-			trace.add(t);
-			if (t == tile) break;
-		}
-		train.addToTrace(trace);
+		if (newHead instanceof BlockContact) newHead = (Tile) ((BlockContact)newHead).parent();
+		
+		Tile traceHead = train.traceHead();
+		Integer remainingLength = null;
+		LinkedList<Tile> newTrace = new LinkedList<Tile>();
+		for (int i=path.size(); i>0; i--) { // pfad rückwärts ablaufen
+			Tile tile = path.elementAt(i-1);
+			if (isNull(remainingLength)) {
+				if (tile == newHead) traceHead = newHead; // wenn wir zuerst newHead finden: newHead als neuen traceHead übernehmen
+				if (tile == traceHead) remainingLength = train.length(); // sobald wir auf den traceHead stoßen: suche beenden
+			}		
+			if (isSet(remainingLength)) {
+				if (remainingLength>0) {
+					newTrace.add(tile);
+					remainingLength -= tile.length();
+				} else if (Route.freeBehindTrain) {
+					try {
+						tile.unset(this);				
+					} catch (IllegalArgumentException e) {}
+				} else break;				
+			}
+		}		
+		train.setTrace(newTrace);
 	}
 	
 	public Train train() {
