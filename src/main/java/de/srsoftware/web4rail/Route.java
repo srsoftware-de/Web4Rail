@@ -227,7 +227,7 @@ public class Route extends BaseClass {
 				return route.properties();
 			case ACTION_START:
 				route.set(new Context(route));
-				route.fireSetupActions();
+				route.prepare();
 				route.context.clear();
 				
 				return route.properties();
@@ -490,9 +490,7 @@ public class Route extends BaseClass {
 				LOG.debug("{} has no next route.",train);
 				if (isSet(brakeProcessor)) {					
 					brakeProcessor.finish();
-				} else {
-					train.setSpeed(0);
-				}
+				} else train.setSpeed(0);
 			}
 		}
 		brakeProcessor = null;
@@ -559,11 +557,25 @@ public class Route extends BaseClass {
 		train = null;
 	}
 	
-	public boolean fireSetupActions() {
-		LOG.debug("{}.firesSetupActions({})",this);
-		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
-		if (isSet(setupActions) && !setupActions.fire(context)) return false;
-		state = State.PREPARED;
+	public boolean free() {
+		LOG.debug("{}.free()",this);
+		setSignals(Signal.RED);
+		for (Tile tile : path) try {
+			tile.unset(this);
+		} catch (IllegalArgumentException e) {}
+		
+		Tile lastTile = path.lastElement();
+		if (lastTile instanceof Contact) {
+			lastTile.setTrain(null);
+			if (isSet(train)) train.removeChild(lastTile);
+		}
+		if (isSet(train)) {
+			train.set(startBlock);
+			train.heading(startDirection);
+			if (train.route() == this) train.route(null);
+			train = null;
+		}
+		state = State.FREE;
 		return true;
 	}
 	
@@ -853,6 +865,14 @@ public class Route extends BaseClass {
 		return result;
 	}
 	
+	public boolean prepare() {
+		LOG.debug("{}.firesSetupActions({})",this);
+		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
+		if (isSet(setupActions) && !setupActions.fire(context)) return false;
+		state = State.PREPARED;
+		return true;
+	}
+	
 	private Tag previewScript() {
 		Tag script = new Tag("script").attr("type", "text/javascript");
 		for (Tile tile : path) {
@@ -919,30 +939,6 @@ public class Route extends BaseClass {
 		super.removeChild(child);
 	}
 	
-	public boolean reset() {
-		LOG.debug("{}.reset()",this);
-		setSignals(Signal.RED);
-		for (Tile tile : path) {
-			try {
-				tile.unset(this);
-			} catch (IllegalArgumentException e) {}
-		}
-		Tile lastTile = path.lastElement();
-		if (lastTile instanceof Contact) {
-			lastTile.setTrain(null);
-			if (isSet(train)) train.removeChild(lastTile);
-		}
-		if (isSet(train)) {
-			train.set(startBlock);
-			train.heading(startDirection);
-			if (train.route() == this) train.route(null);
-			train = null;
-		}
-		LOG.debug("chlearing triggeredContacts of {}",this);
-		state = State.FREE;
-		return true;
-	}
-
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		file.write("{\""+ROUTES+"\":[\n");
@@ -1052,11 +1048,6 @@ public class Route extends BaseClass {
 		return win;
 	}
 	
-	public Route unlock() throws IOException {
-		// TODO
-		return this;
-	}
-
 	protected Object update(HashMap<String, String> params,Plan plan) {
 		LOG.debug("update({})",params);
 		String name = params.get(NAME);

@@ -730,7 +730,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public Object quitAutopilot() {
 		if (isSet(nextRoute)) {
-			nextRoute.reset();
+			nextRoute.free();
 			nextRoute = null;
 		}
 		if (isSet(autopilot)) {
@@ -783,10 +783,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		nextRoute.set(context);
 		boolean error = !nextRoute.lockIgnoring(route);
-		error = error || !nextRoute.fireSetupActions();
+		error = error || !nextRoute.prepare();
 
 		if (error) {
-			nextRoute.reset(); // may unlock tiles belonging to the current route. 
+			nextRoute.free(); // may unlock tiles belonging to the current route. 
 			route.lock(); // corrects unlocked tiles of nextRoute
 		} else {
 			this.nextRoute = nextRoute;
@@ -981,7 +981,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		LOG.debug("{}.start()",this);
 		if (isNull(currentBlock)) return t("{} not in a block",this);
 		if (maxSpeed() == 0) return t("Train has maximum speed of 0 {}, cannot go!",speedUnit);
-		if (isSet(route)) route.reset(); // reset route previously chosen
+		if (isSet(route)) route.free(); // reset route previously chosen
 
 		String error = null;
 		if (isSet(nextRoute)) {
@@ -996,14 +996,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 			if (isNull(route)) return t("No free routes from {}",currentBlock);
 			if (!route.lock()) error = t("Was not able to lock {}",route);
 			route.set(context);
-			if (isNull(error) && !route.fireSetupActions()) error = t("Was not able to fire all setup actions of route!");
+			if (isNull(error) && !route.prepare()) error = t("Was not able to fire all setup actions of route!");
 		}
 		if (isNull(error) && direction != route.startDirection) turn();
 		
 		if (isNull(error) && !route.start(this)) error = t("Was not able to assign {} to {}!",this,route);
 		if (isSet(error)) {
 			LOG.debug("{}.start:error = {}",this,error);
-			route.reset();
+			route.free();
 			route = null;
 			return error;
 		}
@@ -1056,7 +1056,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		quitAutopilot();
 		if (isSet(route)) {
 			route.brakeCancel();
-			route.reset();
+			route.free();
 			route = null;
 		}
 		setSpeed(0);
