@@ -14,14 +14,8 @@ FREE --> LOCKED : lockIngoring(ignoredRoute)
 LOCKED --> PREPARED : prepare()
 PREPARED --> STARTED : start(newTrain)
 STARTED --> FREE : reset()
+STARTED -left-> FREE : finish()
 PREPARED --> FREE : reset()
 LOCKED --> FREE : reset()
 
-@enduml
-
-
-@startuml
-start
-:HelloWorld;
-end
 @enduml

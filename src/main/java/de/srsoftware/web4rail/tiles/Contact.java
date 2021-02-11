@@ -10,6 +10,8 @@ import java.util.TreeMap;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
@@ -23,7 +25,7 @@ import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
 
 public class Contact extends Tile{
-	
+	private static Logger LOG = LoggerFactory.getLogger(Contact.class);
 	private static final String ADDRESS = "address";
 	private static final HashMap<Integer, Contact> contactsByAddr = new HashMap<Integer, Contact>();
 	private boolean state = false;
@@ -81,17 +83,12 @@ public class Contact extends Tile{
 			LOG.debug("{} activated.",this);
 			state = true;
 			if (isSet(timer)) timer.abort();
-			Context context = null;
 			Route route = route();
-			if (isSet(route)) {
-				context = route.context();
-				actions.fire(context);
-				route.contact(this);
-			}
-			if (isNull(context)) {
-				context = new Context(this);
-				actions.fire(context);
-			}
+			Context context = isSet(route) ? route.context().contact(this) : new Context(this);
+			
+			actions.fire(context);
+			if (isSet(route)) route.contact(this);
+			
 			for (Listener listener : listeners) {
 				listener.fired();
 			}

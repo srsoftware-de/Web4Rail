@@ -10,7 +10,6 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -43,11 +42,11 @@ public class AddDestination extends Action {
 			return true;
 		} 
 		String flags = "+";
-		if (turnAtDestination) flags += Route.TURN_FLAG;
-		if (shunting) flags += Route.SHUNTING_FLAG;
-		String dest = Route.DESTINATION_PREFIX+destination.id() + (flags.length()>1 ? flags : "");
+		if (turnAtDestination) flags += Train.TURN_FLAG;
+		if (shunting) flags += Train.SHUNTING_FLAG;
+		String dest = Train.DESTINATION_PREFIX+destination.id() + (flags.length()>1 ? flags : "");
 		for (String tag: train.tags()) {
-			if (tag.startsWith(Route.DESTINATION_PREFIX)) {
+			if (tag.startsWith(Train.DESTINATION_PREFIX)) {
 				train.removeTag(tag);
 				dest = tag+dest;				
 				break;

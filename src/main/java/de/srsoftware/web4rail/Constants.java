@@ -52,7 +52,7 @@ public interface Constants {
 	
 	public static final String ASSIGN = "assign";
 	public static final String  BLOCK               = "block";
-	public static final String  COL                 = ":&nbsp;";
+	public static final String  COL                 = ": ";
 	public static final String  CONTACT             = "contact";
 	public static final String  CONTEXT             = "context";
 	public static final String  DEFAULT_SPEED_UNIT  = "km/h";

@@ -125,8 +125,9 @@ public abstract class BaseClass implements Constants{
 			return contact;
 		}
 		
-		public void contact(Contact newContact) {
+		public Context contact(Contact newContact) {
 			contact = newContact;
+			return this;
 		}
 
 		

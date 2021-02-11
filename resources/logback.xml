@@ -1,27 +1,39 @@
-<configuration scan="true" scanPeriod="60 seconds" debug="true">
-  <!-- scan="true" enables automatic updates if config file changes, see http://logback.qos.ch/manual/configuration.html -->
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
-    </encoder>    
-	 <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-		<level>DEBUG</level>
-	</filter>	
-  </appender>
-  
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <append>false</append>
-    <file>Web4Rail.log</file>
-	<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-		<level>DEBUG</level>
-	</filter>	
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%15thread] %-5level %logger - %msg%n</pattern>
-    </encoder>
-  </appender>
-  
-  <root>
-    <appender-ref ref="FILE" />
-    <appender-ref ref="STDOUT" />
-  </root>
+<configuration scan="true" scanPeriod="60 seconds"
+	debug="true">
+	<!-- scan="true" enables automatic updates if config file changes, see http://logback.qos.ch/manual/configuration.html -->
+	<appender name="STDOUT"
+		class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
+			</pattern>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>DEBUG</level>
+		</filter>
+	</appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<append>false</append>
+		<file>Web4Rail.log</file>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>DEBUG</level>
+		</filter>
+		<encoder>
+			<pattern>%d{HH:mm:ss.SSS} [%15thread] %-5level %logger - %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+	<root level="DEBUG">
+		<appender-ref ref="FILE" />
+		<appender-ref ref="STDOUT" />
+	</root>
+	
+	<logger name="de.srsoftware.web4rail" level="INFO" />
+	<logger name="de.srsoftware.web4rail.Application" level="DEBUG" />
+	<logger name="de.srsoftware.web4rail.Route" level="DEBUG" />
+	<logger name="de.srsoftware.web4rail.actions.ActionList" level="DEBUG" />
+	<logger name="de.srsoftware.web4rail.moving.Train" level="DEBUG" />
+	<logger name="de.srsoftware.web4rail.tiles.Contact" level="DEBUG" />
+
 </configuration>

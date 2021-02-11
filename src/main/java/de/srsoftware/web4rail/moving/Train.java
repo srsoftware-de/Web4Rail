@@ -75,7 +75,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public static final String DESTINATION = "destination";
 
 	private static final String ACTION_REVERSE = "reverse";
-	
+	public static final String DESTINATION_PREFIX = "@";
+	public static final char TURN_FLAG = '±';
+	public static final char FLAG_SEPARATOR = '+';
+	public static final char SHUNTING_FLAG = '¥';
+
 	private HashSet<String> tags = new HashSet<String>();
 	private boolean f1,f2,f3,f4;
 
@@ -105,7 +109,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 						if (stop) return;
 						if (isNull(route)) { // may have been set by start action in between
 							Object o = Train.this.start();
-							LOG.debug("{}.start called, route now is {}",this,route);
+							LOG.debug("{}.start called, route now is {}",Train.this,route);
 							if (isSet(route)) {
 								if (o instanceof String) plan.stream((String)o);
 								//if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
@@ -162,17 +166,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_QUIT:
 				return train.quitAutopilot();
 			case ACTION_REVERSE:
-				return train.reverse();
+				return train.reverse().properties();
 			case ACTION_SLOWER10:
 				return train.slower(10);
 			case ACTION_START:
-				return train.start();
+				train.start();
+				return train.properties();
 			case ACTION_STOP:
 				return train.stopNow();
 			case ACTION_TIMES:
 				return train.removeBrakeTimes();
 			case ACTION_TURN:
-				return train.turn();
+				return train.turn().properties();
 			case ACTION_UPDATE:
 				return train.update(params);		 
 		}
@@ -247,7 +252,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		TreeSet<String> carIds = new TreeSet<String>();
 		cars.stream().map(car -> car.id()+":"+(car.orientation == reversed ? "r":"f")).forEach(carIds::add);		
 		String brakeId = md5sum(carIds);
-		LOG.debug("generated new brake id for {}: {}",this,brakeId);
+		LOG.debug("generated new {} brake id for {}: {}",reversed?"backward":"forward",this,brakeId);
 		return brakeId;
 	}
 	
@@ -395,31 +400,22 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public Block destination() {
 		if (isNull(destination)) {
-			String destId = null;
-			for (String tag : tags) {
-				if (tag.startsWith(Route.DESTINATION_PREFIX)) {
-					destId = tag;
-					break;
-				}
-			}
-			if (isSet(destId)) {
-				String[] parts = destId.split(Route.DESTINATION_PREFIX);
-				destId = parts[1];
-				
-				for (int i=destId.length()-1; i>0; i--) {
-					switch (destId.charAt(i)) {
-						case Route.FLAG_SEPARATOR:
-							destId = destId.substring(0,i);
+			String destTag = destinationTag();
+			if (isSet(destTag)) {
+				for (int i=destTag.length()-1; i>0; i--) {
+					switch (destTag.charAt(i)) {
+						case FLAG_SEPARATOR:
+							destTag = destTag.substring(0,i);
 							i=0;
 							break;
-						case Route.SHUNTING_FLAG:
+						case SHUNTING_FLAG:
 							shunting = true; 
 							break;
 					}
 				}
 
-				BaseClass object = BaseClass.get(new Id(destId));
-				if (object instanceof Block) destination = (Block) object;
+				Block block = BaseClass.get(new Id(destTag));
+				if (isSet(block)) destination = block;
 			}
 		}
 		return destination;
@@ -429,6 +425,17 @@ public class Train extends BaseClass implements Comparable<Train> {
 		destination = dest;
 		return this;
 	}
+	
+	public String destinationTag() {
+		for (String tag : tags()) { // check, if endBlock is in train's destinations
+			if (tag.startsWith(DESTINATION_PREFIX)) {
+				String[] parts = tag.split(DESTINATION_PREFIX);
+				return parts[1];
+			}
+		}
+		return null;
+	}
+
 
 	public String directedName() {
 		String result = name();
@@ -730,7 +737,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public Object quitAutopilot() {
 		if (isSet(nextRoute)) {
-			nextRoute.free();
+			nextRoute.reset();
 			nextRoute = null;
 		}
 		if (isSet(autopilot)) {
@@ -786,7 +793,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		error = error || !nextRoute.prepare();
 
 		if (error) {
-			nextRoute.free(); // may unlock tiles belonging to the current route. 
+			nextRoute.reset(); // may unlock tiles belonging to the current route. 
 			route.lock(); // corrects unlocked tiles of nextRoute
 		} else {
 			this.nextRoute = nextRoute;
@@ -799,7 +806,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	 * before: CabCar→ MiddleCar→ Loco→
 	 * after: ←Loco ←MiddleCar ←CabCar 
 	 */
-	public Tag reverse() {
+	public Train reverse() {
 		LOG.debug("train.reverse();");
 
 		if (isSet(direction)) {
@@ -807,7 +814,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			reverseTrace();
 		}
 		if (isSet(currentBlock)) plan.place(currentBlock);
-		return properties();
+		return this;
 	}
 	
 	private void reverseTrace() {
@@ -981,7 +988,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		LOG.debug("{}.start()",this);
 		if (isNull(currentBlock)) return t("{} not in a block",this);
 		if (maxSpeed() == 0) return t("Train has maximum speed of 0 {}, cannot go!",speedUnit);
-		if (isSet(route)) route.free(); // reset route previously chosen
+		if (isSet(route)) route.reset(); // reset route previously chosen
 
 		String error = null;
 		if (isSet(nextRoute)) {
@@ -1003,14 +1010,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(error) && !route.start(this)) error = t("Was not able to assign {} to {}!",this,route);
 		if (isSet(error)) {
 			LOG.debug("{}.start:error = {}",this,error);
-			route.free();
+			route.reset();
 			route = null;
 			return error;
 		}
 		startSimulation();
-		Window win = properties();
-		new Tag("p").content(t("Started {}",this)).addTo(win);
-		return win;
+		plan.stream(t("Started {}",this));
+		return this;
 	}
 	
 	public static void startAll() {
@@ -1019,7 +1025,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	private void startSimulation() {
-		LOG.debug("{}.startSimulation({})",this);
+		LOG.debug("{}.startSimulation()",this);
 		for (Contact contact : route.contacts()) {
 			if (contact.addr() != 0) {
 				LOG.debug("{}.startSimulation aborted!",this);
@@ -1056,7 +1062,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		quitAutopilot();
 		if (isSet(route)) {
 			route.brakeCancel();
-			route.free();
+			route.reset();
 			route = null;
 		}
 		setSpeed(0);
@@ -1096,7 +1102,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	 * after: ←CabCar ←MiddleCar ←Loco 
 	 * @return 
 	 */
-	public Tag turn() {
+	public Train turn() {
 		LOG.debug("{}.turn()",this);
 		for (Car car : cars) car.turn();
 		Collections.reverse(cars);

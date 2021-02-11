@@ -263,6 +263,6 @@ public class ActionList extends Action implements Iterable<Action>{
 	
 	@Override
 	public String toString() {
-		return actions.toString();
+		return actions.isEmpty() ? "[no actions]" : actions.toString();
 	}
 }

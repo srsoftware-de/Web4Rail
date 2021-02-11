@@ -143,7 +143,7 @@ public class Locomotive extends Car implements Constants,Device{
 		par.addTo(fieldset);
 
 		Tag direction = new Tag("p");
-		if ((isSet(train) && train.speed > 0) || (isSet(loco) && loco.speed > 0)) {
+		if ((isSet(train) && (train.speed > 0 || isSet(train.route()))) || (isSet(loco) && loco.speed > 0)) {
 			params.put(ACTION, ACTION_STOP);
 			new Button(t("Stop"),params).clazz(ACTION_STOP).addTo(direction);			
 		}

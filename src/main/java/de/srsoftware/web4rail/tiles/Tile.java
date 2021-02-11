@@ -378,7 +378,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	}	
 
 	public Tile setRoute(Route lockingRoute) {
-		Route.LOG.debug("{}.setRoute({})",this,lockingRoute);
+		LOG.debug("{}.setRoute({})",this,lockingRoute);
 		if (isNull(lockingRoute)) throw new NullPointerException();
 		if (isSet(route)) {
 			if (route == lockingRoute) return this; // nothing changed
