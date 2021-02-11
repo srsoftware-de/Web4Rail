@@ -1,0 +1,27 @@
+@startuml component
+FREE: Route existiert als Objekt,
+FREE: ist aber nicht in Verwendung
+
+LOCKED: Route wurde reserviert
+
+PREPARED: Route wurde eingerichtet
+PREPARED: Vorbereitungsaktionen wurden
+PREPARED: ausgeführt
+
+STARTED: Zug auf Route wurde gestartet
+
+FREE --> LOCKED : lockIngoring(ignoredRoute)
+LOCKED --> PREPARED : prepare()
+PREPARED --> STARTED : start(newTrain)
+STARTED --> FREE : reset()
+PREPARED --> FREE : reset()
+LOCKED --> FREE : reset()
+
+@enduml
+
+
+@startuml
+start
+:HelloWorld;
+end
+@enduml
