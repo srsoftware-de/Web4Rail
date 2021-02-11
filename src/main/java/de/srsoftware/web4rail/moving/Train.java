@@ -648,11 +648,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return nextRoute;
 	}
 
-
-	public boolean nextRoutePrepared() {
-		return isSet(nextRoute) && nextRoute.state() == Route.State.PREPARED;
-	}
-	
 	public boolean onTrace(Tile t) {
 		return trace.contains(t);
 	}
@@ -760,21 +755,22 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void reserveNext() {
 		LOG.debug("{}.reserveNext()",this);
 		Context context = new Context(this).route(route).block(route.endBlock()).direction(route.endDirection);
-		Route nextRoute = PathFinder.chooseRoute(context);
-		if (isNull(nextRoute)) {
+		Route newRoute = PathFinder.chooseRoute(context);
+		if (isNull(newRoute)) {
 			LOG.debug("{}.reserveNext() found no available route!",this);
 			return;
 		}
-		nextRoute.set(context);
-		boolean error = !nextRoute.lockIgnoring(route);
-		error = error || !nextRoute.prepare();
+		newRoute.set(context);
+		boolean error = !newRoute.lockIgnoring(route);
+		error = error || !newRoute.prepare();
 
 		if (error) {
-			nextRoute.reset(); // may unlock tiles belonging to the current route. 
+			newRoute.reset(); // may unlock tiles belonging to the current route.
+			LOG.debug("failed to prepare new route {}",newRoute);
 			route.lock(); // corrects unlocked tiles of nextRoute
 		} else {
-			this.nextRoute = nextRoute;
-			this.route.brakeCancel();
+			nextRoute = newRoute;
+			LOG.debug("prepared next route: {}",nextRoute);
 		}
 	}
 	
@@ -1032,7 +1028,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Object stopNow() {
 		quitAutopilot();
 		if (isSet(route)) {
-			route.brakeCancel();
 			route.reset();
 			route = null;
 		}

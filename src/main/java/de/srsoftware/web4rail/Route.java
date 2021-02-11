@@ -71,50 +71,51 @@ public class Route extends BaseClass {
 	static final String SIGNALS  = "signals";
 	static final String TURNOUTS = "turnouts";
 	private State state = State.FREE;
-	public static int endSpeed = 10;
+	public static int defaultEndSpeed = 10;
 	public static boolean freeBehindTrain = true;
 
 	private static final String ROUTE_START = "route_start";
 
 	private static final String ROUTE_SETUP = "route_setup";
 
-	private int startSpeed;
 	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
 		
 	private class BrakeProcessor extends Thread {
-		private long timestamp;
+		private long latestTick;
 		private static final int SPEED_STEP = 5;
 		private Integer timeStep;
 		private Route route;
 		private Train train;
-		private boolean aborted = false;
 		private String brakeId;
 		private long estimatedDistance; // Unit: s*km/h "km/h-Sekunden"
+		private int startSpeed,endSpeed;
+		private boolean aborted,modified;
 		
 		public BrakeProcessor(Route route, Train train) {
 			this.train = train;
 			this.route = route;
-
-
+			
+			aborted = false;
+			modified = false;
 			estimatedDistance = 0;
 			brakeId = train.brakeId();
-			startSpeed = train.speed;			
+			startSpeed = train.speed;		
+			endSpeed = defaultEndSpeed;
 			
 			timeStep = brakeTimes.get(brakeId);
-			// if no brake time is available for this train, use the fastest brake time already known for this route:
-			if (isNull(timeStep)) timeStep = 100;
+
+			if (isNull(timeStep)) timeStep = 100; 			// if no brake time is available for this train
 			Application.threadPool.execute(this);
 		}
-
-		public void abort() {
-			aborted = true;
-			train.setSpeed(startSpeed);
-		}
 		
+		protected void abort() {
+			aborted = true;
+		}
+
 		private long calcDistance(Integer ts) {
 			long dist = 0;
 			int s = startSpeed;
-			while (s > endSpeed) {
+			while (s > defaultEndSpeed) {
 				s -= SPEED_STEP;
 				dist += s*ts;
 			}
@@ -126,59 +127,60 @@ public class Route extends BaseClass {
 		 * This is called from route.finish when train came to stop
 		 */
 		public void finish() {
-			LOG.debug("BrakeProcessor.finish(){}",aborted?" got aborted":"");
-			if (aborted) return;
-			long runtime = 2+BaseClass.timestamp() - timestamp;
-			estimatedDistance += train.speed * runtime;
+			LOG.debug("BrakeProcessor.finish()");
+			if (aborted || modified) return;
+			increaseDistance();
 			train.setSpeed(0);
 			LOG.debug("Estimated distance: {}",estimatedDistance);
 
 			if (startSpeed <= endSpeed) return;
 			Integer newTimeStep = timeStep;
-			while (calcDistance(newTimeStep) < estimatedDistance) { // zu schnell gebremst
-				newTimeStep += (1+newTimeStep/8);			
-			}
-			while (calcDistance(newTimeStep) > estimatedDistance) { // zu langsam gebremst
-				newTimeStep -= 1+(newTimeStep/16);
-			}
+			while (calcDistance(newTimeStep) < estimatedDistance) newTimeStep += (1+newTimeStep/8); // zu schnell gebremst: pasue verlängern
+			while (calcDistance(newTimeStep) > estimatedDistance) newTimeStep -= 1+(newTimeStep/16);  // zu langsam gebremst: pasue verkürzen
 			
 			if (newTimeStep != timeStep) {
 				route.brakeTimes.put(brakeId,newTimeStep);
 				LOG.debug("Corrected brake timestep for {} @ {} from {} to {} ms.",train,route,timeStep,newTimeStep);
 			}
 		}
+		
+		private void increaseDistance(){
+			long tick = timestamp();
+			estimatedDistance += train.speed * (tick-latestTick);
+			latestTick = tick;			
+		}
 
 		@Override
 		public void run() {
-			timestamp = timestamp();
-			Integer nextRouteSpeed = null;
-			if (train.speed == 0) aborted = true;
+			LOG.debug("started BrakeProcessor ({} → {}) for {} with timestep = {} ms.",train.speed,endSpeed,train,timeStep);
+			latestTick = timestamp();
 			while (train.speed > endSpeed) {
-				if (train.nextRoutePrepared()) {
-					if (isNull(nextRouteSpeed)) nextRouteSpeed = train.nextRoute().startSpeed(); // get the starting speed of the next route
-					if (isNull(nextRouteSpeed)) {
-						LOG.warn("Train has prepared next route, but that route seems to have no start speed!?");
-						nextRouteSpeed = 0; // assume starting speed of zero
-					}
-					if (train.speed < nextRouteSpeed) { // train already is slower: stop braking, set train speed to next route's start speed
-						train.setSpeed(nextRouteSpeed);
-						abort();
-					}
-					// if train is still faster than starting speed for next route: continue braking
-				}
-				if (aborted) break;				
-				
 				LOG.debug("BrakeProcessor({}) setting Speed of {}.",route,train);
-				long runtime = BaseClass.timestamp() - timestamp;
-				timestamp = timestamp+runtime;
-				estimatedDistance += train.speed * runtime;
-				train.setSpeed(Math.max(train.speed - SPEED_STEP,endSpeed));				
+				increaseDistance();
+				train.setSpeed(Math.max(train.speed - SPEED_STEP,endSpeed));
 				try {
 					sleep(timeStep);
 				} catch (InterruptedException e) {
 					LOG.warn("BrakeProcessor interrupted!", e);
 				}
+				
+				Route nextRoute = train.nextRoute();
+				if (!modified && isSet(nextRoute) && nextRoute.state == Route.State.PREPARED) { // auf Startgeschwindigkeit der Nachfolgeroute bremsen
+					Integer nrsp = nextRoute.startSpeed();
+					if (isSet(nrsp)) {
+						LOG.debug("updating target velocity from {} to {}!",endSpeed,nrsp);
+						endSpeed = nrsp;
+						modified = true;
+					}					
+				}
 			}
+			if (endSpeed > train.speed) train.setSpeed(endSpeed);
+		}
+
+		public void setEndSpeed(Integer newEndSpeed) {
+			if (isNull(newEndSpeed)) return;
+			endSpeed = newEndSpeed;		
+			modified = true;
 		}
 	}
 
@@ -360,11 +362,6 @@ public class Route extends BaseClass {
 		return this;
 	}
 	
-	public void brakeCancel() {
-		if (isSet(brakeProcessor)) brakeProcessor.abort();	
-		brakeProcessor = null;
-	}
-
 	public void brakeStart() {
 		if (isNull(train)) return;		
 		brakeProcessor = new BrakeProcessor(this,train);
@@ -480,10 +477,8 @@ public class Route extends BaseClass {
 		LOG.debug("{}.finish()",this);
 		
 		if (isSet(train)) {
-			if (train.nextRoutePrepared()) {
-				LOG.debug("{} has prepared next route: {}",train,train.nextRoute());
-				if (isSet(brakeProcessor)) brakeProcessor.abort();
-			} else {
+			Route nextRoute = train.nextRoute();
+			if (!isSet(nextRoute)) {
 				LOG.debug("{} has no next route.",train);
 				if (isSet(brakeProcessor)) {					
 					brakeProcessor.finish();
@@ -508,7 +503,7 @@ public class Route extends BaseClass {
 	 * frees all tiles occupied by this route
 	 */
 	private void free() {
-		LOG.debug("{}.reset()",this);
+		LOG.debug("{}.free()",this);
 		context.clear(); // prevent delayed actions from firing after route has finished
 
 		setSignals(Signal.RED);
@@ -760,11 +755,11 @@ public class Route extends BaseClass {
 	}
 		
 	public boolean lock() {
-		LOG.debug("{}.lock()",this);
 		return lockIgnoring(null);
 	}
 	
 	public boolean lockIgnoring(Route ignoredRoute) {
+		if (state == State.LOCKED || state == State.PREPARED || state == State.STARTED) return true;
 		LOG.debug("{}.lockIgnoring({})",this,ignoredRoute);
 		HashSet<Tile> ignoredPath = new HashSet<Tile>();
 		if (isSet(ignoredRoute)) ignoredPath.addAll(ignoredRoute.path);
@@ -856,6 +851,7 @@ public class Route extends BaseClass {
 	}
 	
 	public boolean prepare() {
+		if (state == State.PREPARED || state == State.STARTED) return true;
 		LOG.debug("{}.prepare()",this);
 		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
 		if (isSet(setupActions) && !setupActions.fire(context)) return false;
@@ -869,6 +865,11 @@ public class Route extends BaseClass {
 			script.content("$('#"+tile.id()+"').addClass('preview');\n");
 		}
 		return script;
+	}
+	
+	public Route prolong(Route nextRoute) {
+		if (isSet(brakeProcessor)) brakeProcessor.setEndSpeed(nextRoute.startSpeed());
+		return nextRoute;
 	}
 	
 	@Override
@@ -933,6 +934,7 @@ public class Route extends BaseClass {
 		LOG.debug("{}.reset()",this);
 		free();
 		
+		if (isSet(brakeProcessor)) brakeProcessor.abort();
 		if (isSet(train)) {
 			train.set(startBlock);
 			train.heading(startDirection);
@@ -994,6 +996,7 @@ public class Route extends BaseClass {
 	}
 	
 	public boolean start(Train newTrain) {
+		if (state == State.STARTED) return true;
 		LOG.debug("{}.start({})",this,newTrain);
 		if (isNull(newTrain)) return false; // can't set route's train to null
 		if (isSet(train)) {
