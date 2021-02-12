@@ -81,12 +81,12 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 
 	public boolean fire(Context context) {
-		LOG.debug("{}.fire({})",this,context);
 		if (context.invalidated()) {
 			LOG.debug("Context has been invalidated, aborting {}",this);
 			return false;
 		}
-		if (!isEmpty())	LOG.debug(t("Firing {}"),actions);
+		
+		if (!isEmpty())	LOG.debug("{}.fire({})",this,context);
 		for (Action action : actions) {
 			if (!action.fire(context)) return false;			
 		}
@@ -94,12 +94,11 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 	
 	public Integer getSpeed(Context context) {
+		LOG.debug("{}.getSpeed({})",this,context);
 		Integer speed = null;
 		for (Action action : this) {
-			if (action instanceof SetSpeed) {
-				speed = ((SetSpeed)action).getSpeed();
-			}
-			if (action instanceof ActionList) {
+			if (action instanceof SetSpeed) speed = ((SetSpeed)action).getSpeed();
+			if (isNull(speed) && action instanceof ActionList) {
 				Integer listSpeed = ((ActionList)action).getSpeed(context);
 				if (isSet(listSpeed)) speed = listSpeed;
 			}

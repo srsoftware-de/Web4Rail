@@ -89,7 +89,7 @@ public class Route extends BaseClass {
 		private String brakeId;
 		private long estimatedDistance; // Unit: s*km/h "km/h-Sekunden"
 		private int startSpeed,endSpeed;
-		private boolean aborted,modified;
+		private boolean aborted,modified,finished;
 		
 		public BrakeProcessor(Route route, Train train) {
 			this.train = train;
@@ -97,14 +97,14 @@ public class Route extends BaseClass {
 			
 			aborted = false;
 			modified = false;
-			estimatedDistance = 0;
+			finished = false;
 			brakeId = train.brakeId();
 			startSpeed = train.speed;		
 			endSpeed = defaultEndSpeed;
 			
 			timeStep = brakeTimes.get(brakeId);
 
-			if (isNull(timeStep)) timeStep = 100; 			// if no brake time is available for this train
+			if (isNull(timeStep)) timeStep = 256; 			// if no brake time is available for this train
 			Application.threadPool.execute(this);
 		}
 		
@@ -123,58 +123,84 @@ public class Route extends BaseClass {
 			return dist;
 		}
 		
+		private void checkNextRoute() {
+			Route nextRoute = train.nextRoute();
+			if (isSet(nextRoute) && nextRoute.state == Route.State.PREPARED) { // auf Startgeschwindigkeit der Nachfolgeroute bremsen
+				Integer nextRouteStartSpeed = nextRoute.startSpeed();
+				if (isSet(nextRouteStartSpeed)) {
+					LOG.debug("updating target velocity from {} to {}!",endSpeed,nextRouteStartSpeed);
+					endSpeed = nextRouteStartSpeed;
+					modified = true;
+					if (endSpeed > train.speed) train.setSpeed(endSpeed);
+				}					
+			}
+		}
+		
 		/**
 		 * This is called from route.finish when train came to stop
 		 */
 		public void finish() {
 			LOG.debug("BrakeProcessor.finish()");
+			finished = true;
 			if (aborted || modified) return;
 			increaseDistance();
 			train.setSpeed(0);
 			LOG.debug("Estimated distance: {}",estimatedDistance);
 
 			if (startSpeed <= endSpeed) return;
+			if (timeStep<0) timeStep = 100;
 			Integer newTimeStep = timeStep;
-			while (calcDistance(newTimeStep) < estimatedDistance) newTimeStep += (1+newTimeStep/8); // zu schnell gebremst: pasue verlängern
-			while (calcDistance(newTimeStep) > estimatedDistance) newTimeStep -= 1+(newTimeStep/16);  // zu langsam gebremst: pasue verkürzen
+			long calculated;
+			int step = 32*newTimeStep;			
+			for (int i=0; i<20; i++) {
+				step = step/2;
+				if (step<1) step = 1;
+				calculated = calcDistance(newTimeStep);
+				LOG.debug("Calculated distance for step = {} ms: {}",newTimeStep,calculated);
+				LOG.debug("Update step: {}",step);
+				newTimeStep = newTimeStep + (calculated > estimatedDistance ? -step : step);				
+			}
 			
-			if (newTimeStep != timeStep) {
+			if (!newTimeStep.equals(timeStep)) {
 				route.brakeTimes.put(brakeId,newTimeStep);
+				calculated = calcDistance(newTimeStep);
 				LOG.debug("Corrected brake timestep for {} @ {} from {} to {} ms.",train,route,timeStep,newTimeStep);
+				LOG.debug("Differemce from estimated distance: {} ({}%)",estimatedDistance-calculated,100*(estimatedDistance-calculated)/(float)estimatedDistance);
 			}
 		}
 		
 		private void increaseDistance(){
 			long tick = timestamp();
-			estimatedDistance += train.speed * (tick-latestTick);
+			estimatedDistance += train.speed * (5+tick-latestTick);
 			latestTick = tick;			
 		}
 
 		@Override
 		public void run() {
 			LOG.debug("started BrakeProcessor ({} → {}) for {} with timestep = {} ms.",train.speed,endSpeed,train,timeStep);
+			estimatedDistance = 0;			
 			latestTick = timestamp();
 			while (train.speed > endSpeed) {
-				LOG.debug("BrakeProcessor({}) setting Speed of {}.",route,train);
+				if (finished) return;
 				increaseDistance();
+				LOG.debug("BrakeProcessor({}) setting Speed of {}.",route,train);
 				train.setSpeed(Math.max(train.speed - SPEED_STEP,endSpeed));
+				if (!modified) checkNextRoute();
 				try {
 					sleep(timeStep);
 				} catch (InterruptedException e) {
 					LOG.warn("BrakeProcessor interrupted!", e);
-				}
-				
-				Route nextRoute = train.nextRoute();
-				if (!modified && isSet(nextRoute) && nextRoute.state == Route.State.PREPARED) { // auf Startgeschwindigkeit der Nachfolgeroute bremsen
-					Integer nrsp = nextRoute.startSpeed();
-					if (isSet(nrsp)) {
-						LOG.debug("updating target velocity from {} to {}!",endSpeed,nrsp);
-						endSpeed = nrsp;
-						modified = true;
-					}					
-				}
+				}				
 			}
-			if (endSpeed > train.speed) train.setSpeed(endSpeed);
+			
+			while (!finished && !aborted && !modified) {
+				try {
+					sleep(1000);
+				} catch (InterruptedException e) {
+					LOG.warn("BrakeProcessor interrupted!", e);
+				}				
+				checkNextRoute();
+			}
 		}
 
 		public void setEndSpeed(Integer newEndSpeed) {
@@ -511,11 +537,11 @@ public class Route extends BaseClass {
 			tile.unset(this);
 		} catch (IllegalArgumentException e) {}
 		
-		Tile lastTile = path.lastElement();
+/*		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Contact) {
 			lastTile.setTrain(null);
 			if (isSet(train)) train.removeChild(lastTile);
-		}
+		}*/
 	}
 
 	private String generateName() {
@@ -780,7 +806,8 @@ public class Route extends BaseClass {
 	
 	private void moveTrainToEndBlock() {
 		if (isNull(train)) return;
-	
+		LOG.debug("{}.moveTrainToEndBlock()",this);
+		
 		train.set(endBlock);
 		train.heading(endDirection);
 	
@@ -788,7 +815,9 @@ public class Route extends BaseClass {
 			train.destination(null); // unset old destination
 			String destTag = train.destinationTag();
 			if (isSet(destTag)) {
+				LOG.debug("destination tag: {}",destTag);
 				String[] parts = destTag.split(Train.DESTINATION_PREFIX);
+				for (int i=0; i<parts.length;i++) LOG.debug("  part {}: {}",i+1,parts[i]);
 				String destId = parts[1];
 				boolean turn = false;
 				
@@ -1014,6 +1043,7 @@ public class Route extends BaseClass {
 	}
 	
 	public Integer startSpeed() {
+		LOG.debug("{}.startSpeed()",this);
 		ActionList startActions = triggeredActions.get(ROUTE_START);
 		Context context = new Context(this);
 		return isSet(startActions) ? startActions.getSpeed(context) : null;

@@ -93,6 +93,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static final String SHUNTING = "shunting";
 	private boolean shunting = false;
 
+	private boolean reserving; // used to prevent recursive calls of reserveNext
 	
 	private class Autopilot extends Thread{
 		boolean stop = false;
@@ -109,8 +110,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 						if (stop) return;
 						if (isNull(route)) { // may have been set by start action in between
 							Object o = Train.this.start();
-							LOG.debug("{}.start called, route now is {}",Train.this,route);
 							if (isSet(route)) {
+								LOG.debug("{}.start called, route now is {}",Train.this,route);
 								if (o instanceof String) plan.stream((String)o);
 								//if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
 							} else waitTime = 1000; // limit load on PathFinder
@@ -383,6 +384,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(destination)) {
 			String destTag = destinationTag();
 			if (isSet(destTag)) {
+				destTag = destTag.split(DESTINATION_PREFIX)[1];
 				for (int i=destTag.length()-1; i>0; i--) {
 					switch (destTag.charAt(i)) {
 						case FLAG_SEPARATOR:
@@ -409,10 +411,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public String destinationTag() {
 		for (String tag : tags()) { // check, if endBlock is in train's destinations
-			if (tag.startsWith(DESTINATION_PREFIX)) {
-				String[] parts = tag.split(DESTINATION_PREFIX);
-				return parts[1];
-			}
+			if (tag.startsWith(DESTINATION_PREFIX)) return tag;
 		}
 		return null;
 	}
@@ -751,15 +750,17 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return tags().iterator();
 	}
 
-	
 	public void reserveNext() {
+		if (reserving) return;
 		LOG.debug("{}.reserveNext()",this);
 		Context context = new Context(this).route(route).block(route.endBlock()).direction(route.endDirection);
 		Route newRoute = PathFinder.chooseRoute(context);
 		if (isNull(newRoute)) {
-			LOG.debug("{}.reserveNext() found no available route!",this);
+			LOG.debug("{}.reserveNext() found no available route!",this);			
 			return;
 		}
+		reserving = true;		
+		LOG.debug("next route: {}",newRoute);
 		newRoute.set(context);
 		boolean error = !newRoute.lockIgnoring(route);
 		error = error || !newRoute.prepare();
@@ -772,6 +773,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			nextRoute = newRoute;
 			LOG.debug("prepared next route: {}",nextRoute);
 		}
+		reserving = false;
 	}
 	
 	/**
@@ -807,8 +809,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(route)) shunting = false; // quit shunting on finish route
 		return this;
 	}
-
-
 
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));

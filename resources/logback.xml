@@ -32,8 +32,10 @@
 	<logger name="de.srsoftware.web4rail" level="INFO" />
 	<logger name="de.srsoftware.web4rail.Application" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.Route" level="DEBUG" />
+	<logger name="de.srsoftware.web4rail.actions.Action" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.actions.ActionList" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.moving.Train" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.tiles.Contact" level="DEBUG" />
+	<logger name="de.srsoftware.web4rail.tiles.Block" level="DEBUG" />
 
 </configuration>

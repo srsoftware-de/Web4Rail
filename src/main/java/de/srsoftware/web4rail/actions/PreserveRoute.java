@@ -4,6 +4,7 @@ import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
+import de.srsoftware.web4rail.tiles.Block;
 
 public class PreserveRoute extends Action {
 
@@ -21,11 +22,12 @@ public class PreserveRoute extends Action {
 		
 		// These are NOT errors:
 		if (!train.usesAutopilot()) return true; // do not reserve routes, when not in auto-mode
-		if (train.destination() == route.endBlock()) return true; // do not reserve routes, when destination has been reached
+		Block endBlock = route.endBlock();
+		if (train.destination() == endBlock) return true; // do not reserve routes, when destination has been reached
 
-		Range waitTime = route.endBlock().getWaitTime(train,route.endDirection);
+		Range waitTime = endBlock.getWaitTime(train,route.endDirection);
 		if (waitTime.max > 0) {
-			LOG.debug("Not preserving route, as train needs to stop in following block!");
+			LOG.debug("Not preserving route, as train needs to stop for {} ms at {}!",waitTime,endBlock);
 			return true; // train is expected to wait in next block.
 		}
 

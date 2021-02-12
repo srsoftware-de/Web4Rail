@@ -34,8 +34,9 @@ public class DelayedAction extends ActionList {
 		Application.threadPool.execute(new Thread() {
 			public void run() {
 				try {
-					Thread.sleep(min_delay + (min_delay < max_delay ? random.nextInt(max_delay - min_delay) : 0));
-					LOG.debug("{} ms passed by, firing actions:",min_delay);
+					int delay = min_delay + (min_delay < max_delay ? random.nextInt(max_delay - min_delay) : 0);
+					Thread.sleep(delay);
+					LOG.debug("{} ms passed by, firing actions:",delay);
 				} catch (InterruptedException e) {
 					LOG.warn("Interrupted Exception thrown while waiting:",e);
 				}

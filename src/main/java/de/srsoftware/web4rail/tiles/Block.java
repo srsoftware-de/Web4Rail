@@ -12,6 +12,8 @@ import java.util.Vector;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
@@ -33,6 +35,7 @@ import de.srsoftware.web4rail.tags.Window;
  *
  */
 public abstract class Block extends StretchableTile{
+	protected static Logger LOG = LoggerFactory.getLogger(Block.class);
 	private static final String ALLOW_TURN = "allowTurn";
 	private static final String NAME       = "name";
 	private static final String NO_TAG = "[default]";
@@ -211,12 +214,15 @@ public abstract class Block extends StretchableTile{
 	}
 
 	public Range getWaitTime(Train train,Direction dir) {
+		LOG.debug("{}.getWaitTime({},{})",this,train,dir);
 		for (WaitTime wt : waitTimes) {
+			LOG.debug("examinig {}",wt);
 			if (train.tags().contains(wt.tag)) {
 				LOG.info(t("{} @ {} using rule for \"{}\".",train,this,wt.tag));
-				return wt.get(train.direction());
+				return wt.get(dir);
 			}
 		}
+		LOG.info(t("{} @ {} using rule for \"[default]\".",train,this));
 		return getWaitTime(NO_TAG).get(dir);
 	}
 	

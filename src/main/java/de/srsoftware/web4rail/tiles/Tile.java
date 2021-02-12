@@ -371,7 +371,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	}
 	
 	public Tile setTrain(Train newTrain) {
-		Route.LOG.debug("{}.setTrain({})",this,newTrain);
+		LOG.debug("{}.setTrain({})",this,newTrain);
 		if (newTrain == train) return this; // nothing to update
 		this.train = newTrain;		
 		return plan.place(this);
