@@ -896,17 +896,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void setTrace(LinkedList<Tile> newTrace) {
 		LOG.debug("{}.setTrace({})",this,newTrace);
 		LOG.debug("old trace: {}",trace);
-		if (isSet(trace)) {
-			trace.removeAll(newTrace);
-			
-			for (Tile tile : trace) {
-				tile.setTrain(null);
-			}
-		};
+
+		trace.removeAll(newTrace);			
+		for (Tile tile : trace) tile.setTrain(null);
 		trace = newTrace;
 		for (Tile tile : trace) tile.setTrain(this);
 		
-		LOG.debug("new trace of {}: {}",this,trace);	
+		LOG.debug("new trace of {}: {}",this,trace);
 	}
 
 	public void setWaitTime(Range waitTime) {
@@ -971,6 +967,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			route.set(context);
 			if (isNull(error) && !route.prepare()) error = t("Was not able to fire all setup actions of route!");
 		}
+		if (isNull(route)) return this; // route may have been canceled in between
 		if (isNull(error) && direction != route.startDirection) turn();
 		
 		if (isNull(error) && !route.start(this)) error = t("Was not able to assign {} to {}!",this,route);

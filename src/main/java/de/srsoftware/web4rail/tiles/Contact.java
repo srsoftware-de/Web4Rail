@@ -86,6 +86,7 @@ public class Contact extends Tile{
 			Route route = route();
 			Context context = isSet(route) ? route.context().contact(this) : new Context(this);
 			
+			if (isSet(route)) route.traceTrainFrom(this);
 			actions.fire(context);
 			if (isSet(route)) route.contact(this);
 			

@@ -104,7 +104,7 @@ public class Route extends BaseClass {
 			
 			timeStep = brakeTimes.get(brakeId);
 
-			if (isNull(timeStep)) timeStep = 256; 			// if no brake time is available for this train
+			if (isNull(timeStep) || timeStep>1000000) timeStep = 256; 			// if no brake time is available for this train
 			Application.threadPool.execute(this);
 		}
 		
@@ -171,7 +171,7 @@ public class Route extends BaseClass {
 		
 		private void increaseDistance(){
 			long tick = timestamp();
-			estimatedDistance += train.speed * (5+tick-latestTick);
+			estimatedDistance += train.speed * (3+tick-latestTick);
 			latestTick = tick;			
 		}
 
@@ -446,7 +446,6 @@ public class Route extends BaseClass {
 		ActionList actions = triggeredActions.get(contact.trigger());
 		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
 		if (isNull(actions)) return;
-		traceTrainFrom(contact);		
 		actions.fire(context);
 	}
 
@@ -809,6 +808,7 @@ public class Route extends BaseClass {
 		LOG.debug("{}.moveTrainToEndBlock()",this);
 		
 		train.set(endBlock);
+		traceTrainFrom(endBlock);
 		train.heading(endDirection);
 	
 		if (endBlock == train.destination()) {
@@ -1059,7 +1059,7 @@ public class Route extends BaseClass {
 		return getClass().getSimpleName()+"("+(isSet(train)?train+":":"")+name()+")";
 	}
 	
-	private void traceTrainFrom(Tile newHead) {
+	public void traceTrainFrom(Tile newHead) {
 		LOG.debug("{}.traceTrainFrom({})",this,newHead);
 		if (isNull(train)) return;
 		if (newHead instanceof BlockContact) newHead = (Tile) ((BlockContact)newHead).parent();
@@ -1071,10 +1071,12 @@ public class Route extends BaseClass {
 			Tile tile = path.elementAt(i-1);
 			if (isNull(remainingLength)) {
 				if (tile == newHead) traceHead = newHead; // wenn wir zuerst newHead finden: newHead als neuen traceHead übernehmen
-				if (tile == traceHead) remainingLength = train.length(); // sobald wir auf den traceHead stoßen: suche beenden
+				if (tile == traceHead) {
+					remainingLength = train.length(); // sobald wir auf den traceHead stoßen: suche beenden
+				}
 			}		
 			if (isSet(remainingLength)) {
-				if (remainingLength>0) {
+				if (remainingLength>=0) {
 					newTrace.add(tile);
 					remainingLength -= tile.length();
 				} else if (Route.freeBehindTrain) {
