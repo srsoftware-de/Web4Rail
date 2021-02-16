@@ -31,7 +31,6 @@ import de.srsoftware.web4rail.tiles.Block;
 
 public class Locomotive extends Car implements Constants,Device{
 	
-	private static final String REVERSE = "reverse";
 	public static final String LOCOMOTIVE = "locomotive";
 	private static final Integer CV_ADDR = 1;
 	private static final String CVS = "cvs";
@@ -243,7 +242,6 @@ public class Locomotive extends Car implements Constants,Device{
 	public JSONObject json() {
 		JSONObject json = super.json();
 		JSONObject loco = new JSONObject();
-		loco.put(REVERSE, orientation);
 		loco.put(PROTOCOL, proto);
 		json.put(LOCOMOTIVE, loco);
 		loco.put(CVS, cvs);
@@ -255,7 +253,6 @@ public class Locomotive extends Car implements Constants,Device{
 		super.load(json);
 		if (json.has(LOCOMOTIVE)) {
 			JSONObject loco = json.getJSONObject(LOCOMOTIVE);
-			if (loco.has(REVERSE)) orientation = loco.getBoolean(REVERSE);
 			if (loco.has(PROTOCOL)) proto = Protocol.valueOf(loco.getString(PROTOCOL));
 			if (loco.has(ADDRESS)) setAddress(loco.getInt(ADDRESS));
 			if (loco.has(CVS)) {

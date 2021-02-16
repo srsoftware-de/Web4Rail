@@ -46,6 +46,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	private static final String MAX_SPEED = "max_speed";
 	private static final String MAX_SPEED_REVERSE = "max_speed_reverse";
 	private static final String ORDER = "order";
+	private static final String ORIENTATION = "orientation";
 	protected HashSet<String> tags = new HashSet<String>();
 	
 	private String name;
@@ -122,6 +123,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		json.put(LENGTH, length);
 		if (maxSpeedForward != 0) json.put(MAX_SPEED, maxSpeedForward);
 		if (maxSpeedReverse != 0) json.put(MAX_SPEED_REVERSE, maxSpeedReverse);
+		json.put(ORIENTATION, orientation);
 		json.put(STOCK_ID, stockId);
 		if (!tags.isEmpty()) json.put(TAGS, tags);
 		return json;
@@ -165,6 +167,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		if (json.has(MAX_SPEED_REVERSE)) maxSpeedReverse = json.getInt(MAX_SPEED_REVERSE);
 		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
 		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
+		if (json.has(ORIENTATION)) orientation=json.getBoolean(ORIENTATION);
 		return this;
 	}
 	
