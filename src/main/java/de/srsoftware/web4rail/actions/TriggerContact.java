@@ -53,7 +53,7 @@ public class TriggerContact extends Action {
 	}
 	
 	public String toString() {
-		return isSet(contact) ? t("Trigger {}",contact) : "["+t("click here to setup contact")+"]";
+		return isSet(contact) ? t("Trigger {}",contact) : "["+t("Click here to setup contact")+"]";
 	};
 	
 	@Override

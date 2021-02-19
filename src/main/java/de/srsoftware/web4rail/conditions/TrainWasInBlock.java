@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.conditions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -12,6 +13,8 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Shadow;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class TrainWasInBlock extends Condition {
 	
@@ -46,7 +49,7 @@ public class TrainWasInBlock extends Condition {
 
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Select block"), Block.selector(block, null));
+		formInputs.add(t("Block")+": "+(isNull(block) ? t("block from context") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,BLOCK)));
 		formInputs.add(t("Seek in last"), new Input(COUNT, count).numeric().addTo(new Tag("span")).content(NBSP+t("blocks of train")));
 		return super.properties(preForm, formInputs, postForm);
 	}
@@ -68,9 +71,9 @@ public class TrainWasInBlock extends Condition {
 	protected Object update(HashMap<String, String> params) {
 		if (!params.containsKey(BLOCK)) return t("No block id passed to TrainWasInBlock.update()!");
 		Id bid = new Id(params.get(BLOCK));
-		Block block = Block.get(bid);
-		if (isNull(block)) return t("No block with id {} found!",bid);
-		this.block = block;
+		Tile tile = BaseClass.get(bid);
+		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay();
+		if (tile instanceof Block) block = (Block) tile;
 		if (params.containsKey(COUNT)) count=Integer.parseInt(params.get(COUNT));
 		return super.update(params);
 	}

@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -12,6 +13,8 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Shadow;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class DisableEnableBlock extends Action {
 		
@@ -65,7 +68,7 @@ public class DisableEnableBlock extends Action {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Select block"),Block.selector(isSet(block) ? block : t("block from context"), null));
+		formInputs.add(t("Block")+": "+(isNull(block) ? t("block from context") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,Block.class.getSimpleName())));
 		Tag radios = new Tag("p");
 		new Radio(STATE, "enable", t("enable"), !disable).addTo(radios);
 		new Radio(STATE, "disable", t("disable"), disable).addTo(radios);
@@ -88,7 +91,9 @@ public class DisableEnableBlock extends Action {
 	protected Object update(HashMap<String, String> params) {
 		LOG.debug("update: {}",params);
 		Id blockId = Id.from(params,Block.class.getSimpleName());
-		if (isSet(blockId)) block = Block.get(blockId);
+		Tile tile = isSet(blockId) ? BaseClass.get(blockId) : null;
+		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay();
+		if (tile instanceof Block) block = (Block) tile;
 		disable = !"enable".equals(params.get(STATE)); 
 		return properties();
 	}

@@ -414,9 +414,13 @@ public class Route extends BaseClass {
 			add(trigger,new BrakeStart(this));
 			add(trigger,new PreserveRoute(this));
 			
-			Contact secondContact = contacts.get(1);
-			trigger = secondContact.trigger();
-			for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.RED));
+			for (int i=1;i<contacts.size();i++) { // chose second contact, that is not a BlockContact
+				Contact secondContact = contacts.get(i);
+				if (secondContact instanceof BlockContact) continue;
+				trigger = secondContact.trigger();
+				for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.RED));
+				break;
+			}
 		}
 		if (!contacts.isEmpty()) add(contacts.lastElement().trigger(), new FinishRoute(this));
 		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) {

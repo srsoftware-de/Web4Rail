@@ -155,7 +155,7 @@ public class Locomotive extends Car implements Constants,Device{
 			if (isSet(currentBlock)) {
 				if (isNull(train.route())) {
 					params.put(ACTION, ACTION_START);
-					new Button(t("start"),params).addTo(direction);
+					new Button(t("depart"),params).addTo(direction);
 				}
 				if (train.usesAutopilot()) {
 					params.put(ACTION, ACTION_QUIT);

@@ -2,7 +2,6 @@ package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.Vector;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,6 @@ import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
-import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
 
 /**
@@ -289,9 +288,11 @@ public abstract class Block extends StretchableTile{
 			});
 		}
 		if (json.has(CONTACT)) {
-			JSONObject jContact = json.getJSONObject(CONTACT);
+			JSONObject jContact = json.getJSONObject(CONTACT);			
 			for (String key : jContact.keySet()) {
-				new BlockContact(this).load(jContact.getJSONObject(key));
+				try {
+					new BlockContact(this).load(jContact.getJSONObject(key));
+				} catch (JSONException e) {}
 			}
 		}
 		if (json.has(PARKED_TRAINS)) {
@@ -364,22 +365,6 @@ public abstract class Block extends StretchableTile{
 		internalContacts.remove(blockContact);
 	}
 	
-	public static Select selector(Object preset,Collection<Block> exclude) {
-		Block preselected = preset instanceof Block ? (Block) preset : null;
-		String firstEntry = preset instanceof String ? (String) preset : t("unset"); 
-		if (isNull(exclude)) exclude = new Vector<Block>();
-		Select select = new Select(Block.class.getSimpleName());
-		new Tag("option").attr("value","0").content(firstEntry).addTo(select);
-		List<Block> blocks = BaseClass.listElements(Block.class);
-		Collections.sort(blocks, (b1,b2) -> b1.name.compareTo(b2.name));
-		for (Block block : blocks) {
-			if (exclude.contains(block)) continue;
-			Tag opt = select.addOption(block.id(), block);
-			if (block == preselected) opt.attr("selected", "selected");
-		}
-		return select;
-	}
-
 	public abstract List<Connector> startPoints();
 
 	@Override

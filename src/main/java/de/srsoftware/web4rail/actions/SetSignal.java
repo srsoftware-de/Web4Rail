@@ -2,6 +2,7 @@ package de.srsoftware.web4rail.actions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -59,13 +60,7 @@ public class SetSignal extends Action {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		Select select = new Select(SIGNAL);
-		for (Signal signal : BaseClass.listElements(Signal.class)) {
-			Tag option = select.addOption(signal.id(),signal.title());
-			if (signal == this.signal) option.attr("selected", "selected");
-		}
-		formInputs.add(t("Select signal"),select);
-
+		formInputs.add(t("Signal")+": "+(isNull(signal) ? t("unset") : signal),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,SIGNAL)));
 		Select state = new Select(Signal.STATE);
 		for (String st:Signal.knownStates) {
 			Tag option = state.addOption(st);
