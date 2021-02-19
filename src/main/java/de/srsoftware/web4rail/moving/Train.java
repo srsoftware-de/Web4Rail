@@ -217,7 +217,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	private Fieldset blockHistory() {
-		Fieldset fieldset = new Fieldset(t("Last blocks"));
+		Fieldset fieldset = new Fieldset(t("Last blocks")).id("props-history");
 		Tag list = new Tag("ol");
 		for (int i=lastBlocks.size(); i>0; i--) {
 			lastBlocks.get(i-1).link().addTo(new Tag("li")).addTo(list);
@@ -239,7 +239,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	private Fieldset brakeTimes() {
-		Fieldset fieldset = new Fieldset(t("Brake time table"));
+		Fieldset fieldset = new Fieldset(t("Brake time table")).id("props-times");
 		Table timeTable = new Table();
 		timeTable.addRow(t("forward"),t("backward"),t("Route"));
 		List<Route> routes = BaseClass.listElements(Route.class);
@@ -698,7 +698,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		formInputs.add(t("Tags"), new Input(TAGS,String.join(", ", tags)));
 		
 		if (this.hasLoco())	preForm.add(Locomotive.cockpit(this));
-		postForm.add(propList.addTo(new Fieldset(t("other train properties")).attr("id", "train-props")));
+		postForm.add(propList.addTo(new Fieldset(t("other train properties")).id("props-other")));
 		postForm.add(brakeTimes());
 		postForm.add(blockHistory());
 		

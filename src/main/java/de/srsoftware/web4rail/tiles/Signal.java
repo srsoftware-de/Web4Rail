@@ -128,8 +128,7 @@ public abstract class Signal extends Tile {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		Fieldset aspectEditor = new Fieldset(t("Aspects"));
-		aspectEditor.attr(ID, "aspect-editor");
+		Fieldset aspectEditor = new Fieldset(t("Aspects")).id("props-aspects");
 		Form form = new Form("aspect-form");
 		new Input(REALM,REALM_PLAN).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);

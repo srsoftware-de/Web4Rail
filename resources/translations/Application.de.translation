@@ -128,6 +128,7 @@ disabled routes : deaktivierte Fahrstraßen
 DisableEnableBlock : Block (de)aktivieren
 Display "{}" on {}. : „{}“ auf {} anzeigen.
 Drop : Verwerfen
+Drop brake times : Bremszeiten löschen
 Dropped destination of {}. : Ziel von {} verworfen.
 1) Duration between 5 {} steps during brake process. : 1) Zeit zwischen 5 {}-Schritten beim Bremsvorgang.
 EAST : Osten

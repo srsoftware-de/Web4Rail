@@ -171,7 +171,7 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	private Fieldset contactForm() {
-		Fieldset fieldset = new Fieldset(t("internal contacts"));
+		Fieldset fieldset = new Fieldset(t("internal contacts")).id("props-contacts");
 		this.button(t("new contact"), Map.of(ACTION,ACTION_ADD_CONTACT)).addTo(fieldset);
 		if (!internalContacts.isEmpty()) {
 			Tag ul = new Tag("ul");
@@ -455,7 +455,7 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	public Fieldset waitTimeForm() {
-		Fieldset win = new Fieldset(t("Wait times"));
+		Fieldset win = new Fieldset(t("Wait times")).id("props-times");
 		Form form = new Form("train-wait-form");
 		new Tag("h4").content(t("Stop settings")).addTo(win);
 		new Input(REALM,REALM_PLAN).hideIn(form);

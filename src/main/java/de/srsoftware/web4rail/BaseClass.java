@@ -440,13 +440,12 @@ public abstract class BaseClass implements Constants{
 		formInputs.add(new AbstractMap.SimpleEntry<String, Tag>(t("Notes"),new TextArea(NOTES,notes)));
 
 		form(getClass().getSimpleName()+"-prop-form",formInputs)
-			.addTo(new Fieldset(t("Basic properties")))
+			.addTo(new Fieldset(t("Basic properties")).id("props-basic"))
 			.addTo(win);
 		
 		postForm.forEach(fieldset -> fieldset.addTo(win));
 		
-		Fieldset customFields = new Fieldset(t("custom fields"));
-		customFields.attr("id", "custom");
+		Fieldset customFields = new Fieldset(t("custom fields")).id("props-custom");
 		
 		Form customForm = new Form(CUSTOM_FIELDS);
 		new Input(ACTION, ACTION_UPDATE).hideIn(customForm);

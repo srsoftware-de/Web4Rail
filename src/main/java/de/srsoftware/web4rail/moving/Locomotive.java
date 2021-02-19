@@ -126,7 +126,7 @@ public class Locomotive extends Car implements Constants,Device{
 		
 		HashMap<String,Object> params = new HashMap<String, Object>(Map.of(REALM,realm,ID,id));
 		
-		Fieldset fieldset = new Fieldset(t("Control"));
+		Fieldset fieldset = new Fieldset(t("Control")).id("props-cockpit");
 		fieldset.clazz("cockpit");
 		
 		new Tag("span").content(t("Current velocity: {} {}",speed,speedUnit)).addTo(fieldset);
@@ -316,7 +316,7 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	private Fieldset programming() {
-		Fieldset fieldset = new Fieldset(t("Programming"));
+		Fieldset fieldset = new Fieldset(t("Programming")).id("props-cv");
 
 		Form form = new Form("cv-form");
 		new Input(REALM,REALM_LOCO).hideIn(form);

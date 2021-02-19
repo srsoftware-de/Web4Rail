@@ -270,7 +270,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 			if (isSet(train.route())) {
 				train.button(t("stop"), Map.of(ACTION,ACTION_STOP)).addTo(fieldset);
 			} else {
-				train.button(t("start"), Map.of(ACTION,ACTION_START)).addTo(fieldset);
+				train.button(t("depart"), Map.of(ACTION,ACTION_START)).addTo(fieldset);
 			}
 			if (train.usesAutopilot()) {
 				train.button(t("quit autopilot"), Map.of(ACTION,ACTION_QUIT)).addTo(fieldset);
@@ -300,7 +300,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 
 		
 		if (!routes.isEmpty()) {
-			fieldset = new Fieldset(t("Routes"));
+			fieldset = new Fieldset(t("Routes")).id("props-routes");
 			Tag routeList = new Tag("ol");
 			boolean empty = true;
 			for (Route route : routes) {

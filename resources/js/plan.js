@@ -14,7 +14,7 @@ var mode = null;
 var messageTimer = null;
 var messageOpacity = 0;
 var pendingAssignment = null;
-var lastTab = null;
+var clickHistory = [];
 
 function addClass(data){
 	parts = data.split(" ");
@@ -39,17 +39,23 @@ function arrangeTabs(){
 	
 	tabs.insertAfter($('.swapbtn'));
 	var target = null;
+	var index = null;
 	$('.window > fieldset > legend').each(function(){
 		var fs = this.parentNode;		
 		if (!fs.id) fs.id = winId+id;
-		if (fs.id == lastTab) target = this;
+		var i = clickHistory.indexOf(fs.id);
+		if (i>-1 && (index == null || i<index)) {
+			index = i;
+			target = this;
+		}		
+		//if (fs.id == lastTab) target = this;
 		$(this).appendTo(tabs).click(fs.id,clickLegend);
 		if (id > 0)	{
 			$(fs).hide();			
 		} else $(this).addClass('front');
 		id++;
 	});
-	if (target != null) clickLegend({'data':lastTab,'target':target});
+	if (index != null) clickLegend({'data':clickHistory[index],'target':target,'no-update':true});
 }
 
 function assign(context){
@@ -65,6 +71,7 @@ function clickLegend(ev){
 	$(ev.target).addClass('front');
 	$('.window > fieldset').hide();
 	$('#'+lastTab).show();
+	if (!('no-update' in ev)) remember(lastTab);
 }
 
 function clickTile(x,y,shift){
@@ -209,6 +216,13 @@ function planClick(ev){
 			return moveTile(x,y);
 	}
 	console.log('unknown action "'+mode+'" @ ('+ev.clientX+','+ev.clientY+')');
+}
+
+function remember(lastClickedId){
+	console.log("lastClickedId: "+lastClickedId)
+	var index = clickHistory.indexOf(lastClickedId);
+	if (index > -1) clickHistory.splice(index, 1);
+	clickHistory.unshift(lastClickedId);
 }
 
 function remove(id){
