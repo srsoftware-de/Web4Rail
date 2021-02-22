@@ -797,7 +797,8 @@ public class Plan extends BaseClass{
 					actions);
 			if (route.isDisabled())	row.clazz("disabled");
 		}
-		return table.clazz("turnouts").addTo(fieldset);
+		table.clazz("turnouts").addTo(fieldset);
+		return button(t("simplify all names"), Map.of(REALM,REALM_ROUTE,ACTION,ACTION_AUTO,ID,"*")).addTo(fieldset);
 	}
 	
 	/**

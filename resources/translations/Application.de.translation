@@ -308,6 +308,7 @@ Setup actions : Vorbereitung-Aktionen
 ShowText : Text anzeigen
 Shunting : Rangieren
 Signals : Signale
+simplify all names : alle Namen vereinfachen
 simplify name : Name vereinfachen
 Simulating movement of {}... : Simuliere Fahrt von {}...
 Slower (10 {}) : 10 {} langsamer

@@ -240,10 +240,13 @@ public class Route extends BaseClass {
 	 */
 	public static Object action(HashMap<String, String> params) throws IOException {
 		Route route = BaseClass.get(Id.from(params));
-		if (isNull(route)) return t("Unknown route: {}",params.get(ID));
+		String action = params.get(ACTION);
+		if (isNull(route) && !ACTION_AUTO.equals(action)) return t("Unknown route: {}",params.get(ID));
 		switch (params.get(ACTION)) {
 			case ACTION_AUTO:
-				return route.simplyfyName().properties();
+				if (isSet(route)) return route.simplyfyName().properties();
+				for (Route rt : BaseClass.listElements(Route.class)) rt.simplyfyName();
+				return plan.properties(new HashMap<String, String>());
 			case ACTION_DROP:
 				route.remove();
 				plan.stream(t("Removed {}.",route));				
@@ -414,10 +417,13 @@ public class Route extends BaseClass {
 			add(trigger,new BrakeStart(this));
 			add(trigger,new PreserveRoute(this));
 			
-			for (int i=1;i<contacts.size();i++) { // chose second contact, that is not a BlockContact
-				Contact secondContact = contacts.get(i);
-				if (secondContact instanceof BlockContact) continue;
-				trigger = secondContact.trigger();
+			int count = 0;
+			for (int i=0;i<contacts.size();i++) { // chose second contact, that is not a BlockContact
+				Contact contact = contacts.get(i);
+				if (contact instanceof BlockContact) continue;
+				if (count++<1) continue;
+				
+				trigger = contact.trigger(); // second contact, that is not a BlockContact
 				for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.RED));
 				break;
 			}

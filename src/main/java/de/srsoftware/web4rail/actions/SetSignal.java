@@ -93,8 +93,10 @@ public class SetSignal extends Action {
 	};
 	
 	@Override
-	public Object update(HashMap<String, String> params) {		
-		Tile tile = plan.get(new Id(params.get(SIGNAL)), false);
+	public Object update(HashMap<String, String> params) {
+		String signalId = params.get(SIGNAL);
+		Id tileId = isSet(signalId) ? new Id(signalId) : null;
+		Tile tile = isSet(tileId) ? plan.get(tileId, false) : null;
 		if (tile instanceof Signal) signal = (Signal) tile;
 		String st = params.get(Signal.STATE);
 		if (isSet(st)) state = st;

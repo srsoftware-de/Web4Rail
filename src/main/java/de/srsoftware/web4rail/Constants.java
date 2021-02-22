@@ -50,7 +50,7 @@ public interface Constants {
 	public static final String REALM_PLAN      = "plan";
 	public static final String REALM_TRAIN     = "train";
 	
-	public static final String ASSIGN = "assign";
+	public static final String  ASSIGN = "assign";
 	public static final String  BLOCK               = "block";
 	public static final String  COL                 = ": ";
 	public static final String  CONTACT             = "contact";
