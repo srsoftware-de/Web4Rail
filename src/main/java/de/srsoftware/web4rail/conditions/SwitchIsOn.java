@@ -2,14 +2,16 @@ package de.srsoftware.web4rail.conditions;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
 
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Switch;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class SwitchIsOn extends Condition {
 	
@@ -36,17 +38,13 @@ public class SwitchIsOn extends Condition {
 		if (json.has(SWITCH)) {
 			swtch = BaseClass.get(new Id(json.getString(SWITCH)));
 			if (isNull(swtch)) {
-				Application.threadPool.execute(new Thread() {
+				new DelayedExecution(this) {
 					
 					@Override
-					public void run() {
-						try {
-							sleep(1000);
-						} catch (InterruptedException e) {
-						}
+					public void execute() {
 						swtch = BaseClass.get(new Id(json.getString(SWITCH)));
 					}
-				});
+				};
 			}
 		}
 		return this;
@@ -54,21 +52,22 @@ public class SwitchIsOn extends Condition {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Select switch"),Switch.selector(swtch));
-		
+		formInputs.add(t("Select switch")+": "+(isNull(swtch) ? t("unset") : swtch),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,SWITCH)));
+
 		return super.properties(preForm, formInputs, postForm);
 	}
 	
 	@Override
 	public String toString() {
-		if (isNull(SWITCH))  return "["+t("Click here to select switch!")+"]";
+		if (isNull(swtch))  return "["+t("Click here to select switch!")+"]";
 		return t(inverted ? "{} is off" : "{} is on",swtch) ;
 	}
 
 	@Override
 	protected Object update(HashMap<String, String> params) {
-		String switchId = params.get(Switch.class.getSimpleName());
-		if (isSet(switchId)) swtch = BaseClass.get(new Id(switchId));
+		String switchId = params.get(SWITCH);
+		Tile tile = isSet(switchId) ? BaseClass.get(new Id(switchId)) : null;
+		if (tile instanceof Switch) swtch = (Switch) tile; 
 		return super.update(params);
 	}
 }

@@ -53,7 +53,8 @@ public class ControlUnit extends Thread implements Constants{
 	private Plan plan;
 
 	public ControlUnit(Plan plan) {
-		this.plan = plan;
+		this.plan = plan;		
+		setName(Application.threadName(this));
 	}
 
 	/**
@@ -207,7 +208,7 @@ public class ControlUnit extends Thread implements Constants{
 	 */
 	public ControlUnit restart() {
 		end();
-		Application.threadPool.execute(this);
+		start();
 		return this;
 	}
 	
@@ -295,7 +296,7 @@ public class ControlUnit extends Thread implements Constants{
 	private void startInfoThread() {
 		infoSocket  = commandSocket; // handshake läuft immer über commandSocket und commandScanner
 		infoScanner = commandScanner;
-		Runnable infoThread = new Runnable() {
+		Thread infoThread = new Thread() {
 			
 			@Override
 			public void run() {
@@ -313,12 +314,14 @@ public class ControlUnit extends Thread implements Constants{
 							case FEEDBACK:
 								int addr = Integer.parseInt(parts[5]);
 								boolean active = !parts[6].equals("0");
-								Application.threadPool.execute(new Thread() {
+								Thread thread = new Thread() {
 									@Override
 									public void run() {
 										ControlUnit.this.plan.sensor(addr,active);
 									}
-								});								
+								};			
+								thread.setName(Application.threadName("CU.FeedBack("+addr+")"));
+								thread.start();
 							case ACESSORY:
 								break;
 							default:
@@ -337,11 +340,16 @@ public class ControlUnit extends Thread implements Constants{
 					LOG.info("Closed info socket.");
 				} catch (IOException e) {
 					LOG.warn("Was not able to close info socket:",e);
-				}
-				
+				}				
+			}
+			
+			@Override
+			public String toString() {
+				return "CU.InfoThread";
 			}
 		};
-		Application.threadPool.execute(infoThread);
+		infoThread.setName(Application.threadName("CU.InfoThread"));
+		infoThread.start();
 	}
 
 	/**

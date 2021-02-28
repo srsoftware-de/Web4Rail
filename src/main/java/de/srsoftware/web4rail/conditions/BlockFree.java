@@ -6,8 +6,8 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
@@ -39,17 +39,12 @@ public class BlockFree extends Condition {
 			Id bid = new Id(json.getString(BLOCK));
 			block(BaseClass.get(bid));
 			if (isNull(block)) {
-				Application.threadPool.execute(new Thread() {
+				new DelayedExecution(this) {					
 					@Override
-					public void run() {
-						try {
-							sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+					public void execute() {
 						block(BaseClass.get(bid));
 					}
-				});
+				};
 			}
 		}
 		return this;

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
@@ -36,7 +37,7 @@ public class Contact extends Tile{
 	private HashSet<Listener> listeners = new HashSet<Listener>();
 
 	public interface Listener{
-		public void fired();
+		public void fired(Object cause);
 	}
 	
 	public Contact() {
@@ -52,7 +53,8 @@ public class Contact extends Tile{
 		boolean aborted = false;
 		
 		public OffTimer() {
-			Application.threadPool.execute(this);
+			setName(Application.threadName("OffTimer("+Contact.this+")"));
+			start();
 		}
 		
 		@Override
@@ -87,12 +89,10 @@ public class Contact extends Tile{
 			Context context = isSet(route) ? route.context().contact(this) : new Context(this);
 			
 			if (isSet(route)) route.traceTrainFrom(this);
-			actions.fire(context);
+			actions.fire(context,"Contact("+addr+")");
 			if (isSet(route)) route.contact(this);
 			
-			for (Listener listener : listeners) {
-				listener.fired();
-			}
+			for (Listener listener : listeners) listener.fired("Contact("+addr+")");
 			
 			stream();
 		}
@@ -253,14 +253,13 @@ public class Contact extends Tile{
 	
 	public boolean trigger(int duration) {
 		activate(true);
-		Application.threadPool.execute(new Thread() {
-			public void run() {
-				try {
-					sleep(duration);
-					activate(false);
-				} catch (Exception e) {}
+		new DelayedExecution(duration,"Contact("+Contact.this.addr+")") {
+			
+			@Override
+			public void execute() {
+				activate(false);
 			}
-		});
+		};
 		return true;
 	}
 	@Override

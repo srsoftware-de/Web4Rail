@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.json.JSONObject;
 
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
@@ -20,7 +20,7 @@ public class SetContextTrain extends Action {
 	}
 	
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		context.train(train);		
 		return true;
 	}
@@ -39,14 +39,13 @@ public class SetContextTrain extends Action {
 			Id trainId = Id.from(json,REALM_TRAIN);
 			if (isSet(trainId)) {
 				train = Train.get(trainId);
-				if (isNull(train)) Application.threadPool.execute(new Thread() { // load asynchronously, as referred tile may not be available,yet
-					public void run() {
-						try {
-							sleep(1000);
-							train = Train.get(trainId);
-						} catch (InterruptedException e) {}						
-					};
-				});
+				if (isNull(train)) new DelayedExecution(this) {
+					
+					@Override
+					public void execute() {
+						train = Train.get(trainId);
+					}						
+				};
 			}
 		}
 		return this;

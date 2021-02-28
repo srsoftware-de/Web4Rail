@@ -6,8 +6,8 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
@@ -44,15 +44,13 @@ public class RouteEndBlock extends Condition{
 		if (isSet(block)) {
 			block(block);
 		} else {
-			Application.threadPool.execute(new Thread() {
+			new DelayedExecution(this) {
+				
 				@Override
-				public void run() {
-					try {
-						sleep(1000);
-					} catch (InterruptedException e) {}
+				public void execute() {
 					block(BaseClass.get(bid));
 				}
-			});
+			};
 		}
 		
 		return this;

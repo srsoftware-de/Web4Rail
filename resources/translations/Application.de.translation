@@ -76,6 +76,7 @@ Click here to add conditions : Hier klicken, um Bedingungen hinzuzufügen
 Click here to select block! : Hier klicken, um Block auszuwählen!
 Click here to select car! : Hier klicken, um Fahrzeug auszuwählen!
 Click here to select display! : Hier klicken, um Anzeige auszuwählen!
+Click here to select switch! : Hier klicken, um Schalter auszuwählen!
 Click here to select train! : Hier klicken, um Zug auszuwählen!
 Click here to setup contact : Hier klicken, um Kontakt auszuwählen
 Click here to setup decoupler : Hier klicken, um Entkuppler einzurichten
@@ -338,6 +339,7 @@ Straight port : Port für gerade
 STRAIGHT : gerade
 Swap order : Reihenfolge umkehren
 Swap order of trains : Reihenfolge der Züge tauschen
+Switch : Schalter
 SwitchFunction : Funktion schalten
 SwitchIsOn : Schalter is an
 Switch power off : Strom ausschalten
@@ -356,7 +358,7 @@ train contains {} : {} ist im Zug
 train does not contain {} : {} ist nicht im Zug
 train does not have tag "{}" : Zug hat keine Markierung „{}“
 train has tag "{}" : Zug hat Markierung „{}“
-TrainHasTag : Zug mit Tag
+TrainHasTag : Zug hat Markierung
 train is a push-pull train : Zug ist ein Wendezug
 train is faster than {} {} : Zug ist schneller als {} {}
 train is longer than {} {} : Zug ist länger als {} {}

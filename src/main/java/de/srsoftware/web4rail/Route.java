@@ -105,7 +105,8 @@ public class Route extends BaseClass {
 			timeStep = brakeTimes.get(brakeId);
 
 			if (isNull(timeStep) || timeStep>1000000) timeStep = 256; 			// if no brake time is available for this train
-			Application.threadPool.execute(this);
+			setName(Application.threadName("BrakeProcessor("+train+")"));
+			start();
 		}
 		
 		protected void abort() {
@@ -177,11 +178,12 @@ public class Route extends BaseClass {
 
 		@Override
 		public void run() {
+			setName(Application.threadName("BreakeProcessor("+train+")"));
 			LOG.debug("started BrakeProcessor ({} → {}) for {} with timestep = {} ms.",train.speed,endSpeed,train,timeStep);
 			estimatedDistance = 0;			
 			latestTick = timestamp();
 			while (train.speed > endSpeed) {
-				if (finished) return;
+				if (finished || aborted) return;
 				increaseDistance();
 				LOG.debug("BrakeProcessor({}) setting Speed of {}.",route,train);
 				train.setSpeed(Math.max(train.speed - SPEED_STEP,endSpeed));
@@ -456,7 +458,7 @@ public class Route extends BaseClass {
 		ActionList actions = triggeredActions.get(contact.trigger());
 		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
 		if (isNull(actions)) return;
-		actions.fire(context);
+		actions.fire(context,"Route.Contact("+contact.addr()+")");
 	}
 
 	public Vector<Contact> contacts() {
@@ -513,7 +515,10 @@ public class Route extends BaseClass {
 		
 		if (isSet(train)) {
 			Route nextRoute = train.nextRoute();
-			if (!isSet(nextRoute)) {
+			if (isSet(nextRoute)) {
+				LOG.debug("{} has next route: {}",train,nextRoute);
+				if (isSet(brakeProcessor)) brakeProcessor.abort();
+			} else {
 				LOG.debug("{} has no next route.",train);
 				if (isSet(brakeProcessor)) {					
 					brakeProcessor.finish();
@@ -825,10 +830,11 @@ public class Route extends BaseClass {
 			train.destination(null); // unset old destination
 			String destTag = train.destinationTag();
 			if (isSet(destTag)) {
-				LOG.debug("destination tag: {}",destTag);
+				LOG.debug("destination list: {}",destTag);
 				String[] parts = destTag.split(Train.DESTINATION_PREFIX);
 				for (int i=0; i<parts.length;i++) LOG.debug("  part {}: {}",i+1,parts[i]);
 				String destId = parts[1];
+				LOG.debug("destination tag: {}",destId);
 				boolean turn = false;
 				
 				for (int i=destId.length()-1; i>0; i--) {
@@ -839,6 +845,7 @@ public class Route extends BaseClass {
 							break;
 						case Train.TURN_FLAG:
 							turn = true; 
+							LOG.debug("Turn flag is set!");
 							break;
 					}
 				}
@@ -893,7 +900,7 @@ public class Route extends BaseClass {
 		if (state == State.PREPARED || state == State.STARTED) return true;
 		LOG.debug("{}.prepare()",this);
 		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
-		if (isSet(setupActions) && !setupActions.fire(context)) return false;
+		if (isSet(setupActions) && !setupActions.fire(context,this+".prepare()")) return false;
 		state = State.PREPARED;
 		return true;
 	}
@@ -1036,13 +1043,13 @@ public class Route extends BaseClass {
 	
 	public boolean start(Train newTrain) {
 		if (state == State.STARTED) return true;
-		LOG.debug("{}.start({})",this,newTrain);
+		LOG.debug("{}.start()",this);
 		if (isNull(newTrain)) return false; // can't set route's train to null
 		if (isSet(train)) {
 			if (newTrain != train) return false; // can't alter route's train
 		} else train = newTrain; // set new train 
 		ActionList startActions = triggeredActions.get(ROUTE_START);
-		if (isSet(startActions) && !startActions.fire(context)) return false; // start actions failed
+		if (isSet(startActions) && !startActions.fire(context,this+".start("+train.name()+")")) return false; // start actions failed
 		state = State.STARTED;
 		triggeredContacts.clear();
 		return true;

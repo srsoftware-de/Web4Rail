@@ -6,8 +6,8 @@ import java.util.List;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -30,19 +30,17 @@ public class DelayedAction extends ActionList {
 	}
 		
 	@Override
-	public boolean fire(Context context) {
-		Application.threadPool.execute(new Thread() {
-			public void run() {
-				try {
-					int delay = min_delay + (min_delay < max_delay ? random.nextInt(max_delay - min_delay) : 0);
-					Thread.sleep(delay);
-					LOG.debug("{} ms passed by, firing actions:",delay);
-				} catch (InterruptedException e) {
-					LOG.warn("Interrupted Exception thrown while waiting:",e);
-				}
-				DelayedAction.super.fire(context);
-			};
-		});
+	public boolean fire(Context context,Object cause) {
+		int delay = min_delay + (min_delay < max_delay ? random.nextInt(max_delay - min_delay) : 0);
+		
+		new DelayedExecution(delay,cause) {
+			
+			@Override	
+			public void execute() {
+				LOG.debug("{} ms passed by, firing actions:",delay);
+				DelayedAction.super.fire(context,cause);
+			}
+		};
 		return true;		
 	}
 	

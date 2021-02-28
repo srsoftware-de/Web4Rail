@@ -34,7 +34,7 @@ public class SetSignal extends Action {
 	}
 	
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (isNull(signal)) return false;
 		return signal.state(state);
 	}

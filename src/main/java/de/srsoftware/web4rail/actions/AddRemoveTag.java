@@ -24,7 +24,7 @@ public class AddRemoveTag extends Action{
 	private boolean remove = false;
 	
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (isNull(context.train())) return false;
 		if (remove) {
 			context.train().removeTag(tag);			

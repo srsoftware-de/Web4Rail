@@ -80,15 +80,15 @@ public class ActionList extends Action implements Iterable<Action>{
 		return actions.remove(action);
 	}
 
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (context.invalidated()) {
 			LOG.debug("Context has been invalidated, aborting {}",this);
 			return false;
 		}
 		
-		if (!isEmpty())	LOG.debug("{}.fire({})",this,context);
 		for (Action action : actions) {
-			if (!action.fire(context)) return false;			
+			LOG.debug("firing \"{}\"",action);
+			if (!action.fire(context,cause)) return false;			
 		}
 		return true;
 	}

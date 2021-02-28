@@ -7,8 +7,8 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
@@ -28,7 +28,7 @@ public class SetRelayOrSwitch extends Action {
 	private boolean state = false;
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (isNull(relayOrSwitch)) return false;
 		if (relayOrSwitch instanceof Relay)	((Relay)relayOrSwitch).state(state);
 		if (relayOrSwitch instanceof Switch) ((Switch)relayOrSwitch).state(state);
@@ -55,26 +55,24 @@ public class SetRelayOrSwitch extends Action {
 		if (json.has(RELAY)) {
 			String relayId = json.getString(RELAY);
 			relayOrSwitch = BaseClass.get(new Id(relayId));
-			if (isNull(relayOrSwitch)) Application.threadPool.execute(new Thread() { // if relay not loaded, yet: wait one sec and try again
-				public void run() {
-					try {
-						sleep(1000);
-					} catch (InterruptedException e) {}
+			if (isNull(relayOrSwitch)) new DelayedExecution(this) {
+				
+				@Override
+				public void execute() {
 					relayOrSwitch = BaseClass.get(new Id(relayId));
 				};
-			});
+			};
 		}
 		if (json.has(SWITCH)) {
 			String relayId = json.getString(SWITCH);
 			relayOrSwitch = BaseClass.get(new Id(relayId));
-			if (isNull(relayOrSwitch)) Application.threadPool.execute(new Thread() { // if relay not loaded, yet: wait one sec and try again
-				public void run() {
-					try {
-						sleep(1000);
-					} catch (InterruptedException e) {}
+			if (isNull(relayOrSwitch)) new DelayedExecution(this) {
+				
+				@Override
+				public void execute() {
 					relayOrSwitch = BaseClass.get(new Id(relayId));
-				};
-			});
+				}
+			};
 		}
 		if (json.has(STATE)) state = json.getBoolean(STATE);
 		return this;

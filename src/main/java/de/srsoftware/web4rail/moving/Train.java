@@ -99,6 +99,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		boolean stop = false;
 		int waitTime = 100;
 		
+		public Autopilot() {
+			setName(Application.threadName("Autopilot("+Train.this+")"));
+			start();
+		}
+		
 		@Override
 		public void run() {
 			try {
@@ -107,16 +112,22 @@ public class Train extends BaseClass implements Comparable<Train> {
 					if (isNull(route)) {
 						Thread.sleep(waitTime);
 						if (waitTime > 100) waitTime /=2;
-						if (stop) return;
+						if (stop) break;
 						if (isNull(route)) { // may have been set by start action in between
-							Object o = Train.this.start();
+							String message = Train.this.start();
 							if (isSet(route)) {
 								LOG.debug("{}.start called, route now is {}",Train.this,route);
-								if (o instanceof String) plan.stream((String)o);
+								plan.stream(message);
 								//if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
-							} else waitTime = 1000; // limit load on PathFinder
+							} else {
+								LOG.debug(message);
+								waitTime = 1000; // limit load on PathFinder
+							}
 						}						
-					} else Thread.sleep(250);
+					} else {
+						if (stop) break;
+						Thread.sleep(250);
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -210,7 +221,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public String automatic() {
 		if (isNull(autopilot)) {
 			autopilot = new Autopilot();
-			Application.threadPool.execute(autopilot);
 			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
 		return t("{} now in auto-mode",this);
@@ -381,10 +391,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Block destination() {
+		//LOG.debug("{}.destination()",this);
 		if (isNull(destination)) {
 			String destTag = destinationTag();
+			//LOG.debug("→ processing \"{}\"...",destTag);
 			if (isSet(destTag)) {
 				destTag = destTag.split(DESTINATION_PREFIX)[1];
+				//LOG.debug("....processing \"{}\"…",destTag);
 				for (int i=destTag.length()-1; i>0; i--) {
 					switch (destTag.charAt(i)) {
 						case FLAG_SEPARATOR:
@@ -392,19 +405,21 @@ public class Train extends BaseClass implements Comparable<Train> {
 							i=0;
 							break;
 						case SHUNTING_FLAG:
+							//LOG.debug("....enabled shunting option");
 							shunting = true; 
 							break;
 					}
 				}
 
 				Block block = BaseClass.get(new Id(destTag));
-				if (isSet(block)) destination = block;
+				if (isSet(block)) destination(block);
 			}
-		}
+		}// else LOG.debug("→ heading towards {}",destination);
 		return destination;
 	}
 	
 	public Train destination(Block dest) {
+		LOG.debug("destination({})",dest);
 		destination = dest;
 		return this;
 	}
@@ -753,6 +768,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void reserveNext() {
 		if (reserving) return;
 		LOG.debug("{}.reserveNext()",this);
+		if (isSet(nextRoute)) {
+			LOG.debug("Train already has next route: {}",nextRoute);
+			return;
+		}
 		Context context = new Context(this).route(route).block(route.endBlock()).direction(route.endDirection);
 		Route newRoute = PathFinder.chooseRoute(context);
 		if (isNull(newRoute)) {
@@ -842,12 +861,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 	}
 	
-	private String setDestination(HashMap<String, String> params) {
+	private Object setDestination(HashMap<String, String> params) {
 		String dest = params.get(DESTINATION);
 		if (isNull(dest)) return t("No destination supplied!");
 		if (dest.isEmpty()) {
 			destination = null;
-			return t("Dropped destination of {}.",this);
+			return properties();
 		}
 		Tile tile = plan.get(new Id(dest), true);
 		if (isNull(tile)) return t("Tile {} not known!",dest);
@@ -946,7 +965,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 
-	public Object start() throws IOException {
+	public String start() throws IOException {
 		LOG.debug("{}.start()",this);
 		if (isNull(currentBlock)) return t("{} not in a block",this);
 		if (maxSpeed() == 0) return t("Train has maximum speed of 0 {}, cannot go!",speedUnit);
@@ -960,14 +979,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 			nextRoute = null;
 			route.set(new Context(this).block(currentBlock).direction(direction));			
 		} else {
+			if (reserving) return t("Route chooser already active");
 			Context context = new Context(this).block(currentBlock).direction(direction);
 			route = PathFinder.chooseRoute(context);
 			if (isNull(route)) return t("No free routes from {}",currentBlock);
+			LOG.debug("Chosen route: {}",route);
 			if (!route.lock()) error = t("Was not able to lock {}",route);
 			route.set(context);
 			if (isNull(error) && !route.prepare()) error = t("Was not able to fire all setup actions of route!");
 		}
-		if (isNull(route)) return this; // route may have been canceled in between
+		if (isNull(route)) return t("Route cancelled"); // route may have been canceled in between
 		if (isNull(error) && direction != route.startDirection) turn();
 		
 		if (isNull(error) && !route.start(this)) error = t("Was not able to assign {} to {}!",this,route);
@@ -979,8 +1000,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		startSimulation();
 
-		plan.stream(t("Started {}",this));
-		return this;
+		String res = t("Started {}",this); 
+		plan.stream(res);
+		return res;
 	}
 	
 	public static void startAll() {
@@ -999,7 +1021,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		try {
 			Thread.sleep(1000);
 			plan.stream(t("Simulating movement of {}...",this));
-			Application.threadPool.execute(new Thread() {
+			Thread simulation = new Thread() {
 				public void run() {
 					for (Tile tile : route.path()) {
 						if (isNull(route)) break;
@@ -1016,7 +1038,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 						}
 					}
 				};
-			});
+			};
+			simulation.setName(Application.threadName("Simulation("+Train.this+")"));
+			simulation.start();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -1076,7 +1100,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return reverse();
 	}
 
-	protected Train update(HashMap<String, String> params) {
+	protected Window update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
 		pushPull = params.containsKey(PUSH_PULL) && params.get(PUSH_PULL).equals("on");
 		shunting = params.containsKey(SHUNTING) && params.get(SHUNTING).equals("on");
@@ -1089,7 +1113,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				if (!tag.isEmpty()) tags.add(tag);
 			}
 		}
-		return this;
+		return properties();
 	}
 	
 	public boolean usesAutopilot() {

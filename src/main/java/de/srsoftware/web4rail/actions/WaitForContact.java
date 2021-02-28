@@ -7,8 +7,8 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -30,34 +30,29 @@ public class WaitForContact extends ActionList {
 	private int timeout = 10000;
 	
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		LOG.debug("{}.fire(...) called, waiting for {}.",this,contact);
 		if (isNull(contact)) return false;
 		fired = false;
 		Listener listener = new Listener() {
 			@Override
-			public void fired() {
+			public void fired(Object cause) {
 				LOG.debug("{} triggered, firing {}",contact,actions);
 				fired = true;
 				contact.removeListener(this);
-				WaitForContact.super.fire(context);
+				WaitForContact.super.fire(context,cause);
 			}
 		};		
 		contact.addListener(listener);
-		Application.threadPool.execute(new Thread() { // remove listener after timout
+		new DelayedExecution(timeout,cause) {
 			
 			@Override
-			public void run() {
-				try {
-					sleep(timeout);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+			public void execute() {
 				contact.removeListener(listener);
 				LOG.debug("{} timed out, firing {}",this,timeoutActions);
-				if (!fired) timeoutActions.fire(context);
+				if (!fired) timeoutActions.fire(context,cause);
 			}
-		});
+		};
 		return true;
 	}
 	
@@ -90,19 +85,13 @@ public class WaitForContact extends ActionList {
 		if (json.has(CONTACT)) {
 			String cid = json.getString(CONTACT);
 			contact = BaseClass.get(new Id(cid));
-			if (isNull(contact)) {
-				Application.threadPool.execute(new Thread() {
-					@Override
-					public void run() {
-						try {
-							sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						contact = BaseClass.get(new Id(cid));
-					}
-				});
-			}
+			if (isNull(contact)) new DelayedExecution(this) {
+				
+				@Override
+				public void execute() {
+					contact = BaseClass.get(new Id(cid));
+				}
+			};
 		}
 		if (json.has(TIMEOUT)) timeout = json.getInt(TIMEOUT);
 		if (json.has(TIMEOUT_ACTIONS)) timeoutActions.load(json.getJSONObject(TIMEOUT_ACTIONS));

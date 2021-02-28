@@ -6,8 +6,8 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
@@ -22,7 +22,7 @@ public class DetermineTrainInBlock extends Action {
 	private Block block = null;
 	
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		context.block(block);
 		context.train(block.train());		
 		return true;
@@ -42,16 +42,13 @@ public class DetermineTrainInBlock extends Action {
 		if (isSet(blockId)) {
 			block = Block.get(blockId);
 			if (isNull(block)) {
-				Application.threadPool.execute(new Thread() {
-					public void run() {
-						try {
-							sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+				new DelayedExecution(this) {
+					
+					@Override
+					public void execute() {
 						block = Block.get(blockId);
-					};
-				});
+					}
+				};
 			}
 		}
 		return this;

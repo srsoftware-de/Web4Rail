@@ -119,6 +119,12 @@ public class Plan extends BaseClass{
 	 * This thread sends a heartbea to the client
 	 */
 	private class Heartbeat extends Thread {
+		
+		public Heartbeat() {
+			setName(Application.threadName(this));
+			start();
+		}
+		
 		@Override
 		public void run() {			
 			try {
@@ -159,7 +165,7 @@ public class Plan extends BaseClass{
 	 */
 	public Plan() {	
 		BaseClass.resetRegistry();
-		Application.threadPool.execute(new Heartbeat());
+		new Heartbeat();
 		name = DEFAULT_NAME;
 	}
 	
@@ -293,7 +299,7 @@ public class Plan extends BaseClass{
 			return win;
 		}
 		
-		Application.threadPool.execute(new Thread() {
+		Thread analyzer = new Thread() {
 			public void run() {				
 				Vector<Route> newRoutes = new Vector<Route>();
 				for (Block block : BaseClass.listElements(Block.class)) {
@@ -309,8 +315,10 @@ public class Plan extends BaseClass{
 				}
 				
 				stream(t("Found {} routes.",newRoutes.size()));
-			}
-		});
+			}		
+		};
+		analyzer.setName(Application.threadName("Plan.Analyzer"));
+		analyzer.start();
 		
 		return t("Analyzing plan...");
 	}
@@ -534,7 +542,7 @@ public class Plan extends BaseClass{
 			LOG.warn("Was not able to load control unit settings!",e);
 		}
 		try {
-			Application.threadPool.execute(plan.controlUnit);
+			plan.controlUnit.start();
 		} catch (Exception e) {
 			LOG.warn("Was not able to establish connection to control unit!");
 		}

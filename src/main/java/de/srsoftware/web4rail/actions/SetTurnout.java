@@ -7,8 +7,8 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
@@ -25,7 +25,7 @@ public class SetTurnout extends Action {
 	private Turnout.State state = State.STRAIGHT;
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (isNull(turnout)) return false;		
 		if (!turnout.state(state).succeeded()) return false;
 		if (turnout.address() == 0) return true;
@@ -53,19 +53,13 @@ public class SetTurnout extends Action {
 		Id turnoutId = json.has(TURNOUT) ? new Id(json.getString(TURNOUT)) : null;
 		if (isSet(turnoutId)) {
 			turnout = BaseClass.get(turnoutId);
-			if (isNull(turnout)) {
-				Application.threadPool.execute(new Thread() {
-					@Override
-					public void run() {
-						try {
-							sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						turnout = BaseClass.get(turnoutId);
-					}
-				});
-			}
+			if (isNull(turnout)) new DelayedExecution(this) {
+				
+				@Override
+				public void execute() {
+					turnout = BaseClass.get(turnoutId);
+				}
+			};
 		}
 		if (json.has(Turnout.STATE)) state = Turnout.State.valueOf(json.getString(Turnout.STATE));
 		return this;

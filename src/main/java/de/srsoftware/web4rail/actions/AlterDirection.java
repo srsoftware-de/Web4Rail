@@ -28,7 +28,7 @@ public class AlterDirection extends Action{
 
 	@SuppressWarnings("incomplete-switch")
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		Train train = context.train();
 		if (isNull(train)) return false;
 		

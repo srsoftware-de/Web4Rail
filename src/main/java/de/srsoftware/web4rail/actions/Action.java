@@ -94,7 +94,7 @@ public abstract class Action extends BaseClass {
 		return this.toString().equals(other.toString());
 	}
 
-	public abstract boolean fire(Context context);
+	public abstract boolean fire(Context context,Object cause);
 	
 	public static Action get(Id actionId) {
 		return actions.get(actionId);

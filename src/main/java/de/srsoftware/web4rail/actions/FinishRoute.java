@@ -10,7 +10,7 @@ public class FinishRoute extends Action {
 	}
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		Route route = context.route();
 		if (isSet(route)) route.finish();
 		return true;

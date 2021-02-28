@@ -163,16 +163,19 @@ public class Switch extends Tile{
 	
 	public void state(boolean newState) {
 		state = newState;
-		Application.threadPool.execute(new Runnable() {
+
+		Thread thread = new Thread() {
 			
 			@Override
 			public void run() {
 				Context context = new Context(Switch.this);
 				if (state) {
-					actionsOn.fire(context);
-				} else actionsOff.fire(context);
+					actionsOn.fire(context,Switch.this);
+				} else actionsOff.fire(context,Switch.this);
 			}
-		});
+		};
+		thread.setName(Application.threadName(this));
+		thread.start();
 		stream();
 	}
 	

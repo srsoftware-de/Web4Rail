@@ -51,8 +51,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 	
 	private String name;
 	public int length;
-	protected String stockId = "";
 	private Train train;
+	protected String stockId = "";
 	protected int maxSpeedForward = 0;
 	protected int maxSpeedReverse = 0;
 	protected boolean orientation = FORWARD;
@@ -327,8 +327,10 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Tag("option").attr("value","0").content(firstEntry).addTo(select);
 		List<Car> cars = BaseClass.listElements(Car.class);
 		cars.sort((c1,c2) -> {
-			if (isSet(c1.stockId)) return c1.stockId.compareTo(c2.stockId);
-			return c1.name().compareTo(c2.name());
+			String n1 = (isSet(c1.stockId) && !c1.stockId.isEmpty() ? c1.stockId : "00")+c1.name();
+			String n2 = (isSet(c2.stockId) && !c2.stockId.isEmpty() ? c2.stockId : "00")+c2.name();
+			
+			return n1.compareTo(n2);
 		});
 		for (Car car : cars) {			
 			if (exclude.contains(car)) continue;

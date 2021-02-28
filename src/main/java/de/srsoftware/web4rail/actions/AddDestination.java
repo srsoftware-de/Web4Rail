@@ -8,8 +8,8 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -30,7 +30,7 @@ public class AddDestination extends Action {
 	}
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		Train train = context.train();		
 		if (isNull(train)) return false;
 		if (isNull(destination)) { // clear destinations!
@@ -73,17 +73,13 @@ public class AddDestination extends Action {
 			Id blockId = new Id(json.getString(Train.DESTINATION));
 			destination = BaseClass.get(blockId);
 			if (isNull(destination)) {
-				Application.threadPool.execute(new Thread() {
+				new DelayedExecution(this) {
+					
 					@Override
-					public void run() {
-						try {
-							sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+					public void execute() {
 						destination = BaseClass.get(blockId);
 					}
-				});
+				};
 			}
 		}
 		return super.load(json);

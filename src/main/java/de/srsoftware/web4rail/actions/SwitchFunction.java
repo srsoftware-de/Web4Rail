@@ -27,7 +27,7 @@ public class SwitchFunction extends Action {
 	}
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (isNull(context) || isNull(context.train())) return false;
 		switch (effect) {
 			case TOGGLE:

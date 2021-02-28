@@ -9,7 +9,7 @@ public class StopTrain extends Action{
 	}
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (isNull(context.train())) return false;
 		LOG.debug("{}.fire() called, context = {}",this,context);
 		context.train().stopNow();

@@ -6,8 +6,8 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Window;
@@ -24,7 +24,7 @@ public class SetDisplayText extends TextAction{
 	}
 	
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		plan.place(display.text(fill(text, context)));
 		return true;
 	}
@@ -44,14 +44,13 @@ public class SetDisplayText extends TextAction{
 	@Override
 	public Action load(JSONObject json) {
 		if (json.has(DISPLAY)) {
-			Application.threadPool.execute(new Thread() { // load asynchronously, as referred tile may not be available,yet
-				public void run() {
-					try {
-						sleep(1000);
-						display = (TextDisplay) plan.get(Id.from(json,DISPLAY), false);
-					} catch (InterruptedException e) {}						
+			new DelayedExecution(this) {
+				
+				@Override
+				public void execute() {
+					display = (TextDisplay) plan.get(Id.from(json,DISPLAY), false);
 				};
-			});
+			};
 		}
 		return super.load(json);
 	}

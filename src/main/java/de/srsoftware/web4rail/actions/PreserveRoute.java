@@ -13,7 +13,7 @@ public class PreserveRoute extends Action {
 	}
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		Train train = context.train();
 		Route route = context.route();
 		// These are errors:

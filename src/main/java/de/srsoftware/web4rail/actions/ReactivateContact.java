@@ -9,7 +9,7 @@ public class ReactivateContact extends Action{
 	}
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (isNull(context.contact())) return false;
 		if (isNull(context.route())) return false;
 		return context.route().reactivate(context.contact());

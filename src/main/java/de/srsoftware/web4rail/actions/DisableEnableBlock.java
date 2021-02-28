@@ -7,8 +7,8 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
@@ -26,7 +26,7 @@ public class DisableEnableBlock extends Action {
 	private boolean disable = true;
 	
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (isNull(block)) block = context.block();
 		if (isNull(block)) return false;
 		block.setEnabled(!disable);
@@ -48,16 +48,13 @@ public class DisableEnableBlock extends Action {
 		if (isSet(blockId)) {
 			block = Block.get(blockId);
 			if (isNull(block)) {
-				Application.threadPool.execute(new Thread() {
-					public void run() {
-						try {
-							sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+				new DelayedExecution(this) {
+					
+					@Override
+					public void execute() {
 						block = Block.get(blockId);
-					};
-				});
+					}
+				};						
 			}
 		}
 		if (json.has(STATE)) {

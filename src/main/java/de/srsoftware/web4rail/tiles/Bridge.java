@@ -7,9 +7,9 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -52,17 +52,12 @@ public abstract class Bridge extends Tile {
 	@Override
 	public Tile load(JSONObject json) {
 		if (json.has(COUNTERPART)) {
-			Application.threadPool.execute(new Thread() {
+			new DelayedExecution(this) {
 				@Override
-				public void run() {
-					try {
-						sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+				public void execute() {
 					counterpart = (Bridge) plan.get(Id.from(json, COUNTERPART), false);
 				}
-			});
+			};
 		}
 		return super.load(json);
 	}

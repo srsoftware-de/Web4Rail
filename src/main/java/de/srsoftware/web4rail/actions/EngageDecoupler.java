@@ -6,8 +6,8 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Decoupler;
@@ -24,7 +24,7 @@ public class EngageDecoupler extends Action {
 	private Decoupler decoupler = null;
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (isNull(decoupler)) return false;
 		decoupler.engage();
 		return true;
@@ -45,14 +45,13 @@ public class EngageDecoupler extends Action {
 		if (json.has(DECOUPLER)) {
 			String decouplerId = json.getString(DECOUPLER);
 			decoupler = BaseClass.get(new Id(decouplerId));
-			if (isNull(decoupler)) Application.threadPool.execute(new Thread() { // if relay not loaded, yet: wait one sec and try again
-				public void run() {
-					try {
-						sleep(1000);
-					} catch (InterruptedException e) {}
+			if (isNull(decoupler)) new DelayedExecution(this) {
+				
+				@Override
+				public void execute() {
 					decoupler = BaseClass.get(new Id(decouplerId));
-				};
-			});
+				}
+			};
 		}
 		return this;
 	}

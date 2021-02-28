@@ -26,7 +26,7 @@ public class SetPower extends Action{
 	}
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		ControlUnit cu = plan.controlUnit();
 		switch (pc) {
 		case ON:
@@ -85,6 +85,6 @@ public class SetPower extends Action{
 		LOG.debug("update: {}",params);
 		String newState = params.get(STATE);
 		if (isSet(newState)) pc = POWERCHANGE.valueOf(newState);
-		return properties();
+		return parent().properties();
 	}
 }

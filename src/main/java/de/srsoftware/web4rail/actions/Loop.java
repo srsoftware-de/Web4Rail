@@ -29,7 +29,7 @@ public class Loop extends ActionList {
 	}
 	
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		if (isNull(object)) return false;
 		List<? extends BaseClass> elements = null;
 		switch (object) {
@@ -53,7 +53,7 @@ public class Loop extends ActionList {
 				break;			
 		}
 		if (elements == null) return false;
-		for (BaseClass element : elements) super.fire(context.setMain(element));
+		for (BaseClass element : elements) super.fire(context.setMain(element),cause);
 		return true;
 	}
 	

@@ -30,7 +30,7 @@ public class SendCommand extends Action{
 	private Target target = Target.SRCP;
 
 	@Override
-	public boolean fire(Context context) {
+	public boolean fire(Context context,Object cause) {
 		switch (target) {
 		case SRCP:
 			plan.queue(new Command(command) {
