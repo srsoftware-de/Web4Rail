@@ -39,6 +39,7 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.Autopilot;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -88,54 +89,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Vector<Block> lastBlocks = new Vector<Block>();
 	
 	public int speed = 0;
-	private Autopilot autopilot = null;
+	public Autopilot autopilot = null;
 	private Route nextRoute;
 	private static final String SHUNTING = "shunting";
 	private boolean shunting = false;
 
 	private boolean reserving; // used to prevent recursive calls of reserveNext
-	
-	private class Autopilot extends Thread{
-		boolean stop = false;
-		int waitTime = 100;
-		
-		public Autopilot() {
-			setName(Application.threadName("Autopilot("+Train.this+")"));
-			start();
-		}
-		
-		@Override
-		public void run() {
-			try {
-				stop = false;
-				while (true) {
-					if (isNull(route)) {
-						Thread.sleep(waitTime);
-						if (waitTime > 100) waitTime /=2;
-						if (stop) break;
-						if (isNull(route)) { // may have been set by start action in between
-							String message = Train.this.start();
-							if (isSet(route)) {
-								LOG.debug("{}.start called, route now is {}",Train.this,route);
-								plan.stream(message);
-								//if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
-							} else {
-								LOG.debug(message);
-								waitTime = 1000; // limit load on PathFinder
-							}
-						}						
-					} else {
-						if (stop) break;
-						Thread.sleep(250);
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			autopilot = null;
-			if (isSet(currentBlock)) plan.place(currentBlock);
-		}
-	}
 	
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
@@ -220,7 +179,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public String automatic() {
 		if (isNull(autopilot)) {
-			autopilot = new Autopilot();
+			autopilot = new Autopilot(this);
 			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
 		return t("{} now in auto-mode",this);
@@ -727,7 +686,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			nextRoute = null;
 		}
 		if (isSet(autopilot)) {
-			autopilot.stop = true;
+			autopilot.doStop();
 			autopilot = null;
 			if (isSet(currentBlock)) plan.place(currentBlock);
 			return t("{} stopping at next block.",this);
@@ -925,11 +884,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public void setWaitTime(Range waitTime) {
-		if (isNull(autopilot)) return; 
-		autopilot.waitTime = waitTime.random();
-		String msg = t("{} waiting {} secs...",this,autopilot.waitTime/1000d);
-		LOG.debug(msg);
-		plan.stream(msg);
+		if (isNull(autopilot)) return;
+		autopilot.waitTime(waitTime);
 	}
 	
 	private Tag slower(int steps) {

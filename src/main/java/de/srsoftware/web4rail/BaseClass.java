@@ -39,7 +39,7 @@ import de.srsoftware.web4rail.tiles.Tile;
  * @author Stephan Richter, SRSoftware 2020…2021 
  */
 public abstract class BaseClass implements Constants{
-	protected static Plan plan; // the track layout in use
+	public static Plan plan; // the track layout in use
 	public static final Random random = new Random();
 	public static String speedUnit = DEFAULT_SPEED_UNIT;
 	public static String lengthUnit = DEFAULT_LENGTH_UNIT;
@@ -511,7 +511,7 @@ public abstract class BaseClass implements Constants{
 	}
 
 
-	protected static String t(String txt, Object...fills) {
+	public static String t(String txt, Object...fills) {
 		if (isSet(fills)) for (int i=0; i<fills.length; i++) {
 			if ("\\".equals(fills[i])) fills[i]="\\\\";
 		}

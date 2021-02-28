@@ -18,7 +18,6 @@ import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
@@ -38,6 +37,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.BrakeProcessor;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -71,7 +71,6 @@ public class Route extends BaseClass {
 	static final String SIGNALS  = "signals";
 	static final String TURNOUTS = "turnouts";
 	private State state = State.FREE;
-	public static int defaultEndSpeed = 10;
 	public static boolean freeBehindTrain = true;
 
 	private static final String ROUTE_START = "route_start";
@@ -79,138 +78,6 @@ public class Route extends BaseClass {
 	private static final String ROUTE_SETUP = "route_setup";
 
 	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
-		
-	private class BrakeProcessor extends Thread {
-		private long latestTick;
-		private static final int SPEED_STEP = 5;
-		private Integer timeStep;
-		private Route route;
-		private Train train;
-		private String brakeId;
-		private long estimatedDistance; // Unit: s*km/h "km/h-Sekunden"
-		private int startSpeed,endSpeed;
-		private boolean aborted,modified,finished;
-		
-		public BrakeProcessor(Route route, Train train) {
-			this.train = train;
-			this.route = route;
-			
-			aborted = false;
-			modified = false;
-			finished = false;
-			brakeId = train.brakeId();
-			startSpeed = train.speed;		
-			endSpeed = defaultEndSpeed;
-			
-			timeStep = brakeTimes.get(brakeId);
-
-			if (isNull(timeStep) || timeStep>1000000) timeStep = 256; 			// if no brake time is available for this train
-			setName(Application.threadName("BrakeProcessor("+train+")"));
-			start();
-		}
-		
-		protected void abort() {
-			aborted = true;
-		}
-
-		private long calcDistance(Integer ts) {
-			long dist = 0;
-			int s = startSpeed;
-			while (s > defaultEndSpeed) {
-				s -= SPEED_STEP;
-				dist += s*ts;
-			}
-			LOG.debug("Estimated distamce with {} ms timestep: {}",ts,dist);
-			return dist;
-		}
-		
-		private void checkNextRoute() {
-			Route nextRoute = train.nextRoute();
-			if (isSet(nextRoute) && nextRoute.state == Route.State.PREPARED) { // auf Startgeschwindigkeit der Nachfolgeroute bremsen
-				Integer nextRouteStartSpeed = nextRoute.startSpeed();
-				if (isSet(nextRouteStartSpeed)) {
-					LOG.debug("updating target velocity from {} to {}!",endSpeed,nextRouteStartSpeed);
-					endSpeed = nextRouteStartSpeed;
-					modified = true;
-					if (endSpeed > train.speed) train.setSpeed(endSpeed);
-				}					
-			}
-		}
-		
-		/**
-		 * This is called from route.finish when train came to stop
-		 */
-		public void finish() {
-			LOG.debug("BrakeProcessor.finish()");
-			finished = true;
-			if (aborted || modified) return;
-			increaseDistance();
-			train.setSpeed(0);
-			LOG.debug("Estimated distance: {}",estimatedDistance);
-
-			if (startSpeed <= endSpeed) return;
-			if (timeStep<0) timeStep = 100;
-			Integer newTimeStep = timeStep;
-			long calculated;
-			int step = 32*newTimeStep;			
-			for (int i=0; i<20; i++) {
-				step = step/2;
-				if (step<1) step = 1;
-				calculated = calcDistance(newTimeStep);
-				LOG.debug("Calculated distance for step = {} ms: {}",newTimeStep,calculated);
-				LOG.debug("Update step: {}",step);
-				newTimeStep = newTimeStep + (calculated > estimatedDistance ? -step : step);				
-			}
-			
-			if (!newTimeStep.equals(timeStep)) {
-				route.brakeTimes.put(brakeId,newTimeStep);
-				calculated = calcDistance(newTimeStep);
-				LOG.debug("Corrected brake timestep for {} @ {} from {} to {} ms.",train,route,timeStep,newTimeStep);
-				LOG.debug("Differemce from estimated distance: {} ({}%)",estimatedDistance-calculated,100*(estimatedDistance-calculated)/(float)estimatedDistance);
-			}
-		}
-		
-		private void increaseDistance(){
-			long tick = timestamp();
-			estimatedDistance += train.speed * (3+tick-latestTick);
-			latestTick = tick;			
-		}
-
-		@Override
-		public void run() {
-			setName(Application.threadName("BreakeProcessor("+train+")"));
-			LOG.debug("started BrakeProcessor ({} → {}) for {} with timestep = {} ms.",train.speed,endSpeed,train,timeStep);
-			estimatedDistance = 0;			
-			latestTick = timestamp();
-			while (train.speed > endSpeed) {
-				if (finished || aborted) return;
-				increaseDistance();
-				LOG.debug("BrakeProcessor({}) setting Speed of {}.",route,train);
-				train.setSpeed(Math.max(train.speed - SPEED_STEP,endSpeed));
-				if (!modified) checkNextRoute();
-				try {
-					sleep(timeStep);
-				} catch (InterruptedException e) {
-					LOG.warn("BrakeProcessor interrupted!", e);
-				}				
-			}
-			
-			while (!finished && !aborted && !modified) {
-				try {
-					sleep(1000);
-				} catch (InterruptedException e) {
-					LOG.warn("BrakeProcessor interrupted!", e);
-				}				
-				checkNextRoute();
-			}
-		}
-
-		public void setEndSpeed(Integer newEndSpeed) {
-			if (isNull(newEndSpeed)) return;
-			endSpeed = newEndSpeed;		
-			modified = true;
-		}
-	}
 
 	private BrakeProcessor				   brakeProcessor = null;
 	private HashMap<String,Integer>        brakeTimes = new HashMap<String, Integer>();
@@ -365,6 +232,14 @@ public class Route extends BaseClass {
 		
 		this.button(t("Test"),Map.of(ACTION,ACTION_START)).addTo(fieldset);
 		return fieldset;
+	}
+	
+	public Integer brakeTime(String brakeId) {
+		return brakeTimes.get(brakeId);
+	}
+
+	public void brakeTime(String brakeId, Integer newTimeStep) {
+		brakeTimes.put(brakeId,newTimeStep);
 	}
 	
 	private Fieldset brakeTimes() {
@@ -1066,11 +941,6 @@ public class Route extends BaseClass {
 		return isSet(startActions) ? startActions.getSpeed(context) : null;
 	}
 
-	
-	protected static String t(String txt, Object...fills) {
-		return Translation.get(Application.class, txt, fills);
-	}
-
 	@Override
 	public String toString() {
 		return getClass().getSimpleName()+"("+(isSet(train)?train+":":"")+name()+")";
@@ -1135,9 +1005,5 @@ public class Route extends BaseClass {
 		}
 		super.update(params);
 		return properties();
-	}
-
-	public Integer brakeTime(String brakeId) {
-		return brakeTimes.get(brakeId);
 	}
 }

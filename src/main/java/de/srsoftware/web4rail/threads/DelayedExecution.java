@@ -1,4 +1,6 @@
-package de.srsoftware.web4rail;
+package de.srsoftware.web4rail.threads;
+
+import de.srsoftware.web4rail.Application;
 
 public abstract class DelayedExecution extends Thread {
 	private int delay;
