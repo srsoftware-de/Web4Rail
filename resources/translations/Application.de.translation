@@ -15,13 +15,13 @@ add action : Aktion hinzufügen
 Add action to action list : Aktion zur Liste hinzufügen
 add car : Waggon hinzufügen
 Add condition : Bedingung hinzufügen
-AddDestination : Ziel hinzufügen
 add locomotive : Lok hinzufügen
 add new aspect : neues Signalbild hinzufügen
 add new car : neuen Waggon anlegen
 Add new custom field : neues benutzerdefiniertes Feld hinzufügen
 add new locomotive : neue Lok anlegen
 add new train : neuen Zug anlegen
+AddRemoveDestination : Ziel hinzufügen/löschen
 AddRemoveTag : Markierung hinzufügen/entfernen
 Address : Adresse
 Add tag "{}" to train : Markierung "{}" zu Zug hinzufügen
@@ -87,6 +87,7 @@ click here to setup turnout : Hier klicken, um Weiche einzurichten
 Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
 Command to send : Kommando, welches gesendet werden soll
 ConditionalAction : bedingte Aktion
+Condition : Bedingung
 Conditions : Bedingungen
 Condition type : Bedingungs-Typ
 Connected to {}. : Mit {} verbunden.
@@ -345,6 +346,7 @@ SwitchIsOn : Schalter is an
 Switch power off : Strom ausschalten
 Switch power on : Strom anschalten
 SYSTEM : Betriebssystem
+Tag : Markierung
 Tags : Markierungen
 Text to display on clients : Text, welcher auf den Clients angezeigt werden soll
 Text to show on display : Text, welcher in der Anzeige dargestellt werden soll

@@ -5,9 +5,10 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
 
 public class StartStopAuto extends Action {
@@ -41,7 +42,11 @@ public class StartStopAuto extends Action {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("inverted"),new Checkbox(INVERTED, t("inverted"), inverted));
+		Tag radios = new Tag("div");
+		new Radio(INVERTED, "on", t("Start autopilot"), inverted).addTo(radios);
+		new Radio(INVERTED, "off", t("Stop autopilot"), !inverted).addTo(radios);
+		formInputs.add(t("Action"), radios);
+		
 		return super.properties(preForm, formInputs, postForm);
 	}
 	

@@ -5,9 +5,11 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
+import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
 
 public class TrainHasTag extends Condition {
@@ -22,6 +24,14 @@ public class TrainHasTag extends Condition {
 		if (isNull(train)) return false;
 		if (isNull(train.tags())) return false;
 		return train.tags().contains(tag) != inverted;
+	}
+	
+	@Override
+	public void inversionOption(FormInput formInputs) {
+		Tag radios = new Tag("div");
+		new Radio(INVERTED, "off", t("Markieung muss vorhanden sein"), !inverted).addTo(radios);
+		new Radio(INVERTED, "on", t("Markieung darf nicht vorhanden sein"), inverted).addTo(radios);
+		formInputs.add(t("Condition"), radios);
 	}
 	
 	@Override

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
@@ -47,7 +48,7 @@ public class SetSpeed extends Action{
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("Set speed to"),new Input(MAX_SPEED, speed).numeric());
+		formInputs.add(t("Set speed to"),new Input(MAX_SPEED, speed).numeric().addTo(new Tag("span")).content(NBSP+speedUnit));
 		return super.properties(preForm, formInputs, postForm);
 	}
 	

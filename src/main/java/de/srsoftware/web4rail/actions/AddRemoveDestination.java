@@ -17,7 +17,7 @@ import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Tile;
 
-public class AddDestination extends Action {
+public class AddRemoveDestination extends Action {
 
 	private static final String TURN = "turn";
 	private static final String SHUNTING = "shunting";
@@ -25,7 +25,7 @@ public class AddDestination extends Action {
 	private boolean turnAtDestination;
 	private boolean shunting;
 	
-	public AddDestination(BaseClass parent) {
+	public AddRemoveDestination(BaseClass parent) {
 		super(parent);
 	}
 
@@ -98,7 +98,10 @@ public class AddDestination extends Action {
 	
 	@Override
 	public String toString() {
-		return isSet(destination) ? t("Add {} to destinations of train",destination) : t("Clear destinations of train");
+		if (isNull(destination)) return t("Clear destinations of train");
+		String suffix = turnAtDestination ? t("Turn") : null;
+		if (shunting) suffix = (isSet(suffix) ? suffix+" + " : "")+t("Shunting");
+		return t("Add {} to destinations of train",destination)+(isSet(suffix) ? " ("+suffix+")" : "");
 	}
 	
 	@Override

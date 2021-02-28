@@ -151,7 +151,8 @@ public class ActionList extends Action implements Iterable<Action>{
 			for (Object o : list) {
 				if (o instanceof JSONObject) {
 					JSONObject jsonObject = (JSONObject) o;
-					Action action = Action.create(jsonObject.getString(TYPE),this);
+					String type = mapOldTypes(jsonObject.getString(TYPE));
+					Action action = Action.create(type,this);
 					if (isSet(action)) add(action.load(jsonObject));
 				}
 			}
@@ -159,6 +160,15 @@ public class ActionList extends Action implements Iterable<Action>{
 		return this;
 	}
 	
+	private String mapOldTypes(String type) {
+		switch (type) {
+			case "AddDestination":
+				return AddRemoveDestination.class.getSimpleName();
+			default:
+				return type;
+		}		
+	}
+
 	public void merge(ActionList oldActions) {
 		for (Action oldAction : oldActions.actions) {
 			for (Action newAction : actions) {

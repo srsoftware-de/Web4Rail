@@ -23,7 +23,7 @@ import de.srsoftware.web4rail.tags.Window;
 
 public abstract class Condition extends BaseClass {
 	public static final Logger LOG = LoggerFactory.getLogger(Condition.class);
-	private static final String INVERTED = "inverted";
+	protected static final String INVERTED = "inverted";
 	private static final String PREFIX = Condition.class.getPackageName();
 	public boolean inverted = false;
 
@@ -93,6 +93,10 @@ public abstract class Condition extends BaseClass {
 	
 	public abstract boolean fulfilledBy(Context context);
 	
+	public void inversionOption(FormInput formInputs) {
+		formInputs.add(t("inverted"),new Checkbox(INVERTED, t("inverted"), inverted));
+	}
+	
 	public JSONObject json() {
 		JSONObject json = new JSONObject().put(TYPE, getClass().getSimpleName());
 		if (inverted) json.put(INVERTED, true);
@@ -139,7 +143,7 @@ public abstract class Condition extends BaseClass {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
-		formInputs.add(t("inverted"),new Checkbox(INVERTED, t("inverted"), inverted));
+		inversionOption(formInputs);
 		return super.properties(preForm, formInputs, postForm);
 	}
 	

@@ -6,9 +6,11 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
+import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
+import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Switch;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -24,6 +26,14 @@ public class SwitchIsOn extends Condition {
 	public boolean fulfilledBy(Context context) {
 		if (isSet(swtch)) return swtch.isOn() != inverted;
 		return false;
+	}
+	
+	@Override
+	public void inversionOption(FormInput formInputs) {
+		Tag radios = new Tag("div");
+		new Radio(INVERTED, "off", t("{} is on",swtch), !inverted).addTo(radios);
+		new Radio(INVERTED, "on", t("{} is off",swtch), inverted).addTo(radios);
+		formInputs.add(t("Condition"), radios);
 	}
 
 	@Override
