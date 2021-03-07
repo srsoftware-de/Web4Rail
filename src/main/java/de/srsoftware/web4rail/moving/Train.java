@@ -23,12 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.PathFinder;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
-import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
@@ -39,9 +36,7 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.Autopilot;
 import de.srsoftware.web4rail.tiles.Block;
-import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
 
 /**
@@ -89,13 +84,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Vector<Block> lastBlocks = new Vector<Block>();
 	
 	public int speed = 0;
-	public Autopilot autopilot = null;
-	private Route nextRoute;
 	private static final String SHUNTING = "shunting";
 	private boolean shunting = false;
 
-	private boolean reserving; // used to prevent recursive calls of reserveNext
-	
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
 		if (isNull(action)) return t("No action passed to Train.action!");
@@ -178,11 +169,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public String automatic() {
-		if (isNull(autopilot)) {
-			autopilot = new Autopilot(this);
-			if (isSet(currentBlock)) plan.place(currentBlock);
-		}
-		return t("{} now in auto-mode",this);
+		return "not implemented";
+		
 	}
 	
 	private Fieldset blockHistory() {
@@ -349,38 +337,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
-	public Block destination() {
-		//LOG.debug("{}.destination()",this);
-		if (isNull(destination)) {
-			String destTag = destinationTag();
-			//LOG.debug("→ processing \"{}\"...",destTag);
-			if (isSet(destTag)) {
-				destTag = destTag.split(DESTINATION_PREFIX)[1];
-				//LOG.debug("....processing \"{}\"…",destTag);
-				for (int i=destTag.length()-1; i>0; i--) {
-					switch (destTag.charAt(i)) {
-						case FLAG_SEPARATOR:
-							destTag = destTag.substring(0,i);
-							i=0;
-							break;
-						case SHUNTING_FLAG:
-							//LOG.debug("....enabled shunting option");
-							shunting = true; 
-							break;
-					}
-				}
-
-				Block block = BaseClass.get(new Id(destTag));
-				if (isSet(block)) destination(block);
-			}
-		}// else LOG.debug("→ heading towards {}",destination);
-		return destination;
-	}
-	
-	public Train destination(Block dest) {
-		LOG.debug("destination({})",dest);
-		destination = dest;
-		return this;
+	public Block destination(){
+		return null; // TODO
 	}
 	
 	public String destinationTag() {
@@ -393,7 +351,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String directedName() {
 		String result = name();
-		String mark = isSet(autopilot) ? "ⓐ" : "";
+		String mark = ""; //isSet(autopilot) ? "ⓐ" : "";
 		if (isNull(direction)) return result;
 		switch (direction) {
 		case NORTH:
@@ -553,8 +511,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 				String.join(", ", train.tags()),
 				train.route,
 				isSet(train.currentBlock) ? train.currentBlock.link() : null,
-				train.destination(),
-				t(isSet(train.autopilot)?"On":"Off")
+				null, // TODO: show destination here!
+				null // TODO: show state of autopilot here
 			);
 		});
 		table.addTo(win);
@@ -617,10 +575,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 	
-	public Route nextRoute() {
-		return nextRoute;
-	}
-
 	public boolean onTrace(Tile t) {
 		return trace.contains(t);
 	}
@@ -681,16 +635,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public Object quitAutopilot() {
-		if (isSet(nextRoute)) {
-			nextRoute.reset();
-			nextRoute = null;
-		}
-		if (isSet(autopilot)) {
-			autopilot.doStop();
-			autopilot = null;
-			if (isSet(currentBlock)) plan.place(currentBlock);
-			return t("{} stopping at next block.",this);
-		} else return t("autopilot not active.");
+		// TODO Auto-generated method stub
+		return "not implemented";
 	}
 	
 	@Override
@@ -711,7 +657,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void removeChild(BaseClass child) {
 		LOG.debug("{}.removeChild({})",this,child);
 		if (child == route) route = null;
-		if (child == nextRoute) nextRoute = null;
+		//if (child == nextRoute) nextRoute = null; // TODO
 		if (child == currentBlock) currentBlock = null;
 		if (child == destination) destination = null;
 		cars.remove(child);
@@ -725,35 +671,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public void reserveNext() {
-		if (reserving) return;
-		LOG.debug("{}.reserveNext()",this);
-		if (isSet(nextRoute)) {
-			LOG.debug("Train already has next route: {}",nextRoute);
-			return;
-		}
-		Context context = new Context(this).route(route).block(route.endBlock()).direction(route.endDirection);
-		Route newRoute = PathFinder.chooseRoute(context);
-		if (isNull(newRoute)) {
-			LOG.debug("{}.reserveNext() found no available route!",this);			
-			return;
-		}
-		reserving = true;		
-		LOG.debug("next route: {}",newRoute);
-		newRoute.set(context);
-		boolean error = !newRoute.lockIgnoring(route);
-		error = error || !newRoute.prepare();
-
-		if (error) {
-			newRoute.reset(); // may unlock tiles belonging to the current route.
-			LOG.debug("failed to prepare new route {}",newRoute);
-			route.lock(); // corrects unlocked tiles of nextRoute
-		} else {
-			nextRoute = newRoute;
-			LOG.debug("prepared next route: {}",nextRoute);
-		}
-		reserving = false;
+		// TODO
 	}
-	
 	/**
 	 * This turns the train as if it went through a loop. Example:
 	 * before: CabCar→ MiddleCar→ Loco→
@@ -782,12 +701,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return route;
 	}
 	
-	public Train route(Route newRoute) {
-		route = newRoute;
-		if (isNull(route)) shunting = false; // quit shunting on finish route
-		return this;
-	}
-
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		for (Train train:BaseClass.listElements(Train.class)) file.write(train.json()+"\n");
@@ -831,7 +744,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(tile)) return t("Tile {} not known!",dest);
 		if (tile instanceof Block) {
 			destination = (Block) tile;
-			automatic();
+			start();
 			return t("{} now heading for {}",this,destination);
 		}
 		return t("{} is not a block!",tile);
@@ -883,11 +796,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		LOG.debug("new trace of {}: {}",this,trace);
 	}
 
-	public void setWaitTime(Range waitTime) {
-		if (isNull(autopilot)) return;
-		autopilot.waitTime(waitTime);
-	}
-	
 	private Tag slower(int steps) {
 		setSpeed(speed-steps);
 		return properties();
@@ -921,44 +829,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 
-	public String start() throws IOException {
-		LOG.debug("{}.start()",this);
-		if (isNull(currentBlock)) return t("{} not in a block",this);
-		if (maxSpeed() == 0) return t("Train has maximum speed of 0 {}, cannot go!",speedUnit);
-		if (isSet(route)) route.reset(); // reset route previously chosen
-
-		String error = null;
-		if (isSet(nextRoute)) {
-			LOG.debug("{}.nextRoute = {}",this,nextRoute);
-			route = nextRoute;
-			if (!route.lock()) return t("Was not able to lock {}",route);
-			nextRoute = null;
-			route.set(new Context(this).block(currentBlock).direction(direction));			
-		} else {
-			if (reserving) return t("Route chooser already active");
-			Context context = new Context(this).block(currentBlock).direction(direction);
-			route = PathFinder.chooseRoute(context);
-			if (isNull(route)) return t("No free routes from {}",currentBlock);
-			LOG.debug("Chosen route: {}",route);
-			if (!route.lock()) error = t("Was not able to lock {}",route);
-			route.set(context);
-			if (isNull(error) && !route.prepare()) error = t("Was not able to fire all setup actions of route!");
-		}
-		if (isNull(route)) return t("Route cancelled"); // route may have been canceled in between
-		if (isNull(error) && direction != route.startDirection) turn();
-		
-		if (isNull(error) && !route.start(this)) error = t("Was not able to assign {} to {}!",this,route);
-		if (isSet(error)) {
-			LOG.debug("{}.start:error = {}",this,error);
-			route.reset();
-			route = null;
-			return error;
-		}
-		startSimulation();
-
-		String res = t("Started {}",this); 
-		plan.stream(res);
-		return res;
+	public String start() {
+		return "not implemented, yet";
 	}
 	
 	public static void startAll() {
@@ -966,49 +838,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.automatic());
 	}
 	
-	private void startSimulation() {
-		LOG.debug("{}.startSimulation()",this);
-		for (Contact contact : route.contacts()) {
-			if (contact.addr() != 0) {
-				LOG.debug("{}.startSimulation aborted!",this);
-				return; // simulate train only when all contacts are non-physical
-			}
-		}
-		try {
-			Thread.sleep(1000);
-			plan.stream(t("Simulating movement of {}...",this));
-			Thread simulation = new Thread() {
-				public void run() {
-					for (Tile tile : route.path()) {
-						if (isNull(route)) break;
-						try {
-							if (tile instanceof Contact) {
-								Contact contact = (Contact) tile;
-								contact.activate(true);
-								sleep(200);
-								contact.activate(false);
-							}
-							sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-				};
-			};
-			simulation.setName(Application.threadName("Simulation("+Train.this+")"));
-			simulation.start();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public Object stopNow() {
-		quitAutopilot();
-		if (isSet(route)) {
-			route.reset();
-			route = null;
-		}
-		setSpeed(0);
 		
 		return properties();
 	}
@@ -1073,6 +903,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public boolean usesAutopilot() {
-		return isSet(autopilot);
+		return false; // TODO
 	}
 }

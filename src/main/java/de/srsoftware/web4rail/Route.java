@@ -37,7 +37,6 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.BrakeProcessor;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -79,7 +78,7 @@ public class Route extends BaseClass {
 
 	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
 
-	private BrakeProcessor				   brakeProcessor = null;
+//	private BrakeProcessor				   brakeProcessor = null;
 	private HashMap<String,Integer>        brakeTimes = new HashMap<String, Integer>();
 	private ConditionList                  conditions;
 	private Vector<Contact>                contacts;
@@ -270,7 +269,7 @@ public class Route extends BaseClass {
 	
 	public void brakeStart() {
 		if (isNull(train)) return;		
-		brakeProcessor = new BrakeProcessor(this,train);
+//		brakeProcessor = new BrakeProcessor(this,train);
 	}
 	
 	protected Route clone() {
@@ -388,51 +387,9 @@ public class Route extends BaseClass {
 	public void finish() {
 		LOG.debug("{}.finish()",this);
 		
-		if (isSet(train)) {
-			Route nextRoute = train.nextRoute();
-			if (isSet(nextRoute)) {
-				LOG.debug("{} has next route: {}",train,nextRoute);
-				if (isSet(brakeProcessor)) brakeProcessor.abort();
-			} else {
-				LOG.debug("{} has no next route.",train);
-				if (isSet(brakeProcessor)) {					
-					brakeProcessor.finish();
-				} else train.setSpeed(0);
-			}
-		}
-		brakeProcessor = null;
-		
-		free();
-		
-		if (isSet(train)) {
-			moveTrainToEndBlock();
-			if (train.route() == this) train.route(null);
-			train = null;
-		}		
-	
-		state = State.FREE;
+		// TODO
 	}
 	
-	/**
-	 * sets all signals of this route to RED,
-	 * frees all tiles occupied by this route
-	 */
-	private void free() {
-		LOG.debug("{}.free()",this);
-		context.clear(); // prevent delayed actions from firing after route has finished
-
-		setSignals(Signal.RED);
-		for (Tile tile : path) try { // remove route from tiles on path
-			tile.unset(this);
-		} catch (IllegalArgumentException e) {}
-		
-/*		Tile lastTile = path.lastElement();
-		if (lastTile instanceof Contact) {
-			lastTile.setTrain(null);
-			if (isSet(train)) train.removeChild(lastTile);
-		}*/
-	}
-
 	private String generateName() {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<path.size();i++) {
@@ -693,57 +650,6 @@ public class Route extends BaseClass {
 		return success;
 	}
 	
-	private void moveTrainToEndBlock() {
-		if (isNull(train)) return;
-		LOG.debug("{}.moveTrainToEndBlock()",this);
-		
-		train.set(endBlock);
-		traceTrainFrom(endBlock);
-		train.heading(endDirection);
-	
-		if (endBlock == train.destination()) {
-			train.destination(null); // unset old destination
-			String destTag = train.destinationTag();
-			if (isSet(destTag)) {
-				LOG.debug("destination list: {}",destTag);
-				String[] parts = destTag.split(Train.DESTINATION_PREFIX);
-				for (int i=0; i<parts.length;i++) LOG.debug("  part {}: {}",i+1,parts[i]);
-				String destId = parts[1];
-				LOG.debug("destination tag: {}",destId);
-				boolean turn = false;
-				
-				for (int i=destId.length()-1; i>0; i--) {
-					switch (destId.charAt(i)) {
-						case Train.FLAG_SEPARATOR:
-							destId = destId.substring(0,i);
-							i=0;
-							break;
-						case Train.TURN_FLAG:
-							turn = true; 
-							LOG.debug("Turn flag is set!");
-							break;
-					}
-				}
-				if (destId.equals(endBlock.id().toString())) { 
-					if (turn) train.turn();
-					
-					// update destination tag: remove and add altered tag:
-					train.removeTag(destTag);
-					destTag = destTag.substring(parts[1].length()+1);
-					if (destTag.isEmpty()) { // no further destinations
-						destTag = null;
-					} else train.addTag(destTag);
-				}					
-			}
-			
-			if (isNull(destTag)) {
-				train.quitAutopilot();
-				plan.stream(t("{} reached it`s destination!",train));
-			}
-		} else train.setWaitTime(endBlock.getWaitTime(train,train.direction()));
-		if (startBlock.train() == train && !train.onTrace(startBlock)) startBlock.setTrain(null); // withdraw train from start block only if trace does not go back there
-	}
-	
 	public List<Route> multiply(int size) {
 		Vector<Route> routes = new Vector<Route>();
 		for (int i=0; i<size; i++) routes.add(i==0 ? this : this.clone());
@@ -786,11 +692,6 @@ public class Route extends BaseClass {
 			script.content("$('#"+tile.id()+"').addClass('preview');\n");
 		}
 		return script;
-	}
-	
-	public Route prolong(Route nextRoute) {
-		if (isSet(brakeProcessor)) brakeProcessor.setEndSpeed(nextRoute.startSpeed());
-		return nextRoute;
 	}
 	
 	@Override
@@ -853,15 +754,8 @@ public class Route extends BaseClass {
 	
 	public boolean reset() {
 		LOG.debug("{}.reset()",this);
-		free();
 		
-		if (isSet(brakeProcessor)) brakeProcessor.abort();
-		if (isSet(train)) {
-			train.set(startBlock);
-			train.heading(startDirection);
-			if (train.route() == this) train.route(null);
-			train = null;
-		}
+		// TODO
 		state = State.FREE;
 		return true;
 	}
