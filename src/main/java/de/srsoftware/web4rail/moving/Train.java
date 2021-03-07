@@ -36,6 +36,7 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.PathFinder;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Tile;
 
@@ -168,9 +169,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;		
 	}
 	
-	public String automatic() {
-		return "not implemented";
-		
+	public boolean automatic() {
+		return false;		
 	}
 	
 	private Fieldset blockHistory() {
@@ -776,6 +776,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
+	protected Route setRoute(Route newRoute) {
+		route = newRoute;
+		return route;
+	}
+	
 	public void setSpeed(int newSpeed) {
 		LOG.debug("{}.setSpeed({})",this,newSpeed);
 		speed = Math.min(newSpeed,maxSpeed());
@@ -829,15 +834,40 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 
-	public String start() {
-		return "not implemented, yet";
+	public void start() {
+		Context context = new Context(this).block(currentBlock).direction(direction);
+		new PathFinder(context) {
+			
+			@Override
+			public void found(Route r) {
+				// TODO Auto-generated method stub
+				LOG.debug("Route {} prepared for {}",r,Train.this);
+			}
+			
+			@Override
+			public void locked(Route r) {
+				// TODO Auto-generated method stub
+				LOG.debug("Route {} locked for {}",r,Train.this);
+			}
+			
+			@Override
+			public void prepared(Route r) {
+				LOG.debug("Route {} prepared for {}",r,Train.this);
+				setRoute(r).start(Train.this);
+			}
+		};
 	}
-	
+
 	public static void startAll() {
 		LOG.debug("Train.startAll()");
-		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.automatic());
+		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.startAutopilot());
 	}
-	
+
+	private String startAutopilot() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public Object stopNow() {
 		
 		return properties();

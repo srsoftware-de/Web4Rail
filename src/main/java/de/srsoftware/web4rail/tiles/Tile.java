@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.PathFinder;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.AlterDirection;
@@ -33,6 +32,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.PathFinder;
 
 /**
  * Base class for all tiles

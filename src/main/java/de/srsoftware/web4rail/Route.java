@@ -37,6 +37,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.PathFinder;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -387,7 +388,8 @@ public class Route extends BaseClass {
 	public void finish() {
 		LOG.debug("{}.finish()",this);
 		
-		// TODO
+		// TODO:
+
 	}
 	
 	private String generateName() {
@@ -635,19 +637,21 @@ public class Route extends BaseClass {
 		LOG.debug("{}.lockIgnoring({})",this,ignoredRoute);
 		HashSet<Tile> ignoredPath = new HashSet<Tile>();
 		if (isSet(ignoredRoute)) ignoredPath.addAll(ignoredRoute.path);
-		boolean success = true;
 		for (Tile tile : path) {
 			if (ignoredPath.contains(tile)) continue;
 			try {
 				tile.setRoute(this);
 			} catch (IllegalStateException e) {
 				LOG.debug("{}.lockIgnoring(...) failed at {}, rolling back",this,tile);
-				success = false;
-				break;
+				for (Tile lockedTile : path) { // unlock the same tiles that have been locked before, until we encounter the unlockable tile
+					if (lockedTile == tile) return false;
+					lockedTile.unset(this);
+				}
+				return false;
 			}			
 		}
-		if (success) state = State.LOCKED;
-		return success;
+		state = State.LOCKED;
+		return true;
 	}
 	
 	public List<Route> multiply(int size) {

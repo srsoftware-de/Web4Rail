@@ -1,4 +1,4 @@
-package de.srsoftware.web4rail;
+package de.srsoftware.web4rail.threads;
 
 import java.util.HashSet;
 import java.util.List;
@@ -9,15 +9,27 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Block;
 
 /**
  * @author Stephan Richter, SRSoftware 2020-2021 
  */
-public class PathFinder extends BaseClass{
+public abstract class PathFinder extends BaseClass implements Runnable{
 	public static final Logger LOG = LoggerFactory.getLogger(PathFinder.class);
+	private Context context;
+	private boolean aborted = false;
+	
+	public PathFinder(Context context) {
+		this.context = context;
+	}
+	
+	public void abort() {
+		aborted = true;
+	}
 
 	private static TreeMap<Integer,List<Route>> availableRoutes(Context context,HashSet<Route> visitedRoutes){
 		String inset = "";
@@ -108,9 +120,9 @@ public class PathFinder extends BaseClass{
 		return availableRoutes;
 	}
 	
-	public static Route chooseRoute(Context context) {
-		LOG.debug("PathFinder.chooseRoute({})",context);
-		TreeMap<Integer, List<Route>> availableRoutes = PathFinder.availableRoutes(context,new HashSet<Route>());
+	public Route chooseRoute() {
+		LOG.debug("PathFinder.chooseRoute()");
+		TreeMap<Integer, List<Route>> availableRoutes = availableRoutes(context,new HashSet<Route>());
 		while (!availableRoutes.isEmpty()) {
 			LOG.debug("availableRoutes: {}",availableRoutes);
 			Entry<Integer, List<Route>> entry = availableRoutes.lastEntry();
@@ -128,4 +140,29 @@ public class PathFinder extends BaseClass{
 		}
 		return null;
 	}
+
+	@Override
+	public void run() {
+		while (true) {
+			Route route = chooseRoute();
+			if (aborted) return;
+			if (isSet(route)) {
+				found(route);
+				if (aborted) return;
+				if (route.lock()) {
+					locked(route);
+					if (aborted) return;
+					if (route.prepare()) {
+						prepared(route);
+						return;
+					}
+				}
+			}
+			sleep(1000);
+		}
+	}
+	
+	public abstract void locked(Route r);
+	public abstract void found(Route r);
+	public abstract void prepared(Route r);
 }

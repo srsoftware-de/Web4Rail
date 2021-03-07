@@ -510,6 +510,13 @@ public abstract class BaseClass implements Constants{
 		customFieldNames = new HashMap<Class<? extends BaseClass>, Set<String>>();
 	}
 
+	public void sleep(long ms) {
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public static String t(String txt, Object...fills) {
 		if (isSet(fills)) for (int i=0; i<fills.length; i++) {
