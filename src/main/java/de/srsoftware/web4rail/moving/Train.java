@@ -38,12 +38,23 @@ import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.threads.PathFinder;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
+import de.srsoftware.web4rail.tiles.Tile.Status;
 
 /**
  * @author Stephan Richter, SRSoftware 2020-2021 * 
  */
 public class Train extends BaseClass implements Comparable<Train> {
+	
+	public interface Listener {
+		enum Signal {
+			STOP
+		}
+		
+		public void on(Signal signal);
+	}
+
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 
 	private static final String CAR_ID  = "carId";
@@ -87,6 +98,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public int speed = 0;
 	private static final String SHUNTING = "shunting";
 	private boolean shunting = false;
+
+	private HashSet<Listener> listeners = new HashSet<Train.Listener>();
 
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
@@ -147,10 +160,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
+	public Train add(Car car) {
+		if (isSet(car)) {
+			cars.add(car);
+			car.train(this);
+		}
+		return this;		
+	}
+
 	public void addTag(String tag) {
 		tags.add(tag);
 	}
-
+	
 	private Object addCar(HashMap<String, String> params) {
 		LOG.debug("addCar({})",params);
 		String carId = params.get(CAR_ID);
@@ -161,12 +182,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 
-	public Train add(Car car) {
-		if (isSet(car)) {
-			cars.add(car);
-			car.train(this);
-		}
-		return this;		
+	public void addListener(Listener listener) {
+		listeners.add(listener);
 	}
 	
 	public boolean automatic() {
@@ -299,6 +316,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
+	public void contact(Contact contact) {
+		if (isSet(route)) route.contact(contact);
+	}
+
+	
 	public void coupleWith(Train parkingTrain,boolean swap) {
 		if (isSet(direction) && isSet(parkingTrain.direction) && parkingTrain.direction != direction) parkingTrain.turn();
 		if (swap) {
@@ -384,7 +406,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void dropTrace() {
-		while (!trace.isEmpty()) trace.removeFirst().setTrain(null);
+		while (!trace.isEmpty()) trace.removeFirst().free();
 	}
 	
 	private Tag faster(int steps) {
@@ -485,8 +507,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
 		if (json.has(NAME)) name = json.getString(NAME);
 		if (json.has(TAGS))  json.getJSONArray(TAGS ).forEach(elem -> {  tags.add(elem.toString()); });
-		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(new Id(elem.toString()), false).setTrain(this)); });
-		if (json.has(BLOCK)) currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false).setTrain(this); // do not move this up! during set, other fields will be referenced!
+		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {
+			Tile tile = plan.get(new Id(elem.toString()), false);
+			if (tile.setState(Status.OCCUPIED,this)) trace.add(tile);
+		});
+		if (json.has(BLOCK)) {// do not move this up! during set, other fields will be referenced!
+			currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false);
+			currentBlock.setState(Status.OCCUPIED,this); 
+		}
 		if (json.has(LOCOS)) { // for downward compatibility
 			for (Object id : json.getJSONArray(LOCOS)) add(BaseClass.get(new Id(""+id)));	
 		}		
@@ -724,10 +752,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public void set(Block newBlock) {
 		LOG.debug("{}.set({})",this,newBlock);
-		if (isSet(currentBlock)) currentBlock.setTrain(null);
+		if (isSet(currentBlock)) currentBlock.free();
 		currentBlock = newBlock;
 		if (isSet(currentBlock)) {
-			currentBlock.setTrain(this);
+			currentBlock.setState(Status.OCCUPIED,this);
 			lastBlocks.add(newBlock);
 			if (lastBlocks.size()>32) lastBlocks.remove(0);
 		}
@@ -776,9 +804,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
-	protected Route setRoute(Route newRoute) {
+	public Train setRoute(Route newRoute) {
 		route = newRoute;
-		return route;
+		return this;
 	}
 	
 	public void setSpeed(int newSpeed) {
@@ -794,9 +822,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		LOG.debug("old trace: {}",trace);
 
 		trace.removeAll(newTrace);			
-		for (Tile tile : trace) tile.setTrain(null);
+		for (Tile tile : trace) tile.free();
 		trace = newTrace;
-		for (Tile tile : trace) tile.setTrain(this);
+		for (Tile tile : trace) tile.setState(Status.OCCUPIED,this);
 		
 		LOG.debug("new trace of {}: {}",this,trace);
 	}
@@ -835,27 +863,33 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 
 	public void start() {
-		Context context = new Context(this).block(currentBlock).direction(direction);
-		new PathFinder(context) {
+		new PathFinder(this,currentBlock,direction) {
 			
 			@Override
-			public void found(Route r) {
+			public void aborted() {
+				LOG.debug("Aborted");
+			}
+			
+			@Override
+			public void found(Route newRoute) {
 				// TODO Auto-generated method stub
-				LOG.debug("Route {} prepared for {}",r,Train.this);
+				LOG.debug("Found route {} for {}",newRoute,Train.this);
 			}
-			
+
 			@Override
-			public void locked(Route r) {
+			public void locked(Route newRoute) {
 				// TODO Auto-generated method stub
-				LOG.debug("Route {} locked for {}",r,Train.this);
+				LOG.debug("Locked route {} for {}",newRoute,Train.this);
 			}
 			
 			@Override
-			public void prepared(Route r) {
-				LOG.debug("Route {} prepared for {}",r,Train.this);
-				setRoute(r).start(Train.this);
+			public void prepared(Route newRoute) {
+				LOG.debug("Prepared route {} for {}",newRoute,Train.this);
+				newRoute.start(Train.this);
 			}
-		};
+
+	
+		}.start();
 	}
 
 	public static void startAll() {
@@ -869,7 +903,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public Object stopNow() {
-		
+		setSpeed(0);
+		listeners.forEach(listener -> listener.on(Listener.Signal.STOP));
 		return properties();
 	}
 
@@ -911,6 +946,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	 */
 	public Train turn() {
 		LOG.debug("{}.turn()",this);
+		setSpeed(0);
 		for (Car car : cars) car.turn();
 		Collections.reverse(cars);
 		return reverse();

@@ -77,14 +77,20 @@ svg.Relay rect{
 	fill: white;
 }
 
-svg.locked polygon,
-svg.locked rect:not(.sig_a):not(.sig_b){
-	fill:lime;
+svg.allocated polygon,
+svg.allocated rect:not(.sig_a):not(.sig_b){
+	fill: yellow;
 }
 
+svg.locked polygon,
+svg.locked rect:not(.sig_a):not(.sig_b){
+	fill: lime;
+}
+
+.occupied .block,
 svg.occupied polygon,
 svg.occupied rect:not(.sig_a):not(.sig_b){
-	fill:yellow;
+	fill: orange;
 }
 
 svg text{
@@ -230,10 +236,6 @@ svg.right rect,
 svg.straight .left,
 svg.straight .right{
 	fill: #ddd !important;
-}
-
-.occupied .block{
-	fill: yellow;
 }
 
 .active circle{

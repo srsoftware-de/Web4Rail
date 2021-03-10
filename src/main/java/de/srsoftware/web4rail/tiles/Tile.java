@@ -40,12 +40,27 @@ import de.srsoftware.web4rail.threads.PathFinder;
  *
  */
 public abstract class Tile extends BaseClass implements Comparable<Tile>{
+	public enum Status{
+		FREE("free"),
+		ALLOCATED("allocated"),
+		LOCKED("locked"),
+		OCCUPIED("occupied");
+
+		private String tx;
+
+		Status(String s) {
+			tx = s;
+		}
+		
+		@Override
+		public String toString() {
+			return tx;
+		}
+	}
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);	
 	private static int DEFAUT_LENGTH = 100; // 10cm
 	
 	private   static final String LENGTH     = "length";
-	private   static final String LOCKED     = "locked";
-	protected static final String OCCUPIED   = "occupied";
 	private   static final String ONEW_WAY   = "one_way";
 	private   static final String POS        = "pos";
 	private   static final String TYPE       = "type";
@@ -56,8 +71,8 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	private   boolean         isTrack   = true;
 	private   int             length    = DEFAUT_LENGTH;
 	protected Direction       oneWay    = null;
-	protected Route           route     = null;
 	private   TreeSet<Route>  routes    = new TreeSet<>((r1,r2)->r1.toString().compareTo(r2.toString()));
+	private   Status		  status 	= Status.FREE;
 	protected Train           train     = null;	
 	public    Integer         x         = null;
 	public    Integer         y         = null;
@@ -65,13 +80,38 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	public void add(Route route) {
 		this.routes.add(route);
 	}
+	
+	public boolean canNeEnteredBy(Train newTrain) {
+		PathFinder.LOG.debug("{}.canNeEnteredBy({})",this,newTrain);
+		if (disabled) {
+			PathFinder.LOG.debug("{} is disabled!",this);
+			return false;
+		}
+		
+		if (isNull(train)) {
+			PathFinder.LOG.debug("→ free");
+			return true;
+		}
+
+		if (newTrain == train) { // during train.reserveNext, we may encounter, parts, that are already reserved by the respective train, but having another route. do not compare routes in that case!
+			PathFinder.LOG.debug("already reserved by {} → true",train);
+			return true;
+		}
+
+		if (isSet(newTrain) && newTrain.isShunting()) {
+			PathFinder.LOG.debug("occupied by {}. Allowed for shunting {}",train,newTrain);
+			return true;
+		}
+			
+		PathFinder.LOG.debug("occupied by {} → false",train);				
+		return false;
+	}
 
 	protected HashSet<String> classes(){
 		HashSet<String> classes = new HashSet<String>();
 		classes.add("tile");
-		classes.add(getClass().getSimpleName());
-		if (isSet(route)) classes.add(LOCKED);
-		if (isSet(train)) classes.add(OCCUPIED);
+		classes.add(getClass().getSimpleName());		
+		if (!is(Status.FREE)) classes.add(status.toString());
 		if (disabled)     classes.add(DISABLED);
 		return classes;
 	}
@@ -96,6 +136,11 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		return new HashMap<>();
 	}
 	
+	public void free() {
+		train = null;
+		status = Status.FREE;
+	}
+	
 	public int height() {
 		return 1;
 	}
@@ -115,58 +160,18 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		if (tile instanceof TileWithShadow) ((TileWithShadow)tile).placeShadows();
 		plan.place(tile);
 	}
-
-	public boolean isFreeFor(Context context) {
-		PathFinder.LOG.debug("{}.isFreeFor({})",this,context);
-		if (disabled) {
-			PathFinder.LOG.debug("{} is disabled!",this);
-			return false;
+	
+	public boolean is(Status...states) {
+		for (Status s: states) {
+			if (status == s) return true;
 		}
-		if (isNull(context)) {
-			if (isSet(train)) {
-				PathFinder.LOG.debug("{} is occupied by {}",this,train);
-				return false;
-			}
-			if (isSet(route)) {
-				PathFinder.LOG.debug("{} is occupied by {}",this,route);
-				return false;				
-			}
-		}
-		if (isSet(train)) {
-			Train contextTrain = context.train();
-			boolean free = train == contextTrain; // during train.reserveNext, we may encounter, parts, that are already reserved by the respective train, but having another route. do not compare routes in that case!
-			if (free) {
-				PathFinder.LOG.debug("already reserved by {} → true",train);
-			} else {
-				if (isSet(contextTrain) && contextTrain.isShunting()) {
-					PathFinder.LOG.debug("occupied by {}. Allowed for shunting {}",train,contextTrain);
-					free = true;
-				} else PathFinder.LOG.debug("occupied by {} → false",train);				
-			}
-			return free;
-		}
-		
-		// if we get here, the tile is not occupied by a train, but reserved by a route, yet. thus, the tile is not available for another route
-		if (isSet(route) && route != context.route()) {
-			PathFinder.LOG.debug("reserved by other route: {}",route);
-			if (isSet(route.train())) {				
-				if (route.train() == context.train()) {
-					PathFinder.LOG.debug("that route is used by {}, which is also requesting this tile → true",route.train());
-					return true;
-				}
-			}
-			PathFinder.LOG.debug("{}.route.train = {} → false",this,route.train());
-			return false;
-		}
-		PathFinder.LOG.debug("free");
-		return true;
+		return false;
 	}
-		
+
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(TYPE, getClass().getSimpleName());
 		if (isSet(x) && isSet(y)) json.put(POS, new JSONObject(Map.of(X,x,Y,y)));
-		if (isSet(route))     json.put(ROUTE, route.id());
 		if (isSet(oneWay))    json.put(ONEW_WAY, oneWay);
 		if (disabled)         json.put(DISABLED, true);
 		if (isSet(train))     json.put(REALM_TRAIN, train.id());
@@ -242,7 +247,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	protected void noTrack() {
 		isTrack  = false;
 	}
-		
+	
 	public Tile position(int x, int y) {
 		this.x = x;
 		this.y = y;
@@ -256,16 +261,9 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
 		Fieldset fieldset = null;
-
-		if (isSet(route)) {
-			fieldset = new Fieldset(t("Route"));
-			route.link("p",t("Locked by {}",route)).addTo(fieldset);
-		}
 		
 		if (isSet(train)) {
-			if (isSet(fieldset)) {
-				fieldset.children().firstElement().content(" / "+t("Train"));
-			} else fieldset = new Fieldset(t("Train"));
+			fieldset = new Fieldset(t("Train"));
 			train.link("span", t("Train")+":"+NBSP+train+NBSP).addTo(fieldset);
 			if (isSet(train.route())) {
 				train.button(t("stop"), Map.of(ACTION,ACTION_STOP)).addTo(fieldset);
@@ -352,10 +350,6 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		}
 		return line;
 	}
-
-	public Route route() {
-		return route;
-	}
 	
 	public TreeSet<Route> routes() {
 		return routes;
@@ -370,24 +364,16 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		file.close();
 	}
 	
-	public Tile setTrain(Train newTrain) {
-		LOG.debug("{}.setTrain({})",this,newTrain);
-		if (newTrain == train) return this; // nothing to update
-		this.train = newTrain;		
-		return plan.place(this);
-	}	
-
-	public Tile setRoute(Route lockingRoute) {
-		LOG.debug("{}.setRoute({})",this,lockingRoute);
-		if (isNull(lockingRoute)) throw new NullPointerException();
-		if (isSet(route)) {
-			if (route == lockingRoute) return this; // nothing changed
-			throw new IllegalStateException(this.toString()); // tile already locked by other route
-		}
-		route = lockingRoute;
-		return plan.place(this);
+	public boolean setState(Status newState,Train newTrain) {
+		if (isNull(newTrain)) return false;
+		if (isSet(train) && newTrain != train) return false; // already locked by other train		
+		if (is(Status.OCCUPIED,newState)) return true; // do not downgrade occupied tiles, accept current state
+		train = newTrain;
+		status = newState;
+		plan.place(this);
+		return true;
 	}
-
+	
 	public Tag tag(Map<String,Object> replacements) throws IOException {
 		int width = 100*width();
 		int height = 100*height();
@@ -477,7 +463,6 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		if (child instanceof Route) routes.remove(child);
 		
 		if (child == train) train = null;
-		if (child == route) route = null;
 		super.removeChild(child);
 		plan.place(this);
 	}
@@ -487,22 +472,6 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 		plan.place(this);
 	}
 	
-	public void unlock() {
-		route = null;
-		train = null;
-		plan.place(this);
-	}
-	
-	public Tile unset(Route oldRoute) {
-		LOG.debug("{}.unset({})",this,oldRoute);
-		if (route == null) return this;
-		if (route == oldRoute) {
-			route = null;			
-			return plan.place(this);
-		}
-		throw new IllegalArgumentException(t("{} not occupied by {}!",this,oldRoute));
-	}
-
 	public Tile update(HashMap<String, String> params) {
 		LOG.debug("{}.update({})",getClass().getSimpleName(),params);
 		String oneWayDir = params.get("oneway");

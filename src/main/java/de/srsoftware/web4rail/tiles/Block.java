@@ -147,9 +147,16 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
+	public boolean canNeEnteredBy(Train newTrain) {
+		if (!super.canNeEnteredBy(newTrain)) return false;
+		if (parkedTrains.isEmpty()) return true;
+		return isNull(newTrain) ? false : newTrain.isShunting(); // block contains train(s), thus it is only free for shunting train
+	}
+	
+	@Override
 	protected HashSet<String> classes() {
 		HashSet<String> classes = super.classes();
-		if (!parkedTrains.isEmpty()) classes.add(OCCUPIED);
+		if (!parkedTrains.isEmpty()) classes.add(Status.OCCUPIED.toString());
 		return classes;
 	}
 	
@@ -229,14 +236,6 @@ public abstract class Block extends StretchableTile{
 		return 1+internalContacts.indexOf(contact);
 	}
 	
-	@Override
-	public boolean isFreeFor(Context context) {
-		if (!super.isFreeFor(context)) return false;
-		if (parkedTrains.isEmpty()) return true;
-		Train t = isSet(context) ? context.train() : null;
-		return isSet(t) ? t.isShunting() : false; // block contains train(s), thus it is olny free for shunting train
-	}
-		
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
@@ -358,7 +357,6 @@ public abstract class Block extends StretchableTile{
 		super.removeChild(child);
 		internalContacts.remove(child);
 		if (parkedTrains.remove(child)) plan.place(this);		
-		if (train == child) setTrain(null);
 	}
 	
 	public void removeContact(BlockContact blockContact) {

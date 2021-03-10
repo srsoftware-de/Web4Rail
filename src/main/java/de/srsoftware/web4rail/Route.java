@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Stack;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -44,6 +45,7 @@ import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
 import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.Tile;
+import de.srsoftware.web4rail.tiles.Tile.Status;
 import de.srsoftware.web4rail.tiles.Turnout;
 /**
  * A route is a vector of tiles that leads from one block to another.
@@ -53,9 +55,9 @@ import de.srsoftware.web4rail.tiles.Turnout;
  */
 public class Route extends BaseClass {
 	
-	public enum State {
+/*	public enum State {
 		FREE, LOCKED, PREPARED, STARTED;
-	}
+	}*/
 	public static final Logger LOG = LoggerFactory.getLogger(Route.class);
 
 	private static final String ACTIONS = "actions";
@@ -70,7 +72,7 @@ public class Route extends BaseClass {
 	static final String PATH     = "path";
 	static final String SIGNALS  = "signals";
 	static final String TURNOUTS = "turnouts";
-	private State state = State.FREE;
+	//private State state = State.FREE;
 	public static boolean freeBehindTrain = true;
 
 	private static final String ROUTE_START = "route_start";
@@ -79,11 +81,9 @@ public class Route extends BaseClass {
 
 	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
 
-//	private BrakeProcessor				   brakeProcessor = null;
 	private HashMap<String,Integer>        brakeTimes = new HashMap<String, Integer>();
 	private ConditionList                  conditions;
 	private Vector<Contact>                contacts;
-	private Context                        context; // this context is passed to actions
 	private boolean                        disabled = false;
 	private Block                          endBlock = null;
 	public  Direction					   endDirection;
@@ -100,7 +100,7 @@ public class Route extends BaseClass {
 		conditions = new ConditionList();
 		conditions.parent(this);
 	}
-		
+	
 	/**
 	 * process commands from the client
 	 * @param params
@@ -121,12 +121,6 @@ public class Route extends BaseClass {
 				plan.stream(t("Removed {}.",route));				
 				return plan.properties(new HashMap<String,String>());
 			case ACTION_PROPS:
-				return route.properties();
-			case ACTION_START:
-				route.set(new Context(route));
-				route.prepare();
-				route.context.clear();
-				
 				return route.properties();
 			case ACTION_UPDATE:
 				return route.update(params,plan);
@@ -202,6 +196,10 @@ public class Route extends BaseClass {
 	
 	void addTurnout(Turnout t, Turnout.State s) {
 		turnouts.put(t, s);
+	}
+	
+	public boolean allocateFor(Train newTrain) {
+		return pathState(newTrain,Tile.Status.ALLOCATED);
 	}
 	
 	/**
@@ -333,6 +331,7 @@ public class Route extends BaseClass {
 		ActionList actions = triggeredActions.get(contact.trigger());
 		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
 		if (isNull(actions)) return;
+		Context context = new Context(this).train(train);
 		actions.fire(context,"Route.Contact("+contact.addr()+")");
 	}
 
@@ -371,10 +370,6 @@ public class Route extends BaseClass {
 		}
 		list.addTo(win);
 		return win;
-	}
-	
-	public Context context() {
-		return context.clone();
 	}
 	
 	public void dropBraketimes(String...brakeIds) {
@@ -416,10 +411,10 @@ public class Route extends BaseClass {
 		return disabled;
 	}
 		
-	public boolean isFreeFor(Context context) {
-		PathFinder.LOG.debug("{}.isFreeFor({})",this,context);
+	public boolean isFreeFor(Train newTrain) {
+		PathFinder.LOG.debug("{}.isFreeFor({})",this,newTrain);
 		for (int i=1; i<path.size(); i++) {
-			if (!path.get(i).isFreeFor(context)) {
+			if (!path.get(i).canNeEnteredBy(newTrain)) {
 				PathFinder.LOG.debug("{}.isFreeFor(...) → false",this);
 				return false;
 			}
@@ -627,33 +622,7 @@ public class Route extends BaseClass {
 		}
 		fis.close();
 	}
-		
-	public boolean lock() {
-		return lockIgnoring(null);
-	}
-	
-	public boolean lockIgnoring(Route ignoredRoute) {
-		if (state == State.LOCKED || state == State.PREPARED || state == State.STARTED) return true;
-		LOG.debug("{}.lockIgnoring({})",this,ignoredRoute);
-		HashSet<Tile> ignoredPath = new HashSet<Tile>();
-		if (isSet(ignoredRoute)) ignoredPath.addAll(ignoredRoute.path);
-		for (Tile tile : path) {
-			if (ignoredPath.contains(tile)) continue;
-			try {
-				tile.setRoute(this);
-			} catch (IllegalStateException e) {
-				LOG.debug("{}.lockIgnoring(...) failed at {}, rolling back",this,tile);
-				for (Tile lockedTile : path) { // unlock the same tiles that have been locked before, until we encounter the unlockable tile
-					if (lockedTile == tile) return false;
-					lockedTile.unset(this);
-				}
-				return false;
-			}			
-		}
-		state = State.LOCKED;
-		return true;
-	}
-	
+			
 	public List<Route> multiply(int size) {
 		Vector<Route> routes = new Vector<Route>();
 		for (int i=0; i<size; i++) routes.add(i==0 ? this : this.clone());
@@ -681,12 +650,26 @@ public class Route extends BaseClass {
 		return result;
 	}
 	
-	public boolean prepare() {
-		if (state == State.PREPARED || state == State.STARTED) return true;
+	private boolean pathState(Train newTrain, Status newState) {
+		Stack<Tile> visited = new Stack<>();
+		for (Tile t : path) {
+			if (t.setState(newState,newTrain)) {
+				visited.push(t);
+			} else {
+				while (!visited.isEmpty()) visited.pop().free();
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public boolean prepareFor(Train newTrain) {
+//		if (state == State.PREPARED || state == State.STARTED) return true;
 		LOG.debug("{}.prepare()",this);
 		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
-		if (isSet(setupActions) && !setupActions.fire(context,this+".prepare()")) return false;
-		state = State.PREPARED;
+		if (isSet(setupActions) && !setupActions.fire(new Context(newTrain).route(this),this+".prepare()")) return false;
+//		state = State.PREPARED;
+		pathState(newTrain,Tile.Status.LOCKED);
 		return true;
 	}
 	
@@ -760,7 +743,6 @@ public class Route extends BaseClass {
 		LOG.debug("{}.reset()",this);
 		
 		// TODO
-		state = State.FREE;
 		return true;
 	}
 	
@@ -778,13 +760,6 @@ public class Route extends BaseClass {
 		file.close();
 	}
 	
-	public Context set(Context newContext) {
-		LOG.debug("{}.set({})",this,newContext);
-		context = newContext;
-		context.route(this);
-		return context;
-	}
-
 	public void setLast(Turnout.State state) {
 		if (isNull(state) || state == Turnout.State.UNDEF) return;
 		Tile lastTile = path.lastElement();
@@ -810,20 +785,21 @@ public class Route extends BaseClass {
 		return this;
 	}
 
-	public Route.State state(){
-		return state;
-	}
-	
 	public boolean start(Train newTrain) {
-		if (state == State.STARTED) return true;
+//		if (state == State.STARTED) return true;
 		LOG.debug("{}.start()",this);
 		if (isNull(newTrain)) return false; // can't set route's train to null
 		if (isSet(train)) {
 			if (newTrain != train) return false; // can't alter route's train
-		} else train = newTrain; // set new train 
+		} else train = newTrain.setRoute(this); // set new train
+		
 		ActionList startActions = triggeredActions.get(ROUTE_START);
-		if (isSet(startActions) && !startActions.fire(context,this+".start("+train.name()+")")) return false; // start actions failed
-		state = State.STARTED;
+		
+		if (isSet(startActions)) {
+			Context context = new Context(train).route(this);
+			if (!startActions.fire(context,this+".start("+train.name()+")")) return false; // start actions failed
+		}
+//		state = State.STARTED;
 		triggeredContacts.clear();
 		return true;
 	}
@@ -865,9 +841,8 @@ public class Route extends BaseClass {
 					newTrace.add(tile);
 					remainingLength -= tile.length();
 				} else if (Route.freeBehindTrain) {
-					try {
-						tile.unset(this);				
-					} catch (IllegalArgumentException e) {}
+					
+					// TODO
 				} else break;				
 			}
 		}		

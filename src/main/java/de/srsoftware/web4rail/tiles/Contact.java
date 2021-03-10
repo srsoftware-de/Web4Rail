@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -85,12 +84,12 @@ public class Contact extends Tile{
 			LOG.debug("{} activated.",this);
 			state = true;
 			if (isSet(timer)) timer.abort();
-			Route route = route();
-			Context context = isSet(route) ? route.context().contact(this) : new Context(this);
-			
-			if (isSet(route)) route.traceTrainFrom(this);
+			Context context = new Context(this);
+			if (isSet(train)) {
+				train.contact(this);
+				context.train(train);
+			}
 			actions.fire(context,"Contact("+addr+")");
-			if (isSet(route)) route.contact(this);
 			
 			for (Listener listener : listeners) listener.fired("Contact("+addr+")");
 			

@@ -25,7 +25,7 @@ public class BlockFree extends Condition {
 
 	@Override
 	public boolean fulfilledBy(Context context) {
-		return block.isFreeFor(null) != inverted;
+		return block.canNeEnteredBy(null) != inverted;
 	}
 	
 	@Override

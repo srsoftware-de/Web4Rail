@@ -9,7 +9,6 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
@@ -43,6 +42,12 @@ public abstract class Bridge extends Tile {
 	protected abstract Connector connector();
 	
 	@Override
+	public void free() {
+		if (isSet(counterpart) && counterpart.train != null) counterpart.free();
+		super.free();
+	}
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (isSet(counterpart)) json.put(COUNTERPART, counterpart.id().toString());
@@ -63,16 +68,10 @@ public abstract class Bridge extends Tile {
 	}
 	
 	@Override
-	public Tile setRoute(Route route) {
-		super.setRoute(route);
-		if (isSet(counterpart) && counterpart.route != route) counterpart.setRoute(route);
-		return this;
-	}
-	
-	public Tile setTrain(Train train) {
-		super.setTrain(train);
-		if (isSet(counterpart) && counterpart.train != train) counterpart.setTrain(train);
-		return this;
+	public boolean setState(Status newState, Train newTrain) {
+		if (train == newTrain && is(newState)) return true;
+		if (!super.setState(newState,newTrain)) return false;		
+		return isNull(counterpart) ? true : counterpart.setState(newState,newTrain);		
 	}
 	
 	@Override
@@ -108,12 +107,5 @@ public abstract class Bridge extends Tile {
 		Tag tag = super.tag(replacements);
 		if (isNull(counterpart)) tag.clazz(tag.get("class")+" disconnected");
 		return tag;
-	}
-	
-	@Override
-	public Tile unset(Route oldRoute) {
-		super.unset(oldRoute);
-		if (isSet(counterpart) && isSet(counterpart.route)) counterpart.unset(oldRoute);
-		return this;
 	}
 }

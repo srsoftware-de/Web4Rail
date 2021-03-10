@@ -29,7 +29,7 @@
 		<appender-ref ref="STDOUT" />
 	</root>
 	
-	<logger name="de.srsoftware.web4rail" level="INFO" />
+	<logger name="de.srsoftware.web4rail" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.Application" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.Route" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.actions.Action" level="DEBUG" />

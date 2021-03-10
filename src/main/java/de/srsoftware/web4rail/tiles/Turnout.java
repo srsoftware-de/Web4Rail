@@ -159,7 +159,7 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	public Reply state(State newState) {
-		if (train != null && newState != state) return new Reply(415, t("{} locked by {}!",this,train));
+		if (is(Status.LOCKED,Status.OCCUPIED) && newState != state) return new Reply(415, t("{} locked by {}!",this,train));
 		if (address == 0) { 
 			state = newState;
 			plan.place(this);

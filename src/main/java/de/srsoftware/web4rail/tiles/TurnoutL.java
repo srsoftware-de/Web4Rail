@@ -16,8 +16,8 @@ public abstract class TurnoutL extends Turnout {
 	public Object click(boolean shift) throws IOException {
 		Object o = super.click(shift);
 		if (!shift) {
-			if (route != null) {
-				plan.stream(t("{} is locked by {}!",this,route)); 
+			if (isSet(train)) {
+				plan.stream(t("{} is locked by {}!",this,train)); 
 			} else state(state == State.STRAIGHT ? State.LEFT : State.STRAIGHT);
 		}
 		return o;

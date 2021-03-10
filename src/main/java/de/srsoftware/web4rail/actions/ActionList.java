@@ -88,7 +88,10 @@ public class ActionList extends Action implements Iterable<Action>{
 		
 		for (Action action : actions) {
 			LOG.debug("firing \"{}\"",action);
-			if (!action.fire(context,cause)) return false;			
+			if (!action.fire(context,cause)) {
+				LOG.warn("{} failed",action);
+				return false;			
+			}
 		}
 		return true;
 	}
