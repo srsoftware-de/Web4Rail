@@ -321,9 +321,7 @@ public class ControlUnit extends Thread implements Constants{
 								Thread thread = new Thread() {
 									@Override
 									public void run() {
-										set(false);
 										plan.sensor(addr,active);
-										set(true);
 									}
 								};			
 								thread.setName(Application.threadName("CU.FeedBack("+addr+")"));

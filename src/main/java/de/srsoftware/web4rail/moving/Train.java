@@ -36,6 +36,7 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.BrakeProcessor;
 import de.srsoftware.web4rail.threads.PathFinder;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -100,6 +101,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private boolean shunting = false;
 
 	private HashSet<Listener> listeners = new HashSet<Train.Listener>();
+
+	private BrakeProcessor brakeProcessor;
 
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
@@ -408,6 +411,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void dropTrace() {
 		while (!trace.isEmpty()) trace.removeFirst().free();
 	}
+	
+	public void endRoute() {
+		setSpeed(0);
+		if (isSet(brakeProcessor)) brakeProcessor.end();
+		brakeProcessor = null;
+		route = null;
+	}
+
 	
 	private Tag faster(int steps) {
 		setSpeed(speed+steps);
@@ -900,6 +911,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private String startAutopilot() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public void startBrake() {
+		if (isNull(route)) {
+			LOG.warn("{}.startBrake() called, but train ist not on a route!",this);
+			return;
+		}
+		if (isSet(brakeProcessor)) {
+			LOG.debug("{} already is braking.");
+			return;
+		}
+		brakeProcessor = new BrakeProcessor(this).start();
 	}
 
 	public Object stopNow() {

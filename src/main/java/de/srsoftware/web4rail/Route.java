@@ -266,11 +266,6 @@ public class Route extends BaseClass {
 		return this;
 	}
 	
-	public void brakeStart() {
-		if (isNull(train)) return;		
-//		brakeProcessor = new BrakeProcessor(this,train);
-	}
-	
 	protected Route clone() {
 		Route clone = new Route();
 		clone.startBlock = startBlock;
@@ -331,7 +326,7 @@ public class Route extends BaseClass {
 		ActionList actions = triggeredActions.get(contact.trigger());
 		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
 		if (isNull(actions)) return;
-		Context context = new Context(this).train(train);
+		Context context = new Context(this).train(train).contact(contact);
 		actions.fire(context,"Route.Contact("+contact.addr()+")");
 	}
 
@@ -382,11 +377,19 @@ public class Route extends BaseClass {
 	
 	public void finish() {
 		LOG.debug("{}.finish()",this);
-		
-		// TODO:
-
+		train.endRoute();
+		train = null;
+		free();		
 	}
 	
+	private void free() {
+		for (Tile tile : path) {
+			if (train.onTrace(tile)) {
+				tile.setState(Status.OCCUPIED, train);
+			} else tile.free();
+		}
+	}
+
 	private String generateName() {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<path.size();i++) {

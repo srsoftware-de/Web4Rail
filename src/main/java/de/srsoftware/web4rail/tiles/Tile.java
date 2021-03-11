@@ -139,6 +139,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	public void free() {
 		train = null;
 		status = Status.FREE;
+		plan.place(this);
 	}
 	
 	public int height() {
