@@ -903,12 +903,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 			@Override
 			public void locked(Route newRoute) {
 				LOG.debug("Locked route {} for {}",newRoute,Train.this);
+				route = newRoute;
 			}
 			
 			@Override
 			public void prepared(Route newRoute) {
 				LOG.debug("Prepared route {} for {}",newRoute,Train.this);
-				route = newRoute;
 				set((PathFinder)null);
 				route.start(Train.this);
 			}
