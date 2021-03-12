@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 
 public class BlockContact extends Contact {
