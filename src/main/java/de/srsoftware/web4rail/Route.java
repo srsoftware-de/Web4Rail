@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -237,6 +236,7 @@ public class Route extends BaseClass {
 	}
 
 	public void brakeTime(String brakeId, Integer newTimeStep) {
+		LOG.debug("new brake time for route {}: {}",this,newTimeStep);
 		brakeTimes.put(brakeId,newTimeStep);
 	}
 	
@@ -378,8 +378,10 @@ public class Route extends BaseClass {
 	public void finish() {
 		LOG.debug("{}.finish()",this);
 		train.endRoute();
+		free();				
+		train.set(endBlock);
+		train.heading(endDirection);
 		train = null;
-		free();		
 	}
 	
 	private void free() {
@@ -822,36 +824,7 @@ public class Route extends BaseClass {
 	public String toString() {
 		return getClass().getSimpleName()+"("+(isSet(train)?train+":":"")+name()+")";
 	}
-	
-	public void traceTrainFrom(Tile newHead) {
-		LOG.debug("{}.traceTrainFrom({})",this,newHead);
-		if (isNull(train)) return;
-		if (newHead instanceof BlockContact) newHead = (Tile) ((BlockContact)newHead).parent();
 		
-		Tile traceHead = train.traceHead();
-		Integer remainingLength = null;
-		LinkedList<Tile> newTrace = new LinkedList<Tile>();
-		for (int i=path.size(); i>0; i--) { // pfad rückwärts ablaufen
-			Tile tile = path.elementAt(i-1);
-			if (isNull(remainingLength)) {
-				if (tile == newHead) traceHead = newHead; // wenn wir zuerst newHead finden: newHead als neuen traceHead übernehmen
-				if (tile == traceHead) {
-					remainingLength = train.length(); // sobald wir auf den traceHead stoßen: suche beenden
-				}
-			}		
-			if (isSet(remainingLength)) {
-				if (remainingLength>=0) {
-					newTrace.add(tile);
-					remainingLength -= tile.length();
-				} else if (Route.freeBehindTrain) {
-					
-					// TODO
-				} else break;				
-			}
-		}		
-		train.setTrace(newTrace);
-	}
-	
 	public Train train() {
 		return train;
 	}

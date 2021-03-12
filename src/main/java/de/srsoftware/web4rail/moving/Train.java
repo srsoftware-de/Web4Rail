@@ -39,6 +39,7 @@ import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.threads.BrakeProcessor;
 import de.srsoftware.web4rail.threads.PathFinder;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.Tile.Status;
@@ -320,7 +321,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void contact(Contact contact) {
-		if (isSet(route)) route.contact(contact);
+		if (isSet(route)) {
+			Route lastRoute = route; // route field might be set to null during route.contact(...)!
+			route.contact(contact);
+			traceFrom(contact,lastRoute);
+		}
 	}
 
 	
@@ -955,6 +960,34 @@ public class Train extends BaseClass implements Comparable<Train> {
 	@Override
 	public String toString() {
 		return name();
+	}
+	
+	public void traceFrom(Tile newHead,Route route) {
+		LOG.debug("{}.traceTrainFrom({})",this,newHead);
+		if (isNull(route)) return;
+		if (newHead instanceof BlockContact) newHead = (Tile) ((BlockContact)newHead).parent();
+		
+		Tile traceHead = traceHead();
+		Integer remainingLength = null;
+		LinkedList<Tile> newTrace = new LinkedList<Tile>();
+		Vector<Tile> path = route.path();
+		for (int i=path.size(); i>0; i--) { // pfad rückwärts ablaufen
+			Tile tile = path.elementAt(i-1);
+			if (isNull(remainingLength)) {
+				if (tile == newHead) traceHead = newHead; // wenn wir zuerst newHead finden: newHead als neuen traceHead übernehmen
+				if (tile == traceHead) remainingLength = length(); // sobald wir auf den traceHead stoßen: Suche beenden
+			}		
+			if (isSet(remainingLength)) {
+				if (remainingLength>=0) {
+					newTrace.add(tile);
+					remainingLength -= tile.length();
+				} else if (Route.freeBehindTrain) {
+					
+					// TODO
+				} else break;				
+			}
+		}		
+		setTrace(newTrace);
 	}
 	
 	public Tile traceHead() {		
