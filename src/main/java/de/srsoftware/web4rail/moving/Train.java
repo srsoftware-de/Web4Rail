@@ -96,6 +96,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private PathFinder pathFinder;
 
+	private boolean autopilot = false;
+
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
 		if (isNull(action)) return t("No action passed to Train.action!");
@@ -115,7 +117,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_ADD:
 				return train.addCar(params);
 			case ACTION_AUTO:
-				return train.automatic();
+				return train.start(true);
 			case ACTION_CONNECT:
 				return train.connect(params);
 			case ACTION_DROP:
@@ -135,14 +137,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_PROPS:
 				return train.properties();
 			case ACTION_QUIT:
-				return train.quitAutopilot();
+				return train.properties(train.quitAutopilot());
 			case ACTION_REVERSE:
 				return train.reverse().properties();
 			case ACTION_SLOWER10:
 				return train.slower(10);
 			case ACTION_START:
-				String error = train.start();
-				return train.properties(error);
+				return train.properties(train.start(false));
 			case ACTION_STOP:
 				return train.stopNow();
 			case ACTION_TIMES:
@@ -177,10 +178,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 
-	public boolean automatic() {
-		return false;		
-	}
-	
 	private Fieldset blockHistory() {
 		Fieldset fieldset = new Fieldset(t("Last blocks")).id("props-history");
 		Tag list = new Tag("ol");
@@ -355,7 +352,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Block destination(){
-		return null; // TODO
+		return destination;
 	}
 	
 	public String destinationTag() {
@@ -404,14 +401,20 @@ public class Train extends BaseClass implements Comparable<Train> {
 		while (!trace.isEmpty()) trace.removeFirst().free();
 	}
 	
-	public void endRoute() {
+	public void endRoute(Block newBlock, Direction newDirection) {
 		setSpeed(0);
 		if (isSet(brakeProcessor)) brakeProcessor.end();
-		brakeProcessor = null;
+		set(newBlock);
+		if (newBlock == destination) {
+			destination = null;
+			quitAutopilot();
+		}
+		heading(newDirection);
 		route = null;
+		brakeProcessor = null;
+		if (autopilot) start(false);
 	}
 
-	
 	private Tag faster(int steps) {
 		setSpeed(speed+steps);
 		return properties();
@@ -665,9 +668,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return super.properties(preForm, formInputs, postForm,errors);
 	}
 
-	public Object quitAutopilot() {
-		// TODO Auto-generated method stub
-		return "not implemented";
+	public String quitAutopilot() {
+		if (autopilot) {
+			autopilot = false;
+			return null;
+		}
+		return t("Autopilot already was disabled!");
 	}
 	
 	@Override
@@ -764,21 +770,31 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 	}
 	
+	private void set(BrakeProcessor bp) {
+		LOG.debug("{}.set({})",this,bp);
+		brakeProcessor = bp;
+	}
+	
+	private void set(PathFinder pf) {
+		LOG.debug("{}.set({})",this,pf);
+		pathFinder = pf;
+	}
+	
 	private Object setDestination(HashMap<String, String> params) {
 		String dest = params.get(DESTINATION);
-		if (isNull(dest)) return t("No destination supplied!");
+		if (isNull(dest)) return properties(t("No destination supplied!"));
 		if (dest.isEmpty()) {
 			destination = null;
 			return properties();
 		}
 		Tile tile = plan.get(new Id(dest), true);
-		if (isNull(tile)) return t("Tile {} not known!",dest);
+		if (isNull(tile)) return properties(t("Tile {} not known!",dest));
 		if (tile instanceof Block) {
 			destination = (Block) tile;
-			start();
+			start(false);
 			return t("{} now heading for {}",this,destination);
 		}
-		return t("{} is not a block!",tile);
+		return properties(t("{} is not a block!",tile));
 	}
 	
 	public Object setFunction(int num, boolean active) {
@@ -865,9 +881,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 
-	public String start() {
+	public String start(boolean autopilot) {
+		this.autopilot |= autopilot; 
 		if (isSet(pathFinder)) return t("Pathfinder already active for {}!",this);
-		pathFinder = new PathFinder(this,currentBlock,direction) {
+		PathFinder pathFinder = new PathFinder(this,currentBlock,direction) {
 			
 			@Override
 			public void aborted() {
@@ -889,23 +906,17 @@ public class Train extends BaseClass implements Comparable<Train> {
 			public void prepared(Route newRoute) {
 				LOG.debug("Prepared route {} for {}",newRoute,Train.this);
 				route = newRoute;
-				pathFinder = null;
+				set((PathFinder)null);
 				route.start(Train.this);
 			}
-
-	
-		}.start();
+		};
+		set(pathFinder);
 		return null;
 	}
 
 	public static void startAll() {
 		LOG.debug("Train.startAll()");
-		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.startAutopilot());
-	}
-
-	private String startAutopilot() {
-		// TODO Auto-generated method stub
-		return null;
+		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.start(true));
 	}
 	
 	public void startBrake() {
@@ -917,19 +928,20 @@ public class Train extends BaseClass implements Comparable<Train> {
 			LOG.debug("{} already is braking.");
 			return;
 		}
-		brakeProcessor = new BrakeProcessor(this).start();
+		set(new BrakeProcessor(this));
 	}
 
 	public Window stopNow() {
 		setSpeed(0);
 		if (isSet(pathFinder)) {
 			pathFinder.abort();
-			pathFinder = null;
+			set((PathFinder)null);
 		}
 		if (isSet(route)) {
 			route.reset();
 			route = null;
 		}
+		quitAutopilot();
 		return properties();
 	}
 
@@ -1021,7 +1033,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public boolean usesAutopilot() {
-		return false; // TODO
+		return autopilot ;
 	}
 
 	public boolean isStoppable() {

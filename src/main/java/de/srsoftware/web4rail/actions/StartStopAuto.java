@@ -24,7 +24,7 @@ public class StartStopAuto extends Action {
 	public boolean fire(Context context,Object cause) {
 		if (isNull(context.train())) return false;
 		if (inverted) {
-			context.train().automatic();
+			context.train().start(true);
 		} else context.train().quitAutopilot();
 		return true;
 	}

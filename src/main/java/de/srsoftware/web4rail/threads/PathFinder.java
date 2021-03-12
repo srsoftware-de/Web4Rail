@@ -30,6 +30,10 @@ public abstract class PathFinder extends BaseClass implements Runnable{
 		this.train = train;		
 		this.startBlock = start;
 		this.direction = direction;
+		
+		Thread thread = new Thread(this);
+		thread.setName("Pathfinder("+train+")");
+		thread.start();
 	}
 	
 	public void abort() {
@@ -178,11 +182,4 @@ public abstract class PathFinder extends BaseClass implements Runnable{
 	public abstract void locked(Route r);
 	public abstract void found(Route r);
 	public abstract void prepared(Route r);
-	
-	public PathFinder start() {
-		Thread thread = new Thread(this);
-		thread.setName("Pathfinder("+train+")");
-		thread.start();
-		return this;
-	}
 }

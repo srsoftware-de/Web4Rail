@@ -28,6 +28,9 @@ public class BrakeProcessor extends BaseClass implements Runnable {
 
 	public BrakeProcessor(Train train) {
 		this.train = train;
+		Thread thread = new Thread(this);
+		thread.setName(getClass().getSimpleName());
+		thread.start();
 	}
 
 	public void end() {
@@ -88,12 +91,4 @@ public class BrakeProcessor extends BaseClass implements Runnable {
 		}
 		LOG.debug("{} reached final speed.", train);
 	}
-
-	public BrakeProcessor start() {
-		Thread thread = new Thread(this);
-		thread.setName(getClass().getSimpleName());
-		thread.start();
-		return this;
-	}
-
 }

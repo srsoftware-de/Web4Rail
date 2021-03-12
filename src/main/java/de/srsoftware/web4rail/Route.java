@@ -378,11 +378,9 @@ public class Route extends BaseClass {
 	
 	public void finish(Train train) {
 		LOG.debug("{}.finish()",this);
-		train.endRoute();
-		free();				
-		train.set(endBlock);
-		train.heading(endDirection);
+		train.endRoute(endBlock,endDirection);
 		train = null;
+		free();				
 	}
 	
 	private void free() {
