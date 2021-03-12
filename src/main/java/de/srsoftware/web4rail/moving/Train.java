@@ -402,8 +402,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void endRoute(Block newBlock, Direction newDirection) {
-		setSpeed(0);
-		if (isSet(brakeProcessor)) brakeProcessor.end();
+		if (isSet(brakeProcessor)) {
+			brakeProcessor.end();
+		} else setSpeed(0);
 		set(newBlock);
 		if (newBlock == destination) {
 			destination = null;
@@ -708,8 +709,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public void reserveNext() {
-		// TODO
+		LOG.debug("{}.reserveNext()",this);
 	}
+	
 	/**
 	 * This turns the train as if it went through a loop. Example:
 	 * before: CabCar→ MiddleCar→ Loco→
@@ -882,7 +884,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 
 	public String start(boolean autopilot) {
-		this.autopilot |= autopilot; 
+		this.autopilot |= autopilot;
+		if (isSet(route)) return t("{} already on {}!",this,route);
 		if (isSet(pathFinder)) return t("Pathfinder already active for {}!",this);
 		PathFinder pathFinder = new PathFinder(this,currentBlock,direction) {
 			
