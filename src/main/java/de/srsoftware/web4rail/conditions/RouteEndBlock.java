@@ -57,9 +57,9 @@ public class RouteEndBlock extends Condition{
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Block")+": "+(isNull(block) ? t("unset") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,BLOCK)));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

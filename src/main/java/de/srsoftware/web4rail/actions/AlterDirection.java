@@ -77,14 +77,14 @@ public class AlterDirection extends Action{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag radios = new Tag("div");
 		for (NEWDIR d : NEWDIR.values()) {
 			new Radio(NEW_DIRECTION, d, t("{}",d), newDir == d).addTo(radios);	
 		}
 		
 		formInputs.add(t("new direction"),radios);
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@SuppressWarnings("incomplete-switch")

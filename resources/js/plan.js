@@ -37,7 +37,7 @@ function arrangeTabs(){
 	var tabs = $('<div/>',{'class':'tabs'});
 	var winId = $('.window').attr('id')+"-";
 	
-	tabs.insertAfter($('.swapbtn'));
+	tabs.insertAfter($('.error'));
 	var target = null;
 	var index = null;
 	$('.window > fieldset > legend').each(function(){

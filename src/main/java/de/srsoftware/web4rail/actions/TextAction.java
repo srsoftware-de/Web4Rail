@@ -46,9 +46,9 @@ public abstract class TextAction extends Action {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Text"),new Input(TEXT, text));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 		
 	@Override

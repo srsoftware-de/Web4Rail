@@ -56,10 +56,10 @@ public class CoupleTrain extends Action {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Couple"),new Checkbox(LAST, t("last parked train"), last));
 		formInputs.add(t("Swap order"),new Checkbox(SWAP, t("Swap order of trains"), swap));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

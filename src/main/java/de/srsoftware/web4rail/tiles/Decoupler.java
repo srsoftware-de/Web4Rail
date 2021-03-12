@@ -111,7 +111,7 @@ public abstract class Decoupler extends Tile implements Device{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag div = new Tag("div");
 		for (Protocol proto : Protocol.values()) {
 			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == protocol).addTo(div);
@@ -120,7 +120,7 @@ public abstract class Decoupler extends Tile implements Device{
 		formInputs.add(t("Address"),new Input(ADDRESS, address).numeric());
 		formInputs.add(t("Port"),new Input(PORT, port).numeric());
 
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	private char proto() {

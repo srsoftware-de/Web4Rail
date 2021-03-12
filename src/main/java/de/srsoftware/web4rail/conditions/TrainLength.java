@@ -34,9 +34,9 @@ public class TrainLength extends Condition {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Maximum train length"),new Input(LENGTH, treshold).numeric().addTo(new Tag("span")).content(lengthUnit));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

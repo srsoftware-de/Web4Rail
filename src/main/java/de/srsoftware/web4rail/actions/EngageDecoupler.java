@@ -57,10 +57,10 @@ public class EngageDecoupler extends Action {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Decoupler")+": "+(isNull(decoupler) ? t("unset") : decoupler),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,DECOUPLER)));
 		
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

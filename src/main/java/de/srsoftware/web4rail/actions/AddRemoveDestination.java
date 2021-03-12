@@ -86,14 +86,14 @@ public class AddRemoveDestination extends Action {
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag span = new Tag("span");
 		button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,Train.DESTINATION)).addTo(span);
 		button(t("Clear destinations"),Map.of(ACTION,ACTION_UPDATE,Train.DESTINATION,"0")).addTo(span);
 		formInputs.add(t("Destination")+": "+(isNull(destination) ? t("Clear destinations") : destination),span);
 		formInputs.add(t("Turn at destination"),new Checkbox(TURN, t("Turn"), turnAtDestination));
 		formInputs.add(t("Shunting"),new Checkbox(SHUNTING, t("Shunting"), shunting));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

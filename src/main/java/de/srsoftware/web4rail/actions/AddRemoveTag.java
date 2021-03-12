@@ -51,13 +51,13 @@ public class AddRemoveTag extends Action{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Tag"),new Input(TAG, tag));
 		Tag div = new Tag("div");
 		new Radio(TYPE, ACTION_ADD, t("add"), !remove).addTo(div);
 		new Radio(TYPE, ACTION_DROP, t("delete"), remove).addTo(div);
 		formInputs.add(t("Action"),div);
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

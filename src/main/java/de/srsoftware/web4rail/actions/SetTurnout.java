@@ -66,7 +66,7 @@ public class SetTurnout extends Action {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 
 		formInputs.add(t("Turnout")+": "+(isNull(turnout) ? t("unset") : turnout),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,TURNOUT)));
 		if (isSet(turnout)) {
@@ -79,7 +79,7 @@ public class SetTurnout extends Action {
 			formInputs.add(t("Select state"),select);
 		}
 		
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

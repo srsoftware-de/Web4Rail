@@ -71,13 +71,13 @@ public class SendCommand extends Action{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Command to send"),new Input(COMMAND, command));
 		Tag div = new Tag("div");
 		new Radio(TARGET, Target.SYSTEM, t("Operating System"), target == Target.SYSTEM).addTo(div);
 		new Radio(TARGET, Target.SRCP, t("SRCP daemon"), target == Target.SRCP).addTo(div);
 		formInputs.add(t("Send command to"),div);
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

@@ -325,14 +325,14 @@ public abstract class Block extends StretchableTile{
 
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Name"),new Input(NAME, name));
 		formInputs.add("",new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed));
 		formInputs.add(t("Train"),Train.selector(train, null));
 		postForm.add(contactForm());
 		postForm.add(waitTimeForm());
 		if (!parkedTrains.isEmpty()) postForm.add(parkedTrainList());
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 
 	public Tile raise(String tag) {

@@ -114,10 +114,10 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 	}
 	
 	@Override
-	public Window properties() {
+	public Window properties(String...errors) {
 		BaseClass parent = parent();
-		if (isSet(parent)) return parent.properties();
-		return super.properties();
+		if (isSet(parent)) return parent.properties(errors);
+		return super.properties(errors);
 	}
 	
 	@Override

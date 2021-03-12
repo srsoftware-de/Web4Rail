@@ -138,10 +138,10 @@ public abstract class Action extends BaseClass {
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Edit json"),button(t("export"), Map.of(ACTION, ACTION_SAVE)));
 
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	public static Tag selector() {

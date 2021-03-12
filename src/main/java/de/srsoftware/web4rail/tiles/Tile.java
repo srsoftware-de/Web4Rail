@@ -260,7 +260,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Fieldset fieldset = null;
 		
 		if (isSet(train)) {
@@ -332,7 +332,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 			}
 		}
 		
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	private static String replace(String line, Entry<String, Object> replacement) {

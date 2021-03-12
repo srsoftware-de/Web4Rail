@@ -99,7 +99,7 @@ public class WaitForContact extends ActionList {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Contact")+": "+(isNull(contact) ? t("unset") : contact),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,CONTACT)));
 		formInputs.add(t("Timeout"),new Input(TIMEOUT,timeout).numeric().addTo(new Tag("span")).content(NBSP+"ms"));
 		
@@ -108,7 +108,7 @@ public class WaitForContact extends ActionList {
 		timeoutActions.list().addTo(fieldset);
 		postForm.add(fieldset);
 
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

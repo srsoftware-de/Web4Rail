@@ -62,9 +62,9 @@ public class SetDisplayText extends TextAction{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Display")+": "+(isNull(display) ? t("unset") : display),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,DISPLAY)));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 		
 	@Override

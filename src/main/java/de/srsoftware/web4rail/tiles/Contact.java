@@ -190,7 +190,7 @@ public class Contact extends Tile{
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag span = new Tag("span");
 		new Input(ADDRESS, addr).numeric().addTo(span).content(NBSP);
 		button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(span);
@@ -199,7 +199,7 @@ public class Contact extends Tile{
 		Fieldset fieldset = new Fieldset(t("Actions")).id("props-actions");
 		actions.list().addTo(fieldset);
 		postForm.add(fieldset);
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

@@ -61,10 +61,10 @@ public class SwitchIsOn extends Condition {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Select switch")+": "+(isNull(swtch) ? t("unset") : swtch),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,SWITCH)));
 
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

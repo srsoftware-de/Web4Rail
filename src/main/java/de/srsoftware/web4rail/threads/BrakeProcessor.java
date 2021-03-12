@@ -39,10 +39,12 @@ public class BrakeProcessor extends BaseClass implements Runnable {
 		int step = brakeTime;
 		for (int i = 0; i < 15; i++) {
 			long calculatedDistance = calculate(brakeTime, startSpeed);
-			step /= 2;
-			if (step < 1) step = 1;
-			if (measuredDistance > calculatedDistance) brakeTime += step;
-			if (measuredDistance < calculatedDistance) brakeTime -= step;
+			if (measuredDistance > calculatedDistance) brakeTime += brakeTime/2;
+			if (measuredDistance < calculatedDistance) {
+				step /= 2;
+				if (step < 1) step = 1;
+				brakeTime -= step;
+			}
 			LOG.debug("new brake time: {}, calculated distance: {}", brakeTime, calculatedDistance);
 		}
 		route.brakeTime(train.brakeId(), brakeTime);

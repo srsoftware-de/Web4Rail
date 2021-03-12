@@ -59,7 +59,7 @@ public class CarOrientation extends Condition {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Select car"),Car.selector(isSet(car) ? car : t("Car of train"), null));
 		formInputs.add(t("If car of train: inspect car number"),new Input(POSITION, position).numeric().addTo(new Tag("span")).content(NBSP+"("+t("Use negative number to count from end.")+")"));
 		
@@ -67,7 +67,7 @@ public class CarOrientation extends Condition {
 		new Radio(ORIENTATION, "f", t("forward"), orientation).addTo(radioGroup);
 		new Radio(ORIENTATION, "r", t("revers"), !orientation).addTo(radioGroup);
 
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

@@ -48,15 +48,6 @@ import de.srsoftware.web4rail.tiles.Tile.Status;
  * @author Stephan Richter, SRSoftware 2020-2021 * 
  */
 public class Train extends BaseClass implements Comparable<Train> {
-	
-	public interface Listener {
-		enum Signal {
-			STOP
-		}
-		
-		public void on(Signal signal);
-	}
-
 	private static final Logger LOG = LoggerFactory.getLogger(Train.class);
 
 	private static final String CAR_ID  = "carId";
@@ -101,9 +92,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static final String SHUNTING = "shunting";
 	private boolean shunting = false;
 
-	private HashSet<Listener> listeners = new HashSet<Train.Listener>();
-
 	private BrakeProcessor brakeProcessor;
+
+	private PathFinder pathFinder;
 
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
@@ -150,8 +141,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_SLOWER10:
 				return train.slower(10);
 			case ACTION_START:
-				train.start();
-				return train.properties();
+				String error = train.start();
+				return train.properties(error);
 			case ACTION_STOP:
 				return train.stopNow();
 			case ACTION_TIMES:
@@ -186,10 +177,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 
-	public void addListener(Listener listener) {
-		listeners.add(listener);
-	}
-	
 	public boolean automatic() {
 		return false;		
 	}
@@ -323,7 +310,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void contact(Contact contact) {
 		if (isSet(route)) {
 			Route lastRoute = route; // route field might be set to null during route.contact(...)!
-			route.contact(contact);
+			route.contact(new Context(contact).train(this));
 			traceFrom(contact,lastRoute);
 		}
 	}
@@ -625,7 +612,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 			
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag propList = new Tag("ul").clazz("proplist");		
 		
 		if (isSet(currentBlock)) currentBlock.button(currentBlock.toString()).addTo(new Tag("li").content(t("Current location")+COL)).addTo(propList);
@@ -675,7 +662,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		postForm.add(blockHistory());
 		
 		
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 
 	public Object quitAutopilot() {
@@ -878,34 +865,37 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 
-	public void start() {
-		new PathFinder(this,currentBlock,direction) {
+	public String start() {
+		if (isSet(pathFinder)) return t("Pathfinder already active for {}!",this);
+		pathFinder = new PathFinder(this,currentBlock,direction) {
 			
 			@Override
 			public void aborted() {
-				LOG.debug("Aborted");
+				plan.stream(t("Aborting route allocation..."));
+				LOG.debug("{} aborted",this);
 			}
 			
 			@Override
 			public void found(Route newRoute) {
-				// TODO Auto-generated method stub
-				LOG.debug("Found route {} for {}",newRoute,Train.this);
+				LOG.debug("Found route {} for {}",newRoute,Train.this);				
 			}
 
 			@Override
 			public void locked(Route newRoute) {
-				// TODO Auto-generated method stub
 				LOG.debug("Locked route {} for {}",newRoute,Train.this);
 			}
 			
 			@Override
 			public void prepared(Route newRoute) {
 				LOG.debug("Prepared route {} for {}",newRoute,Train.this);
-				newRoute.start(Train.this);
+				route = newRoute;
+				pathFinder = null;
+				route.start(Train.this);
 			}
 
 	
 		}.start();
+		return null;
 	}
 
 	public static void startAll() {
@@ -930,9 +920,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		brakeProcessor = new BrakeProcessor(this).start();
 	}
 
-	public Object stopNow() {
+	public Window stopNow() {
 		setSpeed(0);
-		listeners.forEach(listener -> listener.on(Listener.Signal.STOP)); // abort PathFinder
+		if (isSet(pathFinder)) {
+			pathFinder.abort();
+			pathFinder = null;
+		}
 		if (isSet(route)) {
 			route.reset();
 			route = null;
@@ -986,8 +979,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 					newTrace.add(tile);
 					remainingLength -= tile.length();
 				} else if (Route.freeBehindTrain) {
-					
-					// TODO
+					tile.free();
 				} else break;				
 			}
 		}		
@@ -1030,5 +1022,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public boolean usesAutopilot() {
 		return false; // TODO
+	}
+
+	public boolean isStoppable() {
+		if (speed > 0) return true;
+		if (isSet(pathFinder)) return true;
+		if (isSet(route)) return true;
+		return false;
 	}
 }

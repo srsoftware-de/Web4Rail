@@ -142,7 +142,7 @@ public class Locomotive extends Car implements Constants,Device{
 		par.addTo(fieldset);
 
 		Tag direction = new Tag("p");
-		if ((isSet(train) && (train.speed > 0 || isSet(train.route()))) || (isSet(loco) && loco.speed > 0)) {
+		if ((isSet(train) && train.isStoppable()) || (isSet(loco) && loco.speed > 0)) {
 			params.put(ACTION, ACTION_STOP);
 			new Button(t("Stop"),params).clazz(ACTION_STOP).addTo(direction);			
 		}
@@ -338,7 +338,7 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		preForm.add(cockpit(this));
 		Tag div = new Tag("div");
 		for (Protocol proto : Protocol.values()) {
@@ -347,7 +347,7 @@ public class Locomotive extends Car implements Constants,Device{
 		formInputs.add(t("Protocol"),div);
 		formInputs.add(t("Address"),new Input(ADDRESS, address).numeric());
 		postForm.add(programming());
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 
 	private void queue() {

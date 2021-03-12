@@ -18,7 +18,7 @@ import de.srsoftware.web4rail.tiles.Block;
 /**
  * @author Stephan Richter, SRSoftware 2020-2021 
  */
-public abstract class PathFinder extends BaseClass implements Runnable, Train.Listener{
+public abstract class PathFinder extends BaseClass implements Runnable{
 	public static final Logger LOG = LoggerFactory.getLogger(PathFinder.class);
 //	private Context context;
 	private boolean aborted = false;
@@ -150,14 +150,21 @@ public abstract class PathFinder extends BaseClass implements Runnable, Train.Li
 	public void run() {		
 		while (true) {
 			if (aborted) return;
-			Route route = chooseRoute();
+			Route route = chooseRoute();			
 			if (isSet(route)) {
-				found(route);
 				if (aborted) return;
+				found(route);
 				if (route.allocateFor(train)) {
+					if (aborted) {
+						route.reset();
+						return;
+					}
 					locked(route);
-					if (aborted) return;
 					if (route.prepareFor(train)) {
+						if (aborted) {
+							route.reset();
+							return;
+						}
 						prepared(route);
 						return;
 					}
@@ -172,19 +179,10 @@ public abstract class PathFinder extends BaseClass implements Runnable, Train.Li
 	public abstract void found(Route r);
 	public abstract void prepared(Route r);
 	
-	@Override
-	public void on(Signal signal) {
-		switch (signal) {
-		case STOP:
-			abort();
-			break;
-		}
-	}
-	
-	public void start() {
-		train.addListener(this);
+	public PathFinder start() {
 		Thread thread = new Thread(this);
 		thread.setName("Pathfinder("+train+")");
 		thread.start();
+		return this;
 	}
 }

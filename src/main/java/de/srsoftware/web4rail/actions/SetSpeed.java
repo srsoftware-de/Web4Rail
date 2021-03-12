@@ -47,9 +47,9 @@ public class SetSpeed extends Action{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Set speed to"),new Input(MAX_SPEED, speed).numeric().addTo(new Tag("span")).content(NBSP+speedUnit));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	public int getSpeed() {

@@ -64,13 +64,13 @@ public class DisableEnableBlock extends Action {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Block")+": "+(isNull(block) ? t("block from context") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,Block.class.getSimpleName())));
 		Tag radios = new Tag("p");
 		new Radio(STATE, "enable", t("enable"), !disable).addTo(radios);
 		new Radio(STATE, "disable", t("disable"), disable).addTo(radios);
 		formInputs.add(t("Action"),radios);
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

@@ -243,7 +243,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Name"),new Input(NAME,name));
 		formInputs.add(t("Stock ID"),new Input(STOCK_ID,stockId));
 		formInputs.add(t("Length"),new Input(LENGTH,length).attr("type", "number").addTo(new Tag("span")).content(NBSP+lengthUnit));
@@ -255,7 +255,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		if (train != null) formInputs.add(t("Train"), train.link());
 		formInputs.add(t("Current orientation"),new Tag("span").content(orientation ? t("forward") : t("reverse")));
 				
-		return super.properties(preForm,formInputs,postForm);
+		return super.properties(preForm,formInputs,postForm,errors);
 	}
 	
 	@Override

@@ -79,7 +79,7 @@ public class SetRelayOrSwitch extends Action {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag span = new Tag("span");
 		if (isSet(relayOrSwitch)) span.content(relayOrSwitch+NBSP);
 		button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,Relay.class.getSimpleName())).addTo(span);
@@ -96,7 +96,7 @@ public class SetRelayOrSwitch extends Action {
 		}
 		formInputs.add(t("Select state"),state);
 		
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

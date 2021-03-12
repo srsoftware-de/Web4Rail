@@ -126,7 +126,7 @@ public class Switch extends Tile{
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Fieldset fieldset = new Fieldset(t("Actions (On)"));
 		fieldset.id("actionsOn");
 		actionsOn.list().addTo(fieldset);
@@ -135,7 +135,7 @@ public class Switch extends Tile{
 		fieldset.id("actionsOff");
 		actionsOff.list().addTo(fieldset);
 		postForm.add(fieldset);
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

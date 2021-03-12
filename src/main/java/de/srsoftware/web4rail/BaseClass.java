@@ -423,13 +423,21 @@ public abstract class BaseClass implements Constants{
 		return (T) this;
 	}
 	
-	public Window properties() {
-		return properties(new ArrayList<>(), new FormInput(), new ArrayList<>());
+	public Window properties(String...error) {
+		return properties(new ArrayList<>(), new FormInput(), new ArrayList<>(),error);
 	}
 
 	
-	protected Window properties(List<Fieldset> preForm,FormInput formInputs,List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm,FormInput formInputs,List<Fieldset> postForm, String...errorMessages) {
 		Window win = new Window(getClass().getSimpleName()+"-properties", t("Properties of {}",this.title()));
+
+		Tag errorDiv = new Tag("div").clazz("error").content("");
+		if (errorMessages != null && errorMessages.length > 0) {
+			for (String errorMessage : errorMessages) {
+				if (isSet(errorMessage)) new Tag("p").content(errorMessage).addTo(errorDiv);
+			}
+		}
+		errorDiv.addTo(win);
 		
 		preForm.forEach(fieldset -> fieldset.addTo(win));
 

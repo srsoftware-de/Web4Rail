@@ -88,7 +88,7 @@ public class Route extends BaseClass {
 	public  Direction					   endDirection;
 	private Vector<Tile>                   path;
 	private Vector<Signal>                 signals;
-	private Train                          train;
+	//private Train                          train;
 	private HashMap<String,ActionList>     triggeredActions = new HashMap<String, ActionList>();
 	private HashMap<Turnout,Turnout.State> turnouts;
 	private Block                          startBlock = null;
@@ -214,7 +214,7 @@ public class Route extends BaseClass {
 	private Fieldset basicProperties() {
 		Fieldset fieldset = new Fieldset(t("Route properties"));
 		
-		if (isSet(train)) train.link("span",t("Train")+": "+train).addTo(fieldset);
+//		if (isSet(train)) train.link("span",t("Train")+": "+train).addTo(fieldset);
 		Tag list = new Tag("ul");
 		startBlock.link("li",t("Origin: {} to {}",startBlock.name,startDirection)).addTo(list);
 		endBlock.link("li",t("Destination: {} from {}",endBlock.name,endDirection.inverse())).addTo(list);
@@ -319,15 +319,16 @@ public class Route extends BaseClass {
 	 * @param contact
 	 * @param trainHead
 	 */
-	public void contact(Contact contact) {
+	public void contact(Context context) {
+		Contact contact = context.contact();
 		if (triggeredContacts.contains(contact)) return; // don't trigger contact a second time
 		triggeredContacts.add(contact);
-		LOG.debug("{} on {} activated {}.",train,this,contact);
+		LOG.debug("{} on {} activated {}.",context.train(),this,contact);
 		ActionList actions = triggeredActions.get(contact.trigger());
 		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
 		if (isNull(actions)) return;
-		Context context = new Context(this).train(train).contact(contact);
-		actions.fire(context,"Route.Contact("+contact.addr()+")");
+		//Context context = new Context(this).train(train).contact(contact);
+		actions.fire(context.route(this),"Route.Contact("+contact.addr()+")");
 	}
 
 	public Vector<Contact> contacts() {
@@ -375,7 +376,7 @@ public class Route extends BaseClass {
 		return endBlock;
 	}	
 	
-	public void finish() {
+	public void finish(Train train) {
 		LOG.debug("{}.finish()",this);
 		train.endRoute();
 		free();				
@@ -386,6 +387,7 @@ public class Route extends BaseClass {
 	
 	private void free() {
 		for (Tile tile : path) {
+			Train train = tile.train();
 			if (isSet(train) && train.onTrace(tile)) {
 				tile.setState(Status.OCCUPIED, train);
 			} else tile.free();
@@ -687,7 +689,7 @@ public class Route extends BaseClass {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 
 		preForm.add(conditions.list(t("Route will only be available, if all conditions are fulfilled.")));
 		preForm.add(contactsAndActions());
@@ -703,7 +705,7 @@ public class Route extends BaseClass {
 		postForm.add(basicProperties());
 		if (!turnouts.isEmpty()) postForm.add(turnouts());
 		postForm.add(brakeTimes());
-		Window win = super.properties(preForm, formInputs, postForm);
+		Window win = super.properties(preForm, formInputs, postForm,errors);
 		previewScript().addTo(win);
 		return win;
 	}
@@ -715,7 +717,7 @@ public class Route extends BaseClass {
 	@Override
 	public BaseClass remove() {
 		LOG.debug("Removing route ({}) {}",id(),this);
-		if (isSet(train)) train.removeChild(this);
+//		if (isSet(train)) train.removeChild(this);
 		for (Tile tile : path) {
 			tile.removeChild(this);
 		}
@@ -734,7 +736,7 @@ public class Route extends BaseClass {
 		if (child == endBlock) endBlock = null;
 		path.remove(child);
 		signals.remove(child);
-		if (child == train) train = null;
+//		if (child == train) train = null;
 		for (ActionList list : triggeredActions.values()) {
 			list.removeChild(child);
 		}
@@ -746,8 +748,9 @@ public class Route extends BaseClass {
 	
 	public boolean reset() {
 		LOG.debug("{}.reset()",this);
+		setSignals(Signal.RED);
 		free();
-		train = null;		
+//		train = null;		
 		return true;
 	}
 	
@@ -794,15 +797,15 @@ public class Route extends BaseClass {
 //		if (state == State.STARTED) return true;
 		LOG.debug("{}.start()",this);
 		if (isNull(newTrain)) return false; // can't set route's train to null
-		if (isSet(train)) {
+/*		if (isSet(train)) {
 			if (newTrain != train) return false; // can't alter route's train
-		} else train = newTrain.setRoute(this); // set new train
+		} else train = */newTrain.setRoute(this); // set new train
 		
 		ActionList startActions = triggeredActions.get(ROUTE_START);
 		
 		if (isSet(startActions)) {
-			Context context = new Context(train).route(this);
-			if (!startActions.fire(context,this+".start("+train.name()+")")) return false; // start actions failed
+			Context context = new Context(newTrain).route(this);
+			if (!startActions.fire(context,this+".start("+newTrain.name()+")")) return false; // start actions failed
 		}
 //		state = State.STARTED;
 		triggeredContacts.clear();
@@ -822,12 +825,12 @@ public class Route extends BaseClass {
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName()+"("+(isSet(train)?train+":":"")+name()+")";
+		return getClass().getSimpleName()+"("+name()+")";
 	}
 		
-	public Train train() {
+/*	public Train train() {
 		return train;
-	}
+	}*/
 	
 	private Fieldset turnouts() {
 		Fieldset win = new Fieldset(t("Turnouts"));
