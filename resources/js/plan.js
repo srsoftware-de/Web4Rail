@@ -177,9 +177,10 @@ function heartbeat(data){
 
 function keypress(ev){
 	if (ev.code === 'Escape') return request({realm:"cu",action:"emergency"});
-	if (ev.code === 'Enter') {
+	if (ev.code === 'Enter') {		
 		elem = ev.target;
 		while (elem != undefined && elem != null){
+			if (elem.nodeName == 'TEXTAREA') return false;
 			if (elem.nodeName == 'FORM') return submitForm(elem.getAttribute('id'));
 			elem = elem.parentNode;
 		}		
