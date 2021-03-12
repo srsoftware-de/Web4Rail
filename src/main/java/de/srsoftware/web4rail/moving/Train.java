@@ -932,7 +932,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public Object stopNow() {
 		setSpeed(0);
-		listeners.forEach(listener -> listener.on(Listener.Signal.STOP));
+		listeners.forEach(listener -> listener.on(Listener.Signal.STOP)); // abort PathFinder
+		if (isSet(route)) {
+			route.reset();
+			route = null;
+		}
 		return properties();
 	}
 

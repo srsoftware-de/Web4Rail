@@ -386,7 +386,7 @@ public class Route extends BaseClass {
 	
 	private void free() {
 		for (Tile tile : path) {
-			if (train.onTrace(tile)) {
+			if (isSet(train) && train.onTrace(tile)) {
 				tile.setState(Status.OCCUPIED, train);
 			} else tile.free();
 		}
@@ -746,8 +746,8 @@ public class Route extends BaseClass {
 	
 	public boolean reset() {
 		LOG.debug("{}.reset()",this);
-		
-		// TODO
+		free();
+		train = null;		
 		return true;
 	}
 	

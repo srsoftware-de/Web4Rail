@@ -85,7 +85,7 @@ public class Contact extends Tile{
 			state = true;
 			if (isSet(timer)) timer.abort();
 			Context context = new Context(this);
-			if (isSet(train)) {
+			if (isSet(train())) {
 				train.contact(this);
 				context.train(train);
 			}
