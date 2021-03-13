@@ -676,19 +676,27 @@ public class Plan extends BaseClass{
 	}
 	
 	public Window properties(HashMap<String, String> params) {
+		
 		if (params.containsKey(ID)) {
 			Tile tile = get(Id.from(params), true);
 			if (isSet(tile)) return tile.properties();
-		}
+		}		
 		
-		Window win = new Window("plan-properties", t("Properties of {}",t("Plan")));
+		return properties();
+	}
+	
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm, String... errorMessages) {
+		formInputs.add(null, new Input(REALM,REALM_PLAN));
+		formInputs.add(null, new Input(ACTION,ACTION_UPDATE));
+		formInputs.add(t("Length unit"),new Input(LENGTH_UNIT, lengthUnit));
+		formInputs.add(t("Speed unit"),new Input(SPEED_UNIT, speedUnit));
+		formInputs.add(t("Lower speed limit"),new Input(FINAL_SPEED, BrakeProcessor.defaultEndSpeed).attr("title", t("Final speed after breaking, before halting")));
+		formInputs.add(t("Free tiles behind train"),new Checkbox(FREE_BEHIND_TRAIN, t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished."), Route.freeBehindTrain));
 		
-		editableProperties().addTo(win);
-		relayProperties().addTo(win);
-		routeProperties().addTo(win);
-		
-		
-		return win;
+		postForm.add(relayProperties());
+		postForm.add(routeProperties());
+		return super.properties(preForm, formInputs, postForm, errorMessages);
 	}
 
 	/**
@@ -790,7 +798,7 @@ public class Plan extends BaseClass{
 	}
 
 
-	private Tag routeProperties() {
+	private Fieldset routeProperties() {
 		Fieldset fieldset = new Fieldset(t("Routes"));
 		Table table = new Table();
 		table.addHead(t("Name"),t("Start"),t("End"),t("Actions"));
@@ -968,6 +976,11 @@ public class Plan extends BaseClass{
 		new Div(ACTION_PROPS).clazz(REALM_LOCO).content(t("Manage locos")).addTo(tiles);
 		new Div(ACTION_PROPS).clazz(REALM_CAR).content(t("Manage cars")).addTo(tiles);
 		return tiles.addTo(tileMenu);
+	}
+	
+	@Override
+	public String toString() {
+		return name;
 	}
 
 	/**

@@ -48,7 +48,6 @@ function arrangeTabs(){
 			index = i;
 			target = this;
 		}		
-		//if (fs.id == lastTab) target = this;
 		$(this).appendTo(tabs).click(fs.id,clickLegend);
 		if (id > 0)	{
 			$(fs).hide();			
@@ -71,6 +70,7 @@ function clickLegend(ev){
 	$(ev.target).addClass('front');
 	$('.window > fieldset').hide();
 	$('#'+lastTab).show();
+	$('#'+lastTab+" input:not([type=hidden])").first().focus().select();
 	if (!('no-update' in ev)) remember(lastTab);
 }
 
