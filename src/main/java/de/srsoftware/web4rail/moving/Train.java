@@ -36,11 +36,11 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.RouteManager;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
-import de.srsoftware.web4rail.tiles.Tile.Status;
 
 /**
  * @author Stephan Richter, SRSoftware 2020-2021 * 
@@ -61,7 +61,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static final String ROUTE = "route";
 	private Route route;	
 		
-	private static final String DIRECTION = "direction";
 	private Direction direction;
 	
 	private static final String PUSH_PULL = "pushPull";
@@ -91,7 +90,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public int speed = 0;
 	private static final String SHUNTING = "shunting";
 	private boolean shunting = false;
-	private boolean autopilot = false;
+	private RouteManager routeManager = null;
 
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
@@ -270,7 +269,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(currentBlock)) {
 			Tag ul = new Tag("ul");
 			if (isSet(currentBlock.train()) && currentBlock.train() != this) currentBlock.train().link().addTo(new Tag("li")).addTo(ul);
-			for (Train tr : currentBlock.parkedTrains()) {
+			for (Train tr : currentBlock.trains()) {
 				if (tr == this) continue;
 				Tag li = new Tag("li").addTo(ul);
 				tr.link().addTo(li);
@@ -299,12 +298,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
-	public void contact(Contact contact) {
-		if (isSet(route)) {
-			Route lastRoute = route; // route field might be set to null during route.contact(...)!
-			route.contact(new Context(contact).train(this));
-			traceFrom(contact,lastRoute);
-		}
+	public Context contact(Contact contact) {
+		if (isNull(route)) return new Context(contact).train(this);
+		Context context = route.contact(contact);
+		traceFrom(context);
+		return context;
 	}
 
 	
@@ -357,12 +355,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return null;
 	}
 
-
-	public String directedName() {
+	public String directedName(Direction dir) {
 		String result = name();
 		String mark = ""; //isSet(autopilot) ? "ⓐ" : "";
-		if (isNull(direction)) return result;
-		switch (direction) {
+		if (isNull(dir)) return result;
+		switch (dir) {
 		case NORTH:
 		case WEST:
 			return '←'+mark+result;
@@ -370,7 +367,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		case EAST:
 			return result+mark+'→';
 		}
-		return result;
+		return mark+result;
 	}
 
 	public Direction direction() {
@@ -392,8 +389,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
+	public boolean drop(Route oldRoute) {
+		if (isNull(route)) return true;
+		if (route != oldRoute) return false;
+		route = null;
+		return true;
+	}
+
+	
 	public void dropTrace() {
-		while (!trace.isEmpty()) trace.removeFirst().free();
+		while (!trace.isEmpty()) trace.removeFirst().free(this);
 	}
 	
 	public void endRoute(Block newBlock, Direction newDirection) {
@@ -438,7 +443,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return shunting;
 	}
 
-	
+	public boolean isStoppable() {
+		if (speed > 0) return true;
+		if (isSet(routeManager) && routeManager.isActive()) return true;
+		if (isSet(route)) return true;
+		return false;
+	}
+
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(PUSH_PULL, pushPull);
@@ -500,11 +511,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(TAGS))  json.getJSONArray(TAGS ).forEach(elem -> {  tags.add(elem.toString()); });
 		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {
 			Tile tile = plan.get(new Id(elem.toString()), false);
-			if (tile.setState(Status.OCCUPIED,this)) trace.add(tile);
+			if (tile.setTrain(this)) trace.add(tile);
 		});
 		if (json.has(BLOCK)) {// do not move this up! during set, other fields will be referenced!
 			currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false);
-			currentBlock.setState(Status.OCCUPIED,this); 
+			currentBlock.add(this, direction); 
 		}
 		if (json.has(LOCOS)) { // for downward compatibility
 			for (Object id : json.getJSONArray(LOCOS)) add(BaseClass.get(new Id(""+id)));	
@@ -654,10 +665,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public String quitAutopilot() {
-		if (autopilot) {
-			autopilot = false;
-			return null;
-		}
+		if (isSet(routeManager)) routeManager.quit();
 		return t("Autopilot already was disabled!");
 	}
 	
@@ -682,6 +690,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		//if (child == nextRoute) nextRoute = null; // TODO
 		if (child == currentBlock) currentBlock = null;
 		if (child == destination) destination = null;
+		if (child == routeManager) routeManager = null;
 		cars.remove(child);
 		trace.remove(child);
 		super.removeChild(child);
@@ -747,10 +756,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public void set(Block newBlock) {
 		LOG.debug("{}.set({})",this,newBlock);
-		if (isSet(currentBlock)) currentBlock.free();
+		if (isSet(currentBlock)) currentBlock.free(this);
 		currentBlock = newBlock;
 		if (isSet(currentBlock)) {
-			currentBlock.setState(Status.OCCUPIED,this);
+			currentBlock.setTrain(this);
 			lastBlocks.add(newBlock);
 			if (lastBlocks.size()>32) lastBlocks.remove(0);
 		}
@@ -811,18 +820,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		cars.stream().filter(c -> c instanceof Locomotive).forEach(car -> ((Locomotive)car).setSpeed(speed));
 		plan.stream(t("Set {} to {} {}",this,speed,speedUnit));
 	}
-	
-	public void setTrace(LinkedList<Tile> newTrace) {
-		LOG.debug("{}.setTrace({})",this,newTrace);
-		LOG.debug("old trace: {}",trace);
-
-		trace.removeAll(newTrace);			
-		for (Tile tile : trace) tile.free();
-		trace = newTrace;
-		for (Tile tile : trace) tile.setState(Status.OCCUPIED,this);
-		
-		LOG.debug("new trace of {}: {}",this,trace);
-	}
 
 	private Tag slower(int steps) {
 		setSpeed(speed-steps);
@@ -850,15 +847,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (remaining.cars.isEmpty()) return false;
 		remaining.direction = this.direction;
 		this.name = null;
-		currentBlock.add(remaining);
+		currentBlock.add(remaining,direction);
 		remaining.currentBlock = currentBlock;
 		plan.place(currentBlock);
 		return true;
 	}
 
 
-	public String start(boolean autopilot) {
-		return t("{}.start() not implemented",this);
+	public String start(boolean auto) {
+		if (isNull(routeManager)) routeManager = new RouteManager(this);
+		routeManager.setAuto(auto);
+		plan.stream(t("Started {}",this));
+		return null;
 	}
 
 	public static void startAll() {
@@ -871,6 +871,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Window stopNow() {
 		setSpeed(0);
 		quitAutopilot();
+		if (isSet(route)) {
+			route.reset();
+		}
 		return properties();
 	}
 
@@ -900,31 +903,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return name();
 	}
 	
-	public void traceFrom(Tile newHead,Route route) {
-		LOG.debug("{}.traceTrainFrom({})",this,newHead);
-		if (isNull(route)) return;
-		if (newHead instanceof BlockContact) newHead = (Tile) ((BlockContact)newHead).parent();
-		
-		Tile traceHead = traceHead();
-		Integer remainingLength = null;
-		LinkedList<Tile> newTrace = new LinkedList<Tile>();
-		Vector<Tile> path = route.path();
-		for (int i=path.size(); i>0; i--) { // pfad rückwärts ablaufen
-			Tile tile = path.elementAt(i-1);
-			if (isNull(remainingLength)) {
-				if (tile == newHead) traceHead = newHead; // wenn wir zuerst newHead finden: newHead als neuen traceHead übernehmen
-				if (tile == traceHead) remainingLength = length(); // sobald wir auf den traceHead stoßen: Suche beenden
-			}		
-			if (isSet(remainingLength)) {
-				if (remainingLength>=0) {
-					newTrace.add(tile);
-					remainingLength -= tile.length();
-				} else if (Route.freeBehindTrain) {
-					tile.free();
-				} else break;				
-			}
-		}		
-		setTrace(newTrace);
+	public void traceFrom(Context context) {
+		// TOSO: neu implementieren!
+		// Beachten: Route aus Context, plan.freeBehindTrain
 	}
 	
 	public Tile traceHead() {		
@@ -960,13 +941,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return properties();
 	}
-	
-	public boolean usesAutopilot() {
-		return autopilot ;
-	}
 
-	public boolean isStoppable() {
-		if (speed > 0) return true;
-		return false;
+	public boolean usesAutopilot() {
+		return isSet(routeManager) && routeManager.autoEnabled();
 	}
 }

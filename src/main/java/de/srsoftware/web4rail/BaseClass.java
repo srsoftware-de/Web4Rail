@@ -141,6 +141,10 @@ public abstract class BaseClass implements Constants{
 			return this;
 		}
 		
+		public void invalidate() {
+			setMain(null);
+		}
+		
 		public boolean invalidated() {
 			return isNull(main);
 		}

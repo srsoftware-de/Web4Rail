@@ -34,8 +34,7 @@ public class BlockContact extends Contact {
 	
 	@Override
 	public Train train() {
-		train = ((Block)parent()).train();
-		return train;
+		return ((Block)parent()).train();
 	}
 
 	@Override

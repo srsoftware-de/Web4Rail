@@ -42,9 +42,9 @@ public abstract class Bridge extends Tile {
 	protected abstract Connector connector();
 	
 	@Override
-	public void free() {
-		if (isSet(counterpart) && counterpart.train != null) counterpart.free();
-		super.free();
+	public boolean free(Train train) {
+		if (!super.free(train)) return false;
+		return isSet(counterpart) ? counterpart.free(train) : true;
 	}
 	
 	@Override
@@ -68,10 +68,10 @@ public abstract class Bridge extends Tile {
 	}
 	
 	@Override
-	public boolean setState(Status newState, Train newTrain) {
-		if (train == newTrain && is(newState)) return true;
-		if (!super.setState(newState,newTrain)) return false;		
-		return isNull(counterpart) ? true : counterpart.setState(newState,newTrain);		
+	public boolean setTrain(Train newTrain) {
+		if (train() == newTrain) return true;
+		if (!super.setTrain(newTrain)) return false;		
+		return isNull(counterpart) ? true : counterpart.setTrain(newTrain);		
 	}
 	
 	@Override

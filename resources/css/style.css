@@ -77,8 +77,8 @@ svg.Relay rect{
 	fill: white;
 }
 
-svg.allocated polygon,
-svg.allocated rect:not(.sig_a):not(.sig_b){
+svg.reserved polygon,
+svg.reserved rect:not(.sig_a):not(.sig_b){
 	fill: yellow;
 }
 

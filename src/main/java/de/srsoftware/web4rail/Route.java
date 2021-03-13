@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Stack;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -43,7 +42,6 @@ import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Shadow;
 import de.srsoftware.web4rail.tiles.Signal;
 import de.srsoftware.web4rail.tiles.Tile;
-import de.srsoftware.web4rail.tiles.Tile.Status;
 import de.srsoftware.web4rail.tiles.Turnout;
 /**
  * A route is a vector of tiles that leads from one block to another.
@@ -82,6 +80,7 @@ public class Route extends BaseClass {
 	private HashMap<String,Integer>        brakeTimes = new HashMap<String, Integer>();
 	private ConditionList                  conditions;
 	private Vector<Contact>                contacts;
+	private Context						   context;
 	private boolean                        disabled = false;
 	private Block                          endBlock = null;
 	public  Direction					   endDirection;
@@ -193,10 +192,6 @@ public class Route extends BaseClass {
 	
 	void addTurnout(Turnout t, Turnout.State s) {
 		turnouts.put(t, s);
-	}
-	
-	public boolean allocateFor(Train newTrain) {
-		return pathState(newTrain,Tile.Status.ALLOCATED);
 	}
 	
 	/**
@@ -316,17 +311,18 @@ public class Route extends BaseClass {
 	 * Kontakt der Route aktivieren
 	 * @param contact
 	 * @param trainHead
+	 * @return 
 	 */
-	public void contact(Context context) {
-		Contact contact = context.contact();
-		if (triggeredContacts.contains(contact)) return; // don't trigger contact a second time
+	public Context contact(Contact contact) {
+		context.contact(contact);
+		if (triggeredContacts.contains(contact)) return context; // don't trigger contact a second time
 		triggeredContacts.add(contact);
 		LOG.debug("{} on {} activated {}.",context.train(),this,contact);
 		ActionList actions = triggeredActions.get(contact.trigger());
 		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
-		if (isNull(actions)) return;
-		//Context context = new Context(this).train(train).contact(contact);
-		actions.fire(context.route(this),"Route.Contact("+contact.addr()+")");
+		if (isNull(actions)) return context;
+		actions.fire(context,"Route.Contact("+contact.addr()+")");
+		return context;
 	}
 
 	public Vector<Contact> contacts() {
@@ -377,17 +373,20 @@ public class Route extends BaseClass {
 	public void finish(Train train) {
 		LOG.debug("{}.finish()",this);
 		train.endRoute(endBlock,endDirection);
-		train = null;
 		free();				
+		train = null;
 	}
 	
 	private void free() {
-		for (Tile tile : path) {
-			Train train = tile.train();
-			if (isSet(train) && train.onTrace(tile)) {
-				tile.setState(Status.OCCUPIED, train);
-			} else tile.free();
+		context.invalidate();
+		Train train = context.train();
+		for (int i=path.size(); i>0; i--) {
+			Tile tile = path.get(i-1);
+			if (isSet(train) && !train.onTrace(tile)) {
+				tile.free(train);
+			}
 		}
+		context = null;			
 	}
 
 	private String generateName() {
@@ -414,9 +413,13 @@ public class Route extends BaseClass {
 		return disabled;
 	}
 		
-	public boolean isFreeFor(Train newTrain) {
-		LOG.debug("{}.isFreeFor({})",this,newTrain);
-		return false;
+	public boolean isFreeFor(Context train) {
+		LOG.debug("{}.isFreeFor({})",this,train);
+		if (isNull(train.train())) return false;
+		for (Tile tile : path) {			
+			if (!tile.isFreeFor(train)) return false;
+		}
+		return true;
 	}
 	
 	/**
@@ -647,26 +650,21 @@ public class Route extends BaseClass {
 		return result;
 	}
 	
-	private boolean pathState(Train newTrain, Status newState) {
-		Stack<Tile> visited = new Stack<>();
-		for (Tile t : path) {
-			if (t.setState(newState,newTrain)) {
-				visited.push(t);
-			} else {
-				while (!visited.isEmpty()) visited.pop().free();
+	public boolean prepareAndLock() {
+		LOG.debug("{}.prepareAndLock()",this);
+		Train train = context.train();
+		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
+		if (isSet(setupActions) && !setupActions.fire(context.route(this),this+".prepare()")) {
+			LOG.debug("Was not able to prepare route for {}.",train);
+			return false;
+		}
+
+		for (Tile tile : path) {
+			if (context.invalidated() || !tile.lockFor(context)) {
+				LOG.debug("Was not able to allocate route for {}.",context);				
 				return false;
 			}
 		}
-		return true;
-	}
-	
-	public boolean prepareFor(Train newTrain) {
-//		if (state == State.PREPARED || state == State.STARTED) return true;
-		LOG.debug("{}.prepare()",this);
-		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
-		if (isSet(setupActions) && !setupActions.fire(new Context(newTrain).route(this),this+".prepare()")) return false;
-//		state = State.PREPARED;
-		pathState(newTrain,Tile.Status.LOCKED);
 		return true;
 	}
 	
@@ -736,11 +734,25 @@ public class Route extends BaseClass {
 		super.removeChild(child);
 	}
 	
+	public boolean reserveFor(Context newContext) {
+		LOG.debug("{}.reserverFor({})",this,newContext);
+		if (isSet(context)) return false; // route already has context!
+		context = newContext;
+		for (Tile tile : path) {
+			if (newContext.invalidated() || !tile.reserveFor(newContext)) {
+				LOG.debug("Was not able to allocate route for {}.",newContext);				
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	public boolean reset() {
 		LOG.debug("{}.reset()",this);
 		setSignals(Signal.RED);
+		Train train = context.train();
 		free();
-//		train = null;		
+		train.drop(this);
 		return true;
 	}
 	
@@ -783,21 +795,22 @@ public class Route extends BaseClass {
 		return this;
 	}
 
-	public boolean start(Train newTrain) {
-//		if (state == State.STARTED) return true;
+	public boolean start() {
 		LOG.debug("{}.start()",this);
-		if (isNull(newTrain)) return false; // can't set route's train to null
-/*		if (isSet(train)) {
-			if (newTrain != train) return false; // can't alter route's train
-		} else train = */newTrain.setRoute(this); // set new train
+		if (isNull(context) || context.invalidated()) return false;
+		
+		Train train = context.train();
+		if (isNull(train)) return false; // can't set route's train to null
+		train.setRoute(this); // set new train
 		
 		ActionList startActions = triggeredActions.get(ROUTE_START);
 		
 		if (isSet(startActions)) {
-			Context context = new Context(newTrain).route(this);
-			if (!startActions.fire(context,this+".start("+newTrain.name()+")")) return false; // start actions failed
+			context.route(this);
+			String cause = this+".start("+train.name()+")";
+			if (!startActions.fire(context,cause)) return false; // start actions failed
 		}
-//		state = State.STARTED;
+
 		triggeredContacts.clear();
 		return true;
 	}

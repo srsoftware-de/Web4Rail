@@ -4,7 +4,7 @@
 	<appender name="STDOUT"
 		class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n
+			<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5}: %msg%n
 			</pattern>
 		</encoder>
 		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -35,8 +35,8 @@
 	<logger name="de.srsoftware.web4rail.actions.Action" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.actions.ActionList" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.moving.Train" level="DEBUG" />
-	<logger name="de.srsoftware.web4rail.tiles.Contact" level="DEBUG" />
-	<logger name="de.srsoftware.web4rail.tiles.Block" level="DEBUG" />
-	<logger name="de.srsoftware.web4rail.threads.BrakeProcessor" level="DEBUG" />
+	<logger name="de.srsoftware.web4rail.tiles" level="DEBUG" />
+	<logger name="de.srsoftware.web4rail.tiles" level="DEBUG" />
+	<logger name="de.srsoftware.web4rail.threads.RouteManager" level="DEBUG" />
 
 </configuration>

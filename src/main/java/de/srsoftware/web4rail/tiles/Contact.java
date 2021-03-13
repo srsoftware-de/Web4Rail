@@ -18,6 +18,7 @@ import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Select;
@@ -84,11 +85,8 @@ public class Contact extends Tile{
 			LOG.debug("{} activated.",this);
 			state = true;
 			if (isSet(timer)) timer.abort();
-			Context context = new Context(this);
-			if (isSet(train())) {
-				train.contact(this);
-				context.train(train);
-			}
+			Train train = train();
+			Context context = isSet(train) ? train.contact(this) : new Context(this);
 			actions.fire(context,"Contact("+addr+")");
 			
 			for (Listener listener : listeners) listener.fired("Contact("+addr+")");

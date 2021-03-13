@@ -29,7 +29,7 @@ public class CoupleTrain extends Action {
 		if (isNull(train)) return false;		
 		Block block = train.currentBlock();
 		if (isNull(block)) return false;
-		Train parkingTrain = block.parkedTrain(last);
+		Train parkingTrain = block.lastTrain();
 		if (isNull(parkingTrain)) return false;
 		train.coupleWith(parkingTrain,swap);
 		return true;
