@@ -36,8 +36,6 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.BrakeProcessor;
-import de.srsoftware.web4rail.threads.PathFinder;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -55,6 +53,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static final String TRACE   = "trace";
 
 	private static final String NAME = "name";
+
+	public static int defaultEndSpeed;
 	private String name = null;
 	
 	
@@ -91,11 +91,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public int speed = 0;
 	private static final String SHUNTING = "shunting";
 	private boolean shunting = false;
-
-	private BrakeProcessor brakeProcessor;
-
-	private PathFinder pathFinder;
-
 	private boolean autopilot = false;
 
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
@@ -402,18 +397,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void endRoute(Block newBlock, Direction newDirection) {
-		if (isSet(brakeProcessor)) {
-			brakeProcessor.end();
-		} else setSpeed(0);
-		set(newBlock);
-		if (newBlock == destination) {
-			destination = null;
-			quitAutopilot();
-		}
-		heading(newDirection);
-		route = null;
-		brakeProcessor = null;
-		if (autopilot) start(false);
+		
 	}
 
 	private Tag faster(int steps) {
@@ -772,16 +756,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 	}
 	
-	private void set(BrakeProcessor bp) {
-		LOG.debug("{}.set({})",this,bp);
-		brakeProcessor = bp;
-	}
-	
-	private void set(PathFinder pf) {
-		LOG.debug("{}.set({})",this,pf);
-		pathFinder = pf;
-	}
-	
 	private Object setDestination(HashMap<String, String> params) {
 		String dest = params.get(DESTINATION);
 		if (isNull(dest)) return properties(t("No destination supplied!"));
@@ -884,37 +858,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 
 	public String start(boolean autopilot) {
-		this.autopilot |= autopilot;
-		if (isSet(route)) return t("{} already on {}!",this,route);
-		if (isSet(pathFinder)) return t("Pathfinder already active for {}!",this);
-		PathFinder pathFinder = new PathFinder(this,currentBlock,direction) {
-			
-			@Override
-			public void aborted() {
-				plan.stream(t("Aborting route allocation..."));
-				LOG.debug("{} aborted",this);
-			}
-			
-			@Override
-			public void found(Route newRoute) {
-				LOG.debug("Found route {} for {}",newRoute,Train.this);				
-			}
-
-			@Override
-			public void locked(Route newRoute) {
-				LOG.debug("Locked route {} for {}",newRoute,Train.this);
-				route = newRoute;
-			}
-			
-			@Override
-			public void prepared(Route newRoute) {
-				LOG.debug("Prepared route {} for {}",newRoute,Train.this);
-				set((PathFinder)null);
-				route.start(Train.this);
-			}
-		};
-		set(pathFinder);
-		return null;
+		return t("{}.start() not implemented",this);
 	}
 
 	public static void startAll() {
@@ -922,28 +866,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.start(true));
 	}
 	
-	public void startBrake() {
-		if (isNull(route)) {
-			LOG.warn("{}.startBrake() called, but train ist not on a route!",this);
-			return;
-		}
-		if (isSet(brakeProcessor)) {
-			LOG.debug("{} already is braking.");
-			return;
-		}
-		set(new BrakeProcessor(this));
-	}
+	public void startBrake() {}
 
 	public Window stopNow() {
 		setSpeed(0);
-		if (isSet(pathFinder)) {
-			pathFinder.abort();
-			set((PathFinder)null);
-		}
-		if (isSet(route)) {
-			route.reset();
-			route = null;
-		}
 		quitAutopilot();
 		return properties();
 	}
@@ -1041,8 +967,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public boolean isStoppable() {
 		if (speed > 0) return true;
-		if (isSet(pathFinder)) return true;
-		if (isSet(route)) return true;
 		return false;
 	}
 }

@@ -36,7 +36,6 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.BrakeProcessor;
 import de.srsoftware.web4rail.threads.ControlUnit;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
@@ -357,7 +356,7 @@ public class Plan extends BaseClass{
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(LENGTH_UNIT, lengthUnit).addTo(new Label(t("Length unit")+COL)).addTo(form);
 		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+COL)).addTo(form);
-		new Input(FINAL_SPEED, BrakeProcessor.defaultEndSpeed).addTo(new Label(t("Lower speed limit")+COL)).attr("title", t("Final speed after breaking, before halting")).addTo(form); // TODO
+		new Input(FINAL_SPEED, Train.defaultEndSpeed).addTo(new Label(t("Lower speed limit")+COL)).attr("title", t("Final speed after breaking, before halting")).addTo(form); // TODO
 		new Checkbox(FREE_BEHIND_TRAIN, t("Free tiles behind train"), Route.freeBehindTrain).attr("title", t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.")).addTo(form);
 		new Button(t("Save"), form).addTo(form);
 		form.addTo(fieldset);
@@ -491,7 +490,7 @@ public class Plan extends BaseClass{
 			.forEach(jTiles::put);
 		
 		return new JSONObject()
-				.put(FINAL_SPEED, BrakeProcessor.defaultEndSpeed) 
+				.put(FINAL_SPEED, Train.defaultEndSpeed) 
 				.put(FREE_BEHIND_TRAIN, Route.freeBehindTrain)
 				.put(LENGTH_UNIT, lengthUnit)
 				.put(SPEED_UNIT, speedUnit)
@@ -525,7 +524,7 @@ public class Plan extends BaseClass{
 		if (json.has(TILE)) json.getJSONArray(TILE).forEach(object -> Tile.load(object, plan));
 		if (json.has(LENGTH_UNIT)) lengthUnit = json.getString(LENGTH_UNIT);
 		if (json.has(SPEED_UNIT)) speedUnit = json.getString(SPEED_UNIT);
-		if (json.has(FINAL_SPEED)) BrakeProcessor.defaultEndSpeed = json.getInt(FINAL_SPEED);
+		if (json.has(FINAL_SPEED)) Train.defaultEndSpeed = json.getInt(FINAL_SPEED);
 		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
 			
 		try {
@@ -691,7 +690,7 @@ public class Plan extends BaseClass{
 		formInputs.add(null, new Input(ACTION,ACTION_UPDATE));
 		formInputs.add(t("Length unit"),new Input(LENGTH_UNIT, lengthUnit));
 		formInputs.add(t("Speed unit"),new Input(SPEED_UNIT, speedUnit));
-		formInputs.add(t("Lower speed limit"),new Input(FINAL_SPEED, BrakeProcessor.defaultEndSpeed).attr("title", t("Final speed after breaking, before halting")));
+		formInputs.add(t("Lower speed limit"),new Input(FINAL_SPEED, Train.defaultEndSpeed).attr("title", t("Final speed after breaking, before halting")));
 		formInputs.add(t("Free tiles behind train"),new Checkbox(FREE_BEHIND_TRAIN, t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished."), Route.freeBehindTrain));
 		
 		postForm.add(relayProperties());
@@ -997,7 +996,7 @@ public class Plan extends BaseClass{
 		
 		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.get(LENGTH_UNIT);
 		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);
-		if (params.containsKey(FINAL_SPEED)) BrakeProcessor.defaultEndSpeed = Integer.parseInt(params.get(FINAL_SPEED)); 
+		if (params.containsKey(FINAL_SPEED)) Train.defaultEndSpeed = Integer.parseInt(params.get(FINAL_SPEED)); 
 		Route.freeBehindTrain = "on".equalsIgnoreCase(params.get(FREE_BEHIND_TRAIN));
 		
 		return t("Plan updated.");		

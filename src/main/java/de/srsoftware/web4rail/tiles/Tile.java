@@ -24,15 +24,14 @@ import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
-import de.srsoftware.web4rail.actions.AlterDirection;
 import de.srsoftware.web4rail.Route;
+import de.srsoftware.web4rail.actions.AlterDirection;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.PathFinder;
 
 /**
  * Base class for all tiles
@@ -82,28 +81,28 @@ public abstract class Tile extends BaseClass implements Comparable<Tile>{
 	}
 	
 	public boolean canNeEnteredBy(Train newTrain) {
-		PathFinder.LOG.debug("{}.canNeEnteredBy({})",this,newTrain);
+		LOG.debug("{}.canNeEnteredBy({})",this,newTrain);
 		if (disabled) {
-			PathFinder.LOG.debug("{} is disabled!",this);
+			LOG.debug("{} is disabled!",this);
 			return false;
 		}
 		
 		if (isNull(train)) {
-			PathFinder.LOG.debug("→ free");
+			LOG.debug("→ free");
 			return true;
 		}
 
 		if (newTrain == train) { // during train.reserveNext, we may encounter, parts, that are already reserved by the respective train, but having another route. do not compare routes in that case!
-			PathFinder.LOG.debug("already reserved by {} → true",train);
+			LOG.debug("already reserved by {} → true",train);
 			return true;
 		}
 
 		if (isSet(newTrain) && newTrain.isShunting()) {
-			PathFinder.LOG.debug("occupied by {}. Allowed for shunting {}",train,newTrain);
+			LOG.debug("occupied by {}. Allowed for shunting {}",train,newTrain);
 			return true;
 		}
 			
-		PathFinder.LOG.debug("occupied by {} → false",train);				
+		LOG.debug("occupied by {} → false",train);				
 		return false;
 	}
 

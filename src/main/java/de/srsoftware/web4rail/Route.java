@@ -37,7 +37,6 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.PathFinder;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -88,7 +87,6 @@ public class Route extends BaseClass {
 	public  Direction					   endDirection;
 	private Vector<Tile>                   path;
 	private Vector<Signal>                 signals;
-	//private Train                          train;
 	private HashMap<String,ActionList>     triggeredActions = new HashMap<String, ActionList>();
 	private HashMap<Turnout,Turnout.State> turnouts;
 	private Block                          startBlock = null;
@@ -417,14 +415,8 @@ public class Route extends BaseClass {
 	}
 		
 	public boolean isFreeFor(Train newTrain) {
-		PathFinder.LOG.debug("{}.isFreeFor({})",this,newTrain);
-		for (int i=1; i<path.size(); i++) {
-			if (!path.get(i).canNeEnteredBy(newTrain)) {
-				PathFinder.LOG.debug("{}.isFreeFor(...) → false",this);
-				return false;
-			}
-		}
-		return true;
+		LOG.debug("{}.isFreeFor({})",this,newTrain);
+		return false;
 	}
 	
 	/**
