@@ -106,7 +106,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 	}
 
 	public boolean free(Train t) {
-		if (t != train) return false;
+		if (isSet(train) && t != train) return false;
 		train = null;
 		status = Status.FREE;
 		plan.place(this);

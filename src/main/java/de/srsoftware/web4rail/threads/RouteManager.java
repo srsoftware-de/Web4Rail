@@ -14,6 +14,7 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class RouteManager extends BaseClass implements Runnable {
 	
@@ -66,6 +67,13 @@ public class RouteManager extends BaseClass implements Runnable {
 				LOG.debug("{}→ Candidate {}  would create loop, skipping",inset,routeCandidate.shortName());
 				continue;
 			}
+			
+			HashSet<Tile> stuckTrace = train.stuckTrace(); // if train has been stopped in between two blocks lastly: only allow routes that do not conflict with current train position
+			if (isSet(stuckTrace) && !routeCandidate.path().containsAll(stuckTrace)) {
+				LOG.debug("Stuck train occupies tiles ({}) outside of {} – not allowed.",stuckTrace,routeCandidate);
+				continue;
+			}
+			
 			if (!routeCandidate.allowed(context)) { 
 				if (routeCandidate.endBlock() != destination) { // allowance may be overridden by destination
 					LOG.debug("{} not allowed for {}",routeCandidate,context);

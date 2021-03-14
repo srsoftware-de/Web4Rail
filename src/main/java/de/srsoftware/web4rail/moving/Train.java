@@ -90,6 +90,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private boolean shunting = false;
 	private RouteManager routeManager = null;
 
+	private HashSet<Tile> stuckTrace = null;
+
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
 		if (isNull(action)) return t("No action passed to Train.action!");
@@ -405,6 +407,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		endBlock.add(this, direction);		
 		currentBlock = endBlock;
 		trace.add(endBlock);
+		stuckTrace = null;
 	}
 
 	private Tag faster(int steps) {
@@ -866,10 +869,19 @@ public class Train extends BaseClass implements Comparable<Train> {
 		setSpeed(0);
 		quitAutopilot();
 		if (isSet(route)) {
+			stuckTrace = new HashSet<Tile>(); 
+			for (Tile tile : route.path()) { // collect occupied tiles of route. stuckTrace is considered during next route search
+				if (trace.contains(tile)) stuckTrace.add(tile);
+			}
 			route.reset();
 		}
 		return properties();
 	}
+	
+	public HashSet<Tile> stuckTrace() {
+		return stuckTrace;
+	}
+
 
 	public SortedSet<String> tags() {
 		TreeSet<String> list = new TreeSet<String>(tags);

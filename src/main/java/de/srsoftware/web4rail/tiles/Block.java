@@ -278,8 +278,9 @@ public abstract class Block extends StretchableTile{
 		if (isNull(firstTrain)) return true;
 		if (firstTrain != train) return false;
 		trains.remove(train);
-		status = trains.isEmpty() ? Status.FREE : Status.OCCUPIED;
-		plan.place(this);
+		if (isSet(firstTrain)) {
+			super.free(train);
+		} else super.setTrain(firstTrain);		
 		return true;
 	}
 	

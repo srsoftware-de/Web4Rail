@@ -380,7 +380,8 @@ public class Route extends BaseClass {
 	}
 	
 	private void free() {
-		context.invalidate();
+		context.invalidate(); // do not set to null: 
+		// this action may be called from route.contact → finishRoute, which calls train.updateTrace afterwards, which in turn requires context
 		Train train = context.train();
 		Vector<Tile> reversedPath = reverse(path());
 		for (Tile tile : reversedPath) {
@@ -750,6 +751,7 @@ public class Route extends BaseClass {
 		Train train = context.train();
 		free();
 		train.drop(this);
+		context = null;
 		return true;
 	}
 	
