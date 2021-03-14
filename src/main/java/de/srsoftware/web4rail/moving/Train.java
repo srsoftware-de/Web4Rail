@@ -524,7 +524,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 			public void afterLoad() {
 				if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {
 					Tile tile = plan.get(new Id(elem.toString()), false);
-					if (tile.setTrain(Train.this)) trace.add(tile);
+					if (tile instanceof Block) {
+						((Block)tile).add(Train.this, direction);
+					} else if (tile.setTrain(Train.this));
+					trace.add(tile);
 				});
 				if (json.has(BLOCK)) {// do not move this up! during set, other fields will be referenced!
 					currentBlock = (Block) plan.get(Id.from(json, BLOCK), false);
@@ -759,7 +762,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public void set(Block newBlock) {
 		LOG.debug("{}.set({})",this,newBlock);
-		if (isSet(currentBlock)) currentBlock.free(this);
+		if (isSet(currentBlock)) {
+			if (newBlock == currentBlock) return;
+			currentBlock.free(this);
+		}
 		currentBlock = newBlock;
 		if (isSet(currentBlock)) {
 			currentBlock.setTrain(this);

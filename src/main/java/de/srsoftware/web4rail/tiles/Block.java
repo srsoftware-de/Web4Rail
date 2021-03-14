@@ -395,8 +395,9 @@ public abstract class Block extends StretchableTile{
 							Train train = BaseClass.get(tID);
 							Direction direction = to.has(DIRECTION) ? Direction.valueOf(to.getString(DIRECTION)) : null;
 							if (isSet(train)) {
-								trains.add(train, direction);
 								train.set(Block.this);
+								trains.add(train, direction);
+								status = Status.OCCUPIED;
 							}
 						}
 					}
