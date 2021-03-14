@@ -8,10 +8,10 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.DelayedExecution;
 import de.srsoftware.web4rail.tiles.Relay;
 import de.srsoftware.web4rail.tiles.Switch;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -51,31 +51,23 @@ public class SetRelayOrSwitch extends Action {
 	
 	@Override
 	public Action load(JSONObject json) {
-		super.load(json);
-		if (json.has(RELAY)) {
-			String relayId = json.getString(RELAY);
-			relayOrSwitch = BaseClass.get(new Id(relayId));
-			if (isNull(relayOrSwitch)) new DelayedExecution(this) {
-				
-				@Override
-				public void execute() {
-					relayOrSwitch = BaseClass.get(new Id(relayId));
-				};
-			};
-		}
-		if (json.has(SWITCH)) {
-			String relayId = json.getString(SWITCH);
-			relayOrSwitch = BaseClass.get(new Id(relayId));
-			if (isNull(relayOrSwitch)) new DelayedExecution(this) {
-				
-				@Override
-				public void execute() {
-					relayOrSwitch = BaseClass.get(new Id(relayId));
-				}
-			};
-		}
 		if (json.has(STATE)) state = json.getBoolean(STATE);
-		return this;
+
+		if (json.has(RELAY)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				relayOrSwitch = BaseClass.get(Id.from(json, RELAY));
+			};
+		};
+		
+		if (json.has(SWITCH)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				relayOrSwitch = BaseClass.get(Id.from(json, SWITCH));
+			};
+		};
+		
+		return super.load(json);
 	}
 	
 	@Override

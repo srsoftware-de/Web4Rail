@@ -68,6 +68,7 @@ public abstract class BaseClass implements Constants{
 		private Car car;
 		private Contact contact;
 		private Direction direction;
+		private Integer waitTime;
 		
 		public Context(BaseClass object) {
 			setMain(object);
@@ -102,6 +103,7 @@ public abstract class BaseClass implements Constants{
 			route = null;
 			tile = null;
 			train = null;
+			waitTime = null;
 		}
 		
 		public Context clone() {
@@ -115,6 +117,7 @@ public abstract class BaseClass implements Constants{
 			clone.route = route;
 			clone.tile = tile;
 			clone.train = train;
+			clone.waitTime = waitTime;
 			return clone;
 		}
 		
@@ -187,6 +190,7 @@ public abstract class BaseClass implements Constants{
 			if (isSet(block)) sb.append(", "+t("Block: {}",block));
 			if (isSet(route))   sb.append(", "+t("Route: {}",route));
 			if (isSet(contact)) sb.append(", "+t("Contact: {}",contact));
+			if (isSet(waitTime)) sb.append(", "+t("Wait time: {} ms",waitTime));
 			sb.append(")");
 			return sb.toString();
 		}
@@ -199,6 +203,14 @@ public abstract class BaseClass implements Constants{
 			LOG.debug("{}.train({})",this,newTrain);
 			train = newTrain;
 			return this;
+		}
+		
+		public Integer waitTime() {
+			return waitTime;
+		}
+
+		public void waitTime(int ms) {
+			waitTime = ms;
 		}
 	}
 	

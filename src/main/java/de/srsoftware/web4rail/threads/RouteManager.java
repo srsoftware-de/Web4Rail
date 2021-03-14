@@ -31,9 +31,6 @@ public class RouteManager extends BaseClass implements Runnable {
 	public RouteManager(Train train) {
 		context = new Context(train);
 		state = State.STARTED;
-		Thread thread = new Thread(this);
-		thread.setName(train.name());
-		thread.start();
 	}
 	
 	private static TreeMap<Integer,List<Route>> availableRoutes(Context context,HashSet<Route> visitedRoutes){
@@ -61,7 +58,7 @@ public class RouteManager extends BaseClass implements Runnable {
 		
 		if (isSet(destination) && visitedRoutes.isEmpty()) LOG.debug("{}- Destination: {}",inset,destination);
 		
-		for (Route routeCandidate : block.routes(startDirection)) {
+		for (Route routeCandidate : block.leavingRoutes()) {
 			if (context.invalidated()) return availableRoutes;
 			if (visitedRoutes.contains(routeCandidate)) {
 				LOG.debug("{}→ Candidate {}  would create loop, skipping",inset,routeCandidate.shortName());
@@ -179,7 +176,8 @@ public class RouteManager extends BaseClass implements Runnable {
 		try {
 			do {
 				pause();
-				if (context.invalidated()) return;				
+				if (isSet(train.route())) continue;
+				if (context.invalidated()) return;
 				context.block(train.currentBlock()).direction(train.direction());
 				Route route = chooseRoute(context);
 				if (isNull(route)) continue;
@@ -205,8 +203,15 @@ public class RouteManager extends BaseClass implements Runnable {
 		}
 	}
 
-	public void setAuto(boolean auto) {
+	public RouteManager setAuto(boolean auto) {
 		LOG.debug("{}abled autopilot of {}",auto?"En":"Dis");
 		autopilot = auto;
+		return this;
+	}
+
+	public void start() {
+		Thread thread = new Thread(this);
+		thread.setName(context.train().name());
+		thread.start();
 	}
 }

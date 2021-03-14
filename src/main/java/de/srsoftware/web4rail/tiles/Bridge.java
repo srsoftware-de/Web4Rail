@@ -9,10 +9,10 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.DelayedExecution;
 
 public abstract class Bridge extends Tile {
 	private static final String COUNTERPART = "counterpart";
@@ -56,14 +56,12 @@ public abstract class Bridge extends Tile {
 	
 	@Override
 	public Tile load(JSONObject json) {
-		if (json.has(COUNTERPART)) {
-			new DelayedExecution(this) {
-				@Override
-				public void execute() {
-					counterpart = (Bridge) plan.get(Id.from(json, COUNTERPART), false);
-				}
-			};
-		}
+		if (json.has(COUNTERPART)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				counterpart = (Bridge) plan.get(Id.from(json, COUNTERPART), false);
+			}
+		};
 		return super.load(json);
 	}
 	

@@ -513,25 +513,29 @@ public class Plan extends BaseClass{
 	public static void load(String name) throws IOException {
 		plan = new Plan();
 		plan.name = name;
+
+		String content = new String(Files.readAllBytes(new File(name+".plan").toPath()),UTF8);
+		JSONObject json = new JSONObject(content);
+
+		if (json.has(LENGTH_UNIT)) lengthUnit = json.getString(LENGTH_UNIT);
+		if (json.has(SPEED_UNIT)) speedUnit = json.getString(SPEED_UNIT);
+		if (json.has(FINAL_SPEED)) Train.defaultEndSpeed = json.getInt(FINAL_SPEED);
+		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
+		
 		try {
 			Car.loadAll(name+".cars",plan);
 		} catch (Exception e) {
 			LOG.warn("Was not able to load cars!",e);
 		}
 
-		String content = new String(Files.readAllBytes(new File(name+".plan").toPath()),UTF8);
-		JSONObject json = new JSONObject(content);
-		if (json.has(TILE)) json.getJSONArray(TILE).forEach(object -> Tile.load(object, plan));
-		if (json.has(LENGTH_UNIT)) lengthUnit = json.getString(LENGTH_UNIT);
-		if (json.has(SPEED_UNIT)) speedUnit = json.getString(SPEED_UNIT);
-		if (json.has(FINAL_SPEED)) Train.defaultEndSpeed = json.getInt(FINAL_SPEED);
-		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
-			
 		try {
 			Train.loadAll(name+".trains",plan);
 		} catch (Exception e) {
 			LOG.warn("Was not able to load trains!",e);
 		}
+
+		if (json.has(TILE)) json.getJSONArray(TILE).forEach(object -> Tile.load(object, plan));
+			
 		try {
 			Route.loadAll(name+".routes",plan);
 		} catch (Exception e) {
@@ -547,6 +551,7 @@ public class Plan extends BaseClass{
 		} catch (Exception e) {
 			LOG.warn("Was not able to establish connection to control unit!");
 		}
+		LoadCallback.fire();
 	}
 	
 	/**

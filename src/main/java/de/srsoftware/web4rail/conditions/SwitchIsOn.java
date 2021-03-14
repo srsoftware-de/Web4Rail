@@ -8,10 +8,10 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.DelayedExecution;
 import de.srsoftware.web4rail.tiles.Switch;
 import de.srsoftware.web4rail.tiles.Tile;
 
@@ -44,20 +44,13 @@ public class SwitchIsOn extends Condition {
 	}
 	
 	public Condition load(JSONObject json) {
-		super.load(json);
-		if (json.has(SWITCH)) {
-			swtch = BaseClass.get(new Id(json.getString(SWITCH)));
-			if (isNull(swtch)) {
-				new DelayedExecution(this) {
-					
-					@Override
-					public void execute() {
-						swtch = BaseClass.get(new Id(json.getString(SWITCH)));
-					}
-				};
+		if (json.has(SWITCH)) new LoadCallback() {			
+			@Override
+			public void afterLoad() {
+				swtch = BaseClass.get(Id.from(json,SWITCH));
 			}
-		}
-		return this;
+		};
+		return super.load(json);
 	}
 	
 	@Override

@@ -7,10 +7,10 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.DelayedExecution;
 import de.srsoftware.web4rail.tiles.TextDisplay;
 import de.srsoftware.web4rail.tiles.Tile;
 
@@ -43,15 +43,12 @@ public class SetDisplayText extends TextAction{
 	
 	@Override
 	public Action load(JSONObject json) {
-		if (json.has(DISPLAY)) {
-			new DelayedExecution(this) {
-				
-				@Override
-				public void execute() {
-					display = (TextDisplay) plan.get(Id.from(json,DISPLAY), false);
-				};
-			};
-		}
+		if (json.has(DISPLAY)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				display = (TextDisplay) plan.get(Id.from(json,DISPLAY), false);
+			}
+		};			
 		return super.load(json);
 	}
 	

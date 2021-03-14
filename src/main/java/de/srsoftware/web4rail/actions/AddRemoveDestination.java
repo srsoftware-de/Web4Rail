@@ -9,11 +9,11 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.DelayedExecution;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Tile;
 
@@ -69,19 +69,13 @@ public class AddRemoveDestination extends Action {
 	public Action load(JSONObject json) {
 		if (json.has(TURN)) turnAtDestination = json.getBoolean(TURN);
 		if (json.has(SHUNTING)) shunting = json.getBoolean(SHUNTING);
-		if (json.has(Train.DESTINATION)) {
-			Id blockId = new Id(json.getString(Train.DESTINATION));
-			destination = BaseClass.get(blockId);
-			if (isNull(destination)) {
-				new DelayedExecution(this) {
-					
-					@Override
-					public void execute() {
-						destination = BaseClass.get(blockId);
-					}
-				};
+		if (json.has(Train.DESTINATION)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				destination = BaseClass.get(Id.from(json, Train.DESTINATION));
 			}
-		}
+		};
+		
 		return super.load(json);
 	}
 

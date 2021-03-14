@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -82,19 +83,16 @@ public class WaitForContact extends ActionList {
 	
 	@Override
 	public Action load(JSONObject json) {
-		if (json.has(CONTACT)) {
-			String cid = json.getString(CONTACT);
-			contact = BaseClass.get(new Id(cid));
-			if (isNull(contact)) new DelayedExecution(this) {
-				
-				@Override
-				public void execute() {
-					contact = BaseClass.get(new Id(cid));
-				}
-			};
-		}
 		if (json.has(TIMEOUT)) timeout = json.getInt(TIMEOUT);
 		if (json.has(TIMEOUT_ACTIONS)) timeoutActions.load(json.getJSONObject(TIMEOUT_ACTIONS));
+
+		if (json.has(CONTACT)) new LoadCallback() {
+			
+			@Override
+			public void afterLoad() {
+				contact = BaseClass.get(Id.from(json, CONTACT));	
+			}
+		};
 		return super.load(json);
 	}
 	

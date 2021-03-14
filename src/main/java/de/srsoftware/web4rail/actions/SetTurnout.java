@@ -8,10 +8,10 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.DelayedExecution;
 import de.srsoftware.web4rail.tiles.Turnout;
 import de.srsoftware.web4rail.tiles.Turnout.State;
 
@@ -49,20 +49,15 @@ public class SetTurnout extends Action {
 	
 	@Override
 	public Action load(JSONObject json) {
-		super.load(json);		
-		Id turnoutId = json.has(TURNOUT) ? new Id(json.getString(TURNOUT)) : null;
-		if (isSet(turnoutId)) {
-			turnout = BaseClass.get(turnoutId);
-			if (isNull(turnout)) new DelayedExecution(this) {
-				
-				@Override
-				public void execute() {
-					turnout = BaseClass.get(turnoutId);
-				}
-			};
-		}
 		if (json.has(Turnout.STATE)) state = Turnout.State.valueOf(json.getString(Turnout.STATE));
-		return this;
+		if (json.has(TURNOUT)) new LoadCallback() {
+			
+			@Override
+			public void afterLoad() {
+				turnout = BaseClass.get(Id.from(json, TURNOUT));
+			}
+		};
+		return super.load(json);
 	}
 	
 	@Override

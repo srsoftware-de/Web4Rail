@@ -790,7 +790,7 @@ public class Route extends BaseClass {
 	
 	public Route simplyfyName() {
 		String[] parts = name().split("-");
-		if (parts.length>1) name(parts[0]+" - "+parts[parts.length-1]);
+		if (parts.length>1) name(parts[0].trim()+" - "+parts[parts.length-1].trim());
 		return this;
 	}
 
@@ -802,6 +802,8 @@ public class Route extends BaseClass {
 		if (isNull(train)) return false; // can't set route's train to null
 		train.setRoute(this); // set new train
 		
+		triggeredContacts.clear();
+
 		ActionList startActions = triggeredActions.get(ROUTE_START);
 		
 		if (isSet(startActions)) {
@@ -810,7 +812,7 @@ public class Route extends BaseClass {
 			if (!startActions.fire(context,cause)) return false; // start actions failed
 		}
 
-		triggeredContacts.clear();
+		context.waitTime(endBlock.getWaitTime(train, endDirection).random());
 		return true;
 	}
 

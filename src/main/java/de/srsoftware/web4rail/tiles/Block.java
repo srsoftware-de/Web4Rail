@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Route;
@@ -99,7 +100,7 @@ public abstract class Block extends StretchableTile{
 	private static final String RAISE = "raise";
 	public static final String ACTION_ADD_CONTACT = "add_contact";
 	private static final String PARKED_TRAINS = "parked_trains";
-	private static final String TRAINS = "parked_trains";
+	private static final String TRAINS = "trains";
 
 	public String  name        = "Block";
 	public boolean turnAllowed = false;
@@ -203,15 +204,6 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
-	public boolean isFreeFor(Context context) {
-		Train train = context.train();
-		if (is(Status.DISABLED)) return false;
-		if (trains.isEmpty()) return true;
-		if (trains.first() == train) return true;
-		return train.isShunting(); // block contains train(s), thus it is only free for shunting train
-	}
-	
-	@Override
 	public Object click(boolean shift) throws IOException {
 		if (!trains.isEmpty() && !shift) return trains.first().properties();
 		return super.click(false);
@@ -310,6 +302,15 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
+	public boolean isFreeFor(Context context) {
+		Train train = context.train();
+		if (is(Status.DISABLED)) return false;
+		if (trains.isEmpty()) return true;
+		if (trains.first() == train) return true;
+		return train.isShunting(); // block contains train(s), thus it is only free for shunting train
+	}
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(NAME, name);
@@ -325,18 +326,27 @@ public abstract class Block extends StretchableTile{
 			}
 		}
 		if (isSet(jContacts)) json.put(CONTACT, jContacts);
+		json.remove(REALM_TRAIN); // is set by TRAINS field for blocks
 		if (!trains.isEmpty()) {
-			JSONArray ptids = new JSONArray();
-			for (Train parked : trains) {
-				if (isSet(parked)) ptids.put(parked.id().toString());
+			JSONArray jTrains = new JSONArray();
+			for (Train train : trains) {
+				JSONObject to = new JSONObject();
+				to.put(ID, train.id());
+				Direction dir = trains.directionOf(train);
+				if (isSet(dir)) to.put(DIRECTION, dir.toString());
+				jTrains.put(to);
 			}
-			json.put(PARKED_TRAINS, ptids);
+			json.put(TRAINS, jTrains);
 		}
 		return json;
 	}
 	
 	public Train lastTrain() {
 		return trains.last();
+	}
+
+	public List<Route> leavingRoutes() {
+		return routes().stream().filter(route -> route.startBlock() == Block.this).collect(Collectors.toList());
 	}
 
 	
@@ -372,24 +382,33 @@ public abstract class Block extends StretchableTile{
 				} catch (JSONException e) {}
 			}
 		}
-		if (json.has(TRAINS)) {
-			JSONArray jTrains = json.getJSONArray(TRAINS);
-			for (Object o : jTrains) {
-				if (o instanceof JSONObject) {
-					JSONObject to = (JSONObject) o;
-					Train train = BaseClass.get(new Id(to.getString(ID)));
-					Direction direction = to.has(DIRECTION) ? Direction.valueOf(to.getString(DIRECTION)) : null;
-					if (isSet(train)) trains.add(train, direction);
+		
+		new LoadCallback() {			
+			@Override
+			public void afterLoad() {
+				if (json.has(TRAINS)) {
+					JSONArray jTrains = json.getJSONArray(TRAINS);
+					for (Object o : jTrains) {
+						if (o instanceof JSONObject) {
+							JSONObject to = (JSONObject) o;
+							Id tID = new Id(to.getString(ID));
+							Train train = BaseClass.get(tID);
+							Direction direction = to.has(DIRECTION) ? Direction.valueOf(to.getString(DIRECTION)) : null;
+							if (isSet(train)) {
+								trains.add(train, direction);
+								train.set(Block.this);
+							}
+						}
+					}
+				} else if (json.has(PARKED_TRAINS)) { // legacy
+					for (Object id : json.getJSONArray(PARKED_TRAINS)) {
+						Train train = BaseClass.get(new Id(id.toString()));
+						if (isSet(train)) trains.add(train,null);
+					}			
 				}
 			}
-		}
-		if (json.has(PARKED_TRAINS)) { // legacy
-			JSONArray ptids = json.getJSONArray(PARKED_TRAINS);
-			for (Object id : ptids) {
-				Train train = BaseClass.get(new Id(id.toString()));
-				if (isSet(train)) trains.add(train,null);
-			}
-		}
+		};
+		
 		return super.load(json);
 	}
 	
@@ -483,10 +502,6 @@ public abstract class Block extends StretchableTile{
 	
 	public void removeContact(BlockContact blockContact) {
 		internalContacts.remove(blockContact);
-	}
-	
-	public List<Route> routes(Direction direction) {
-		return routes().stream().filter(route -> route.startBlock() == Block.this).collect(Collectors.toList());
 	}
 	
 	public void set(Train train, Direction direction) {

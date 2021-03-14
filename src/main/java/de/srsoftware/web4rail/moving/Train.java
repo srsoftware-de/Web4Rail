@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
@@ -514,18 +515,23 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
 		if (json.has(NAME)) name = json.getString(NAME);
 		if (json.has(TAGS))  json.getJSONArray(TAGS ).forEach(elem -> {  tags.add(elem.toString()); });
-		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {
-			Tile tile = plan.get(new Id(elem.toString()), false);
-			if (tile.setTrain(this)) trace.add(tile);
-		});
-		if (json.has(BLOCK)) {// do not move this up! during set, other fields will be referenced!
-			currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false);
-			currentBlock.add(this, direction); 
-		}
 		if (json.has(LOCOS)) { // for downward compatibility
 			for (Object id : json.getJSONArray(LOCOS)) add(BaseClass.get(new Id(""+id)));	
 		}		
 		for (Object id : json.getJSONArray(CARS)) add(BaseClass.get(new Id(""+id)));
+		new LoadCallback() {			
+			@Override
+			public void afterLoad() {
+				if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {
+					Tile tile = plan.get(new Id(elem.toString()), false);
+					if (tile.setTrain(Train.this)) trace.add(tile);
+				});
+				if (json.has(BLOCK)) {// do not move this up! during set, other fields will be referenced!
+					currentBlock = (Block) plan.get(Id.from(json, BLOCK), false);
+					if (isSet(currentBlock)) currentBlock.add(Train.this, direction);
+				}
+			}
+		};
 		super.load(json);
 		return this;
 	}
@@ -853,7 +859,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String start(boolean auto) {
 		if (isNull(routeManager)) routeManager = new RouteManager(this);
-		routeManager.setAuto(auto);
+		routeManager.setAuto(auto).start();
 		plan.stream(t("Started {}",this));
 		return null;
 	}

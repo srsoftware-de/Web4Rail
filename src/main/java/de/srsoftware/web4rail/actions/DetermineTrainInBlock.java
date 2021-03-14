@@ -7,9 +7,9 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.DelayedExecution;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Tile;
 
@@ -39,18 +39,13 @@ public class DetermineTrainInBlock extends Action {
 	public Action load(JSONObject json) {
 		super.load(json);
 		Id blockId = Id.from(json,BLOCK);
-		if (isSet(blockId)) {
-			block = Block.get(blockId);
-			if (isNull(block)) {
-				new DelayedExecution(this) {
-					
-					@Override
-					public void execute() {
-						block = Block.get(blockId);
-					}
-				};
+		if (isSet(blockId)) new LoadCallback() {
+			
+			@Override
+			public void afterLoad() {
+				block = Block.get(blockId);
 			}
-		}
+		};
 		return this;
 	}
 	
