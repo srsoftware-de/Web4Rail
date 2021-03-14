@@ -80,6 +80,11 @@ public abstract class Block extends StretchableTile{
 			return trains.remove(b);
 		}
 		
+
+		public void set(Train train, Direction newDirection) {
+			dirs.put(train, newDirection);
+		}
+
 		@Override
 		public String toString() {
 			return trains.toString();
@@ -388,7 +393,7 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
-	public boolean lockFor(Context context) {
+	public boolean lockFor(Context context, boolean downgrade) {
 		Train newTrain = context.train();
 		Route route = context.route();
 		LOG.debug("{}.lock({})",this,newTrain);
@@ -398,6 +403,8 @@ public abstract class Block extends StretchableTile{
 		switch (status) {
 			case DISABLED:
 				return false;
+			case OCCUPIED:
+				if (!downgrade) break;
 			case FREE:
 			case RESERVED:
 				status = Status.LOCKED;
@@ -406,7 +413,6 @@ public abstract class Block extends StretchableTile{
 				add(newTrain,dir);
 				plan.place(this);
 				break;
-			case OCCUPIED:
 			case LOCKED:
 				break; // do not downgrade
 		}
@@ -481,6 +487,11 @@ public abstract class Block extends StretchableTile{
 	public List<Route> routes(Direction direction) {
 		return routes().stream().filter(route -> route.startBlock() == Block.this).collect(Collectors.toList());
 	}
+	
+	public void set(Train train, Direction direction) {
+		trains.set(train,direction);
+	}
+
 	
 	public abstract List<Connector> startPoints();
 

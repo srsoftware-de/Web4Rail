@@ -478,7 +478,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		plan.place(this);
 	}
 	
-	public boolean lockFor(Context context) {
+	public boolean lockFor(Context context,boolean downgrade) {
 		Train newTrain = context.train();
 		LOG.debug("{}.lockFor({})",this,newTrain);
 		if (isNull(newTrain)) return false;
@@ -486,14 +486,15 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		switch (status) {
 			case DISABLED:
 				return false;
+			case OCCUPIED:
+				if (!downgrade) break;
 			case FREE:
 			case RESERVED:
 				status = Status.LOCKED;
 				plan.place(this);
 				break;
-			case OCCUPIED:
 			case LOCKED:
-				break; // do not downgrade
+				break; // already locked
 		}
 		return true;
 	}

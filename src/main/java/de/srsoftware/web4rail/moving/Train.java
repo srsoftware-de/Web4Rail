@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -38,7 +37,6 @@ import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.threads.RouteManager;
 import de.srsoftware.web4rail.tiles.Block;
-import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
 
@@ -84,7 +82,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private boolean f1,f2,f3,f4;
 
 	private Block currentBlock,destination = null;
-	LinkedList<Tile> trace = new LinkedList<Tile>();
+	HashSet<Tile> trace = new HashSet<Tile>();
 	private Vector<Block> lastBlocks = new Vector<Block>();
 	
 	public int speed = 0;
@@ -300,9 +298,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public Context contact(Contact contact) {
 		if (isNull(route)) return new Context(contact).train(this);
-		Context context = route.contact(contact);
-		traceFrom(context);
-		return context;
+		return updateTrace(route.contact(contact));
 	}
 
 	
@@ -398,11 +394,17 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	
 	public void dropTrace() {
-		while (!trace.isEmpty()) trace.removeFirst().free(this);
+		trace.forEach(tile -> tile.free(this));
+		trace.clear();
 	}
 	
-	public void endRoute(Block newBlock, Direction newDirection) {
-		
+	public void endRoute(Block endBlock, Direction endDirection) {
+		setSpeed(0);
+		route = null;
+		direction = endDirection;		
+		endBlock.add(this, direction);		
+		currentBlock = endBlock;
+		trace.add(endBlock);
 	}
 
 	private Tag faster(int steps) {
@@ -713,20 +715,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Train reverse() {
 		LOG.debug("train.reverse();");
 
-		if (isSet(direction)) {
-			direction = direction.inverse();
-			reverseTrace();
+		if (isSet(direction)) direction = direction.inverse();
+		if (isSet(currentBlock)) {
+			currentBlock.set(this,direction);
+			plan.place(currentBlock);
 		}
-		if (isSet(currentBlock)) plan.place(currentBlock);
 		return this;
-	}
-	
-	private void reverseTrace() {
-		LinkedList<Tile> reversed = new LinkedList<Tile>();
-		LOG.debug("Trace: {}",trace);
-		while (!trace.isEmpty()) reversed.addFirst(trace.removeFirst());
-		trace = reversed;
-		LOG.debug("reversed: {}",trace);
 	}
 	
 	public Route route() {
@@ -903,15 +897,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return name();
 	}
 	
-	public void traceFrom(Context context) {
-		// TOSO: neu implementieren!
-		// Beachten: Route aus Context, plan.freeBehindTrain
-	}
-	
-	public Tile traceHead() {		
-		return trace == null || trace.isEmpty() ? null : trace.getFirst();
-	}
-	
 	/**
 	 * this inverts the direction the train is heading to. Example:
 	 * before: CabCar→ MiddleCar→ Loco→
@@ -922,7 +907,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		LOG.debug("{}.turn()",this);
 		setSpeed(0);
 		for (Car car : cars) car.turn();
-		Collections.reverse(cars);
+		reverse(cars);
 		return reverse();
 	}
 
@@ -940,6 +925,52 @@ public class Train extends BaseClass implements Comparable<Train> {
 			}
 		}
 		return properties();
+	}
+	
+	public Context updateTrace(Context context) {
+		// TOSO: neu implementieren!
+		// Beachten: Route aus Context, plan.freeBehindTrain
+		LOG.debug("updateTrace({})",context);
+		Tile from = context.tile();
+		if (isNull(from)) from = context.contact();
+		if (isNull(from)) {
+			LOG.debug("no starting point for trace given in {}",context);
+			return context;			
+		}
+		trace.add(from);
+		Route route = context.route();
+		LOG.debug("Route: {}",route);
+		if (isNull(route)) return context;
+		Vector<Tile> reversedPath = reverse(route.path());
+		HashSet<Tile> newTrace = new HashSet<Tile>();
+		Integer remainingLength = null;
+		
+		for (Tile tile : reversedPath) {
+			if (isNull(remainingLength) && onTrace(tile)) remainingLength = length();
+			if (remainingLength == null) { // ahead of train
+				LOG.debug("{} is ahead of train and will not be touched.",tile);
+				trace.remove(tile); // old trace will be cleared afterwards. but this tile shall not be cleared, so remove it from old trace				
+			} else if (remainingLength > 0) { // within train
+				LOG.debug("{} is occupied by train and will be marked as \"occupied\"",tile);
+				remainingLength -= tile.length();
+				newTrace.add(tile);
+				trace.remove(tile); // old trace will be cleared afterwards. but this tile shall not be cleared, so remove it from old trace
+				tile.setTrain(this);
+				LOG.debug("remaining length: {}",remainingLength);
+			} else { // behind train
+				if (Route.freeBehindTrain) {
+					LOG.debug("{} is behind train and will be freed in the next step",tile);
+					trace.add(tile); // old trace will be cleared afterwards
+				} else {
+					LOG.debug("{} is behind train and will be reset to \"locked\" state",tile);
+					tile.lockFor(context,true);
+					trace.remove(tile); // old trace will be cleared afterwards. but this tile shall not be cleared, so remove it from old trace
+				}
+			}			
+		}
+		for (Tile tile : trace) tile.free(this);
+		trace = newTrace;
+		return context;
 	}
 
 	public boolean usesAutopilot() {

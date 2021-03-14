@@ -322,7 +322,9 @@ public class Route extends BaseClass {
 		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
 		if (isNull(actions)) return context;
 		actions.fire(context,"Route.Contact("+contact.addr()+")");
-		return context;
+		Context previousContext = context;
+		if (context.invalidated()) context = null; // route has been freed in between.
+		return previousContext;
 	}
 
 	public Vector<Contact> contacts() {
@@ -380,13 +382,10 @@ public class Route extends BaseClass {
 	private void free() {
 		context.invalidate();
 		Train train = context.train();
-		for (int i=path.size(); i>0; i--) {
-			Tile tile = path.get(i-1);
-			if (isSet(train) && !train.onTrace(tile)) {
-				tile.free(train);
-			}
+		Vector<Tile> reversedPath = reverse(path());
+		for (Tile tile : reversedPath) {
+			if (isSet(train) && !train.onTrace(tile)) tile.free(train);
 		}
-		context = null;			
 	}
 
 	private String generateName() {
@@ -504,7 +503,7 @@ public class Route extends BaseClass {
 		if (json.has(ACTIONS)) {
 			loadActions(json.getJSONObject(ACTIONS));
 		}
-		if (json.has("action_lists")) { // TODO: this is legacy!
+		if (json.has("action_lists")) { // Legacy
 			JSONArray jarr = json.getJSONArray("action_lists");
 			for (Object o : jarr) {
 				if (o instanceof JSONObject) {
@@ -525,7 +524,7 @@ public class Route extends BaseClass {
 				}
 			}
 		}
-		if (json.has("conditions")) { // TODO: this is legacy!
+		if (json.has("conditions")) { // Legacy
 			JSONArray jConditions = json.getJSONArray("conditions");
 			for (Object o : jConditions) {
 				if (o instanceof JSONObject) {
@@ -540,7 +539,7 @@ public class Route extends BaseClass {
 			}
 		}
 		if (json.has(CONDITION_LIST)) conditions.load(json.getJSONObject(CONDITION_LIST)).parent(this);
-		if (json.has(SETUP_ACTIONS)) { // TODO: this is legacy!
+		if (json.has(SETUP_ACTIONS)) { // Legacy
 			Object so = json.get(SETUP_ACTIONS);
 			if (so instanceof JSONObject) {
 				JSONObject jo = (JSONObject) so;
@@ -565,7 +564,7 @@ public class Route extends BaseClass {
 				triggeredActions.put(ROUTE_SETUP, setupActions);
 			}			
 		}
-		if (json.has(START_ACTIONS)) { // TODO: this is legacy!
+		if (json.has(START_ACTIONS)) { // Legacy
 			Object so = json.get(START_ACTIONS);
 			if (so instanceof JSONObject) {
 				JSONObject jo = (JSONObject) so;
@@ -645,9 +644,7 @@ public class Route extends BaseClass {
 	}
 	
 	public Vector<Tile> path() {
-		Vector<Tile> result = new Vector<Tile>();
-		if (isSet(path)) result.addAll(path);
-		return result;
+		return isSet(path) ? new Vector<>(path) : new Vector<>();
 	}
 	
 	public boolean prepareAndLock() {
@@ -660,7 +657,7 @@ public class Route extends BaseClass {
 		}
 
 		for (Tile tile : path) {
-			if (context.invalidated() || !tile.lockFor(context)) {
+			if (context.invalidated() || !tile.lockFor(context,false)) {
 				LOG.debug("Was not able to allocate route for {}.",context);				
 				return false;
 			}

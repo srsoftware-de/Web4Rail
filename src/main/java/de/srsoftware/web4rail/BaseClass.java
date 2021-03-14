@@ -4,6 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -520,6 +521,11 @@ public abstract class BaseClass implements Constants{
 	public static void resetRegistry() {
 		registry = new HashMap<BaseClass.Id, BaseClass>();
 		customFieldNames = new HashMap<Class<? extends BaseClass>, Set<String>>();
+	}
+	
+	public static <T,L extends List<T>> L reverse(L list){		
+		Collections.reverse(list);
+		return list;
 	}
 
 	public void sleep(long ms) {
