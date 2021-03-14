@@ -715,10 +715,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return tags().iterator();
 	}
 
-	public void reserveNext() {
-		LOG.debug("{}.reserveNext()",this);
+	public void reserveRouteAfter(Route r) {
+		LOG.debug("reserveRouteAfter({})",r);
 	}
-	
+
 	/**
 	 * This turns the train as if it went through a loop. Example:
 	 * before: CabCar→ MiddleCar→ Loco→
@@ -886,6 +886,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				if (trace.contains(tile)) stuckTrace.add(tile);
 			}
 			route.reset();
+			route = null;
 		}
 		return properties();
 	}
