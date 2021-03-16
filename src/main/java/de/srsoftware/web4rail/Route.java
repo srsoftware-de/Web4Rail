@@ -91,6 +91,8 @@ public class Route extends BaseClass {
 	private Block                          startBlock = null;
 	public  Direction 					   startDirection;
 	private HashSet<Contact>			   triggeredContacts = new HashSet<>();
+
+	private Route nextRoute;
 	
 	public Route() {
 		conditions = new ConditionList();
@@ -402,6 +404,10 @@ public class Route extends BaseClass {
 			}
 		}
 		return sb.toString().trim();
+	}
+	
+	public Route getNextRoute() {
+		return nextRoute;
 	}
 	
 	public Id id() {
@@ -775,6 +781,11 @@ public class Route extends BaseClass {
 		if (lastTile instanceof Turnout) addTurnout((Turnout) lastTile,state);
 	}
 	
+	public void setNextRoute(Route nextRoute) {
+		this.nextRoute = nextRoute;
+	}
+
+	
 	public boolean setSignals(String state) {
 		LOG.debug("{}.setSignals({})",this,state);
 		for (Signal signal : signals) {
@@ -861,5 +872,9 @@ public class Route extends BaseClass {
 		}
 		super.update(params);
 		return properties();
+	}
+
+	public Integer waitTime() {
+		return isNull(context) ? null : context.waitTime();
 	}
 }

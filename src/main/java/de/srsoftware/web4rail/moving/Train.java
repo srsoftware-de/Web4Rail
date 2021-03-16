@@ -37,6 +37,7 @@ import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.threads.RouteManager;
+import de.srsoftware.web4rail.threads.RouteManager.Callback;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -61,7 +62,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Route route;	
 		
 	private Direction direction;
-	
+	private boolean autopilot;
 	private static final String PUSH_PULL = "pushPull";
 	public boolean pushPull = false;
 	
@@ -92,6 +93,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private RouteManager routeManager = null;
 
 	private HashSet<Tile> stuckTrace = null;
+
+	private Route nextRoute;
 
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
@@ -403,12 +406,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public void endRoute(Block endBlock, Direction endDirection) {
 		setSpeed(0);
+		nextRoute = route.getNextRoute();
+		Integer waitTime = route.waitTime();
 		route = null;
 		direction = endDirection;		
 		endBlock.add(this, direction);		
 		currentBlock = endBlock;
 		trace.add(endBlock);
 		stuckTrace = null;
+		if (autopilot) {			
+			if (isSet(waitTime) && waitTime > 0) sleep(waitTime);
+			start(false);
+		}
 	}
 
 	private Tag faster(int steps) {
@@ -715,10 +724,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return tags().iterator();
 	}
 
-	public void reserveRouteAfter(Route r) {
-		LOG.debug("reserveRouteAfter({})",r);
-	}
-
 	/**
 	 * This turns the train as if it went through a loop. Example:
 	 * before: CabCar→ MiddleCar→ Loco→
@@ -864,9 +869,20 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 
 	public String start(boolean auto) {
-		if (isNull(routeManager)) routeManager = new RouteManager(this);
-		routeManager.setAuto(auto).start();
-		plan.stream(t("Started {}",this));
+		autopilot |= auto;
+		if (isSet(nextRoute) && nextRoute.start()) {
+			nextRoute = null;
+			return null;
+		}
+		if (isNull(routeManager)) routeManager = new RouteManager();
+		routeManager.setContext(new Context(this).block(currentBlock).direction(direction));
+		routeManager.start(new Callback() {
+			@Override
+			public void routePrepared(Route route) {
+				route.start();
+				plan.stream(t("Started {}",Train.this));
+			}		
+		});		
 		return null;
 	}
 
@@ -999,6 +1015,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public boolean usesAutopilot() {
-		return isSet(routeManager) && routeManager.autoEnabled();
+		return autopilot;
 	}
 }
