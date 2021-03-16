@@ -36,8 +36,8 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.RouteManager;
 import de.srsoftware.web4rail.threads.RouteManager.Callback;
+import de.srsoftware.web4rail.threads.RouteManager;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -460,7 +460,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public boolean isStoppable() {
 		if (speed > 0) return true;
-		if (isSet(routeManager) && routeManager.isActive()) return true;
+		if (isSet(routeManager) && routeManager.isSearching()) return true;
 		if (isSet(route)) return true;
 		return false;
 	}
@@ -724,6 +724,21 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return tags().iterator();
 	}
 
+	public boolean reserveRouteAfter(Route r) {
+		LOG.debug("reserveRouteAfter({})",r);
+		if (isNull(routeManager)) routeManager = new RouteManager();
+		Context newContext = new Context(this).block(r.endBlock()).direction(r.endDirection);
+		if (routeManager.isSearching()) return false;
+		routeManager.setContext(newContext);
+		return (routeManager.setCallback(new Callback() {
+			
+			@Override
+			public void routePrepared(Route route) {
+				r.setNextRoute(route);
+			}
+		}));
+	}
+
 	/**
 	 * This turns the train as if it went through a loop. Example:
 	 * before: CabCar→ MiddleCar→ Loco→
@@ -875,14 +890,24 @@ public class Train extends BaseClass implements Comparable<Train> {
 			return null;
 		}
 		if (isNull(routeManager)) routeManager = new RouteManager();
-		routeManager.setContext(new Context(this).block(currentBlock).direction(direction));
-		routeManager.start(new Callback() {
+		
+		Callback callback = new Callback() {
 			@Override
 			public void routePrepared(Route route) {
 				route.start();
 				plan.stream(t("Started {}",Train.this));
 			}		
-		});		
+		};		 
+		
+		if (routeManager.isSearching()) { // es wird bereits eine Anschlussroute gesucht
+			// in diesem Fall muss bloß dass Callback des Route-Managers aktualisiert werden
+			routeManager.setCallback(callback);
+		} else { // routeManager nicht aktiv →> neuen Context setzen und starten			
+			routeManager.setContext(new Context(this).block(currentBlock).direction(direction));
+			routeManager.start(callback);
+		}
+		
+		
 		return null;
 	}
 

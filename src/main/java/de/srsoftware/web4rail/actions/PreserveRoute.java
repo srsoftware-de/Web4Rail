@@ -30,6 +30,6 @@ public class PreserveRoute extends Action {
 			return false; // train is expected to wait in next block.
 		}
 
-		return route.prepareNext(train);
+		return train.reserveRouteAfter(route);
 	}
 }

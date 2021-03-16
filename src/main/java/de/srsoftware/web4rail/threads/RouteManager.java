@@ -25,10 +25,10 @@ public class RouteManager extends BaseClass {
 	private static final Logger LOG = LoggerFactory.getLogger(RouteManager.class);
 	private Context ctx;
 	private Callback callback;
-	private boolean active;
+	private boolean searching;
 
 	public RouteManager() {
-		active = false;
+		searching = false;
 	}
 
 	private static TreeMap<Integer, List<Route>> availableRoutes(Context context, HashSet<Route> visitedRoutes) {
@@ -160,40 +160,39 @@ public class RouteManager extends BaseClass {
 	}
 
 	public Route prepareRoute(Context context) {
-		try {
-			if (isNull(context) || context.invalidated()) return null;
-			Route route = chooseRoute(context);
-			if (isNull(route)) return null;
-			context.route(route);
-			if (!route.reserveFor(context)) {
-				route.reset();
-				return null;
-			}
-			if (!route.prepareAndLock()) {
-				route.reset();
-				return null;
-			}
-
-			return route;
-		} finally {
-			active = false;
+		if (isNull(context) || context.invalidated()) return null;
+		Route route = chooseRoute(context);
+		if (isNull(route)) return null;
+		context.route(route);
+		if (!route.reserveFor(context)) {
+			route.reset();
+			return null;
 		}
+		if (!route.prepareAndLock()) {
+			route.reset();
+			return null;
+		}
+		return route;
 	}
 
 	public void setContext(Context context) {
 		ctx = context;
 	}
 
-	public void setCallback(Callback callback) {
-		if (ctx.invalidated()) return;
-		if (isNull(this.callback)) {
-			Route route = prepareRoute(ctx);
-			if (isSet(route) && isSet(callback)) callback.routePrepared(route);
-		}
+	public boolean setCallback(Callback callback) {
+		if (ctx.invalidated()) return false;
+		this.callback = callback; 
+		if (searching) return false; // search already running, do not start again!
+		searching = true;		
+		Route route = prepareRoute(ctx);
+		searching = false;
+		if (isNull(route) || isNull(callback)) return false;
+		callback.routePrepared(route);
+		return true;
 	}
 
-	public boolean isActive() {
-		return active;
+	public boolean isSearching() {
+		return searching;
 	}
 
 	public void start(Callback callback) {
