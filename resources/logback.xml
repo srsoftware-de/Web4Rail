@@ -37,6 +37,7 @@
 	<logger name="de.srsoftware.web4rail.moving.Train" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.tiles" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.tiles" level="DEBUG" />
+	<logger name="de.srsoftware.web4rail.threads.BrakeProcess" level="DEBUG" />
 	<logger name="de.srsoftware.web4rail.threads.RouteManager" level="DEBUG" />
 
 </configuration>
