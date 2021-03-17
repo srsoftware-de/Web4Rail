@@ -570,7 +570,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 				});
 				if (json.has(BLOCK)) {// do not move this up! during set, other fields will be referenced!
 					currentBlock = (Block) plan.get(Id.from(json, BLOCK), false);
-					if (isSet(currentBlock)) currentBlock.add(Train.this, direction);
+					if (isSet(currentBlock)) {
+						currentBlock.setTrain(Train.this);
+						currentBlock.add(Train.this, direction);
+					}
 				}
 			}
 		};

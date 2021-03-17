@@ -41,9 +41,9 @@ public class BrakeProcess extends BaseClass implements Runnable{
 			lastSpeed = train.speed;
 			updateDistance();
 			if (lastSpeed > targetSpeed) lastSpeed -= 10;
-			if (lastSpeed < targetSpeed && (ended = true)) lastSpeed = targetSpeed;
 			if (ended) break;
-			if (lastSpeed != train.speed) train.setSpeed(lastSpeed);
+			if (lastSpeed <= targetSpeed && (ended = true)) lastSpeed = targetSpeed;
+			train.setSpeed(lastSpeed);
 		}
 	}
 	

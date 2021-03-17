@@ -35,6 +35,7 @@ public class SetSignal extends Action {
 	
 	@Override
 	public boolean fire(Context context,Object cause) {
+		if (context.invalidated()) return false;
 		if (isNull(signal)) return false;
 		return signal.state(state);
 	}
