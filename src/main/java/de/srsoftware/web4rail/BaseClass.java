@@ -542,7 +542,7 @@ public abstract class BaseClass implements Constants{
 
 	public void sleep(long ms) {
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(ms);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

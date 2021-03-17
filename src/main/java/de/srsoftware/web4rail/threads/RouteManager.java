@@ -9,6 +9,7 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
@@ -17,6 +18,10 @@ import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Tile;
 
 public class RouteManager extends BaseClass {
+	
+	private enum State{
+		IDLE,SEARCHING,PREPARING
+	}
 
 	public static abstract class Callback {
 		public abstract void routePrepared(Route route);
@@ -24,11 +29,11 @@ public class RouteManager extends BaseClass {
 
 	private static final Logger LOG = LoggerFactory.getLogger(RouteManager.class);
 	private Context ctx;
+	private State state;
 	private Callback callback;
-	private boolean searching;
-
+	
 	public RouteManager() {
-		searching = false;
+		state =State.IDLE;
 	}
 
 	private static TreeMap<Integer, List<Route>> availableRoutes(Context context, HashSet<Route> visitedRoutes) {
@@ -152,6 +157,38 @@ public class RouteManager extends BaseClass {
 		}
 		return null;
 	}
+	
+	public boolean isActive() {
+		return state != State.IDLE;
+	}
+
+	public boolean isSearching() {
+		return state == State.SEARCHING;
+	}
+
+	public boolean prepareRoute() {
+		try {
+			if (isNull(ctx) || ctx.invalidated()) return false;
+			state = State.SEARCHING;	
+			Route route = chooseRoute(ctx);		
+			if (isNull(route)) return false;
+			ctx.route(route);
+			if (!route.reserveFor(ctx)) {
+				route.reset();
+				return false;
+			}
+			state = State.PREPARING;
+			if (!route.prepareAndLock()) {
+				route.reset();
+				return false;
+			}		
+			if (isNull(route) || isNull(callback)) return false;
+			callback.routePrepared(route);
+			return true;
+		} finally {
+			state = State.IDLE;
+		}
+	}
 
 	public void quit() {
 		LOG.debug("{}.quit", this);
@@ -159,49 +196,25 @@ public class RouteManager extends BaseClass {
 		if (isSet(ctx)) ctx.invalidate();
 	}
 
-	public Route prepareRoute(Context context) {
-		if (isNull(context) || context.invalidated()) return null;
-		Route route = chooseRoute(context);
-		if (isNull(route)) return null;
-		context.route(route);
-		if (!route.reserveFor(context)) {
-			route.reset();
-			return null;
-		}
-		if (!route.prepareAndLock()) {
-			route.reset();
-			return null;
-		}
-		return route;
-	}
-
 	public void setContext(Context context) {
 		ctx = context;
 	}
 
-	public boolean setCallback(Callback callback) {
-		if (ctx.invalidated()) return false;
-		this.callback = callback; 
-		if (searching) return false; // search already running, do not start again!
-		searching = true;		
-		Route route = prepareRoute(ctx);
-		searching = false;
-		if (isNull(route) || isNull(callback)) return false;
-		callback.routePrepared(route);
-		return true;
-	}
-
-	public boolean isSearching() {
-		return searching;
+	public void setCallback(Callback callback) {
+		if (!ctx.invalidated()) this.callback = callback; 
 	}
 
 	public void start(Callback callback) {
-		Thread thread = new Thread() {
+		setCallback(callback);
+		new Thread(Application.threadName(this)) {
 			public void run() {
-				setCallback(callback);
+				prepareRoute();
 			};
-		};
-		thread.setName(getClass().getSimpleName() + "(" + ctx.train() + ")");
-		thread.start();
+		}.start();
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(" + ctx.train() + ")";
 	}
 }

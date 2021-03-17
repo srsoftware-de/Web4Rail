@@ -29,7 +29,6 @@ public class PreserveRoute extends Action {
 			LOG.debug("Not preserving route, as train needs to stop for {} ms at {}!",waitTime,endBlock);
 			return false; // train is expected to wait in next block.
 		}
-
-		return train.reserveRouteAfter(route);
+		return isSet(route.getNextPreparedRoute()) || train.reserveRouteAfter(route);
 	}
 }

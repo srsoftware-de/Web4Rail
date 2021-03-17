@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * @author Stephan Richter, SRSoftware
  *
  */
-public class Command {
+public class Command extends BaseClass {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Command.class);
 	private String command;
@@ -143,11 +143,9 @@ public class Command {
 	 */
 	public Reply reply(int timeout) throws TimeoutException {
 		int counter = 0;
-		while (reply == null) try {
+		while (reply == null) {
 			if (counter++ > timeout) timeout();
-			Thread.sleep(10);
-		} catch (InterruptedException e) {
-			LOG.warn("wait() interrupted!",e);
+			sleep(10);
 		}
 		return reply;
 	}

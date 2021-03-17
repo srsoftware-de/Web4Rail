@@ -29,11 +29,7 @@ public class SetTurnout extends Action {
 		if (isNull(turnout)) return false;		
 		if (!turnout.state(state).succeeded()) return false;
 		if (turnout.address() == 0) return true;
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		sleep(1000);
 		return true;
 	}
 	

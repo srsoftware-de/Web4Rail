@@ -88,7 +88,7 @@ public abstract class Block extends StretchableTile{
 
 		@Override
 		public String toString() {
-			return trains.toString();
+			return trains.stream().map(t -> t+"→"+directionOf(t)).reduce((s1,s2) -> s1+", "+s2).orElse(t("empty"));
 		}
 	}
 	private static final String ALLOW_TURN = "allowTurn";
@@ -192,6 +192,7 @@ public abstract class Block extends StretchableTile{
 	private Vector<WaitTime> waitTimes = new Vector<WaitTime>();
 	
 	public void add(Train train,Direction direction) {
+		if (isNull(train)) return;
 		train.register();
 		trains.add(train,direction);
 	}

@@ -300,7 +300,7 @@ public class ControlUnit extends Thread implements Constants{
 	private void startInfoThread() {
 		infoSocket  = commandSocket; // handshake läuft immer über commandSocket und commandScanner
 		infoScanner = commandScanner;
-		Thread infoThread = new Thread() {
+		new Thread(Application.threadName("CU.InfoThread")) {
 			
 			@Override
 			public void run() {
@@ -318,14 +318,12 @@ public class ControlUnit extends Thread implements Constants{
 							case FEEDBACK:
 								int addr = Integer.parseInt(parts[5]);
 								boolean active = !parts[6].equals("0");
-								Thread thread = new Thread() {
+								new Thread(Application.threadName("CU.FeedBack("+addr+")")) {
 									@Override
 									public void run() {
 										plan.sensor(addr,active);
 									}
-								};			
-								thread.setName(Application.threadName("CU.FeedBack("+addr+")"));
-								thread.start();
+								}.start();
 							case ACESSORY:
 								break;
 							default:
@@ -351,9 +349,7 @@ public class ControlUnit extends Thread implements Constants{
 			public String toString() {
 				return "CU.InfoThread";
 			}
-		};
-		infoThread.setName(Application.threadName("CU.InfoThread"));
-		infoThread.start();
+		}.start();
 	}
 
 	/**

@@ -37,6 +37,8 @@ import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.threads.RouteManager.Callback;
+import de.srsoftware.web4rail.threads.BrakeProcess;
+import de.srsoftware.web4rail.threads.DelayedExecution;
 import de.srsoftware.web4rail.threads.RouteManager;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -94,7 +96,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private HashSet<Tile> stuckTrace = null;
 
-	private Route nextRoute;
+	private Route nextPreparedRoute;
+
+	private BrakeProcess brake;
 
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
@@ -404,10 +408,21 @@ public class Train extends BaseClass implements Comparable<Train> {
 		trace.clear();
 	}
 	
+	private BrakeProcess endBrake() {
+		if (isNull(brake)) return null;
+		try {
+			return brake.end();
+		} finally {
+			brake = null;
+		}
+	}
+	
 	public void endRoute(Block endBlock, Direction endDirection) {
-		setSpeed(0);
-		nextRoute = route.getNextRoute();
+		BrakeProcess brake = endBrake();
+		if (isSet(brake)) brake.updateTime();
 		Integer waitTime = route.waitTime();
+		nextPreparedRoute = route.dropNextPreparedRoute();
+		if (isNull(nextPreparedRoute) || (isSet(waitTime) && waitTime > 0)) setSpeed(0);
 		route = null;
 		direction = endDirection;		
 		endBlock.add(this, direction);		
@@ -415,8 +430,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 		trace.add(endBlock);
 		stuckTrace = null;
 		if (autopilot) {			
-			if (isSet(waitTime) && waitTime > 0) sleep(waitTime);
-			start(false);
+			if (isNull(waitTime) || waitTime == 0) {
+				start(false);
+			} else if (isSet(waitTime) && waitTime > 0) {
+				new DelayedExecution(waitTime,this) {
+				
+					@Override
+					public void execute() {
+						if (autopilot) Train.this.start(false);					
+					}
+				};	
+				plan.stream(t("{} waiting {} secs",this,(int)(waitTime/1000)));
+			}
 		}
 	}
 
@@ -446,6 +471,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return false;
 	}
+	
+	public boolean hasNextPreparedRoute() {
+		return isSet(nextPreparedRoute) || (isSet(route) && isSet(route.getNextPreparedRoute()));
+	}
+
 		
 	public Train heading(Direction dir) {
 		LOG.debug("{}.heading({})",this,dir);
@@ -460,7 +490,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public boolean isStoppable() {
 		if (speed > 0) return true;
-		if (isSet(routeManager) && routeManager.isSearching()) return true;
+		if (isSet(routeManager) && routeManager.isActive()) return true;
 		if (isSet(route)) return true;
 		return false;
 	}
@@ -689,6 +719,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String quitAutopilot() {
 		if (isSet(routeManager)) routeManager.quit();
+		autopilot = false;
 		return t("Autopilot already was disabled!");
 	}
 	
@@ -724,19 +755,19 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return tags().iterator();
 	}
 
-	public boolean reserveRouteAfter(Route r) {
-		LOG.debug("reserveRouteAfter({})",r);
+	public boolean reserveRouteAfter(Route route) {
+		LOG.debug("reserveRouteAfter({})",route);
 		if (isNull(routeManager)) routeManager = new RouteManager();
-		Context newContext = new Context(this).block(r.endBlock()).direction(r.endDirection);
+		Context newContext = new Context(this).block(route.endBlock()).direction(route.endDirection);
 		if (routeManager.isSearching()) return false;
 		routeManager.setContext(newContext);
-		return (routeManager.setCallback(new Callback() {
-			
+		routeManager.setCallback(new Callback() {			
 			@Override
-			public void routePrepared(Route route) {
-				r.setNextRoute(route);
+			public void routePrepared(Route nextRoute) {
+				route.setNextPreparedRoute(nextRoute);
 			}
-		}));
+		});
+		return routeManager.prepareRoute();
 	}
 
 	/**
@@ -869,9 +900,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				} else if (remaining.name.length()+car.name().length()<30){
 					remaining.name += ", "+car.name();
 				}
-			} else {
-				LOG.debug("Skipping {}",cars.get(i));
-			}
+			} else LOG.debug("Skipping {}",cars.get(i));
 		}
 		if (remaining.cars.isEmpty()) return false;
 		remaining.direction = this.direction;
@@ -885,8 +914,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String start(boolean auto) {
 		autopilot |= auto;
-		if (isSet(nextRoute) && nextRoute.start()) {
-			nextRoute = null;
+		if (isSet(nextPreparedRoute) && nextPreparedRoute.start()) {
+			nextPreparedRoute = null;
 			return null;
 		}
 		if (isNull(routeManager)) routeManager = new RouteManager();
@@ -899,7 +928,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			}		
 		};		 
 		
-		if (routeManager.isSearching()) { // es wird bereits eine Anschlussroute gesucht
+		if (routeManager.isActive()) { // es wird bereits eine Anschlussroute gesucht
 			// in diesem Fall muss bloß dass Callback des Route-Managers aktualisiert werden
 			routeManager.setCallback(callback);
 		} else { // routeManager nicht aktiv →> neuen Context setzen und starten			
@@ -916,9 +945,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.start(true));
 	}
 	
-	public void startBrake() {}
+	public void startBrake() {
+		LOG.debug("{}.startBrake()",this);
+		if (isSet(nextPreparedRoute)) return;
+		brake = new BrakeProcess(this);
+	}
 
 	public Window stopNow() {
+		endBrake();
 		setSpeed(0);
 		quitAutopilot();
 		if (isSet(route)) {
@@ -994,8 +1028,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Context updateTrace(Context context) {
-		// TOSO: neu implementieren!
-		// Beachten: Route aus Context, plan.freeBehindTrain
 		LOG.debug("updateTrace({})",context);
 		Tile from = context.tile();
 		if (isNull(from)) from = context.contact();

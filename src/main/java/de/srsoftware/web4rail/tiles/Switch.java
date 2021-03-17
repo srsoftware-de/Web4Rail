@@ -164,7 +164,7 @@ public class Switch extends Tile{
 	public void state(boolean newState) {
 		state = newState;
 
-		Thread thread = new Thread() {
+		new Thread(Application.threadName(this)) {
 			
 			@Override
 			public void run() {
@@ -173,9 +173,7 @@ public class Switch extends Tile{
 					actionsOn.fire(context,Switch.this);
 				} else actionsOff.fire(context,Switch.this);
 			}
-		};
-		thread.setName(Application.threadName(this));
-		thread.start();
+		}.start();
 		stream();
 	}
 	

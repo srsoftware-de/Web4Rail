@@ -300,7 +300,7 @@ public class Plan extends BaseClass{
 			return win;
 		}
 		
-		Thread analyzer = new Thread() {
+		new Thread(Application.threadName("Plan.Analyzer")) {
 			public void run() {				
 				Vector<Route> newRoutes = new Vector<Route>();
 				for (Block block : BaseClass.listElements(Block.class)) {
@@ -317,9 +317,7 @@ public class Plan extends BaseClass{
 				
 				stream(t("Found {} routes.",newRoutes.size()));
 			}		
-		};
-		analyzer.setName(Application.threadName("Plan.Analyzer"));
-		analyzer.start();
+		}.start();
 		
 		return t("Analyzing plan...");
 	}
@@ -652,7 +650,7 @@ public class Plan extends BaseClass{
 	 */
 	public Tile place(Tile tile) {
 		try {
-			tile.parent(this);
+//			tile.parent(this);
 			tile.register();
 			stream("place "+tile.tag(null));
 		} catch (IOException e) {

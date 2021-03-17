@@ -53,7 +53,7 @@ public class Contact extends Tile{
 		boolean aborted = false;
 		
 		public OffTimer() {
-			setName(Application.threadName("OffTimer("+Contact.this+")"));
+			super(Application.threadName("OffTimer("+Contact.this+")"));
 			start();
 		}
 		
@@ -112,7 +112,12 @@ public class Contact extends Tile{
 
 	@Override
 	public Object click(boolean shift) throws IOException {
-		if (!shift) trigger(200);
+		if (!shift) new Thread(Application.threadName(this)) {
+			@Override
+			public void run() {
+				trigger(200);
+			}
+		}.start();
 		return super.click(shift);
 	}
 	

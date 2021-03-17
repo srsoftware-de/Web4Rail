@@ -10,9 +10,8 @@ public abstract class DelayedExecution extends Thread {
 	}
 	
 	public DelayedExecution(int delay,Object cause) {
+		super(Application.threadName(cause));
 		this.delay = delay;
-		
-		setName(Application.threadName(cause));
 		start();
 	}
 

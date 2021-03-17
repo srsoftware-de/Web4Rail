@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +37,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.BrakeProcess;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -92,7 +94,7 @@ public class Route extends BaseClass {
 	public  Direction 					   startDirection;
 	private HashSet<Contact>			   triggeredContacts = new HashSet<>();
 
-	private Route nextRoute;
+	private Route nextPreparedRoute;
 	
 	public Route() {
 		conditions = new ConditionList();
@@ -227,7 +229,9 @@ public class Route extends BaseClass {
 	}
 	
 	public Integer brakeTime(String brakeId) {
-		return brakeTimes.get(brakeId);
+		Integer result = brakeTimes.get(brakeId);
+		Collection<Integer> values = brakeTimes.values();
+		return values.isEmpty() ? BrakeProcess.defaultTimeStep : values.stream().mapToInt(Integer::intValue).sum()/values.size();
 	}
 
 	public void brakeTime(String brakeId, Integer newTimeStep) {
@@ -280,18 +284,18 @@ public class Route extends BaseClass {
 			Contact nextToLastContact = contacts.get(contacts.size()-2);
 			String trigger = nextToLastContact.trigger();
 			add(trigger,new BrakeStart(this));
-			add(trigger,new PreserveRoute(this));
 			
 			int count = 0;
 			for (int i=0;i<contacts.size();i++) { // chose second contact, that is not a BlockContact
 				Contact contact = contacts.get(i);
 				if (contact instanceof BlockContact) continue;
-				if (count++<1) continue;
-				
-				trigger = contact.trigger(); // second contact, that is not a BlockContact
-				for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.RED));
-				break;
+				if (count++==1) { // second contact, that is not a BlockContact:
+					for (Signal signal : signals) add(contact.trigger(),new SetSignal(this).set(signal).to(Signal.RED));
+					break;
+				}
 			}
+			add(trigger,new PreserveRoute(this));
+
 		}
 		if (!contacts.isEmpty()) add(contacts.lastElement().trigger(), new FinishRoute(this));
 		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) {
@@ -370,6 +374,14 @@ public class Route extends BaseClass {
 		for (String brakeId : brakeIds) brakeTimes.remove(brakeId);
 	}
 	
+	public Route dropNextPreparedRoute() {
+		try {
+			return nextPreparedRoute;
+		} finally {
+			nextPreparedRoute = null;
+		}
+	}
+	
 	public Block endBlock() {
 		return endBlock;
 	}	
@@ -406,8 +418,8 @@ public class Route extends BaseClass {
 		return sb.toString().trim();
 	}
 	
-	public Route getNextRoute() {
-		return nextRoute;
+	public Route getNextPreparedRoute() {
+		return nextPreparedRoute;
 	}
 	
 	public Id id() {
@@ -781,8 +793,8 @@ public class Route extends BaseClass {
 		if (lastTile instanceof Turnout) addTurnout((Turnout) lastTile,state);
 	}
 	
-	public void setNextRoute(Route nextRoute) {
-		this.nextRoute = nextRoute;
+	public void setNextPreparedRoute(Route route) {
+		nextPreparedRoute = route;
 	}
 
 	
