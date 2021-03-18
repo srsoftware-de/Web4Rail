@@ -162,6 +162,13 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		}		
 	}
 	
+	private boolean fail() {
+		notify(failListeners);
+		// if (isSet(route) route.reset();
+		route = null;
+		return false;
+	}
+	
 	public void onFail(EventListener l) {
 		failListeners.add(l);
 	}
@@ -181,28 +188,16 @@ public class RoutePrepper extends BaseClass implements Runnable{
 
 	
 	public boolean prepareRoute() {
-		try {
-			if (isNull(context) || context.invalidated()) return false;
-			route = chooseRoute(context);		
-			if (isNull(route)) return false;			
-			context.route(route);
-			notify(foundListeners);
-			if (!route.reserveFor(context)) {
-				route.reset();
-				route = null;
-				return false;
-			}
-			notify(lockedListeners);
-			if (!route.prepareAndLock()) {
-				route.reset();
-				route = null;
-				return false;
-			}		
-			notify(preparedListeners);
-			return true;
-		} finally {
-			if (isNull(route)) notify(failListeners);
-		}
+		if (isNull(context) || context.invalidated()) return fail();
+		route = chooseRoute(context);		
+		if (isNull(route)) return fail();			
+		context.route(route);
+		notify(foundListeners);
+		if (!route.reserveFor(context)) return fail();
+		notify(lockedListeners);
+		if (!route.prepareAndLock()) return fail();
+		notify(preparedListeners);
+		return true;
 	}
 
 

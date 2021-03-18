@@ -392,13 +392,14 @@ public class Route extends BaseClass {
 	public void finish(Train train) {
 		LOG.debug("{}.finish()",this);
 		train.endRoute(endBlock,endDirection);
-		free();				
+		freeIgnoring(null);				
 		train = null;
 	}
 	
-	private void free() {
+	private void freeIgnoring(Vector<Tile> skipTiles) {
 		Train train = context.train();
 		Vector<Tile> reversedPath = reverse(path());
+		if (isSet(skipTiles)) reversedPath.removeAll(skipTiles);
 		for (Tile tile : reversedPath) {
 			if (isSet(train) && !train.onTrace(tile)) tile.free(train);
 		}
@@ -693,6 +694,8 @@ public class Route extends BaseClass {
 			nextRoutePrepper = null;
 		});
 		nextRoutePrepper.onFail(() -> {
+			Route rt = nextRoutePrepper.route(); // Nachfolgeroute kann ja schon reserviert sein, oder gar schon teilweise vorbereitet!
+			if (isSet(rt)) rt.resetIgnoring(this); // angefangene Route freigeben ohne Teile der aktuellen Route freizugeben
 			nextRoutePrepper = null;
 		});
 		return nextRoutePrepper.prepareRoute();
@@ -766,7 +769,7 @@ public class Route extends BaseClass {
 	
 	public boolean reserveFor(Context newContext) {
 		LOG.debug("{}.reserverFor({})",this,newContext);
-//		if (isSet(context)) return false; // route already has context!
+
 		context = newContext;
 		for (Tile tile : path) {
 			if (newContext.invalidated() || !tile.reserveFor(newContext)) {
@@ -777,15 +780,18 @@ public class Route extends BaseClass {
 		return true;
 	}
 	
-	public boolean reset() {
-		LOG.debug("{}.reset()",this);
+	public void reset() {
+		resetIgnoring(null);
+	}
+	
+	public void resetIgnoring(Route otherRoute) {
+		LOG.debug("{}.resetIgnoring({})",this,otherRoute);
 		resetNext();
 		setSignals(Signal.RED);
 		Train train = context.train();
-		free();
+		freeIgnoring(isSet(otherRoute) ? otherRoute.path : null);
 		train.drop(this);
 		context = null;
-		return true;
 	}
 	
 	public void resetNext() {

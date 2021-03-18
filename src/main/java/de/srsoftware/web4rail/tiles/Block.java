@@ -266,7 +266,7 @@ public abstract class Block extends StretchableTile{
 	
 	@Override
 	public boolean free(Train train) {
-		LOG.debug("{}.free()");
+		LOG.debug("{}.free({})",this,train);
 		Train firstTrain = trains.first();
 		if (isNull(firstTrain)) return true;
 		if (firstTrain != train) return false;

@@ -721,9 +721,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String quitAutopilot() {
 		if (isSet(routePrepper)) routePrepper.stop();
-//		if (isSet(route)) route.resetNext();
-		autopilot = false;
-		return t("Autopilot already was disabled!");
+		try {
+			return autopilot ? t("Autopilot disabled") : t("Autopilot already was disabled!");
+		} finally {
+			autopilot = false;
+		}		
 	}
 	
 	@Override
@@ -916,7 +918,19 @@ public class Train extends BaseClass implements Comparable<Train> {
 		});
 		
 		routePrepper.onFail(() -> {
+			Route failedRoute = routePrepper.route();
 			routePrepper = null;
+			if (isSet(failedRoute)) failedRoute.reset();
+			LOG.debug("Starting {} failed due to unavailable route!",this);
+			if (autopilot) new DelayedExecution(250,this) {
+				
+				@Override
+				public void execute() {
+					if (autopilot) {
+						Train.this.start(false);
+					}					
+				}
+			};
 		});
 		
 		routePrepper.start();		
