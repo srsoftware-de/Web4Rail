@@ -362,7 +362,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String directedName(Direction dir) {
 		String result = name();
-		String mark = ""; //isSet(autopilot) ? "ⓐ" : "";
+		String mark = autopilot ? "ⓐ" : "";
 		if (isNull(dir)) return result;
 		switch (dir) {
 		case NORTH:
@@ -418,6 +418,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public void endRoute(Block endBlock, Direction endDirection) {
 		BrakeProcess brake = endBrake();
+		if (endBlock == destination) {
+			quitAutopilot();
+			destination = null;
+		}
 		if (isSet(brake)) brake.updateTime();
 		Integer waitTime = route.waitTime();
 		nextPreparedRoute = route.dropNextPreparedRoute();
@@ -721,11 +725,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String quitAutopilot() {
 		if (isSet(routePrepper)) routePrepper.stop();
-		try {
-			return autopilot ? t("Autopilot disabled") : t("Autopilot already was disabled!");
-		} finally {
+		if (autopilot) {
 			autopilot = false;
-		}		
+			if (isSet(currentBlock)) plan.place(currentBlock);
+		}
+		return null;	
 	}
 	
 	@Override
@@ -826,7 +830,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isNull(tile)) return properties(t("Tile {} not known!",dest));
 		if (tile instanceof Block) {
 			destination = (Block) tile;
-			start(false);
+			start(true);
 			return t("{} now heading for {}",this,destination);
 		}
 		return properties(t("{} is not a block!",tile));

@@ -84,17 +84,16 @@ public class Contact extends Tile{
 		} else {
 			LOG.debug("{} activated.",this);
 			state = true;
+			stream();
 			if (isSet(timer)) timer.abort();
 			Train train = train();
 			Context context = isSet(train) ? train.contact(this) : new Context(this);
 			actions.fire(context,"Contact("+addr+")");
 			
 			for (Listener listener : listeners) listener.fired("Contact("+addr+")");
-			
-			stream();
 		}
 	}
-	
+
 	public int addr() {
 		return addr;
 	}
@@ -112,12 +111,7 @@ public class Contact extends Tile{
 
 	@Override
 	public Object click(boolean shift) throws IOException {
-		if (!shift) new Thread(Application.threadName(this)) {
-			@Override
-			public void run() {
-				trigger(200);
-			}
-		}.start();
+		if (!shift) trigger(200);
 		return super.click(shift);
 	}
 	

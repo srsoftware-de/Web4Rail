@@ -886,31 +886,38 @@ public class Plan extends BaseClass{
 	 * @param data
 	 */
 	public synchronized void stream(String data) {
-		data = data.replaceAll("\n", "").replaceAll("\r", "");
-		//if (!data.startsWith("heartbeat")) LOG.debug("streaming: {}",data);
-		Vector<OutputStreamWriter> badClients = null;
-		for (Entry<OutputStreamWriter, Integer> entry : clients.entrySet()) {
-			OutputStreamWriter client = entry.getKey();
-			try {
-				client.write("data: "+data+"\n\n");
-				client.flush();
-				clients.put(client,0);
-			} catch (IOException e) {
-				int errorCount = entry.getValue()+1;
-				LOG.info("Error #{} on client: {}",errorCount,e.getMessage());
-				if (errorCount > 4) {
-					if (isNull(badClients)) badClients = new Vector<OutputStreamWriter>();
+		String fixedData = data.replaceAll("\n", "").replaceAll("\r", "");
+		new Thread("Plan") {
+			@Override
+			public void run() {
+				//if (!data.startsWith("heartbeat")) LOG.debug("streaming: {}",data);
+				Vector<OutputStreamWriter> badClients = null;
+				for (Entry<OutputStreamWriter, Integer> entry : clients.entrySet()) {
+					OutputStreamWriter client = entry.getKey();
 					try {
-						client.close();
-					} catch (IOException e1) {}
-					badClients.add(client);
-				} else clients.put(client,errorCount);
+						client.write("data: "+fixedData+"\n\n");
+						client.flush();
+						clients.put(client,0);
+					} catch (IOException e) {
+						int errorCount = entry.getValue()+1;
+						LOG.info("Error #{} on client: {}",errorCount,e.getMessage());
+						if (errorCount > 4) {
+							if (isNull(badClients)) badClients = new Vector<OutputStreamWriter>();
+							try {
+								client.close();
+							} catch (IOException e1) {}
+							badClients.add(client);
+						} else clients.put(client,errorCount);
+					}
+				}
+				if (badClients != null) for (OutputStreamWriter client: badClients) {
+					LOG.info("Disconnecting client.");
+					clients.remove(client);			
+				}
+				// TODO Auto-generated method stub
 			}
-		}
-		if (badClients != null) for (OutputStreamWriter client: badClients) {
-			LOG.info("Disconnecting client.");
-			clients.remove(client);			
-		}
+		}.start();
+
 	}
 	
 	/**

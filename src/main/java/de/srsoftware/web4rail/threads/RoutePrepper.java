@@ -51,13 +51,13 @@ public class RoutePrepper extends BaseClass implements Runnable{
 			LOG.warn("{}→ {}.availableRoutes called without context.train!", inset, Train.class.getSimpleName());
 		if (error) return availableRoutes;
 
-		Block destination = train.destination();
 		if (isSet(startDirection)) {
 			LOG.debug("{}- Looking for {}-bound routes from {}", inset, startDirection, block);
 		} else {
 			LOG.debug("{}- Looking for all routes from {}", inset, block);
 		}
-
+		
+		Block destination = train.destination();
 		if (isSet(destination) && visitedRoutes.isEmpty()) LOG.debug("{}- Destination: {}", inset, destination);
 
 		for (Route routeCandidate : block.leavingRoutes()) {
@@ -68,9 +68,9 @@ public class RoutePrepper extends BaseClass implements Runnable{
 			}
 
 			HashSet<Tile> stuckTrace = train.stuckTrace(); // if train has been stopped in between two blocks lastly:
-															// only allow routes that do not conflict with current train
+															// only allow starting routes that do not conflict with current train
 															// position
-			if (isSet(stuckTrace) && !routeCandidate.path().containsAll(stuckTrace)) {
+			if (isSet(stuckTrace) && visitedRoutes.isEmpty() && !routeCandidate.path().containsAll(stuckTrace)) {
 				LOG.debug("Stuck train occupies tiles ({}) outside of {} – not allowed.", stuckTrace, routeCandidate);
 				continue;
 			}

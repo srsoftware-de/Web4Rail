@@ -540,7 +540,11 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 				oneWay = null;
 			}
 		}
-		if ("on".equals(params.get(DISABLED))) status = Status.DISABLED;
+		if ("on".equals(params.get(DISABLED))) {
+			status = Status.DISABLED;
+		} else {
+			status = isSet(train) ? Status.OCCUPIED : Status.FREE;
+		}
 		String len = params.get(LENGTH);
 		if (isSet(len)) length(Integer.parseInt(len));
 		super.update(params);

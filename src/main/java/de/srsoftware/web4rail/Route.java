@@ -232,9 +232,7 @@ public class Route extends BaseClass {
 	}
 	
 	public Integer brakeTime(String brakeId) {
-		Integer result = brakeTimes.get(brakeId);
-		Collection<Integer> values = brakeTimes.values();
-		return values.isEmpty() ? BrakeProcess.defaultTimeStep : values.stream().mapToInt(Integer::intValue).sum()/values.size();
+		return brakeTimes.get(brakeId);
 	}
 
 	public void brakeTime(String brakeId, Integer newTimeStep) {
@@ -392,6 +390,7 @@ public class Route extends BaseClass {
 	public void finish(Train train) {
 		LOG.debug("{}.finish()",this);
 		train.endRoute(endBlock,endDirection);
+		setSignals(Signal.RED);
 		freeIgnoring(null);				
 		train = null;
 	}

@@ -318,7 +318,7 @@ public class ControlUnit extends Thread implements Constants{
 							case FEEDBACK:
 								int addr = Integer.parseInt(parts[5]);
 								boolean active = !parts[6].equals("0");
-								new Thread(Application.threadName("CU.FeedBack("+addr+")")) {
+								new Thread(Application.threadName("CU.Feedback("+addr+")")) {
 									@Override
 									public void run() {
 										plan.sensor(addr,active);
