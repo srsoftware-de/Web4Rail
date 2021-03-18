@@ -9,8 +9,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
-import de.srsoftware.web4rail.DelayedExecution;
-import de.srsoftware.web4rail.Route;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
@@ -43,6 +42,12 @@ public abstract class Bridge extends Tile {
 	protected abstract Connector connector();
 	
 	@Override
+	public boolean free(Train train) {
+		if (!super.free(train)) return false;
+		return isSet(counterpart) ? counterpart.free(train) : true;
+	}
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (isSet(counterpart)) json.put(COUNTERPART, counterpart.id().toString());
@@ -51,37 +56,29 @@ public abstract class Bridge extends Tile {
 	
 	@Override
 	public Tile load(JSONObject json) {
-		if (json.has(COUNTERPART)) {
-			new DelayedExecution(this) {
-				@Override
-				public void execute() {
-					counterpart = (Bridge) plan.get(Id.from(json, COUNTERPART), false);
-				}
-			};
-		}
+		if (json.has(COUNTERPART)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				counterpart = (Bridge) plan.get(Id.from(json, COUNTERPART), false);
+			}
+		};
 		return super.load(json);
 	}
 	
 	@Override
-	public Tile setRoute(Route route) {
-		super.setRoute(route);
-		if (isSet(counterpart) && counterpart.route != route) counterpart.setRoute(route);
-		return this;
-	}
-	
-	public Tile setTrain(Train train) {
-		super.setTrain(train);
-		if (isSet(counterpart) && counterpart.train != train) counterpart.setTrain(train);
-		return this;
+	public boolean setTrain(Train newTrain) {
+		if (train() == newTrain) return true;
+		if (!super.setTrain(newTrain)) return false;		
+		return isNull(counterpart) ? true : counterpart.setTrain(newTrain);		
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Fieldset fieldset = new Fieldset(t("Counterpart"));
 		new Tag("p").content(isSet(counterpart) ? t("Connected to {}.",counterpart) : t("Not connected to other bridge part!")).addTo(fieldset);		
 		button(t("Select counterpart"),Map.of(ACTION,ACTION_CONNECT)).addTo(fieldset);
 		preForm.add(fieldset);
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 
 	public Window propMenu() {
@@ -108,12 +105,5 @@ public abstract class Bridge extends Tile {
 		Tag tag = super.tag(replacements);
 		if (isNull(counterpart)) tag.clazz(tag.get("class")+" disconnected");
 		return tag;
-	}
-	
-	@Override
-	public Tile unset(Route oldRoute) {
-		super.unset(oldRoute);
-		if (isSet(counterpart) && isSet(counterpart.route)) counterpart.unset(oldRoute);
-		return this;
 	}
 }

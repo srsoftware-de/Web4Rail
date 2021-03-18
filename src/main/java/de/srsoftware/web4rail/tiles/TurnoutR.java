@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -16,8 +17,9 @@ public abstract class TurnoutR extends Turnout {
 	public Object click(boolean shift) throws IOException {
 		Object o = super.click(shift);
 		if (!shift) {
-			if (route != null) {
-				plan.stream(t("{} is locked by {}!",this,route)); 
+			Train train = train();
+			if (isSet(train)) {
+				plan.stream(t("{} is locked by {}!",this,train)); 
 			} else state(state == State.STRAIGHT ? State.RIGHT : State.STRAIGHT);
 		}
 		return o;
@@ -37,10 +39,10 @@ public abstract class TurnoutR extends Turnout {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Straight port")+COL,new Input(STRAIGHT, portA).numeric());
 		formInputs.add(t("Right port")+COL,new Input(RIGHT, portB).numeric());
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

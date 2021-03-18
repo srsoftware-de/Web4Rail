@@ -16,14 +16,14 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.DelayedExecution;
-import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.DelayedExecution;
 
 public class Contact extends Tile{
 	private static Logger LOG = LoggerFactory.getLogger(Contact.class);
@@ -53,7 +53,7 @@ public class Contact extends Tile{
 		boolean aborted = false;
 		
 		public OffTimer() {
-			setName(Application.threadName("OffTimer("+Contact.this+")"));
+			super(Application.threadName("OffTimer("+Contact.this+")"));
 			start();
 		}
 		
@@ -85,12 +85,9 @@ public class Contact extends Tile{
 			LOG.debug("{} activated.",this);
 			state = true;
 			if (isSet(timer)) timer.abort();
-			Route route = route();
-			Context context = isSet(route) ? route.context().contact(this) : new Context(this);
-			
-			if (isSet(route)) route.traceTrainFrom(this);
+			Train train = train();
+			Context context = isSet(train) ? train.contact(this) : new Context(this);
 			actions.fire(context,"Contact("+addr+")");
-			if (isSet(route)) route.contact(this);
 			
 			for (Listener listener : listeners) listener.fired("Contact("+addr+")");
 			
@@ -115,7 +112,12 @@ public class Contact extends Tile{
 
 	@Override
 	public Object click(boolean shift) throws IOException {
-		if (!shift) trigger(200);
+		if (!shift) new Thread(Application.threadName(this)) {
+			@Override
+			public void run() {
+				trigger(200);
+			}
+		}.start();
 		return super.click(shift);
 	}
 	
@@ -191,7 +193,7 @@ public class Contact extends Tile{
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag span = new Tag("span");
 		new Input(ADDRESS, addr).numeric().addTo(span).content(NBSP);
 		button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(span);
@@ -200,7 +202,7 @@ public class Contact extends Tile{
 		Fieldset fieldset = new Fieldset(t("Actions")).id("props-actions");
 		actions.list().addTo(fieldset);
 		postForm.add(fieldset);
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

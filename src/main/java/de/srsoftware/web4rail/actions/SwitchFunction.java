@@ -61,7 +61,7 @@ public class SwitchFunction extends Action {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		
 		Select selector = new Select(FUNCTION);
 		for (int i=1; i<5;i++) {
@@ -76,7 +76,7 @@ public class SwitchFunction extends Action {
 		new Radio(EFFECT, OFF, t("Off"), effect == OFF).addTo(radioGroup);
 		formInputs.add(t("Effect"),radioGroup);
 		
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

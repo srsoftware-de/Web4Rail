@@ -124,7 +124,7 @@ public class Relay extends Tile implements Device{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Name"),new Input(NAME,name));
 		Tag div = new Tag("div");
 		for (Protocol proto : Protocol.values()) {
@@ -136,7 +136,7 @@ public class Relay extends Tile implements Device{
 		formInputs.add(t("Label for state {}","B"),new Input(LABEL_B, stateLabelB));
 		formInputs.add(t("Port for state {}",stateLabelA),new Input(PORT_A, portA).numeric());
 		formInputs.add(t("Port for state {}",stateLabelB),new Input(PORT_B, portB).numeric());
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 		
 	private char proto() {

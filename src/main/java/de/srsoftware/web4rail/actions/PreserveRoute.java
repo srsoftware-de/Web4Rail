@@ -1,7 +1,6 @@
 package de.srsoftware.web4rail.actions;
 
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Block;
@@ -14,6 +13,7 @@ public class PreserveRoute extends Action {
 
 	@Override
 	public boolean fire(Context context,Object cause) {
+		if (context.invalidated()) return false;
 		Train train = context.train();
 		Route route = context.route();
 		// These are errors:
@@ -25,13 +25,14 @@ public class PreserveRoute extends Action {
 		Block endBlock = route.endBlock();
 		if (train.destination() == endBlock) return true; // do not reserve routes, when destination has been reached
 
-		Range waitTime = endBlock.getWaitTime(train,route.endDirection);
-		if (waitTime.max > 0) {
+		Integer waitTime = context.waitTime();
+		if (isSet(waitTime) && waitTime > 0) {
 			LOG.debug("Not preserving route, as train needs to stop for {} ms at {}!",waitTime,endBlock);
-			return true; // train is expected to wait in next block.
+			return false; // train is expected to wait in next block.
 		}
-
-		train.reserveNext();
-		return true;
+		if (isSet(route.getNextPreparedRoute())) return true;
+		Context nextContext = new Context(train).block(route.endBlock()).direction(route.endDirection);
+		context.onInvalidate(nextContext::invalidate);
+		return route.prepareNext(nextContext);
 	}
 }

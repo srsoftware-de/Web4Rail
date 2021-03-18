@@ -81,14 +81,12 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 
 	public boolean fire(Context context,Object cause) {
-		if (context.invalidated()) {
-			LOG.debug("Context has been invalidated, aborting {}",this);
-			return false;
-		}
-		
 		for (Action action : actions) {
 			LOG.debug("firing \"{}\"",action);
-			if (!action.fire(context,cause)) return false;			
+			if (!action.fire(context,cause)) {
+				LOG.warn("{} failed",action);
+				return false;			
+			}
 		}
 		return true;
 	}
@@ -249,11 +247,11 @@ public class ActionList extends Action implements Iterable<Action>{
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Fieldset fieldset = new Fieldset(t("Actions"));
 		list().addTo(fieldset);
 		postForm.add(fieldset);
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

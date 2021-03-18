@@ -27,6 +27,7 @@ public class SetSpeed extends Action{
 	
 	@Override
 	public boolean fire(Context context,Object cause) {
+		if (context.invalidated()) return false;
 		if (isNull(context.train())) return false;
 		context.train().setSpeed(speed);
 		return true;
@@ -47,9 +48,9 @@ public class SetSpeed extends Action{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Set speed to"),new Input(MAX_SPEED, speed).numeric().addTo(new Tag("span")).content(NBSP+speedUnit));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	public int getSpeed() {

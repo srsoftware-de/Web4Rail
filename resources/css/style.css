@@ -77,14 +77,31 @@ svg.Relay rect{
 	fill: white;
 }
 
+svg.reserved polygon,
+svg.reserved rect{
+	fill: yellow;
+}
+
 svg.locked polygon,
-svg.locked rect:not(.sig_a):not(.sig_b){
-	fill:lime;
+svg.locked rect{
+	fill: lime;
 }
 
 svg.occupied polygon,
-svg.occupied rect:not(.sig_a):not(.sig_b){
-	fill:yellow;
+svg.occupied rect{
+	fill: orange;
+}
+
+svg.preview circle,
+svg.preview line,
+svg.preview polygon,
+svg.preview rect{
+	fill:cyan;
+}
+
+svg rect.sig_a,
+svg rect.sig_b{
+	fill: inherit;
 }
 
 svg text{
@@ -232,10 +249,6 @@ svg.straight .right{
 	fill: #ddd !important;
 }
 
-.occupied .block{
-	fill: yellow;
-}
-
 .active circle{
 	fill: #f57900;
 }
@@ -254,7 +267,14 @@ fieldset{
 	border-radius: 5px;
 }
 .error{
-	background: red;
+	background: orange;
+	margin: 30px 10px 5px;
+	padding: 0;
+	border-radius: 10px;
+}
+
+.error p{
+	padding: 5px;
 }
 
 h4,ul{
@@ -354,18 +374,6 @@ textarea.json {
 	width: 90%;
 	height: 33%;
 	margin-left: 5%;
-}
-
-svg.preview circle,
-svg.preview line,
-svg.preview polygon,
-svg.preview rect{
-	fill:cyan;
-}
-
-svg.preview rect.sig_a,
-svg.preview rect.sig_b{
-	fill: inherit;
 }
 
 svg.Block text{

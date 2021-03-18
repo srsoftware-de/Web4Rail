@@ -18,9 +18,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.tags.Button;
@@ -245,7 +243,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Name"),new Input(NAME,name));
 		formInputs.add(t("Stock ID"),new Input(STOCK_ID,stockId));
 		formInputs.add(t("Length"),new Input(LENGTH,length).attr("type", "number").addTo(new Tag("span")).content(NBSP+lengthUnit));
@@ -257,7 +255,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		if (train != null) formInputs.add(t("Train"), train.link());
 		formInputs.add(t("Current orientation"),new Tag("span").content(orientation ? t("forward") : t("reverse")));
 				
-		return super.properties(preForm,formInputs,postForm);
+		return super.properties(preForm,formInputs,postForm,errors);
 	}
 	
 	@Override
@@ -271,10 +269,6 @@ public class Car extends BaseClass implements Comparable<Car>{
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		for (Car car : BaseClass.listElements(Car.class)) file.write(car.json()+"\n");
 		file.close();
-	}
-	
-	protected static String t(String txt, Object...fills) {
-		return Translation.get(Application.class, txt, fills);
 	}
 	
 	public TreeSet<String> tags() {

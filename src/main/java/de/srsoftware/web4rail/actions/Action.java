@@ -10,9 +10,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -140,10 +138,10 @@ public abstract class Action extends BaseClass {
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Edit json"),button(t("export"), Map.of(ACTION, ACTION_SAVE)));
 
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	public static Tag selector() {
@@ -157,10 +155,6 @@ public abstract class Action extends BaseClass {
 		
 		for (Entry<String, String> entry : names.entrySet()) select.addOption(entry.getValue(), entry.getKey());
 		return select.addTo(new Label(t("Action type")+COL));
-	}
-	
-	protected static String t(String tex,Object...fills) {
-		return Translation.get(Application.class, tex, fills);
 	}
 	
 	@Override

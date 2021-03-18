@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.DelayedExecution;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
@@ -43,34 +43,25 @@ public class DisableEnableBlock extends Action {
 	
 	@Override
 	public Action load(JSONObject json) {
-		super.load(json);
-		Id blockId = Id.from(json,BLOCK);
-		if (isSet(blockId)) {
-			block = Block.get(blockId);
-			if (isNull(block)) {
-				new DelayedExecution(this) {
-					
-					@Override
-					public void execute() {
-						block = Block.get(blockId);
-					}
-				};						
+		if (json.has(STATE)) disable = !json.getBoolean(STATE);
+		if (json.has(BLOCK)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				block = Block.get(Id.from(json,BLOCK));
 			}
-		}
-		if (json.has(STATE)) {
-			disable = !json.getBoolean(STATE);
-		}
-		return this;
+		};						
+		return super.load(json);
+
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Block")+": "+(isNull(block) ? t("block from context") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,Block.class.getSimpleName())));
 		Tag radios = new Tag("p");
 		new Radio(STATE, "enable", t("enable"), !disable).addTo(radios);
 		new Radio(STATE, "disable", t("disable"), disable).addTo(radios);
 		formInputs.add(t("Action"),radios);
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

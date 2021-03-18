@@ -4,9 +4,9 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,7 +18,6 @@ import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.keawe.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
@@ -38,6 +37,8 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.BrakeProcess;
+import de.srsoftware.web4rail.threads.RoutePrepper;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -53,9 +54,9 @@ import de.srsoftware.web4rail.tiles.Turnout;
  */
 public class Route extends BaseClass {
 	
-	public enum State {
+/*	public enum State {
 		FREE, LOCKED, PREPARED, STARTED;
-	}
+	}*/
 	public static final Logger LOG = LoggerFactory.getLogger(Route.class);
 
 	private static final String ACTIONS = "actions";
@@ -70,8 +71,7 @@ public class Route extends BaseClass {
 	static final String PATH     = "path";
 	static final String SIGNALS  = "signals";
 	static final String TURNOUTS = "turnouts";
-	private State state = State.FREE;
-	public static int defaultEndSpeed = 10;
+	//private State state = State.FREE;
 	public static boolean freeBehindTrain = true;
 
 	private static final String ROUTE_START = "route_start";
@@ -79,161 +79,31 @@ public class Route extends BaseClass {
 	private static final String ROUTE_SETUP = "route_setup";
 
 	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
-		
-	private class BrakeProcessor extends Thread {
-		private long latestTick;
-		private static final int SPEED_STEP = 5;
-		private Integer timeStep;
-		private Route route;
-		private Train train;
-		private String brakeId;
-		private long estimatedDistance; // Unit: s*km/h "km/h-Sekunden"
-		private int startSpeed,endSpeed;
-		private boolean aborted,modified,finished;
-		
-		public BrakeProcessor(Route route, Train train) {
-			this.train = train;
-			this.route = route;
-			
-			aborted = false;
-			modified = false;
-			finished = false;
-			brakeId = train.brakeId();
-			startSpeed = train.speed;		
-			endSpeed = defaultEndSpeed;
-			
-			timeStep = brakeTimes.get(brakeId);
 
-			if (isNull(timeStep) || timeStep>1000000) timeStep = 256; 			// if no brake time is available for this train
-			setName(Application.threadName("BrakeProcessor("+train+")"));
-			start();
-		}
-		
-		protected void abort() {
-			aborted = true;
-		}
-
-		private long calcDistance(Integer ts) {
-			long dist = 0;
-			int s = startSpeed;
-			while (s > defaultEndSpeed) {
-				s -= SPEED_STEP;
-				dist += s*ts;
-			}
-			LOG.debug("Estimated distamce with {} ms timestep: {}",ts,dist);
-			return dist;
-		}
-		
-		private void checkNextRoute() {
-			Route nextRoute = train.nextRoute();
-			if (isSet(nextRoute) && nextRoute.state == Route.State.PREPARED) { // auf Startgeschwindigkeit der Nachfolgeroute bremsen
-				Integer nextRouteStartSpeed = nextRoute.startSpeed();
-				if (isSet(nextRouteStartSpeed)) {
-					LOG.debug("updating target velocity from {} to {}!",endSpeed,nextRouteStartSpeed);
-					endSpeed = nextRouteStartSpeed;
-					modified = true;
-					if (endSpeed > train.speed) train.setSpeed(endSpeed);
-				}					
-			}
-		}
-		
-		/**
-		 * This is called from route.finish when train came to stop
-		 */
-		public void finish() {
-			LOG.debug("BrakeProcessor.finish()");
-			finished = true;
-			if (aborted || modified) return;
-			increaseDistance();
-			train.setSpeed(0);
-			LOG.debug("Estimated distance: {}",estimatedDistance);
-
-			if (startSpeed <= endSpeed) return;
-			if (timeStep<0) timeStep = 100;
-			Integer newTimeStep = timeStep;
-			long calculated;
-			int step = 32*newTimeStep;			
-			for (int i=0; i<20; i++) {
-				step = step/2;
-				if (step<1) step = 1;
-				calculated = calcDistance(newTimeStep);
-				LOG.debug("Calculated distance for step = {} ms: {}",newTimeStep,calculated);
-				LOG.debug("Update step: {}",step);
-				newTimeStep = newTimeStep + (calculated > estimatedDistance ? -step : step);				
-			}
-			
-			if (!newTimeStep.equals(timeStep)) {
-				route.brakeTimes.put(brakeId,newTimeStep);
-				calculated = calcDistance(newTimeStep);
-				LOG.debug("Corrected brake timestep for {} @ {} from {} to {} ms.",train,route,timeStep,newTimeStep);
-				LOG.debug("Differemce from estimated distance: {} ({}%)",estimatedDistance-calculated,100*(estimatedDistance-calculated)/(float)estimatedDistance);
-			}
-		}
-		
-		private void increaseDistance(){
-			long tick = timestamp();
-			estimatedDistance += train.speed * (3+tick-latestTick);
-			latestTick = tick;			
-		}
-
-		@Override
-		public void run() {
-			setName(Application.threadName("BreakeProcessor("+train+")"));
-			LOG.debug("started BrakeProcessor ({} → {}) for {} with timestep = {} ms.",train.speed,endSpeed,train,timeStep);
-			estimatedDistance = 0;			
-			latestTick = timestamp();
-			while (train.speed > endSpeed) {
-				if (finished || aborted) return;
-				increaseDistance();
-				LOG.debug("BrakeProcessor({}) setting Speed of {}.",route,train);
-				train.setSpeed(Math.max(train.speed - SPEED_STEP,endSpeed));
-				if (!modified) checkNextRoute();
-				try {
-					sleep(timeStep);
-				} catch (InterruptedException e) {
-					LOG.warn("BrakeProcessor interrupted!", e);
-				}				
-			}
-			
-			while (!finished && !aborted && !modified) {
-				try {
-					sleep(1000);
-				} catch (InterruptedException e) {
-					LOG.warn("BrakeProcessor interrupted!", e);
-				}				
-				checkNextRoute();
-			}
-		}
-
-		public void setEndSpeed(Integer newEndSpeed) {
-			if (isNull(newEndSpeed)) return;
-			endSpeed = newEndSpeed;		
-			modified = true;
-		}
-	}
-
-	private BrakeProcessor				   brakeProcessor = null;
 	private HashMap<String,Integer>        brakeTimes = new HashMap<String, Integer>();
 	private ConditionList                  conditions;
 	private Vector<Contact>                contacts;
-	private Context                        context; // this context is passed to actions
+	private Context						   context;
 	private boolean                        disabled = false;
 	private Block                          endBlock = null;
 	public  Direction					   endDirection;
 	private Vector<Tile>                   path;
 	private Vector<Signal>                 signals;
-	private Train                          train;
 	private HashMap<String,ActionList>     triggeredActions = new HashMap<String, ActionList>();
 	private HashMap<Turnout,Turnout.State> turnouts;
 	private Block                          startBlock = null;
 	public  Direction 					   startDirection;
 	private HashSet<Contact>			   triggeredContacts = new HashSet<>();
+
+	private Route nextPreparedRoute;
+
+	private RoutePrepper nextRoutePrepper;
 	
 	public Route() {
 		conditions = new ConditionList();
 		conditions.parent(this);
 	}
-		
+	
 	/**
 	 * process commands from the client
 	 * @param params
@@ -254,12 +124,6 @@ public class Route extends BaseClass {
 				plan.stream(t("Removed {}.",route));				
 				return plan.properties(new HashMap<String,String>());
 			case ACTION_PROPS:
-				return route.properties();
-			case ACTION_START:
-				route.set(new Context(route));
-				route.prepare();
-				route.context.clear();
-				
 				return route.properties();
 			case ACTION_UPDATE:
 				return route.update(params,plan);
@@ -350,7 +214,7 @@ public class Route extends BaseClass {
 	private Fieldset basicProperties() {
 		Fieldset fieldset = new Fieldset(t("Route properties"));
 		
-		if (isSet(train)) train.link("span",t("Train")+": "+train).addTo(fieldset);
+//		if (isSet(train)) train.link("span",t("Train")+": "+train).addTo(fieldset);
 		Tag list = new Tag("ul");
 		startBlock.link("li",t("Origin: {} to {}",startBlock.name,startDirection)).addTo(list);
 		endBlock.link("li",t("Destination: {} from {}",endBlock.name,endDirection.inverse())).addTo(list);
@@ -365,6 +229,17 @@ public class Route extends BaseClass {
 		
 		this.button(t("Test"),Map.of(ACTION,ACTION_START)).addTo(fieldset);
 		return fieldset;
+	}
+	
+	public Integer brakeTime(String brakeId) {
+		Integer result = brakeTimes.get(brakeId);
+		Collection<Integer> values = brakeTimes.values();
+		return values.isEmpty() ? BrakeProcess.defaultTimeStep : values.stream().mapToInt(Integer::intValue).sum()/values.size();
+	}
+
+	public void brakeTime(String brakeId, Integer newTimeStep) {
+		LOG.debug("new brake time for route {}: {}",this,newTimeStep);
+		brakeTimes.put(brakeId,newTimeStep);
 	}
 	
 	private Fieldset brakeTimes() {
@@ -393,11 +268,6 @@ public class Route extends BaseClass {
 		return this;
 	}
 	
-	public void brakeStart() {
-		if (isNull(train)) return;		
-		brakeProcessor = new BrakeProcessor(this,train);
-	}
-	
 	protected Route clone() {
 		Route clone = new Route();
 		clone.startBlock = startBlock;
@@ -417,18 +287,18 @@ public class Route extends BaseClass {
 			Contact nextToLastContact = contacts.get(contacts.size()-2);
 			String trigger = nextToLastContact.trigger();
 			add(trigger,new BrakeStart(this));
-			add(trigger,new PreserveRoute(this));
 			
 			int count = 0;
 			for (int i=0;i<contacts.size();i++) { // chose second contact, that is not a BlockContact
 				Contact contact = contacts.get(i);
 				if (contact instanceof BlockContact) continue;
-				if (count++<1) continue;
-				
-				trigger = contact.trigger(); // second contact, that is not a BlockContact
-				for (Signal signal : signals) add(trigger,new SetSignal(this).set(signal).to(Signal.RED));
-				break;
+				if (count++==1) { // second contact, that is not a BlockContact:
+					for (Signal signal : signals) add(contact.trigger(),new SetSignal(this).set(signal).to(Signal.RED));
+					break;
+				}
 			}
+			add(trigger,new PreserveRoute(this));
+
 		}
 		if (!contacts.isEmpty()) add(contacts.lastElement().trigger(), new FinishRoute(this));
 		for (Entry<Turnout, Turnout.State> entry : turnouts.entrySet()) {
@@ -450,15 +320,20 @@ public class Route extends BaseClass {
 	 * Kontakt der Route aktivieren
 	 * @param contact
 	 * @param trainHead
+	 * @return 
 	 */
-	public void contact(Contact contact) {
-		if (triggeredContacts.contains(contact)) return; // don't trigger contact a second time
+	public Context contact(Contact contact) {
+		context.contact(contact);
+		if (triggeredContacts.contains(contact)) return context; // don't trigger contact a second time
 		triggeredContacts.add(contact);
-		LOG.debug("{} on {} activated {}.",train,this,contact);
+		LOG.debug("{} on {} activated {}.",context.train(),this,contact);
 		ActionList actions = triggeredActions.get(contact.trigger());
 		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
-		if (isNull(actions)) return;
+		if (isNull(actions)) return context;
 		actions.fire(context,"Route.Contact("+contact.addr()+")");
+		Context previousContext = context;
+		if (context.invalidated()) context = null; // route has been freed in between.
+		return previousContext;
 	}
 
 	public Vector<Contact> contacts() {
@@ -498,64 +373,36 @@ public class Route extends BaseClass {
 		return win;
 	}
 	
-	public Context context() {
-		return context.clone();
-	}
-	
 	public void dropBraketimes(String...brakeIds) {
 		for (String brakeId : brakeIds) brakeTimes.remove(brakeId);
+	}
+	
+	public Route dropNextPreparedRoute() {
+		try {
+			return nextPreparedRoute;
+		} finally {
+			nextPreparedRoute = null;
+		}
 	}
 	
 	public Block endBlock() {
 		return endBlock;
 	}	
 	
-	public void finish() {
+	public void finish(Train train) {
 		LOG.debug("{}.finish()",this);
-		
-		if (isSet(train)) {
-			Route nextRoute = train.nextRoute();
-			if (isSet(nextRoute)) {
-				LOG.debug("{} has next route: {}",train,nextRoute);
-				if (isSet(brakeProcessor)) brakeProcessor.abort();
-			} else {
-				LOG.debug("{} has no next route.",train);
-				if (isSet(brakeProcessor)) {					
-					brakeProcessor.finish();
-				} else train.setSpeed(0);
-			}
-		}
-		brakeProcessor = null;
-		
-		free();
-		
-		if (isSet(train)) {
-			moveTrainToEndBlock();
-			if (train.route() == this) train.route(null);
-			train = null;
-		}		
-	
-		state = State.FREE;
+		train.endRoute(endBlock,endDirection);
+		freeIgnoring(null);				
+		train = null;
 	}
 	
-	/**
-	 * sets all signals of this route to RED,
-	 * frees all tiles occupied by this route
-	 */
-	private void free() {
-		LOG.debug("{}.free()",this);
-		context.clear(); // prevent delayed actions from firing after route has finished
-
-		setSignals(Signal.RED);
-		for (Tile tile : path) try { // remove route from tiles on path
-			tile.unset(this);
-		} catch (IllegalArgumentException e) {}
-		
-/*		Tile lastTile = path.lastElement();
-		if (lastTile instanceof Contact) {
-			lastTile.setTrain(null);
-			if (isSet(train)) train.removeChild(lastTile);
-		}*/
+	private void freeIgnoring(Vector<Tile> skipTiles) {
+		Train train = context.train();
+		Vector<Tile> reversedPath = reverse(path());
+		if (isSet(skipTiles)) reversedPath.removeAll(skipTiles);
+		for (Tile tile : reversedPath) {
+			if (isSet(train) && !train.onTrace(tile)) tile.free(train);
+		}
 	}
 
 	private String generateName() {
@@ -573,6 +420,10 @@ public class Route extends BaseClass {
 		return sb.toString().trim();
 	}
 	
+	public Route getNextPreparedRoute() {
+		return nextPreparedRoute;
+	}
+	
 	public Id id() {
 		if (isNull(id)) id = new Id(""+(generateName().hashCode()));
 		return id;
@@ -582,13 +433,11 @@ public class Route extends BaseClass {
 		return disabled;
 	}
 		
-	public boolean isFreeFor(Context context) {
-		PathFinder.LOG.debug("{}.isFreeFor({})",this,context);
-		for (int i=1; i<path.size(); i++) {
-			if (!path.get(i).isFreeFor(context)) {
-				PathFinder.LOG.debug("{}.isFreeFor(...) → false",this);
-				return false;
-			}
+	public boolean isFreeFor(Context train) {
+		LOG.debug("{}.isFreeFor({})",this,train);
+		if (isNull(train.train())) return false;
+		for (Tile tile : path) {			
+			if (!tile.isFreeFor(train)) return false;
 		}
 		return true;
 	}
@@ -675,7 +524,7 @@ public class Route extends BaseClass {
 		if (json.has(ACTIONS)) {
 			loadActions(json.getJSONObject(ACTIONS));
 		}
-		if (json.has("action_lists")) { // TODO: this is legacy!
+		if (json.has("action_lists")) { // Legacy
 			JSONArray jarr = json.getJSONArray("action_lists");
 			for (Object o : jarr) {
 				if (o instanceof JSONObject) {
@@ -696,7 +545,7 @@ public class Route extends BaseClass {
 				}
 			}
 		}
-		if (json.has("conditions")) { // TODO: this is legacy!
+		if (json.has("conditions")) { // Legacy
 			JSONArray jConditions = json.getJSONArray("conditions");
 			for (Object o : jConditions) {
 				if (o instanceof JSONObject) {
@@ -711,7 +560,7 @@ public class Route extends BaseClass {
 			}
 		}
 		if (json.has(CONDITION_LIST)) conditions.load(json.getJSONObject(CONDITION_LIST)).parent(this);
-		if (json.has(SETUP_ACTIONS)) { // TODO: this is legacy!
+		if (json.has(SETUP_ACTIONS)) { // Legacy
 			Object so = json.get(SETUP_ACTIONS);
 			if (so instanceof JSONObject) {
 				JSONObject jo = (JSONObject) so;
@@ -736,7 +585,7 @@ public class Route extends BaseClass {
 				triggeredActions.put(ROUTE_SETUP, setupActions);
 			}			
 		}
-		if (json.has(START_ACTIONS)) { // TODO: this is legacy!
+		if (json.has(START_ACTIONS)) { // Legacy
 			Object so = json.get(START_ACTIONS);
 			if (so instanceof JSONObject) {
 				JSONObject jo = (JSONObject) so;
@@ -793,82 +642,7 @@ public class Route extends BaseClass {
 		}
 		fis.close();
 	}
-		
-	public boolean lock() {
-		return lockIgnoring(null);
-	}
-	
-	public boolean lockIgnoring(Route ignoredRoute) {
-		if (state == State.LOCKED || state == State.PREPARED || state == State.STARTED) return true;
-		LOG.debug("{}.lockIgnoring({})",this,ignoredRoute);
-		HashSet<Tile> ignoredPath = new HashSet<Tile>();
-		if (isSet(ignoredRoute)) ignoredPath.addAll(ignoredRoute.path);
-		boolean success = true;
-		for (Tile tile : path) {
-			if (ignoredPath.contains(tile)) continue;
-			try {
-				tile.setRoute(this);
-			} catch (IllegalStateException e) {
-				LOG.debug("{}.lockIgnoring(...) failed at {}, rolling back",this,tile);
-				success = false;
-				break;
-			}			
-		}
-		if (success) state = State.LOCKED;
-		return success;
-	}
-	
-	private void moveTrainToEndBlock() {
-		if (isNull(train)) return;
-		LOG.debug("{}.moveTrainToEndBlock()",this);
-		
-		train.set(endBlock);
-		traceTrainFrom(endBlock);
-		train.heading(endDirection);
-	
-		if (endBlock == train.destination()) {
-			train.destination(null); // unset old destination
-			String destTag = train.destinationTag();
-			if (isSet(destTag)) {
-				LOG.debug("destination list: {}",destTag);
-				String[] parts = destTag.split(Train.DESTINATION_PREFIX);
-				for (int i=0; i<parts.length;i++) LOG.debug("  part {}: {}",i+1,parts[i]);
-				String destId = parts[1];
-				LOG.debug("destination tag: {}",destId);
-				boolean turn = false;
-				
-				for (int i=destId.length()-1; i>0; i--) {
-					switch (destId.charAt(i)) {
-						case Train.FLAG_SEPARATOR:
-							destId = destId.substring(0,i);
-							i=0;
-							break;
-						case Train.TURN_FLAG:
-							turn = true; 
-							LOG.debug("Turn flag is set!");
-							break;
-					}
-				}
-				if (destId.equals(endBlock.id().toString())) { 
-					if (turn) train.turn();
-					
-					// update destination tag: remove and add altered tag:
-					train.removeTag(destTag);
-					destTag = destTag.substring(parts[1].length()+1);
-					if (destTag.isEmpty()) { // no further destinations
-						destTag = null;
-					} else train.addTag(destTag);
-				}					
-			}
 			
-			if (isNull(destTag)) {
-				train.quitAutopilot();
-				plan.stream(t("{} reached it`s destination!",train));
-			}
-		} else train.setWaitTime(endBlock.getWaitTime(train,train.direction()));
-		if (startBlock.train() == train && !train.onTrace(startBlock)) startBlock.setTrain(null); // withdraw train from start block only if trace does not go back there
-	}
-	
 	public List<Route> multiply(int size) {
 		Vector<Route> routes = new Vector<Route>();
 		for (int i=0; i<size; i++) routes.add(i==0 ? this : this.clone());
@@ -891,18 +665,40 @@ public class Route extends BaseClass {
 	}
 	
 	public Vector<Tile> path() {
-		Vector<Tile> result = new Vector<Tile>();
-		if (isSet(path)) result.addAll(path);
-		return result;
+		return isSet(path) ? new Vector<>(path) : new Vector<>();
 	}
 	
-	public boolean prepare() {
-		if (state == State.PREPARED || state == State.STARTED) return true;
-		LOG.debug("{}.prepare()",this);
+	public boolean prepareAndLock() {
+		LOG.debug("{}.prepareAndLock()",this);
+		Train train = context.train();
 		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
-		if (isSet(setupActions) && !setupActions.fire(context,this+".prepare()")) return false;
-		state = State.PREPARED;
+		if (isSet(setupActions) && !setupActions.fire(context.route(this),this+".prepare()")) {
+			LOG.debug("Was not able to prepare route for {}.",train);
+			return false;
+		}
+
+		for (Tile tile : path) {
+			if (context.invalidated() || !tile.lockFor(context,false)) {
+				LOG.debug("Was not able to allocate route for {}.",context);				
+				return false;
+			}
+		}
 		return true;
+	}
+	
+	public boolean prepareNext(Context context) {
+		if (isSet(nextRoutePrepper)) return false;
+		nextRoutePrepper = new RoutePrepper(context);
+		nextRoutePrepper.onRoutePrepared(() -> {
+			nextPreparedRoute = nextRoutePrepper.route();
+			nextRoutePrepper = null;
+		});
+		nextRoutePrepper.onFail(() -> {
+			Route rt = nextRoutePrepper.route(); // Nachfolgeroute kann ja schon reserviert sein, oder gar schon teilweise vorbereitet!
+			if (isSet(rt)) rt.resetIgnoring(this); // angefangene Route freigeben ohne Teile der aktuellen Route freizugeben
+			nextRoutePrepper = null;
+		});
+		return nextRoutePrepper.prepareRoute();
 	}
 	
 	private Tag previewScript() {
@@ -913,13 +709,8 @@ public class Route extends BaseClass {
 		return script;
 	}
 	
-	public Route prolong(Route nextRoute) {
-		if (isSet(brakeProcessor)) brakeProcessor.setEndSpeed(nextRoute.startSpeed());
-		return nextRoute;
-	}
-	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 
 		preForm.add(conditions.list(t("Route will only be available, if all conditions are fulfilled.")));
 		preForm.add(contactsAndActions());
@@ -935,7 +726,7 @@ public class Route extends BaseClass {
 		postForm.add(basicProperties());
 		if (!turnouts.isEmpty()) postForm.add(turnouts());
 		postForm.add(brakeTimes());
-		Window win = super.properties(preForm, formInputs, postForm);
+		Window win = super.properties(preForm, formInputs, postForm,errors);
 		previewScript().addTo(win);
 		return win;
 	}
@@ -947,7 +738,7 @@ public class Route extends BaseClass {
 	@Override
 	public BaseClass remove() {
 		LOG.debug("Removing route ({}) {}",id(),this);
-		if (isSet(train)) train.removeChild(this);
+//		if (isSet(train)) train.removeChild(this);
 		for (Tile tile : path) {
 			tile.removeChild(this);
 		}
@@ -966,7 +757,7 @@ public class Route extends BaseClass {
 		if (child == endBlock) endBlock = null;
 		path.remove(child);
 		signals.remove(child);
-		if (child == train) train = null;
+//		if (child == train) train = null;
 		for (ActionList list : triggeredActions.values()) {
 			list.removeChild(child);
 		}
@@ -976,19 +767,36 @@ public class Route extends BaseClass {
 		super.removeChild(child);
 	}
 	
-	public boolean reset() {
-		LOG.debug("{}.reset()",this);
-		free();
-		
-		if (isSet(brakeProcessor)) brakeProcessor.abort();
-		if (isSet(train)) {
-			train.set(startBlock);
-			train.heading(startDirection);
-			if (train.route() == this) train.route(null);
-			train = null;
+	public boolean reserveFor(Context newContext) {
+		LOG.debug("{}.reserverFor({})",this,newContext);
+
+		context = newContext;
+		for (Tile tile : path) {
+			if (newContext.invalidated() || !tile.reserveFor(newContext)) {
+				LOG.debug("Was not able to allocate route for {}.",newContext);				
+				return false;
+			}
 		}
-		state = State.FREE;
 		return true;
+	}
+	
+	public void reset() {
+		resetIgnoring(null);
+	}
+	
+	public void resetIgnoring(Route otherRoute) {
+		LOG.debug("{}.resetIgnoring({})",this,otherRoute);
+		resetNext();
+		setSignals(Signal.RED);
+		Train train = context.train();
+		freeIgnoring(isSet(otherRoute) ? otherRoute.path : null);
+		train.drop(this);
+		context = null;
+	}
+	
+	public void resetNext() {
+		if (isSet(nextRoutePrepper)) nextRoutePrepper.stop();
+		if (isSet(nextPreparedRoute)) nextPreparedRoute.reset();
 	}
 	
 	public static void saveAll(String filename) throws IOException {
@@ -1005,18 +813,16 @@ public class Route extends BaseClass {
 		file.close();
 	}
 	
-	public Context set(Context newContext) {
-		LOG.debug("{}.set({})",this,newContext);
-		context = newContext;
-		context.route(this);
-		return context;
-	}
-
 	public void setLast(Turnout.State state) {
 		if (isNull(state) || state == Turnout.State.UNDEF) return;
 		Tile lastTile = path.lastElement();
 		if (lastTile instanceof Turnout) addTurnout((Turnout) lastTile,state);
 	}
+	
+	public void setNextPreparedRoute(Route route) {
+		nextPreparedRoute = route;
+	}
+
 	
 	public boolean setSignals(String state) {
 		LOG.debug("{}.setSignals({})",this,state);
@@ -1033,25 +839,29 @@ public class Route extends BaseClass {
 	
 	public Route simplyfyName() {
 		String[] parts = name().split("-");
-		if (parts.length>1) name(parts[0]+" - "+parts[parts.length-1]);
+		if (parts.length>1) name(parts[0].trim()+" - "+parts[parts.length-1].trim());
 		return this;
 	}
 
-	public Route.State state(){
-		return state;
-	}
-	
-	public boolean start(Train newTrain) {
-		if (state == State.STARTED) return true;
+	public boolean start() {
 		LOG.debug("{}.start()",this);
-		if (isNull(newTrain)) return false; // can't set route's train to null
-		if (isSet(train)) {
-			if (newTrain != train) return false; // can't alter route's train
-		} else train = newTrain; // set new train 
-		ActionList startActions = triggeredActions.get(ROUTE_START);
-		if (isSet(startActions) && !startActions.fire(context,this+".start("+train.name()+")")) return false; // start actions failed
-		state = State.STARTED;
+		if (isNull(context) || context.invalidated()) return false;
+		
+		Train train = context.train();
+		if (isNull(train)) return false; // can't set route's train to null
+		train.setRoute(this); // set new train
+		
 		triggeredContacts.clear();
+
+		ActionList startActions = triggeredActions.get(ROUTE_START);
+		
+		if (isSet(startActions)) {
+			context.route(this);
+			String cause = this+".start("+train.name()+")";
+			if (!startActions.fire(context,cause)) return false; // start actions failed
+		}
+
+		context.waitTime(endBlock.getWaitTime(train, endDirection).random());
 		return true;
 	}
 
@@ -1066,49 +876,14 @@ public class Route extends BaseClass {
 		return isSet(startActions) ? startActions.getSpeed(context) : null;
 	}
 
-	
-	protected static String t(String txt, Object...fills) {
-		return Translation.get(Application.class, txt, fills);
-	}
-
 	@Override
 	public String toString() {
-		return getClass().getSimpleName()+"("+(isSet(train)?train+":":"")+name()+")";
+		return getClass().getSimpleName()+"("+name()+")";
 	}
-	
-	public void traceTrainFrom(Tile newHead) {
-		LOG.debug("{}.traceTrainFrom({})",this,newHead);
-		if (isNull(train)) return;
-		if (newHead instanceof BlockContact) newHead = (Tile) ((BlockContact)newHead).parent();
 		
-		Tile traceHead = train.traceHead();
-		Integer remainingLength = null;
-		LinkedList<Tile> newTrace = new LinkedList<Tile>();
-		for (int i=path.size(); i>0; i--) { // pfad rückwärts ablaufen
-			Tile tile = path.elementAt(i-1);
-			if (isNull(remainingLength)) {
-				if (tile == newHead) traceHead = newHead; // wenn wir zuerst newHead finden: newHead als neuen traceHead übernehmen
-				if (tile == traceHead) {
-					remainingLength = train.length(); // sobald wir auf den traceHead stoßen: suche beenden
-				}
-			}		
-			if (isSet(remainingLength)) {
-				if (remainingLength>=0) {
-					newTrace.add(tile);
-					remainingLength -= tile.length();
-				} else if (Route.freeBehindTrain) {
-					try {
-						tile.unset(this);				
-					} catch (IllegalArgumentException e) {}
-				} else break;				
-			}
-		}		
-		train.setTrace(newTrace);
-	}
-	
-	public Train train() {
+/*	public Train train() {
 		return train;
-	}
+	}*/
 	
 	private Fieldset turnouts() {
 		Fieldset win = new Fieldset(t("Turnouts"));
@@ -1137,7 +912,7 @@ public class Route extends BaseClass {
 		return properties();
 	}
 
-	public Integer brakeTime(String brakeId) {
-		return brakeTimes.get(brakeId);
+	public Integer waitTime() {
+		return isNull(context) ? null : context.waitTime();
 	}
 }

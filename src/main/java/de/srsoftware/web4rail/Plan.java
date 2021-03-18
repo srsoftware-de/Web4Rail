@@ -36,6 +36,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.ControlUnit;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.BlockH;
@@ -151,7 +152,7 @@ public class Plan extends BaseClass{
 	private static final String SPEED_UNIT = "speed_unit";
 	private static final String LENGTH_UNIT = "length_unit";
 	private static final String CONFIRM = "confirm";
-	private static final String FINAL_SPEED = "final_speed";
+	private static final String FINAL_SPEED = "final_speed"; 
 	private static final String FREE_BEHIND_TRAIN = "free_behind_train";
 	private static final String RENAME = "rename";
 	private String name = DEFAULT_NAME;
@@ -299,7 +300,7 @@ public class Plan extends BaseClass{
 			return win;
 		}
 		
-		Thread analyzer = new Thread() {
+		new Thread(Application.threadName("Plan.Analyzer")) {
 			public void run() {				
 				Vector<Route> newRoutes = new Vector<Route>();
 				for (Block block : BaseClass.listElements(Block.class)) {
@@ -316,9 +317,7 @@ public class Plan extends BaseClass{
 				
 				stream(t("Found {} routes.",newRoutes.size()));
 			}		
-		};
-		analyzer.setName(Application.threadName("Plan.Analyzer"));
-		analyzer.start();
+		}.start();
 		
 		return t("Analyzing plan...");
 	}
@@ -355,7 +354,7 @@ public class Plan extends BaseClass{
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 		new Input(LENGTH_UNIT, lengthUnit).addTo(new Label(t("Length unit")+COL)).addTo(form);
 		new Input(SPEED_UNIT, speedUnit).addTo(new Label(t("Speed unit")+COL)).addTo(form);
-		new Input(FINAL_SPEED, Route.defaultEndSpeed).addTo(new Label(t("Lower speed limit")+COL)).attr("title", t("Final speed after breaking, before halting")).addTo(form);
+		new Input(FINAL_SPEED, Train.defaultEndSpeed).addTo(new Label(t("Lower speed limit")+COL)).attr("title", t("Final speed after breaking, before halting")).addTo(form);
 		new Checkbox(FREE_BEHIND_TRAIN, t("Free tiles behind train"), Route.freeBehindTrain).attr("title", t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.")).addTo(form);
 		new Button(t("Save"), form).addTo(form);
 		form.addTo(fieldset);
@@ -489,7 +488,7 @@ public class Plan extends BaseClass{
 			.forEach(jTiles::put);
 		
 		return new JSONObject()
-				.put(FINAL_SPEED, Route.defaultEndSpeed)
+				.put(FINAL_SPEED, Train.defaultEndSpeed) 
 				.put(FREE_BEHIND_TRAIN, Route.freeBehindTrain)
 				.put(LENGTH_UNIT, lengthUnit)
 				.put(SPEED_UNIT, speedUnit)
@@ -512,25 +511,29 @@ public class Plan extends BaseClass{
 	public static void load(String name) throws IOException {
 		plan = new Plan();
 		plan.name = name;
+
+		String content = new String(Files.readAllBytes(new File(name+".plan").toPath()),UTF8);
+		JSONObject json = new JSONObject(content);
+
+		if (json.has(LENGTH_UNIT)) lengthUnit = json.getString(LENGTH_UNIT);
+		if (json.has(SPEED_UNIT)) speedUnit = json.getString(SPEED_UNIT);
+		if (json.has(FINAL_SPEED)) Train.defaultEndSpeed = json.getInt(FINAL_SPEED);
+		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
+		
 		try {
 			Car.loadAll(name+".cars",plan);
 		} catch (Exception e) {
 			LOG.warn("Was not able to load cars!",e);
 		}
 
-		String content = new String(Files.readAllBytes(new File(name+".plan").toPath()),UTF8);
-		JSONObject json = new JSONObject(content);
-		if (json.has(TILE)) json.getJSONArray(TILE).forEach(object -> Tile.load(object, plan));
-		if (json.has(LENGTH_UNIT)) lengthUnit = json.getString(LENGTH_UNIT);
-		if (json.has(SPEED_UNIT)) speedUnit = json.getString(SPEED_UNIT);
-		if (json.has(FINAL_SPEED)) Route.defaultEndSpeed = json.getInt(FINAL_SPEED);
-		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
-			
 		try {
 			Train.loadAll(name+".trains",plan);
 		} catch (Exception e) {
 			LOG.warn("Was not able to load trains!",e);
 		}
+
+		if (json.has(TILE)) json.getJSONArray(TILE).forEach(object -> Tile.load(object, plan));
+			
 		try {
 			Route.loadAll(name+".routes",plan);
 		} catch (Exception e) {
@@ -546,6 +549,7 @@ public class Plan extends BaseClass{
 		} catch (Exception e) {
 			LOG.warn("Was not able to establish connection to control unit!");
 		}
+		LoadCallback.fire();
 	}
 	
 	/**
@@ -646,7 +650,7 @@ public class Plan extends BaseClass{
 	 */
 	public Tile place(Tile tile) {
 		try {
-			tile.parent(this);
+//			tile.parent(this);
 			tile.register();
 			stream("place "+tile.tag(null));
 		} catch (IOException e) {
@@ -674,19 +678,27 @@ public class Plan extends BaseClass{
 	}
 	
 	public Window properties(HashMap<String, String> params) {
+		
 		if (params.containsKey(ID)) {
 			Tile tile = get(Id.from(params), true);
 			if (isSet(tile)) return tile.properties();
-		}
+		}		
 		
-		Window win = new Window("plan-properties", t("Properties of {}",t("Plan")));
+		return properties();
+	}
+	
+	@Override
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm, String... errorMessages) {
+		formInputs.add(null, new Input(REALM,REALM_PLAN));
+		formInputs.add(null, new Input(ACTION,ACTION_UPDATE));
+		formInputs.add(t("Length unit"),new Input(LENGTH_UNIT, lengthUnit));
+		formInputs.add(t("Speed unit"),new Input(SPEED_UNIT, speedUnit));
+		formInputs.add(t("Lower speed limit"),new Input(FINAL_SPEED, Train.defaultEndSpeed).attr("title", t("Final speed after breaking, before halting")));
+		formInputs.add(t("Free tiles behind train"),new Checkbox(FREE_BEHIND_TRAIN, t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished."), Route.freeBehindTrain));
 		
-		editableProperties().addTo(win);
-		relayProperties().addTo(win);
-		routeProperties().addTo(win);
-		
-		
-		return win;
+		postForm.add(relayProperties());
+		postForm.add(routeProperties());
+		return super.properties(preForm, formInputs, postForm, errorMessages);
 	}
 
 	/**
@@ -788,7 +800,7 @@ public class Plan extends BaseClass{
 	}
 
 
-	private Tag routeProperties() {
+	private Fieldset routeProperties() {
 		Fieldset fieldset = new Fieldset(t("Routes"));
 		Table table = new Table();
 		table.addHead(t("Name"),t("Start"),t("End"),t("Actions"));
@@ -967,6 +979,11 @@ public class Plan extends BaseClass{
 		new Div(ACTION_PROPS).clazz(REALM_CAR).content(t("Manage cars")).addTo(tiles);
 		return tiles.addTo(tileMenu);
 	}
+	
+	@Override
+	public String toString() {
+		return name;
+	}
 
 	/**
 	 * updates a tile
@@ -982,7 +999,7 @@ public class Plan extends BaseClass{
 		
 		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.get(LENGTH_UNIT);
 		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);
-		if (params.containsKey(FINAL_SPEED)) Route.defaultEndSpeed = Integer.parseInt(params.get(FINAL_SPEED));
+		if (params.containsKey(FINAL_SPEED)) Train.defaultEndSpeed = Integer.parseInt(params.get(FINAL_SPEED)); 
 		Route.freeBehindTrain = "on".equalsIgnoreCase(params.get(FREE_BEHIND_TRAIN));
 		
 		return t("Plan updated.");		

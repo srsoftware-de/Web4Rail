@@ -9,7 +9,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.DelayedExecution;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -69,31 +69,25 @@ public class AddRemoveDestination extends Action {
 	public Action load(JSONObject json) {
 		if (json.has(TURN)) turnAtDestination = json.getBoolean(TURN);
 		if (json.has(SHUNTING)) shunting = json.getBoolean(SHUNTING);
-		if (json.has(Train.DESTINATION)) {
-			Id blockId = new Id(json.getString(Train.DESTINATION));
-			destination = BaseClass.get(blockId);
-			if (isNull(destination)) {
-				new DelayedExecution(this) {
-					
-					@Override
-					public void execute() {
-						destination = BaseClass.get(blockId);
-					}
-				};
+		if (json.has(Train.DESTINATION)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				destination = BaseClass.get(Id.from(json, Train.DESTINATION));
 			}
-		}
+		};
+		
 		return super.load(json);
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag span = new Tag("span");
 		button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,Train.DESTINATION)).addTo(span);
 		button(t("Clear destinations"),Map.of(ACTION,ACTION_UPDATE,Train.DESTINATION,"0")).addTo(span);
 		formInputs.add(t("Destination")+": "+(isNull(destination) ? t("Clear destinations") : destination),span);
 		formInputs.add(t("Turn at destination"),new Checkbox(TURN, t("Turn"), turnAtDestination));
 		formInputs.add(t("Shunting"),new Checkbox(SHUNTING, t("Shunting"), shunting));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

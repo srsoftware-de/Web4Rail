@@ -8,10 +8,11 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.DelayedExecution;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.DelayedExecution;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Contact.Listener;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -82,24 +83,21 @@ public class WaitForContact extends ActionList {
 	
 	@Override
 	public Action load(JSONObject json) {
-		if (json.has(CONTACT)) {
-			String cid = json.getString(CONTACT);
-			contact = BaseClass.get(new Id(cid));
-			if (isNull(contact)) new DelayedExecution(this) {
-				
-				@Override
-				public void execute() {
-					contact = BaseClass.get(new Id(cid));
-				}
-			};
-		}
 		if (json.has(TIMEOUT)) timeout = json.getInt(TIMEOUT);
 		if (json.has(TIMEOUT_ACTIONS)) timeoutActions.load(json.getJSONObject(TIMEOUT_ACTIONS));
+
+		if (json.has(CONTACT)) new LoadCallback() {
+			
+			@Override
+			public void afterLoad() {
+				contact = BaseClass.get(Id.from(json, CONTACT));	
+			}
+		};
 		return super.load(json);
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Contact")+": "+(isNull(contact) ? t("unset") : contact),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,CONTACT)));
 		formInputs.add(t("Timeout"),new Input(TIMEOUT,timeout).numeric().addTo(new Tag("span")).content(NBSP+"ms"));
 		
@@ -108,7 +106,7 @@ public class WaitForContact extends ActionList {
 		timeoutActions.list().addTo(fieldset);
 		postForm.add(fieldset);
 
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

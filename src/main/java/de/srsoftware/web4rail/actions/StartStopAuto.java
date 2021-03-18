@@ -24,7 +24,7 @@ public class StartStopAuto extends Action {
 	public boolean fire(Context context,Object cause) {
 		if (isNull(context.train())) return false;
 		if (inverted) {
-			context.train().automatic();
+			context.train().start(true);
 		} else context.train().quitAutopilot();
 		return true;
 	}
@@ -41,13 +41,13 @@ public class StartStopAuto extends Action {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag radios = new Tag("div");
 		new Radio(INVERTED, "on", t("Start autopilot"), inverted).addTo(radios);
 		new Radio(INVERTED, "off", t("Stop autopilot"), !inverted).addTo(radios);
 		formInputs.add(t("Action"), radios);
 		
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

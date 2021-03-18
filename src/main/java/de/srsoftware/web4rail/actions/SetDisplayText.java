@@ -7,7 +7,7 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.DelayedExecution;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Window;
@@ -43,15 +43,12 @@ public class SetDisplayText extends TextAction{
 	
 	@Override
 	public Action load(JSONObject json) {
-		if (json.has(DISPLAY)) {
-			new DelayedExecution(this) {
-				
-				@Override
-				public void execute() {
-					display = (TextDisplay) plan.get(Id.from(json,DISPLAY), false);
-				};
-			};
-		}
+		if (json.has(DISPLAY)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				display = (TextDisplay) plan.get(Id.from(json,DISPLAY), false);
+			}
+		};			
 		return super.load(json);
 	}
 	
@@ -62,9 +59,9 @@ public class SetDisplayText extends TextAction{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Display")+": "+(isNull(display) ? t("unset") : display),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,DISPLAY)));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 		
 	@Override

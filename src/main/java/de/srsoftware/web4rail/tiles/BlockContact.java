@@ -29,19 +29,13 @@ public class BlockContact extends Contact {
 	}
 		
 	@Override
-	public Route route() {
-		return ((Block)parent()).route();
-	}
-	
-	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {
 		return ((Block)parent()).tag(replacements);
 	}
 	
 	@Override
 	public Train train() {
-		train = ((Block)parent()).train();
-		return train;
+		return ((Block)parent()).train();
 	}
 
 	@Override

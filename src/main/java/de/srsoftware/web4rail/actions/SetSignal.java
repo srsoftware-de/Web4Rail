@@ -35,6 +35,7 @@ public class SetSignal extends Action {
 	
 	@Override
 	public boolean fire(Context context,Object cause) {
+		if (context.invalidated()) return false;
 		if (isNull(signal)) return false;
 		return signal.state(state);
 	}
@@ -59,7 +60,7 @@ public class SetSignal extends Action {
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Signal")+": "+(isNull(signal) ? t("unset") : signal),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,SIGNAL)));
 		Select state = new Select(Signal.STATE);
 		for (String st:Signal.knownStates) {
@@ -68,7 +69,7 @@ public class SetSignal extends Action {
 		}
 		formInputs.add(t("Select state"),state);
 
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

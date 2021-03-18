@@ -7,10 +7,10 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.ControlUnit;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.ControlUnit;
 
 public class SetPower extends Action{
 	
@@ -58,14 +58,14 @@ public class SetPower extends Action{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag div = new Tag("div");
 		new Radio(STATE, POWERCHANGE.ON, t("On"), pc == POWERCHANGE.ON).addTo(div);
 		new Radio(STATE, POWERCHANGE.OFF, t("Off"), pc == POWERCHANGE.OFF).addTo(div);
 		new Radio(STATE, POWERCHANGE.TOGGLE, t("Toggle"), pc == POWERCHANGE.TOGGLE).addTo(div);
 		formInputs.add(t("Set state to"),div);
 		
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

@@ -7,10 +7,10 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.DelayedExecution;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.DelayedExecution;
 
 public class DelayedAction extends ActionList {
 	
@@ -61,10 +61,10 @@ public class DelayedAction extends ActionList {
 	}
 		
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Minimum delay"),new Input(MIN_DELAY,min_delay).numeric().addTo(new Tag("span")).content(NBSP+"ms"));
 		formInputs.add(t("Maximum delay"),new Input(MAX_DELAY,max_delay).numeric().addTo(new Tag("span")).content(NBSP+"ms"));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	public DelayedAction setMaxDelay(int max_delay) {

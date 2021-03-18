@@ -4,9 +4,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -39,7 +41,7 @@ import de.srsoftware.web4rail.tiles.Tile;
  * @author Stephan Richter, SRSoftware 2020…2021 
  */
 public abstract class BaseClass implements Constants{
-	protected static Plan plan; // the track layout in use
+	public static Plan plan; // the track layout in use
 	public static final Random random = new Random();
 	public static String speedUnit = DEFAULT_SPEED_UNIT;
 	public static String lengthUnit = DEFAULT_LENGTH_UNIT;
@@ -67,6 +69,8 @@ public abstract class BaseClass implements Constants{
 		private Car car;
 		private Contact contact;
 		private Direction direction;
+		private Integer waitTime;
+		List<EventListener> invalidationListeners = new LinkedList<>();
 		
 		public Context(BaseClass object) {
 			setMain(object);
@@ -101,6 +105,7 @@ public abstract class BaseClass implements Constants{
 			route = null;
 			tile = null;
 			train = null;
+			waitTime = null;
 		}
 		
 		public Context clone() {
@@ -114,6 +119,7 @@ public abstract class BaseClass implements Constants{
 			clone.route = route;
 			clone.tile = tile;
 			clone.train = train;
+			clone.waitTime = waitTime;
 			return clone;
 		}
 		
@@ -141,9 +147,19 @@ public abstract class BaseClass implements Constants{
 			return this;
 		}
 		
+		public void invalidate() {
+			setMain(null);
+			invalidationListeners.forEach(EventListener::fire);
+		}
+		
 		public boolean invalidated() {
 			return isNull(main);
 		}
+		
+		public void onInvalidate(EventListener listener) {
+			invalidationListeners.add(listener);
+		}
+
 		
 		public Context setMain(BaseClass object) {
 			main = object;
@@ -182,6 +198,7 @@ public abstract class BaseClass implements Constants{
 			if (isSet(block)) sb.append(", "+t("Block: {}",block));
 			if (isSet(route))   sb.append(", "+t("Route: {}",route));
 			if (isSet(contact)) sb.append(", "+t("Contact: {}",contact));
+			if (isSet(waitTime)) sb.append(", "+t("Wait time: {} ms",waitTime));
 			sb.append(")");
 			return sb.toString();
 		}
@@ -194,6 +211,14 @@ public abstract class BaseClass implements Constants{
 			LOG.debug("{}.train({})",this,newTrain);
 			train = newTrain;
 			return this;
+		}
+		
+		public Integer waitTime() {
+			return waitTime;
+		}
+
+		public void waitTime(int ms) {
+			waitTime = ms;
 		}
 	}
 	
@@ -423,13 +448,21 @@ public abstract class BaseClass implements Constants{
 		return (T) this;
 	}
 	
-	public Window properties() {
-		return properties(new ArrayList<>(), new FormInput(), new ArrayList<>());
+	public Window properties(String...error) {
+		return properties(new ArrayList<>(), new FormInput(), new ArrayList<>(),error);
 	}
 
 	
-	protected Window properties(List<Fieldset> preForm,FormInput formInputs,List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm,FormInput formInputs,List<Fieldset> postForm, String...errorMessages) {
 		Window win = new Window(getClass().getSimpleName()+"-properties", t("Properties of {}",this.title()));
+
+		Tag errorDiv = new Tag("div").clazz("error").content("");
+		if (errorMessages != null && errorMessages.length > 0) {
+			for (String errorMessage : errorMessages) {
+				if (isSet(errorMessage)) new Tag("p").content(errorMessage).addTo(errorDiv);
+			}
+		}
+		errorDiv.addTo(win);
 		
 		preForm.forEach(fieldset -> fieldset.addTo(win));
 
@@ -509,9 +542,21 @@ public abstract class BaseClass implements Constants{
 		registry = new HashMap<BaseClass.Id, BaseClass>();
 		customFieldNames = new HashMap<Class<? extends BaseClass>, Set<String>>();
 	}
+	
+	public static <T,L extends List<T>> L reverse(L list){		
+		Collections.reverse(list);
+		return list;
+	}
 
+	public void sleep(long ms) {
+		try {
+			Thread.sleep(ms);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
 
-	protected static String t(String txt, Object...fills) {
+	public static String t(String txt, Object...fills) {
 		if (isSet(fills)) for (int i=0; i<fills.length; i++) {
 			if ("\\".equals(fills[i])) fills[i]="\\\\";
 		}

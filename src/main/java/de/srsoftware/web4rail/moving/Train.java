@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -23,12 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.PathFinder;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
-import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
@@ -39,6 +36,9 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.threads.BrakeProcess;
+import de.srsoftware.web4rail.threads.DelayedExecution;
+import de.srsoftware.web4rail.threads.RoutePrepper;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -54,15 +54,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private static final String TRACE   = "trace";
 
 	private static final String NAME = "name";
+
+	public static int defaultEndSpeed;
 	private String name = null;
 	
 	
 	private static final String ROUTE = "route";
 	private Route route;	
 		
-	private static final String DIRECTION = "direction";
 	private Direction direction;
-	
+	private boolean autopilot;
 	private static final String PUSH_PULL = "pushPull";
 	public boolean pushPull = false;
 	
@@ -84,59 +85,20 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private boolean f1,f2,f3,f4;
 
 	private Block currentBlock,destination = null;
-	LinkedList<Tile> trace = new LinkedList<Tile>();
+	HashSet<Tile> trace = new HashSet<Tile>();
 	private Vector<Block> lastBlocks = new Vector<Block>();
 	
 	public int speed = 0;
-	private Autopilot autopilot = null;
-	private Route nextRoute;
 	private static final String SHUNTING = "shunting";
 	private boolean shunting = false;
+	private RoutePrepper routePrepper = null;
 
-	private boolean reserving; // used to prevent recursive calls of reserveNext
-	
-	private class Autopilot extends Thread{
-		boolean stop = false;
-		int waitTime = 100;
-		
-		public Autopilot() {
-			setName(Application.threadName("Autopilot("+Train.this+")"));
-			start();
-		}
-		
-		@Override
-		public void run() {
-			try {
-				stop = false;
-				while (true) {
-					if (isNull(route)) {
-						Thread.sleep(waitTime);
-						if (waitTime > 100) waitTime /=2;
-						if (stop) break;
-						if (isNull(route)) { // may have been set by start action in between
-							String message = Train.this.start();
-							if (isSet(route)) {
-								LOG.debug("{}.start called, route now is {}",Train.this,route);
-								plan.stream(message);
-								//if (isSet(destination)) Thread.sleep(1000); // limit load on PathFinder
-							} else {
-								LOG.debug(message);
-								waitTime = 1000; // limit load on PathFinder
-							}
-						}						
-					} else {
-						if (stop) break;
-						Thread.sleep(250);
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			autopilot = null;
-			if (isSet(currentBlock)) plan.place(currentBlock);
-		}
-	}
-	
+	private HashSet<Tile> stuckTrace = null;
+
+	private Route nextPreparedRoute;
+
+	private BrakeProcess brake;
+
 	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
 		String action = params.get(ACTION);
 		if (isNull(action)) return t("No action passed to Train.action!");
@@ -156,7 +118,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_ADD:
 				return train.addCar(params);
 			case ACTION_AUTO:
-				return train.automatic();
+				return train.start(true);
 			case ACTION_CONNECT:
 				return train.connect(params);
 			case ACTION_DROP:
@@ -176,14 +138,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_PROPS:
 				return train.properties();
 			case ACTION_QUIT:
-				return train.quitAutopilot();
+				return train.properties(train.quitAutopilot());
 			case ACTION_REVERSE:
 				return train.reverse().properties();
 			case ACTION_SLOWER10:
 				return train.slower(10);
 			case ACTION_START:
-				train.start();
-				return train.properties();
+				return train.properties(train.start(false));
 			case ACTION_STOP:
 				return train.stopNow();
 			case ACTION_TIMES:
@@ -196,10 +157,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
+	public Train add(Car car) {
+		if (isSet(car)) {
+			cars.add(car);
+			car.train(this);
+		}
+		return this;		
+	}
+
 	public void addTag(String tag) {
 		tags.add(tag);
 	}
-
+	
 	private Object addCar(HashMap<String, String> params) {
 		LOG.debug("addCar({})",params);
 		String carId = params.get(CAR_ID);
@@ -210,22 +179,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 
-	public Train add(Car car) {
-		if (isSet(car)) {
-			cars.add(car);
-			car.train(this);
-		}
-		return this;		
-	}
-	
-	public String automatic() {
-		if (isNull(autopilot)) {
-			autopilot = new Autopilot();
-			if (isSet(currentBlock)) plan.place(currentBlock);
-		}
-		return t("{} now in auto-mode",this);
-	}
-	
 	private Fieldset blockHistory() {
 		Fieldset fieldset = new Fieldset(t("Last blocks")).id("props-history");
 		Tag list = new Tag("ol");
@@ -323,7 +276,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(currentBlock)) {
 			Tag ul = new Tag("ul");
 			if (isSet(currentBlock.train()) && currentBlock.train() != this) currentBlock.train().link().addTo(new Tag("li")).addTo(ul);
-			for (Train tr : currentBlock.parkedTrains()) {
+			for (Train tr : currentBlock.trains()) {
 				if (tr == this) continue;
 				Tag li = new Tag("li").addTo(ul);
 				tr.link().addTo(li);
@@ -351,6 +304,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(other)) coupleWith(other, false);
 		return properties();
 	}
+	
+	public Context contact(Contact contact) {
+		if (isNull(route)) return new Context(contact).train(this);
+		return updateTrace(route.contact(contact));
+	}
+
 	
 	public void coupleWith(Train parkingTrain,boolean swap) {
 		if (isSet(direction) && isSet(parkingTrain.direction) && parkingTrain.direction != direction) parkingTrain.turn();
@@ -390,38 +349,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
-	public Block destination() {
-		//LOG.debug("{}.destination()",this);
-		if (isNull(destination)) {
-			String destTag = destinationTag();
-			//LOG.debug("→ processing \"{}\"...",destTag);
-			if (isSet(destTag)) {
-				destTag = destTag.split(DESTINATION_PREFIX)[1];
-				//LOG.debug("....processing \"{}\"…",destTag);
-				for (int i=destTag.length()-1; i>0; i--) {
-					switch (destTag.charAt(i)) {
-						case FLAG_SEPARATOR:
-							destTag = destTag.substring(0,i);
-							i=0;
-							break;
-						case SHUNTING_FLAG:
-							//LOG.debug("....enabled shunting option");
-							shunting = true; 
-							break;
-					}
-				}
-
-				Block block = BaseClass.get(new Id(destTag));
-				if (isSet(block)) destination(block);
-			}
-		}// else LOG.debug("→ heading towards {}",destination);
+	public Block destination(){
 		return destination;
-	}
-	
-	public Train destination(Block dest) {
-		LOG.debug("destination({})",dest);
-		destination = dest;
-		return this;
 	}
 	
 	public String destinationTag() {
@@ -431,12 +360,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return null;
 	}
 
-
-	public String directedName() {
+	public String directedName(Direction dir) {
 		String result = name();
-		String mark = isSet(autopilot) ? "ⓐ" : "";
-		if (isNull(direction)) return result;
-		switch (direction) {
+		String mark = ""; //isSet(autopilot) ? "ⓐ" : "";
+		if (isNull(dir)) return result;
+		switch (dir) {
 		case NORTH:
 		case WEST:
 			return '←'+mark+result;
@@ -444,7 +372,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		case EAST:
 			return result+mark+'→';
 		}
-		return result;
+		return mark+result;
 	}
 
 	public Direction direction() {
@@ -466,10 +394,56 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
+	public boolean drop(Route oldRoute) {
+		if (isNull(route)) return true;
+		if (route != oldRoute) return false;
+		route = null;
+		return true;
+	}
+
+	
 	public void dropTrace() {
-		while (!trace.isEmpty()) trace.removeFirst().setTrain(null);
+		trace.forEach(tile -> tile.free(this));
+		trace.clear();
 	}
 	
+	private BrakeProcess endBrake() {
+		if (isNull(brake)) return null;
+		try {
+			return brake.end();
+		} finally {
+			brake = null;
+		}
+	}
+	
+	public void endRoute(Block endBlock, Direction endDirection) {
+		BrakeProcess brake = endBrake();
+		if (isSet(brake)) brake.updateTime();
+		Integer waitTime = route.waitTime();
+		nextPreparedRoute = route.dropNextPreparedRoute();
+		if ((!autopilot)|| isNull(nextPreparedRoute) || (isSet(waitTime) && waitTime > 0)) setSpeed(0);
+		route = null;
+		direction = endDirection;		
+		endBlock.add(this, direction);		
+		currentBlock = endBlock;
+		trace.add(endBlock);
+		stuckTrace = null;
+		if (autopilot) {			
+			if (isNull(waitTime) || waitTime == 0) {
+				start(false);
+			} else if (isSet(waitTime) && waitTime > 0) {
+				new DelayedExecution(waitTime,this) {
+				
+					@Override
+					public void execute() {
+						if (autopilot) Train.this.start(false);					
+					}
+				};	
+				plan.stream(t("{} waiting {} secs",this,(int)(waitTime/1000)));
+			}
+		}
+	}
+
 	private Tag faster(int steps) {
 		setSpeed(speed+steps);
 		return properties();
@@ -496,6 +470,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return false;
 	}
+	
+	public boolean hasNextPreparedRoute() {
+		return isSet(nextPreparedRoute) || (isSet(route) && isSet(route.getNextPreparedRoute()));
+	}
+
 		
 	public Train heading(Direction dir) {
 		LOG.debug("{}.heading({})",this,dir);
@@ -508,7 +487,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return shunting;
 	}
 
-	
+	public boolean isStoppable() {
+		if (speed > 0) return true;
+		if (isSet(routePrepper)) return true;
+		if (isSet(route)) return true;
+		return false;
+	}
+
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(PUSH_PULL, pushPull);
@@ -568,12 +553,29 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (json.has(DIRECTION)) direction = Direction.valueOf(json.getString(DIRECTION));
 		if (json.has(NAME)) name = json.getString(NAME);
 		if (json.has(TAGS))  json.getJSONArray(TAGS ).forEach(elem -> {  tags.add(elem.toString()); });
-		if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {  trace.add(plan.get(new Id(elem.toString()), false).setTrain(this)); });
-		if (json.has(BLOCK)) currentBlock = (Block) plan.get(new Id(json.getString(BLOCK)), false).setTrain(this); // do not move this up! during set, other fields will be referenced!
 		if (json.has(LOCOS)) { // for downward compatibility
 			for (Object id : json.getJSONArray(LOCOS)) add(BaseClass.get(new Id(""+id)));	
 		}		
 		for (Object id : json.getJSONArray(CARS)) add(BaseClass.get(new Id(""+id)));
+		new LoadCallback() {			
+			@Override
+			public void afterLoad() {
+				if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {
+					Tile tile = plan.get(new Id(elem.toString()), false);
+					if (tile instanceof Block) {
+						((Block)tile).add(Train.this, direction);
+					} else if (tile.setTrain(Train.this));
+					trace.add(tile);
+				});
+				if (json.has(BLOCK)) {// do not move this up! during set, other fields will be referenced!
+					currentBlock = (Block) plan.get(Id.from(json, BLOCK), false);
+					if (isSet(currentBlock)) {
+						currentBlock.setTrain(Train.this);
+						currentBlock.add(Train.this, direction);
+					}
+				}
+			}
+		};
 		super.load(json);
 		return this;
 	}
@@ -594,8 +596,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 				String.join(", ", train.tags()),
 				train.route,
 				isSet(train.currentBlock) ? train.currentBlock.link() : null,
-				train.destination(),
-				t(isSet(train.autopilot)?"On":"Off")
+				null, // TODO: show destination here!
+				null // TODO: show state of autopilot here
 			);
 		});
 		table.addTo(win);
@@ -658,17 +660,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 	
-	public Route nextRoute() {
-		return nextRoute;
-	}
-
 	public boolean onTrace(Tile t) {
 		return trace.contains(t);
 	}
 
 			
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag propList = new Tag("ul").clazz("proplist");		
 		
 		if (isSet(currentBlock)) currentBlock.button(currentBlock.toString()).addTo(new Tag("li").content(t("Current location")+COL)).addTo(propList);
@@ -718,20 +716,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 		postForm.add(blockHistory());
 		
 		
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 
-	public Object quitAutopilot() {
-		if (isSet(nextRoute)) {
-			nextRoute.reset();
-			nextRoute = null;
-		}
-		if (isSet(autopilot)) {
-			autopilot.stop = true;
-			autopilot = null;
-			if (isSet(currentBlock)) plan.place(currentBlock);
-			return t("{} stopping at next block.",this);
-		} else return t("autopilot not active.");
+	public String quitAutopilot() {
+		if (isSet(routePrepper)) routePrepper.stop();
+		try {
+			return autopilot ? t("Autopilot disabled") : t("Autopilot already was disabled!");
+		} finally {
+			autopilot = false;
+		}		
 	}
 	
 	@Override
@@ -752,9 +746,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public void removeChild(BaseClass child) {
 		LOG.debug("{}.removeChild({})",this,child);
 		if (child == route) route = null;
-		if (child == nextRoute) nextRoute = null;
+		//if (child == nextRoute) nextRoute = null; // TODO
 		if (child == currentBlock) currentBlock = null;
 		if (child == destination) destination = null;
+		if (child == routePrepper) routePrepper.stop();
 		cars.remove(child);
 		trace.remove(child);
 		super.removeChild(child);
@@ -765,36 +760,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return tags().iterator();
 	}
 
-	public void reserveNext() {
-		if (reserving) return;
-		LOG.debug("{}.reserveNext()",this);
-		if (isSet(nextRoute)) {
-			LOG.debug("Train already has next route: {}",nextRoute);
-			return;
-		}
-		Context context = new Context(this).route(route).block(route.endBlock()).direction(route.endDirection);
-		Route newRoute = PathFinder.chooseRoute(context);
-		if (isNull(newRoute)) {
-			LOG.debug("{}.reserveNext() found no available route!",this);			
-			return;
-		}
-		reserving = true;		
-		LOG.debug("next route: {}",newRoute);
-		newRoute.set(context);
-		boolean error = !newRoute.lockIgnoring(route);
-		error = error || !newRoute.prepare();
-
-		if (error) {
-			newRoute.reset(); // may unlock tiles belonging to the current route.
-			LOG.debug("failed to prepare new route {}",newRoute);
-			route.lock(); // corrects unlocked tiles of nextRoute
-		} else {
-			nextRoute = newRoute;
-			LOG.debug("prepared next route: {}",nextRoute);
-		}
-		reserving = false;
-	}
-	
 	/**
 	 * This turns the train as if it went through a loop. Example:
 	 * before: CabCar→ MiddleCar→ Loco→
@@ -803,32 +768,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Train reverse() {
 		LOG.debug("train.reverse();");
 
-		if (isSet(direction)) {
-			direction = direction.inverse();
-			reverseTrace();
+		if (isSet(direction)) direction = direction.inverse();
+		if (isSet(currentBlock)) {
+			currentBlock.set(this,direction);
+			plan.place(currentBlock);
 		}
-		if (isSet(currentBlock)) plan.place(currentBlock);
 		return this;
-	}
-	
-	private void reverseTrace() {
-		LinkedList<Tile> reversed = new LinkedList<Tile>();
-		LOG.debug("Trace: {}",trace);
-		while (!trace.isEmpty()) reversed.addFirst(trace.removeFirst());
-		trace = reversed;
-		LOG.debug("reversed: {}",trace);
 	}
 	
 	public Route route() {
 		return route;
 	}
 	
-	public Train route(Route newRoute) {
-		route = newRoute;
-		if (isNull(route)) shunting = false; // quit shunting on finish route
-		return this;
-	}
-
 	public static void saveAll(String filename) throws IOException {
 		BufferedWriter file = new BufferedWriter(new FileWriter(filename));
 		for (Train train:BaseClass.listElements(Train.class)) file.write(train.json()+"\n");
@@ -852,7 +803,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public void set(Block newBlock) {
 		LOG.debug("{}.set({})",this,newBlock);
-		if (isSet(currentBlock)) currentBlock.setTrain(null);
+		if (isSet(currentBlock)) {
+			if (newBlock == currentBlock) return;
+			currentBlock.free(this);
+		}
 		currentBlock = newBlock;
 		if (isSet(currentBlock)) {
 			currentBlock.setTrain(this);
@@ -863,19 +817,19 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	private Object setDestination(HashMap<String, String> params) {
 		String dest = params.get(DESTINATION);
-		if (isNull(dest)) return t("No destination supplied!");
+		if (isNull(dest)) return properties(t("No destination supplied!"));
 		if (dest.isEmpty()) {
 			destination = null;
 			return properties();
 		}
 		Tile tile = plan.get(new Id(dest), true);
-		if (isNull(tile)) return t("Tile {} not known!",dest);
+		if (isNull(tile)) return properties(t("Tile {} not known!",dest));
 		if (tile instanceof Block) {
 			destination = (Block) tile;
-			automatic();
+			start(false);
 			return t("{} now heading for {}",this,destination);
 		}
-		return t("{} is not a block!",tile);
+		return properties(t("{} is not a block!",tile));
 	}
 	
 	public Object setFunction(int num, boolean active) {
@@ -904,6 +858,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
+	public Train setRoute(Route newRoute) {
+		route = newRoute;
+		return this;
+	}
+	
 	public void setSpeed(int newSpeed) {
 		LOG.debug("{}.setSpeed({})",this,newSpeed);
 		speed = Math.min(newSpeed,maxSpeed());
@@ -911,27 +870,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		cars.stream().filter(c -> c instanceof Locomotive).forEach(car -> ((Locomotive)car).setSpeed(speed));
 		plan.stream(t("Set {} to {} {}",this,speed,speedUnit));
 	}
-	
-	public void setTrace(LinkedList<Tile> newTrace) {
-		LOG.debug("{}.setTrace({})",this,newTrace);
-		LOG.debug("old trace: {}",trace);
 
-		trace.removeAll(newTrace);			
-		for (Tile tile : trace) tile.setTrain(null);
-		trace = newTrace;
-		for (Tile tile : trace) tile.setTrain(this);
-		
-		LOG.debug("new trace of {}: {}",this,trace);
-	}
-
-	public void setWaitTime(Range waitTime) {
-		if (isNull(autopilot)) return; 
-		autopilot.waitTime = waitTime.random();
-		String msg = t("{} waiting {} secs...",this,autopilot.waitTime/1000d);
-		LOG.debug(msg);
-		plan.stream(msg);
-	}
-	
 	private Tag slower(int steps) {
 		setSpeed(speed-steps);
 		return properties();
@@ -951,111 +890,84 @@ public class Train extends BaseClass implements Comparable<Train> {
 				} else if (remaining.name.length()+car.name().length()<30){
 					remaining.name += ", "+car.name();
 				}
-			} else {
-				LOG.debug("Skipping {}",cars.get(i));
-			}
+			} else LOG.debug("Skipping {}",cars.get(i));
 		}
 		if (remaining.cars.isEmpty()) return false;
 		remaining.direction = this.direction;
 		this.name = null;
-		currentBlock.add(remaining);
+		currentBlock.add(remaining,direction);
 		remaining.currentBlock = currentBlock;
 		plan.place(currentBlock);
 		return true;
 	}
 
 
-	public String start() throws IOException {
-		LOG.debug("{}.start()",this);
-		if (isNull(currentBlock)) return t("{} not in a block",this);
-		if (maxSpeed() == 0) return t("Train has maximum speed of 0 {}, cannot go!",speedUnit);
-		if (isSet(route)) route.reset(); // reset route previously chosen
-
-		String error = null;
-		if (isSet(nextRoute)) {
-			LOG.debug("{}.nextRoute = {}",this,nextRoute);
-			route = nextRoute;
-			if (!route.lock()) return t("Was not able to lock {}",route);
-			nextRoute = null;
-			route.set(new Context(this).block(currentBlock).direction(direction));			
-		} else {
-			if (reserving) return t("Route chooser already active");
-			Context context = new Context(this).block(currentBlock).direction(direction);
-			route = PathFinder.chooseRoute(context);
-			if (isNull(route)) return t("No free routes from {}",currentBlock);
-			LOG.debug("Chosen route: {}",route);
-			if (!route.lock()) error = t("Was not able to lock {}",route);
-			route.set(context);
-			if (isNull(error) && !route.prepare()) error = t("Was not able to fire all setup actions of route!");
+	public String start(boolean auto) {
+		autopilot |= auto;
+		if (isSet(nextPreparedRoute) && nextPreparedRoute.start()) {
+			nextPreparedRoute = null;
+			return null;
 		}
-		if (isNull(route)) return t("Route cancelled"); // route may have been canceled in between
-		if (isNull(error) && direction != route.startDirection) turn();
+		if (isSet(routePrepper)) return t("Already searching route for {}",this);
+		routePrepper = new RoutePrepper(new Context(this).block(currentBlock).direction(direction));
 		
-		if (isNull(error) && !route.start(this)) error = t("Was not able to assign {} to {}!",this,route);
-		if (isSet(error)) {
-			LOG.debug("{}.start:error = {}",this,error);
-			route.reset();
-			route = null;
-			return error;
-		}
-		startSimulation();
-
-		String res = t("Started {}",this); 
-		plan.stream(res);
-		return res;
+		routePrepper.onRoutePrepared(() -> {
+			routePrepper.route().start();
+			routePrepper = null;
+			plan.stream(t("Started {}",Train.this));
+		});
+		
+		routePrepper.onFail(() -> {
+			Route failedRoute = routePrepper.route();
+			routePrepper = null;
+			if (isSet(failedRoute)) failedRoute.reset();
+			LOG.debug("Starting {} failed due to unavailable route!",this);
+			if (autopilot) new DelayedExecution(250,this) {
+				
+				@Override
+				public void execute() {
+					if (autopilot) {
+						Train.this.start(false);
+					}					
+				}
+			};
+		});
+		
+		routePrepper.start();		
+		
+		return null;
 	}
-	
+
 	public static void startAll() {
 		LOG.debug("Train.startAll()");
-		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.automatic());
+		for (Train train : BaseClass.listElements(Train.class)) LOG.info(train.start(true));
 	}
 	
-	private void startSimulation() {
-		LOG.debug("{}.startSimulation()",this);
-		for (Contact contact : route.contacts()) {
-			if (contact.addr() != 0) {
-				LOG.debug("{}.startSimulation aborted!",this);
-				return; // simulate train only when all contacts are non-physical
-			}
-		}
-		try {
-			Thread.sleep(1000);
-			plan.stream(t("Simulating movement of {}...",this));
-			Thread simulation = new Thread() {
-				public void run() {
-					for (Tile tile : route.path()) {
-						if (isNull(route)) break;
-						try {
-							if (tile instanceof Contact) {
-								Contact contact = (Contact) tile;
-								contact.activate(true);
-								sleep(200);
-								contact.activate(false);
-							}
-							sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-				};
-			};
-			simulation.setName(Application.threadName("Simulation("+Train.this+")"));
-			simulation.start();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+	public void startBrake() {
+		LOG.debug("{}.startBrake()",this);
+		if (autopilot && isSet(nextPreparedRoute)) return;
+		brake = new BrakeProcess(this);
 	}
 
-	public Object stopNow() {
+	public Window stopNow() {
+		endBrake();
+		setSpeed(0);
 		quitAutopilot();
 		if (isSet(route)) {
+			stuckTrace = new HashSet<Tile>(); 
+			for (Tile tile : route.path()) { // collect occupied tiles of route. stuckTrace is considered during next route search
+				if (trace.contains(tile)) stuckTrace.add(tile);
+			}
 			route.reset();
 			route = null;
 		}
-		setSpeed(0);
-		
 		return properties();
 	}
+	
+	public HashSet<Tile> stuckTrace() {
+		return stuckTrace;
+	}
+
 
 	public SortedSet<String> tags() {
 		TreeSet<String> list = new TreeSet<String>(tags);
@@ -1083,10 +995,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return name();
 	}
 	
-	public Tile traceHead() {		
-		return trace == null || trace.isEmpty() ? null : trace.getFirst();
-	}
-	
 	/**
 	 * this inverts the direction the train is heading to. Example:
 	 * before: CabCar→ MiddleCar→ Loco→
@@ -1095,8 +1003,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 	 */
 	public Train turn() {
 		LOG.debug("{}.turn()",this);
+		setSpeed(0);
 		for (Car car : cars) car.turn();
-		Collections.reverse(cars);
+		reverse(cars);
 		return reverse();
 	}
 
@@ -1116,7 +1025,51 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
+	public Context updateTrace(Context context) {
+		LOG.debug("updateTrace({})",context);
+		Tile from = context.tile();
+		if (isNull(from)) from = context.contact();
+		if (isNull(from)) {
+			LOG.debug("no starting point for trace given in {}",context);
+			return context;			
+		}
+		trace.add(from);
+		Route route = context.route();
+		LOG.debug("Route: {}",route);
+		if (isNull(route)) return context;
+		Vector<Tile> reversedPath = reverse(route.path());
+		HashSet<Tile> newTrace = new HashSet<Tile>();
+		Integer remainingLength = null;
+		
+		for (Tile tile : reversedPath) {
+			if (isNull(remainingLength) && onTrace(tile)) remainingLength = length();
+			if (remainingLength == null) { // ahead of train
+				LOG.debug("{} is ahead of train and will not be touched.",tile);
+				trace.remove(tile); // old trace will be cleared afterwards. but this tile shall not be cleared, so remove it from old trace				
+			} else if (remainingLength > 0) { // within train
+				LOG.debug("{} is occupied by train and will be marked as \"occupied\"",tile);
+				remainingLength -= tile.length();
+				newTrace.add(tile);
+				trace.remove(tile); // old trace will be cleared afterwards. but this tile shall not be cleared, so remove it from old trace
+				tile.setTrain(this);
+				LOG.debug("remaining length: {}",remainingLength);
+			} else { // behind train
+				if (Route.freeBehindTrain) {
+					LOG.debug("{} is behind train and will be freed in the next step",tile);
+					trace.add(tile); // old trace will be cleared afterwards
+				} else {
+					LOG.debug("{} is behind train and will be reset to \"locked\" state",tile);
+					tile.lockFor(context,true);
+					trace.remove(tile); // old trace will be cleared afterwards. but this tile shall not be cleared, so remove it from old trace
+				}
+			}			
+		}
+		for (Tile tile : trace) tile.free(this);
+		trace = newTrace;
+		return context;
+	}
+
 	public boolean usesAutopilot() {
-		return isSet(autopilot);
+		return autopilot;
 	}
 }

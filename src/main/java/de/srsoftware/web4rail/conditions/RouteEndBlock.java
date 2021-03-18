@@ -7,7 +7,7 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.DelayedExecution;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
@@ -38,28 +38,21 @@ public class RouteEndBlock extends Condition{
 	}
 	
 	public Condition load(JSONObject json) {
-		super.load(json);
-		Id bid = new Id(json.getString(BLOCK));
-		Block block = BaseClass.get(bid);
-		if (isSet(block)) {
-			block(block);
-		} else {
-			new DelayedExecution(this) {
-				
-				@Override
-				public void execute() {
-					block(BaseClass.get(bid));
-				}
-			};
-		}
+		new LoadCallback() {
+			
+			@Override
+			public void afterLoad() {
+				block(BaseClass.get(Id.from(json, BLOCK)));
+			}
+		};
 		
-		return this;
+		return super.load(json);
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Block")+": "+(isNull(block) ? t("unset") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,BLOCK)));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

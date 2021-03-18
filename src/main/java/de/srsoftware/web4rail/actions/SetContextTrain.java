@@ -6,7 +6,7 @@ import java.util.List;
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.DelayedExecution;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
@@ -34,27 +34,19 @@ public class SetContextTrain extends Action {
 	
 	@Override
 	public Action load(JSONObject json) {
-		super.load(json);
-		if (json.has(REALM_TRAIN)) {
-			Id trainId = Id.from(json,REALM_TRAIN);
-			if (isSet(trainId)) {
-				train = Train.get(trainId);
-				if (isNull(train)) new DelayedExecution(this) {
-					
-					@Override
-					public void execute() {
-						train = Train.get(trainId);
-					}						
-				};
+		if (json.has(REALM_TRAIN)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				train = Train.get(Id.from(json,REALM_TRAIN));
 			}
-		}
-		return this;
+		};
+		return super.load(json);
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Select train"),Train.selector(train, null));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

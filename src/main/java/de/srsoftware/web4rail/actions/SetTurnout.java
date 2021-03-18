@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.DelayedExecution;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
@@ -26,14 +26,11 @@ public class SetTurnout extends Action {
 
 	@Override
 	public boolean fire(Context context,Object cause) {
+		if (context.invalidated()) return false;
 		if (isNull(turnout)) return false;		
 		if (!turnout.state(state).succeeded()) return false;
 		if (turnout.address() == 0) return true;
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		sleep(1000);
 		return true;
 	}
 	
@@ -49,24 +46,19 @@ public class SetTurnout extends Action {
 	
 	@Override
 	public Action load(JSONObject json) {
-		super.load(json);		
-		Id turnoutId = json.has(TURNOUT) ? new Id(json.getString(TURNOUT)) : null;
-		if (isSet(turnoutId)) {
-			turnout = BaseClass.get(turnoutId);
-			if (isNull(turnout)) new DelayedExecution(this) {
-				
-				@Override
-				public void execute() {
-					turnout = BaseClass.get(turnoutId);
-				}
-			};
-		}
 		if (json.has(Turnout.STATE)) state = Turnout.State.valueOf(json.getString(Turnout.STATE));
-		return this;
+		if (json.has(TURNOUT)) new LoadCallback() {
+			
+			@Override
+			public void afterLoad() {
+				turnout = BaseClass.get(Id.from(json, TURNOUT));
+			}
+		};
+		return super.load(json);
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 
 		formInputs.add(t("Turnout")+": "+(isNull(turnout) ? t("unset") : turnout),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,TURNOUT)));
 		if (isSet(turnout)) {
@@ -79,7 +71,7 @@ public class SetTurnout extends Action {
 			formInputs.add(t("Select state"),select);
 		}
 		
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

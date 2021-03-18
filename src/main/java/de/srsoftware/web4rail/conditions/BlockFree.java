@@ -7,7 +7,7 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.DelayedExecution;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
@@ -25,7 +25,7 @@ public class BlockFree extends Condition {
 
 	@Override
 	public boolean fulfilledBy(Context context) {
-		return block.isFreeFor(null) != inverted;
+		return block.isFreeFor(context) != inverted;
 	}
 	
 	@Override
@@ -34,26 +34,19 @@ public class BlockFree extends Condition {
 	}
 	
 	public Condition load(JSONObject json) {
-		super.load(json);
-		if (json.has(BLOCK)) {
-			Id bid = new Id(json.getString(BLOCK));
-			block(BaseClass.get(bid));
-			if (isNull(block)) {
-				new DelayedExecution(this) {					
-					@Override
-					public void execute() {
-						block(BaseClass.get(bid));
-					}
-				};
+		if (json.has(BLOCK)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				block(BaseClass.get(Id.from(json, BLOCK)));
 			}
-		}
-		return this;
+		};
+		return super.load(json);
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Block")+": "+(isNull(block) ? t("unset") : block),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,BLOCK)));
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override

@@ -116,14 +116,14 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		Tag div = new Tag("div");
 		for (Protocol proto : Protocol.values()) {
 			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == protocol).addTo(div);
 		}
 		formInputs.add(t("Protocol"),div);
 		formInputs.add(t("Address"),new Input(ADDRESS, address).numeric());
-		return super.properties(preForm, formInputs, postForm);
+		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	private char proto() {
@@ -159,9 +159,10 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	public Reply state(State newState) {
-		if (train != null && newState != state) return new Reply(415, t("{} locked by {}!",this,train));
+		if (is(Status.LOCKED,Status.OCCUPIED) && newState != state) return new Reply(415, t("{} locked by {}!",this,train()));
 		if (address == 0) { 
-			state = newState;
+			sleep(300);
+			state = newState;			
 			plan.place(this);
 			return new Reply(200,"OK");
 		}
