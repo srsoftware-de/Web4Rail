@@ -36,10 +36,9 @@ import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.RouteManager.Callback;
 import de.srsoftware.web4rail.threads.BrakeProcess;
 import de.srsoftware.web4rail.threads.DelayedExecution;
-import de.srsoftware.web4rail.threads.RouteManager;
+import de.srsoftware.web4rail.threads.RoutePrepper;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
 import de.srsoftware.web4rail.tiles.Tile;
@@ -92,7 +91,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public int speed = 0;
 	private static final String SHUNTING = "shunting";
 	private boolean shunting = false;
-	private RouteManager routeManager = null;
+	private RoutePrepper routePrepper = null;
 
 	private HashSet<Tile> stuckTrace = null;
 
@@ -422,7 +421,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(brake)) brake.updateTime();
 		Integer waitTime = route.waitTime();
 		nextPreparedRoute = route.dropNextPreparedRoute();
-		if (isNull(nextPreparedRoute) || (isSet(waitTime) && waitTime > 0)) setSpeed(0);
+		if ((!autopilot)|| isNull(nextPreparedRoute) || (isSet(waitTime) && waitTime > 0)) setSpeed(0);
 		route = null;
 		direction = endDirection;		
 		endBlock.add(this, direction);		
@@ -490,7 +489,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public boolean isStoppable() {
 		if (speed > 0) return true;
-		if (isSet(routeManager) && routeManager.isActive()) return true;
+		if (isSet(routePrepper)) return true;
 		if (isSet(route)) return true;
 		return false;
 	}
@@ -721,7 +720,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public String quitAutopilot() {
-		if (isSet(routeManager)) routeManager.quit();
+		if (isSet(routePrepper)) routePrepper.stop();
+//		if (isSet(route)) route.resetNext();
 		autopilot = false;
 		return t("Autopilot already was disabled!");
 	}
@@ -747,7 +747,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		//if (child == nextRoute) nextRoute = null; // TODO
 		if (child == currentBlock) currentBlock = null;
 		if (child == destination) destination = null;
-		if (child == routeManager) routeManager = null;
+		if (child == routePrepper) routePrepper.stop();
 		cars.remove(child);
 		trace.remove(child);
 		super.removeChild(child);
@@ -756,21 +756,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Iterator<String> removeTag(String tag) {
 		tags.remove(tag);
 		return tags().iterator();
-	}
-
-	public boolean reserveRouteAfter(Route route) {
-		LOG.debug("reserveRouteAfter({})",route);
-		if (isNull(routeManager)) routeManager = new RouteManager();
-		Context newContext = new Context(this).block(route.endBlock()).direction(route.endDirection);
-		if (routeManager.isSearching()) return false;
-		routeManager.setContext(newContext);
-		routeManager.setCallback(new Callback() {			
-			@Override
-			public void routePrepared(Route nextRoute) {
-				route.setNextPreparedRoute(nextRoute);
-			}
-		});
-		return routeManager.prepareRoute();
 	}
 
 	/**
@@ -921,24 +906,20 @@ public class Train extends BaseClass implements Comparable<Train> {
 			nextPreparedRoute = null;
 			return null;
 		}
-		if (isNull(routeManager)) routeManager = new RouteManager();
+		if (isSet(routePrepper)) return t("Already searching route for {}",this);
+		routePrepper = new RoutePrepper(new Context(this).block(currentBlock).direction(direction));
 		
-		Callback callback = new Callback() {
-			@Override
-			public void routePrepared(Route route) {
-				route.start();
-				plan.stream(t("Started {}",Train.this));
-			}		
-		};		 
+		routePrepper.onRoutePrepared(() -> {
+			routePrepper.route().start();
+			routePrepper = null;
+			plan.stream(t("Started {}",Train.this));
+		});
 		
-		if (routeManager.isActive()) { // es wird bereits eine Anschlussroute gesucht
-			// in diesem Fall muss bloß dass Callback des Route-Managers aktualisiert werden
-			routeManager.setCallback(callback);
-		} else { // routeManager nicht aktiv →> neuen Context setzen und starten			
-			routeManager.setContext(new Context(this).block(currentBlock).direction(direction));
-			routeManager.start(callback);
-		}
+		routePrepper.onFail(() -> {
+			routePrepper = null;
+		});
 		
+		routePrepper.start();		
 		
 		return null;
 	}
@@ -950,7 +931,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public void startBrake() {
 		LOG.debug("{}.startBrake()",this);
-		if (isSet(nextPreparedRoute)) return;
+		if (autopilot && isSet(nextPreparedRoute)) return;
 		brake = new BrakeProcess(this);
 	}
 

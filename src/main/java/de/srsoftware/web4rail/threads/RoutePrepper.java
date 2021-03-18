@@ -1,45 +1,42 @@
 package de.srsoftware.web4rail.threads;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.Vector;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.EventListener;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Tile;
 
-public class RouteManager extends BaseClass {
+public class RoutePrepper extends BaseClass implements Runnable{
+	private Context context;
+	private Route route;
+	private List<EventListener> failListeners = new LinkedList<>(); 
+	private List<EventListener> foundListeners = new LinkedList<>();
+	private List<EventListener> lockedListeners = new LinkedList<>();
+	private List<EventListener> preparedListeners= new LinkedList<>();
 	
-	private enum State{
-		IDLE,SEARCHING,PREPARING
+	public RoutePrepper(Context c) {
+		List<String> errors = new LinkedList<>();
+		if (isNull(c.train())) errors.add(t("No train in context for {}",getClass().getSimpleName()));
+		if (isNull(c.block())) errors.add(t("No block in context for {}",getClass().getSimpleName()));
+		if (isNull(c.direction())) errors.add(t("No direction in context for {}",getClass().getSimpleName()));
+		if (!errors.isEmpty()) throw new NullPointerException(String.join(", ", errors));
+		context = c;
 	}
-
-	public static abstract class Callback {
-		public abstract void routePrepared(Route route);
-	}
-
-	private static final Logger LOG = LoggerFactory.getLogger(RouteManager.class);
-	private Context ctx;
-	private State state;
-	private Callback callback;
 	
-	public RouteManager() {
-		state =State.IDLE;
-	}
-
 	private static TreeMap<Integer, List<Route>> availableRoutes(Context context, HashSet<Route> visitedRoutes) {
 		String inset = "";
 		for (int i = 0; i < visitedRoutes.size(); i++) inset += "    ";
-		LOG.debug("{}{}.availableRoutes({})", inset, RouteManager.class.getSimpleName(), context);
+		LOG.debug("{}{}.availableRoutes({})", inset, RoutePrepper.class.getSimpleName(), context);
 
 		Block block = context.block();
 		Train train = context.train();
@@ -135,9 +132,9 @@ public class RouteManager extends BaseClass {
 		}
 		return availableRoutes;
 	}
-
-	public static Route chooseRoute(Context context) {
-		LOG.debug("{}.chooseRoute({})", RouteManager.class.getSimpleName(), context);
+	
+	private static Route chooseRoute(Context context) {
+		LOG.debug("{}.chooseRoute({})", RoutePrepper.class.getSimpleName(), context);
 		TreeMap<Integer, List<Route>> availableRoutes = availableRoutes(context, new HashSet<Route>());
 		while (!availableRoutes.isEmpty()) {
 			if (context.invalidated()) break;
@@ -158,63 +155,71 @@ public class RouteManager extends BaseClass {
 		return null;
 	}
 	
-	public boolean isActive() {
-		return state != State.IDLE;
+	
+	private void notify(List<EventListener> listeners) {
+		for (EventListener listener: listeners) {
+			listener.fire();
+		}		
 	}
-
-	public boolean isSearching() {
-		return state == State.SEARCHING;
+	
+	public void onFail(EventListener l) {
+		failListeners.add(l);
 	}
+	
+	public void onRouteFound(EventListener l) {
+		foundListeners.add(l);
+	}
+	
+	public void onRouteLocked(EventListener l) {
+		lockedListeners.add(l);
+	}
+	
+	public void onRoutePrepared(EventListener l) {
+		preparedListeners.add(l);
+	}
+	
 
+	
 	public boolean prepareRoute() {
 		try {
-			if (isNull(ctx) || ctx.invalidated()) return false;
-			state = State.SEARCHING;	
-			Route route = chooseRoute(ctx);		
-			if (isNull(route)) return false;
-			ctx.route(route);
-			if (!route.reserveFor(ctx)) {
+			if (isNull(context) || context.invalidated()) return false;
+			route = chooseRoute(context);		
+			if (isNull(route)) return false;			
+			context.route(route);
+			notify(foundListeners);
+			if (!route.reserveFor(context)) {
 				route.reset();
+				route = null;
 				return false;
 			}
-			state = State.PREPARING;
+			notify(lockedListeners);
 			if (!route.prepareAndLock()) {
 				route.reset();
+				route = null;
 				return false;
 			}		
-			if (isNull(route) || isNull(callback)) return false;
-			callback.routePrepared(route);
+			notify(preparedListeners);
 			return true;
 		} finally {
-			state = State.IDLE;
+			if (isNull(route)) notify(failListeners);
 		}
 	}
 
-	public void quit() {
-		LOG.debug("{}.quit", this);
-		callback = null;
-		if (isSet(ctx)) ctx.invalidate();
+
+	public Route route() {
+		return route;
 	}
 
-	public void setContext(Context context) {
-		ctx = context;
-	}
-
-	public void setCallback(Callback callback) {
-		if (!ctx.invalidated()) this.callback = callback; 
-	}
-
-	public void start(Callback callback) {
-		setCallback(callback);
-		new Thread(Application.threadName(this)) {
-			public void run() {
-				prepareRoute();
-			};
-		}.start();
-	}
-	
 	@Override
-	public String toString() {
-		return getClass().getSimpleName() + "(" + ctx.train() + ")";
+	public void run() {
+		prepareRoute();
+	}
+
+	public void start() {
+		new Thread(this,Application.threadName(this)).start();
+	}
+
+	public void stop() {
+		context.invalidate();
 	}
 }

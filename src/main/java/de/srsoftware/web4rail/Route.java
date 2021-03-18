@@ -38,6 +38,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.threads.BrakeProcess;
+import de.srsoftware.web4rail.threads.RoutePrepper;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -95,6 +96,8 @@ public class Route extends BaseClass {
 	private HashSet<Contact>			   triggeredContacts = new HashSet<>();
 
 	private Route nextPreparedRoute;
+
+	private RoutePrepper nextRoutePrepper;
 	
 	public Route() {
 		conditions = new ConditionList();
@@ -394,8 +397,6 @@ public class Route extends BaseClass {
 	}
 	
 	private void free() {
-		context.invalidate(); // do not set to null: 
-		// this action may be called from route.contact → finishRoute, which calls train.updateTrace afterwards, which in turn requires context
 		Train train = context.train();
 		Vector<Tile> reversedPath = reverse(path());
 		for (Tile tile : reversedPath) {
@@ -684,6 +685,19 @@ public class Route extends BaseClass {
 		return true;
 	}
 	
+	public boolean prepareNext(Context context) {
+		if (isSet(nextRoutePrepper)) return false;
+		nextRoutePrepper = new RoutePrepper(context);
+		nextRoutePrepper.onRoutePrepared(() -> {
+			nextPreparedRoute = nextRoutePrepper.route();
+			nextRoutePrepper = null;
+		});
+		nextRoutePrepper.onFail(() -> {
+			nextRoutePrepper = null;
+		});
+		return nextRoutePrepper.prepareRoute();
+	}
+	
 	private Tag previewScript() {
 		Tag script = new Tag("script").attr("type", "text/javascript");
 		for (Tile tile : path) {
@@ -752,7 +766,7 @@ public class Route extends BaseClass {
 	
 	public boolean reserveFor(Context newContext) {
 		LOG.debug("{}.reserverFor({})",this,newContext);
-		if (isSet(context)) return false; // route already has context!
+//		if (isSet(context)) return false; // route already has context!
 		context = newContext;
 		for (Tile tile : path) {
 			if (newContext.invalidated() || !tile.reserveFor(newContext)) {
@@ -765,12 +779,18 @@ public class Route extends BaseClass {
 	
 	public boolean reset() {
 		LOG.debug("{}.reset()",this);
+		resetNext();
 		setSignals(Signal.RED);
 		Train train = context.train();
 		free();
 		train.drop(this);
 		context = null;
 		return true;
+	}
+	
+	public void resetNext() {
+		if (isSet(nextRoutePrepper)) nextRoutePrepper.stop();
+		if (isSet(nextPreparedRoute)) nextPreparedRoute.reset();
 	}
 	
 	public static void saveAll(String filename) throws IOException {
