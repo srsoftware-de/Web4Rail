@@ -24,7 +24,7 @@ public class DetermineTrainInBlock extends Action {
 	@Override
 	public boolean fire(Context context,Object cause) {
 		context.block(block);
-		context.train(block.train());		
+		context.train(block.occupyingTrain());		
 		return true;
 	}
 	

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import de.srsoftware.tools.Tag;
-import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 
 public class BlockContact extends Contact {
@@ -27,15 +26,25 @@ public class BlockContact extends Contact {
 		Block block = ((Block)parent());
 		return new Id(block.name+":"+block.indexOf(this));
 	}
+	
+	@Override
+	public Train lockingTrain() {
+		return parent().lockingTrain();
+	}
 		
 	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {
-		return ((Block)parent()).tag(replacements);
+		return parent().tag(replacements);
 	}
 	
 	@Override
-	public Train train() {
-		return ((Block)parent()).train();
+	public Train occupyingTrain() {
+		return parent().occupyingTrain();
+	}
+	
+	@Override
+	public Block parent() {
+		return (Block) super.parent();
 	}
 
 	@Override

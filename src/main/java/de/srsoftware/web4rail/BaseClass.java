@@ -315,6 +315,11 @@ public abstract class BaseClass implements Constants{
 	public Button button(String text) {		
 		return button(text,null);
 	}
+	
+	public boolean debug(String tx, Object... fills) {
+		LOG.debug(tx, fills);
+		return false;
+	}
 		
 	public Form form(String id,List<Map.Entry<String, Tag>> elements) {
 		Form form = new Form(id);

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.EventListener;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.moving.Train;
@@ -34,12 +35,8 @@ public class Contact extends Tile{
 	protected int addr = 0;
 	private ActionList actions;
 	private OffTimer timer = null;
-	private HashSet<Listener> listeners = new HashSet<Listener>();
+	private HashSet<EventListener> listeners = new HashSet<EventListener>();
 
-	public interface Listener{
-		public void fired(Object cause);
-	}
-	
 	public Contact() {
 		actions = new ActionList(this);
 	}
@@ -82,15 +79,16 @@ public class Contact extends Tile{
 			if (isSet(timer)) return;
 			timer = new OffTimer();
 		} else {
-			LOG.debug("{} activated.",this);
 			state = true;
 			stream();
 			if (isSet(timer)) timer.abort();
-			Train train = train();
+			Train train = lockingTrain();
 			Context context = isSet(train) ? train.contact(this) : new Context(this);
 			actions.fire(context,"Contact("+addr+")");
 			
-			for (Listener listener : listeners) listener.fired("Contact("+addr+")");
+			for (EventListener listener : listeners) listener.fire();
+			
+			plan.alter();
 		}
 	}
 
@@ -105,7 +103,7 @@ public class Contact extends Tile{
 		return this;
 	}
 
-	public void addListener(Listener l) {
+	public void addListener(EventListener l) {
 		listeners.add(l);
 	}
 
@@ -205,7 +203,7 @@ public class Contact extends Tile{
 		super.removeChild(child);
 	}
 	
-	public void removeListener(Listener listener) {
+	public void removeListener(EventListener listener) {
 		listeners.remove(listener);
 	}
 

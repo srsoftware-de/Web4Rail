@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
-import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -16,12 +15,7 @@ public abstract class TurnoutL extends Turnout {
 	@Override
 	public Object click(boolean shift) throws IOException {
 		Object o = super.click(shift);
-		if (!shift) {
-			Train train = train();
-			if (isSet(train)) {
-				plan.stream(t("{} is locked by {}!",this,train)); 
-			} else state(state == State.STRAIGHT ? State.LEFT : State.STRAIGHT);
-		}
+		if (!shift) state(state == State.STRAIGHT ? State.LEFT : State.STRAIGHT);
 		return o;
 	}
 	

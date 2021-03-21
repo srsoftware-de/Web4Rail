@@ -15,6 +15,7 @@ import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Protocol;
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
@@ -159,7 +160,8 @@ public abstract class Turnout extends Tile implements Device{
 	}
 	
 	public Reply state(State newState) {
-		if (is(Status.LOCKED,Status.OCCUPIED) && newState != state) return new Reply(415, t("{} locked by {}!",this,train()));
+		Train lockingTrain = lockingTrain();
+		if (isSet(lockingTrain) && newState != state) return new Reply(415, t("{} locked by {}!",this,lockingTrain));
 		if (address == 0) { 
 			sleep(300);
 			state = newState;			

@@ -4,7 +4,6 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +36,6 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
-import de.srsoftware.web4rail.threads.BrakeProcess;
 import de.srsoftware.web4rail.threads.RoutePrepper;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
@@ -389,7 +387,8 @@ public class Route extends BaseClass {
 	
 	public void finish(Train train) {
 		LOG.debug("{}.finish()",this);
-		train.endRoute(endBlock,endDirection);
+		context.invalidate();
+		train.endRoute(this);
 		setSignals(Signal.RED);
 		freeIgnoring(null);				
 		train = null;
@@ -767,7 +766,7 @@ public class Route extends BaseClass {
 	}
 	
 	public boolean reserveFor(Context newContext) {
-		LOG.debug("{}.reserverFor({})",this,newContext);
+		LOG.debug("{}.reserverFor ({})",this,newContext);
 
 		context = newContext;
 		for (Tile tile : path) {
@@ -859,7 +858,7 @@ public class Route extends BaseClass {
 			String cause = this+".start("+train.name()+")";
 			if (!startActions.fire(context,cause)) return false; // start actions failed
 		}
-
+		
 		context.waitTime(endBlock.getWaitTime(train, endDirection).random());
 		return true;
 	}

@@ -3,6 +3,7 @@ package de.srsoftware.web4rail.tiles;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,16 +44,14 @@ public abstract class Block extends StretchableTile{
 	private class TrainList implements Iterable<Train>{
 
 		private LinkedList<Train> trains = new LinkedList<Train>();
-		private HashMap<Train, Direction> dirs = new HashMap<Train, Direction>();
 		
-		public void add(Train train, Direction direction) {
+		public void add(Train train) {
 			trains.remove(train);
 			trains.addFirst(train);
-			if (isSet(direction)) dirs.put(train, direction);
 		}
-
-		public Direction directionOf(Train train) {
-			return dirs.get(train);
+		
+		public boolean contains(Train t) {
+			return trains.contains(t);
 		}
 
 		public Train first() {
@@ -77,18 +76,12 @@ public abstract class Block extends StretchableTile{
 		}
 
 		public boolean remove(BaseClass b) {
-			dirs.remove(b);
 			return trains.remove(b);
 		}
 		
-
-		public void set(Train train, Direction newDirection) {
-			dirs.put(train, newDirection);
-		}
-
 		@Override
 		public String toString() {
-			return trains.stream().map(t -> t+"→"+directionOf(t)).reduce((s1,s2) -> s1+", "+s2).orElse(t("empty"));
+			return trains.stream().map(t -> "["+t+"]→"+t.direction()).reduce((s1,s2) -> s1+", "+s2).orElse(t("empty"));
 		}
 	}
 	private static final String ALLOW_TURN = "allowTurn";
@@ -100,12 +93,11 @@ public abstract class Block extends StretchableTile{
 	private static final String RAISE = "raise";
 	public static final String ACTION_ADD_CONTACT = "add_contact";
 	private static final String PARKED_TRAINS = "parked_trains";
-	private static final String TRAINS = "trains";
 
 	public String  name        = "Block";
 	public boolean turnAllowed = false;
 	private Vector<BlockContact> internalContacts = new Vector<BlockContact>();
-	private TrainList trains = new TrainList();
+	private TrainList parkedTrains = new TrainList();
 	
 	public Block() {
 		super();
@@ -191,10 +183,11 @@ public abstract class Block extends StretchableTile{
 	
 	private Vector<WaitTime> waitTimes = new Vector<WaitTime>();
 	
-	public void add(Train train,Direction direction) {
+	public void addParkedTrain(Train train) {
+		if (parkedTrains.contains(train)) return;
 		if (isNull(train)) return;
 		train.register();
-		trains.add(train,direction);
+		parkedTrains.add(train);
 	}
 
 
@@ -205,9 +198,16 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
+	protected HashSet<String> classes() {
+		HashSet<String> classes = super.classes();
+		if (!parkedTrains.isEmpty()) classes.add(OCCUPIED);
+		return classes;
+	}
+	
+	@Override
 	public Object click(boolean shift) throws IOException {
-		if (!trains.isEmpty() && !shift) return trains.first().properties();
-		return super.click(false);
+		Train train = occupyingTrain();
+		return !shift && isSet(train) ? train.properties() : properties();
 	}
 	
 	public int compareTo(Block other) {
@@ -255,25 +255,15 @@ public abstract class Block extends StretchableTile{
 		return this;
 	}
 	
-	private void dropFirstTrain() {
-		Train train = trains.first();
-		if (isSet(train)) {
-			train.dropTrace();
-			train.set(null);
-			trains.remove(train);
-		}
+	public void dropTrain(Train t) {
+		parkedTrains.remove(t);
+		plan.place(this);
 	}
 	
 	@Override
-	public boolean free(Train train) {
-		LOG.debug("{}.free({})",this,train);
-		Train firstTrain = trains.first();
-		if (isNull(firstTrain)) return true;
-		if (firstTrain != train) return false;
-		trains.remove(train);
-		if (isSet(firstTrain)) {
-			super.free(train);
-		} else super.setTrain(firstTrain);		
+	public boolean free(Train oldTrain) {
+		parkedTrains.remove(oldTrain);
+		if (!super.free(oldTrain)) return false;
 		return true;
 	}
 	
@@ -304,11 +294,10 @@ public abstract class Block extends StretchableTile{
 	
 	@Override
 	public boolean isFreeFor(Context context) {
-		Train train = context.train();
-		if (is(Status.DISABLED)) return false;
-		if (trains.isEmpty()) return true;
-		if (trains.first() == train) return true;
-		return train.isShunting(); // block contains train(s), thus it is only free for shunting train
+		if (!super.isFreeFor(context)) return false;
+		Train train = context.train();		
+		if (isSet(occupyingTrain()) && occupyingTrain() == train) return true;
+		return parkedTrains.isEmpty() || parkedTrains.contains(train) ||  train.isShunting(); 
 	}
 	
 	@Override
@@ -317,7 +306,7 @@ public abstract class Block extends StretchableTile{
 		json.put(NAME, name);
 		json.put(ALLOW_TURN, turnAllowed);
 		JSONArray jWaitTimes = new JSONArray();
-		for (WaitTime wt : waitTimes) jWaitTimes.put(wt.json());
+		waitTimes.forEach(wt -> jWaitTimes.put(wt.json()));
 		json.put(WAIT_TIMES, jWaitTimes);
 		JSONObject jContacts = null;
 		for (BlockContact contact : internalContacts) {
@@ -328,22 +317,22 @@ public abstract class Block extends StretchableTile{
 		}
 		if (isSet(jContacts)) json.put(CONTACT, jContacts);
 		json.remove(REALM_TRAIN); // is set by TRAINS field for blocks
-		if (!trains.isEmpty()) {
+		if (!parkedTrains.isEmpty()) {
 			JSONArray jTrains = new JSONArray();
-			for (Train train : trains) {
+			for (Train train : parkedTrains) {
 				JSONObject to = new JSONObject();
 				to.put(ID, train.id());
-				Direction dir = trains.directionOf(train);
-				if (isSet(dir)) to.put(DIRECTION, dir.toString());
+//				Direction dir = parkedTrains.directionOf(train);
+//				if (isSet(dir)) to.put(DIRECTION, dir.toString());
 				jTrains.put(to);
 			}
-			json.put(TRAINS, jTrains);
+			json.put(PARKED_TRAINS, jTrains);
 		}
 		return json;
 	}
 	
 	public Train lastTrain() {
-		return trains.last();
+		return parkedTrains.last();
 	}
 
 	public List<Route> leavingRoutes() {
@@ -387,26 +376,15 @@ public abstract class Block extends StretchableTile{
 		new LoadCallback() {			
 			@Override
 			public void afterLoad() {
-				if (json.has(TRAINS)) {
-					JSONArray jTrains = json.getJSONArray(TRAINS);
-					for (Object o : jTrains) {
+				if (json.has(PARKED_TRAINS)) {
+					JSONArray jParkedTrains = json.getJSONArray(PARKED_TRAINS);
+					for (Object o : jParkedTrains) {
 						if (o instanceof JSONObject) {
-							JSONObject to = (JSONObject) o;
-							Id tID = new Id(to.getString(ID));
-							Train train = BaseClass.get(tID);
-							Direction direction = to.has(DIRECTION) ? Direction.valueOf(to.getString(DIRECTION)) : null;
-							if (isSet(train)) {
-								train.set(Block.this);
-								trains.add(train, direction);
-								status = Status.OCCUPIED;
-							}
+							JSONObject trainData = (JSONObject) o;
+							Train train = BaseClass.get(Id.from(trainData));
+							if (isSet(train)) parkedTrains.add(train.set(Block.this));
 						}
 					}
-				} else if (json.has(PARKED_TRAINS)) { // legacy
-					for (Object id : json.getJSONArray(PARKED_TRAINS)) {
-						Train train = BaseClass.get(new Id(id.toString()));
-						if (isSet(train)) trains.add(train,null);
-					}			
 				}
 			}
 		};
@@ -417,38 +395,20 @@ public abstract class Block extends StretchableTile{
 	@Override
 	public boolean lockFor(Context context, boolean downgrade) {
 		Train newTrain = context.train();
-		Route route = context.route();
-		LOG.debug("{}.lock({})",this,newTrain);
-		if (isNull(newTrain)) return false;
-		Train train = trains.first();
-		if (isSet(train) && train != newTrain) return false;
-		switch (status) {
-			case DISABLED:
-				return false;
-			case OCCUPIED:
-				if (!downgrade) break;
-			case FREE:
-			case RESERVED:
-				status = Status.LOCKED;
-				Direction dir = trains.directionOf(train);
-				if (isSet(route) && this == route.endBlock()) dir = route.endDirection;
-				add(newTrain,dir);
-				plan.place(this);
-				break;
-			case LOCKED:
-				break; // do not downgrade
-		}
-		return true;
+		LOG.debug("{}.lockFor({})",this,newTrain);
+		Train train = lockingTrain();
+		if (newTrain == train || parkedTrains.isEmpty() || parkedTrains.contains(newTrain) || newTrain.isShunting()) return super.lockFor(context, downgrade);
+		return false;
 	}
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Name"),new Input(NAME, name));
 		formInputs.add("",new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed));
-		formInputs.add(t("Train"),Train.selector(trains.first(), null));
+		formInputs.add(t("Train"),Train.selector(parkedTrains.first(), null));
 		postForm.add(contactForm());
 		postForm.add(waitTimeForm());
-		if (!trains.isEmpty()) postForm.add(trainList());
+		if (!parkedTrains.isEmpty()) postForm.add(trainList());
 		return super.properties(preForm, formInputs, postForm,errors);
 	}
 
@@ -467,27 +427,10 @@ public abstract class Block extends StretchableTile{
 	@Override
 	public boolean reserveFor(Context context) {
 		Train newTrain = context.train();
-		Route route = context.route();
-		LOG.debug("{}.reserverFor({})",this,newTrain);
-		if (isNull(newTrain)) return false;
-		Train train = trains.first();
-		if (isSet(train) && train != newTrain) return false;
-		switch (status) {
-			case DISABLED:
-				return false;
-			case FREE:
-				status = Status.RESERVED;
-				Direction dir = trains.directionOf(train);
-				if (isSet(route) && this == route.endBlock()) dir = route.endDirection;
-				add(newTrain,dir);
-				plan.place(this);
-				break;
-			case OCCUPIED:
-			case LOCKED:
-			case RESERVED:
-				break; // do not downgrade
-		}
-		return true;
+		LOG.debug("{}.lockFor({})",this,newTrain);
+		Train train = lockingTrain();
+		if (newTrain == train || parkedTrains.isEmpty() || parkedTrains.contains(newTrain) || newTrain.isShunting()) return super.reserveFor(context);
+		return false;
 	}
 
 	public BlockContact register(BlockContact contact) {
@@ -499,17 +442,12 @@ public abstract class Block extends StretchableTile{
 	public void removeChild(BaseClass child) {
 		super.removeChild(child);
 		internalContacts.remove(child);
-		if (trains.remove(child)) plan.place(this);		
+		if (parkedTrains.remove(child)) plan.place(this);		
 	}
 	
 	public void removeContact(BlockContact blockContact) {
 		internalContacts.remove(blockContact);
 	}
-	
-	public void set(Train train, Direction direction) {
-		trains.set(train,direction);
-	}
-
 	
 	public abstract List<Connector> startPoints();
 
@@ -518,7 +456,9 @@ public abstract class Block extends StretchableTile{
 		if (isNull(replacements)) replacements = new HashMap<String, Object>();
 		replacements.put("%text%",name);
 		Vector<String> trainNames = new Vector<String>();
-		for (Train train: trains) trainNames.add(train.directedName(trains.directionOf(train)));
+		Train lockingTrain = lockingTrain();
+		if (isSet(lockingTrain) /*&& !parkedTrains.contains(lockingTrain)*/) trainNames.add(lockingTrain.directedName());
+		for (Train train: parkedTrains) trainNames.add(train.directedName());
 		if (!trainNames.isEmpty())replacements.put("%text%",String.join(" | ", trainNames));
 		Tag tag = super.tag(replacements);
 		tag.clazz(tag.get("class")+" Block");
@@ -535,20 +475,10 @@ public abstract class Block extends StretchableTile{
 		return name + " @ ("+x+","+y+")";
 	}
 	
-	@Override
-	public Train train() {
-		return train(false);
-	}
-	
-	public Train train(boolean last) {
-		return last ? trains.last() : trains.first();
-	}
-
-	
 	private Fieldset trainList() {
 		Fieldset fieldset = new Fieldset(t("Trains"));
 		Tag list = new Tag("ul");
-		for (Train t : trains) {
+		for (Train t : parkedTrains) {
 			if (isSet(t)) t.link("li", t).addTo(list);
 		}
 		list.addTo(fieldset);
@@ -556,7 +486,7 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	public List<Train> trains(){
-		return trains.list();
+		return parkedTrains.list();
 	}
 	
 	@Override
@@ -565,15 +495,14 @@ public abstract class Block extends StretchableTile{
 		if (params.containsKey(Train.class.getSimpleName())) {
 			Id trainId = Id.from(params,Train.class.getSimpleName());
 			if (trainId.equals(0)) { // remove first train
-				dropFirstTrain();
+				free(occupyingTrain());
 			} else {
-				Train train = Train.get(trainId);
-				if (isSet(train) && train != trains.first()) {
-					dropFirstTrain();
-					train.dropTrace();
-					if (connections(train.direction()).isEmpty()) train.heading(null); 
-					train.set(this);
-					trains.add(train,train.direction());
+				Train newTrain = Train.get(trainId);
+				if (isSet(newTrain) && newTrain != occupyingTrain()) {
+					free(occupyingTrain());
+					newTrain.dropTrace();
+					if (connections(newTrain.direction()).isEmpty()) newTrain.heading(null); 
+					newTrain.set(this);
 				}
 			}
 		}

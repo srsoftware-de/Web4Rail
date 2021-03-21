@@ -38,7 +38,9 @@ public class DelayedAction extends ActionList {
 			@Override	
 			public void execute() {
 				LOG.debug("{} ms passed by, firing actions:",delay);
+				if (context.invalidated()) return;
 				DelayedAction.super.fire(context,cause);
+				plan.alter();
 			}
 		};
 		return true;		

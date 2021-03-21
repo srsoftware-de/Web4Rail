@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -160,6 +161,7 @@ public class Plan extends BaseClass{
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
 	private Contact learningContact;
 	private Configuration appConfig;
+	private LinkedList<EventListener> listeners = new LinkedList<>();
 	
 	/**
 	 * creates a new plan, starts to send heart beats
@@ -281,6 +283,10 @@ public class Plan extends BaseClass{
 		if (tile instanceof TileWithShadow) ((TileWithShadow)tile).placeShadows();
 		place(tile);
 		return t("Added {}",tile.getClass().getSimpleName());
+	}
+	
+	public void alter() {
+		while (!listeners.isEmpty()) listeners.removeFirst().fire();
 	}
 	
 	/**
@@ -640,6 +646,10 @@ public class Plan extends BaseClass{
 			}
 		}
 		return t(moved ? "Tile(s) moved.":"No tile moved.");
+	}
+	
+	public void onChange(EventListener listener) {
+		listeners.add(listener);
 	}
 
 	/**

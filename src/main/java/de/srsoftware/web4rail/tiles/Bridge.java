@@ -67,7 +67,7 @@ public abstract class Bridge extends Tile {
 	
 	@Override
 	public boolean setTrain(Train newTrain) {
-		if (train() == newTrain) return true;
+		if (occupyingTrain() == newTrain) return true;
 		if (!super.setTrain(newTrain)) return false;		
 		return isNull(counterpart) ? true : counterpart.setTrain(newTrain);		
 	}

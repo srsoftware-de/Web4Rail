@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
@@ -39,20 +40,6 @@ import de.srsoftware.web4rail.tags.Window;
  *
  */
 public abstract class Tile extends BaseClass implements Comparable<Tile> {
-	public enum Status {
-		DISABLED("disabled"), FREE("free"), RESERVED("reserved"), LOCKED("locked"), OCCUPIED("occupied");
-
-		private String tx;
-
-		Status(String s) {
-			tx = s;
-		}
-
-		@Override
-		public String toString() {
-			return tx;
-		}
-	}
 
 	protected static Logger LOG = LoggerFactory.getLogger(Tile.class);
 	private static int DEFAUT_LENGTH = 100; // 10cm
@@ -65,11 +52,11 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 	private static final String Y = "y";
 
 	private boolean isTrack = true;
+	private boolean disabled;
 	private int length = DEFAUT_LENGTH;
 	protected Direction oneWay = null;
 	private TreeSet<Route> routes = new TreeSet<>((r1, r2) -> r1.toString().compareTo(r2.toString()));
-	private Train train = null;
-	protected Status status = Status.FREE;
+	private Train reservingTrain,lockingTrain,occupyingTrain;
 	public Integer x = null;
 	public Integer y = null;
 
@@ -81,13 +68,19 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		HashSet<String> classes = new HashSet<String>();
 		classes.add("tile");
 		classes.add(getClass().getSimpleName());
-		if (!is(Status.FREE)) classes.add(status.toString());
+		if (isSet(reservingTrain)) classes.add(RESERVED);
+		if (isSet(lockingTrain)) classes.add(LOCKED);
+		if (isSet(occupyingTrain)) classes.add(OCCUPIED);
 		return classes;
 	}
 
 	public Object click(boolean shift) throws IOException {
 		LOG.debug("{}.click()", getClass().getSimpleName());
-		if (isSet(train) && shift) return train.properties();
+		if (!shift) {
+			if (isSet(occupyingTrain)) return occupyingTrain.properties();	
+			if (isSet(lockingTrain))   return lockingTrain.properties();
+		}
+		
 		return properties();
 	}
 
@@ -105,10 +98,12 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		return new HashMap<>();
 	}
 
-	public boolean free(Train t) {
-		if (isSet(train) && t != train) return false;
-		train = null;
-		status = Status.FREE;
+	public boolean free(Train oldTrain) {
+		if (isNull(oldTrain)) return false;
+		if (isSet(reservingTrain) && reservingTrain != oldTrain) return false;
+		if (isSet(lockingTrain)   && lockingTrain != oldTrain)   return false;
+		if (isSet(occupyingTrain) && occupyingTrain != oldTrain) return false;
+		reservingTrain = lockingTrain = occupyingTrain = null; 
 		plan.place(this);
 		return true;
 	}
@@ -134,48 +129,44 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		plan.place(tile);
 	}
 
-	public boolean is(Status... states) {
-		for (Status s : states) {
-			if (status == s) return true;
-		}
-		return false;
+	public boolean isDisabled() {
+		return disabled;
 	}
 
 	public boolean isFreeFor(Context newTrain) {
 		LOG.debug("{}.isFreeFor({})", this, newTrain);
-		if (is(Status.DISABLED)) {
+		if (isDisabled()) {
 			LOG.debug("{} is disabled!", this);
 			return false;
 		}
-
-		if (isNull(train)) {
-			LOG.debug("→ free");
-			return true;
+		
+		Train train = newTrain.train();
+		
+		if (isSet(reservingTrain) && reservingTrain != train) {
+			LOG.debug("{} is reserved for {}",reservingTrain);
+			return false; // nicht in reservierten Block einfahren!
 		}
 
-		if (newTrain.train() == train) { // during train.reserveNext, we may encounter, parts, that are already reserved
-											// by the respective train, but having another route. do not compare routes
-											// in that case!
-			LOG.debug("already reserved by {} → true", train);
-			return true;
+		if (isSet(lockingTrain) && lockingTrain != train) {
+			LOG.debug("{} is locked for {}",lockingTrain);
+			return false; // nicht in reservierten Block einfahren!
 		}
 
-		if (isSet(newTrain.train()) && newTrain.train().isShunting()) {
-			LOG.debug("occupied by {}. Allowed for shunting {}", train, newTrain.train());
-			return true;
+		if (isSet(occupyingTrain) && occupyingTrain != train) {
+			LOG.debug("{} is occupied by {}",occupyingTrain);
+			return train.isShunting(); // nur in belegte Blöcke einfahren, wenn Rangiermodus aktiv!
 		}
 
-		LOG.debug("occupied by {} → false", train);
-		return false;
+		return true;
 	}
-
+	
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(TYPE, getClass().getSimpleName());
 		if (isSet(x) && isSet(y)) json.put(POS, new JSONObject(Map.of(X, x, Y, y)));
 		if (isSet(oneWay)) json.put(ONEW_WAY, oneWay);
-		if (is(Status.DISABLED)) json.put(DISABLED, true);
-		if (isSet(train)) json.put(REALM_TRAIN, train.id());
+		if (disabled) json.put(DISABLED, true);
+		if (isSet(occupyingTrain)) json.put(REALM_TRAIN, occupyingTrain.id());
 		json.put(LENGTH, length);
 		return json;
 	}
@@ -221,19 +212,53 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 	}
 
 	public Tile load(JSONObject json) {
-		if (json.has(ID)) json.remove(ID); // id should be created from cordinates
+		if (json.has(ID)) json.remove(ID); // id should be created from coordinates
 		super.load(json);
 		if (json.has(POS)) {
 			JSONObject pos = json.getJSONObject(POS);
 			x = pos.getInt(X);
 			y = pos.getInt(Y);
 		}
-		if (json.has(DISABLED) && json.getBoolean(DISABLED)) status = Status.DISABLED;
+		if (json.has(DISABLED)) disabled = json.getBoolean(DISABLED);
 		if (json.has(LENGTH)) length = json.getInt(LENGTH);
 		if (json.has(ONEW_WAY)) oneWay = Direction.valueOf(json.getString(ONEW_WAY));
+		if (json.has(REALM_TRAIN))
+		new LoadCallback() {
+			
+			@Override
+			public void afterLoad() {
+				occupyingTrain = Train.get(new Id(json.getString(REALM_TRAIN)));
+			}
+		};
 		return this;
 	}
-
+	
+	public boolean lockFor(Context context,boolean downgrade) {
+		Train newTrain = context.train();
+		LOG.debug("{}.lockFor({})",this,newTrain);
+		if (isNull(newTrain)) return false;
+		if (isSet(reservingTrain) && reservingTrain != newTrain) return debug("{} already reserved for  {}",this,reservingTrain);
+		if (isSet(lockingTrain)) {
+			if (lockingTrain != newTrain) return debug("{} already locked by {}",this,lockingTrain);
+			return true; // already locked!
+		}
+		if (isSet(occupyingTrain)) {
+			if (occupyingTrain != newTrain && !newTrain.isShunting()) return debug("{} already occupied by {}",this,occupyingTrain);
+			lockingTrain = newTrain;
+			if (!downgrade) return true;
+		}
+		lockingTrain = newTrain;
+		reservingTrain = occupyingTrain = null;		
+		plan.place(this);
+		return true;
+	}
+	
+	public Train lockingTrain() {
+		if (isSet(lockingTrain)) return lockingTrain;
+		if (isSet(occupyingTrain)) return occupyingTrain;
+		return null;
+	}
+	
 	public boolean move(int dx, int dy) {
 		int destX = x + (dx > 0 ? width() : dx);
 		int destY = y + (dy > 0 ? height() : dy);
@@ -249,6 +274,10 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 
 	protected void noTrack() {
 		isTrack = false;
+	}
+	
+	public Train occupyingTrain() {
+		return occupyingTrain;
 	}
 
 	public Tile position(int x, int y) {
@@ -266,18 +295,18 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		String... errors) {
 		Fieldset fieldset = null;
 
-		if (isSet(train)) {
+		if (isSet(occupyingTrain)) {
 			fieldset = new Fieldset(t("Train"));
-			train.link("span", t("Train") + ":" + NBSP + train + NBSP).addTo(fieldset);
-			if (isSet(train.route())) {
-				train.button(t("stop"), Map.of(ACTION, ACTION_STOP)).addTo(fieldset);
+			occupyingTrain.link("span", t("Train") + ":" + NBSP + occupyingTrain + NBSP).addTo(fieldset);
+			if (isSet(occupyingTrain.route())) {
+				occupyingTrain.button(t("stop"), Map.of(ACTION, ACTION_STOP)).addTo(fieldset);
 			} else {
-				train.button(t("depart"), Map.of(ACTION, ACTION_START)).addTo(fieldset);
+				occupyingTrain.button(t("depart"), Map.of(ACTION, ACTION_START)).addTo(fieldset);
 			}
-			if (train.usesAutopilot()) {
-				train.button(t("quit autopilot"), Map.of(ACTION, ACTION_QUIT)).addTo(fieldset);
+			if (occupyingTrain.usesAutopilot()) {
+				occupyingTrain.button(t("quit autopilot"), Map.of(ACTION, ACTION_QUIT)).addTo(fieldset);
 			} else {
-				train.button(t("auto"), Map.of(ACTION, ACTION_AUTO)).addTo(fieldset);
+				occupyingTrain.button(t("auto"), Map.of(ACTION, ACTION_AUTO)).addTo(fieldset);
 			}
 		}
 
@@ -286,8 +315,8 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		if (isTrack) {
 			formInputs.add(t("Length"),
 				new Input(LENGTH, length).numeric().addTo(new Tag("span")).content(NBSP + lengthUnit));
-			Checkbox checkbox = new Checkbox(DISABLED, t("disabled"), is(Status.DISABLED));
-			if (is(Status.DISABLED)) checkbox.clazz("disabled");
+			Checkbox checkbox = new Checkbox(DISABLED, t("disabled"), disabled);
+			if (disabled) checkbox.clazz("disabled");
 			formInputs.add(t("State"), checkbox);
 		}
 
@@ -373,21 +402,15 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 	}
 
 	public boolean setTrain(Train newTrain) {
-		if (isNull(newTrain)) return false;
-		if (isSet(train) && newTrain != train) return false;
-		switch (status) { // bisheriger Status
-			case DISABLED:
-				return false;
-			case FREE:
-			case RESERVED:
-			case LOCKED:
-				train = newTrain;
-				status = Status.OCCUPIED;
-				plan.place(this);
-				break;
-			case OCCUPIED:
-				break;
-		}		
+		if (disabled) return false;
+		if (isNull(newTrain)) return false;		
+		if (isSet(reservingTrain) && newTrain != reservingTrain) return false;
+		if (isSet(lockingTrain)   && newTrain != lockingTrain)   return false;
+		if (isSet(occupyingTrain) && newTrain != occupyingTrain) return false;
+		if (occupyingTrain == newTrain) return true;
+		occupyingTrain = newTrain;
+		reservingTrain = lockingTrain = null;
+		plan.place(this);
 		return true;
 	}
 
@@ -456,10 +479,6 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		return t("{}({},{})", getClass().getSimpleName(), x, y);
 	}
 
-	public Train train() {
-		return train;
-	}
-
 	@Override
 	public BaseClass remove() {
 		while (!routes.isEmpty()) routes.first().remove();
@@ -473,61 +492,40 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		LOG.debug("Removing {} from {}", childAsString, this);
 		if (child instanceof Route) routes.remove(child);
 
-		if (child == train) train = null;
+		if (child == reservingTrain) reservingTrain = null;
+		if (child == lockingTrain) lockingTrain = null;
+		if (child == occupyingTrain) occupyingTrain = null;
 		super.removeChild(child);
 		plan.place(this);
 	}
 	
-	public boolean lockFor(Context context,boolean downgrade) {
-		Train newTrain = context.train();
-		LOG.debug("{}.lockFor({})",this,newTrain);
-		if (isNull(newTrain)) return false;
-		if (isSet(train) && train != newTrain) return false;
-		switch (status) {
-			case DISABLED:
-				return false;
-			case OCCUPIED:
-				if (!downgrade) break;
-			case FREE:
-			case RESERVED:
-				status = Status.LOCKED;
-				plan.place(this);
-				break;
-			case LOCKED:
-				break; // already locked
-		}
-		return true;
-	}
 
 
 	public boolean reserveFor(Context context) {
 		Train newTrain = context.train();
 		LOG.debug("{}.reserverFor({})",this,newTrain);
 		if (isNull(newTrain)) return false;
-		if (isSet(train) && train != newTrain) return false;
-		switch (status) {
-			case DISABLED:
-				return false;
-			case FREE:
-				status = Status.RESERVED;
-				train = newTrain;
-				plan.place(this);
-				break;
-			case OCCUPIED:
-			case LOCKED:
-			case RESERVED:
-				break; // do not downgrade
+		if (isSet(reservingTrain)) {
+			if (reservingTrain != newTrain) return debug("{} already reserved for  {}",this,reservingTrain);
+			return true; // already reserved for newTrain
 		}
+		if (isSet(lockingTrain)) {
+			if (lockingTrain != newTrain) return debug("{} already locked by {}",this,lockingTrain);
+			return true; // do not downgrade!
+		}
+		if (isSet(occupyingTrain)) {
+			if (occupyingTrain != newTrain && !newTrain.isShunting()) return debug("{} already occupied by {}",this,occupyingTrain);
+			return true; // do not downgrade!
+		}		
+		reservingTrain = newTrain;
+		plan.place(this);
 		return true;
 	}
 
 	public void setEnabled(boolean enabled) {
-		if (!enabled) {
-			status = Status.DISABLED;
-		} else if (is(Status.DISABLED)) { // Status nur ändern, wenn er bisher DISABLED war
-			status = isNull(train) ? Status.FREE : Status.OCCUPIED;
-		}
-		plan.place(this);
+		boolean show = (disabled == enabled);
+		disabled = !enabled;
+		if (show) plan.place(this);
 	}
 
 	public Tile update(HashMap<String, String> params) {
@@ -540,11 +538,8 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 				oneWay = null;
 			}
 		}
-		if ("on".equals(params.get(DISABLED))) {
-			status = Status.DISABLED;
-		} else {
-			status = isSet(train) ? Status.OCCUPIED : Status.FREE;
-		}
+		disabled = "on".equals(params.get(DISABLED));
+
 		String len = params.get(LENGTH);
 		if (isSet(len)) length(Integer.parseInt(len));
 		super.update(params);
