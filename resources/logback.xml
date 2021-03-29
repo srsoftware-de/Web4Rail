@@ -9,7 +9,7 @@
 		</encoder>
 		<filter class="de.srsoftware.web4rail.ThreadFilter">
 			<level>DEBUG</level>
-			<keywords>Brake, Contact, Feed, Route, Train, e</keywords>
+			<keywords>Brake, Contact, Feed, Route, Train</keywords>
 		</filter>
 	</appender>
 

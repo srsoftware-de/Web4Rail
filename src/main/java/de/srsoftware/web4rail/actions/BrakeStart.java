@@ -12,7 +12,6 @@ public class BrakeStart extends Action {
 	public boolean fire(Context context,Object cause) {
 		if (isNull(context.train())) return false;
 		context.train().startBrake();
-		LOG.debug("Started brake process...");
 		return true;
 	}
 }

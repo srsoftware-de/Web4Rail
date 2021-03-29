@@ -200,7 +200,9 @@ public abstract class Block extends StretchableTile{
 	@Override
 	protected HashSet<String> classes() {
 		HashSet<String> classes = super.classes();
-		if (!parkedTrains.isEmpty()) classes.add(OCCUPIED);
+		if (!isNull(occupyingTrain()) || !parkedTrains.isEmpty()) classes.add(OCCUPIED);
+		if (!isNull(lockingTrain())) classes.add(LOCKED);
+		if (isDisabled()) classes.add(DISABLED);
 		return classes;
 	}
 	
@@ -456,8 +458,8 @@ public abstract class Block extends StretchableTile{
 		if (isNull(replacements)) replacements = new HashMap<String, Object>();
 		replacements.put("%text%",name);
 		Vector<String> trainNames = new Vector<String>();
-		Train lockingTrain = lockingTrain();
-		if (isSet(lockingTrain) /*&& !parkedTrains.contains(lockingTrain)*/) trainNames.add(lockingTrain.directedName());
+		Train lockingTrain = occupyingTrain();
+		if (isSet(lockingTrain)) trainNames.add(lockingTrain.directedName());
 		for (Train train: parkedTrains) trainNames.add(train.directedName());
 		if (!trainNames.isEmpty())replacements.put("%text%",String.join(" | ", trainNames));
 		Tag tag = super.tag(replacements);

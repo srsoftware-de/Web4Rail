@@ -22,9 +22,10 @@ public class RoutePrepper extends BaseClass implements Runnable{
 	private List<EventListener> failListeners = new LinkedList<>(); 
 	private List<EventListener> foundListeners = new LinkedList<>();
 	private List<EventListener> lockedListeners = new LinkedList<>();
-	private List<EventListener> preparedListeners= new LinkedList<>();
+	private EventListener preparedListener = null;
 	
 	public RoutePrepper(Context c) {
+		LOG.debug("new RoutePrepper({})",c);
 		List<String> errors = new LinkedList<>();
 		if (isNull(c.train())) errors.add(t("No train in context for {}",getClass().getSimpleName()));
 		if (isNull(c.block())) errors.add(t("No block in context for {}",getClass().getSimpleName()));
@@ -182,7 +183,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 	}
 	
 	public void onRoutePrepared(EventListener l) {
-		preparedListeners.add(l);
+		preparedListener = l;
 	}
 	
 
@@ -196,7 +197,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		if (!route.reserveFor(context)) return fail();
 		notify(lockedListeners);
 		if (!route.prepareAndLock()) return fail();
-		notify(preparedListeners);
+		if (isSet(preparedListener)) preparedListener.fire();
 		return true;
 	}
 
@@ -207,6 +208,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 
 	@Override
 	public void run() {
+		LOG.debug("{}.run()",this);
 		prepareRoute();
 	}
 
@@ -216,5 +218,10 @@ public class RoutePrepper extends BaseClass implements Runnable{
 
 	public void stop() {
 		context.invalidate();
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName()+"("+context+")";
 	}
 }

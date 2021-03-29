@@ -40,8 +40,8 @@ public class BrakeProcess extends BaseClass implements Runnable{
 		long dist = 0;
 		int s = startSpeed;
 		while (s > Train.defaultEndSpeed) {
-			s -= SPEED_STEP;
 			dist += s*ts;
+			s -= SPEED_STEP;
 		}
 		LOG.debug("Estimated distamce with {} ms timestep: {}",ts,dist);
 		return dist;
@@ -56,6 +56,7 @@ public class BrakeProcess extends BaseClass implements Runnable{
 	@Override
 	public void run() {
 		timeStep = train.route().brakeTime(train.brakeId());
+		LOG.debug("{}.run() with timestep = {} ms",this,timeStep);
 		if (timeStep == null) timeStep = defaultTimeStep;
 		startSpeed = train.speed;
 		lastTime = timestamp();
@@ -100,7 +101,7 @@ public class BrakeProcess extends BaseClass implements Runnable{
 		if (!newTimeStep.equals(timeStep)) {
 			route.brakeTime(brakeId,newTimeStep);
 			calculated = calcDistance(newTimeStep);
-			LOG.debug("Corrected brake timestep for {} @ {} from {} to {} ms.",train,route,timeStep,newTimeStep);
+			LOG.debug("Corrected brake timestep from {} to {} ms for {} @ {}.",timeStep,newTimeStep,train,route);
 			LOG.debug("Differemce from estimated distance: {} ({}%)",distance-calculated,100*(distance-calculated)/(float)distance);
 		}
 	}

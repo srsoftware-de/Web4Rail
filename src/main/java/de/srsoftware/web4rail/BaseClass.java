@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -70,7 +69,7 @@ public abstract class BaseClass implements Constants{
 		private Contact contact;
 		private Direction direction;
 		private Integer waitTime;
-		List<EventListener> invalidationListeners = new LinkedList<>();
+		EventListener invalidationListener = null;
 		
 		public Context(BaseClass object) {
 			setMain(object);
@@ -149,7 +148,7 @@ public abstract class BaseClass implements Constants{
 		
 		public void invalidate() {
 			setMain(null);
-			invalidationListeners.forEach(EventListener::fire);
+			if (isSet(invalidationListener)) invalidationListener.fire();
 		}
 		
 		public boolean invalidated() {
@@ -157,7 +156,7 @@ public abstract class BaseClass implements Constants{
 		}
 		
 		public void onInvalidate(EventListener listener) {
-			invalidationListeners.add(listener);
+			invalidationListener = listener;
 		}
 
 		

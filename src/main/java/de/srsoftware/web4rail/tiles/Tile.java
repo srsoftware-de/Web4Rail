@@ -120,11 +120,10 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		return new Id(x + "-" + y);
 	}
 
-	private static void inflate(String clazz, JSONObject json,
-		Plan plan) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, IOException {
+	private static void inflate(String clazz, JSONObject json, Plan plan) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ClassNotFoundException, IOException {
 		clazz = Tile.class.getName().replace(".Tile", "." + clazz);
 		Tile tile = (Tile) Tile.class.getClassLoader().loadClass(clazz).getDeclaredConstructor().newInstance();
-		tile.load(json).register();
+		tile.load(json).parent(plan).register();
 		if (tile instanceof TileWithShadow) ((TileWithShadow) tile).placeShadows();
 		plan.place(tile);
 	}

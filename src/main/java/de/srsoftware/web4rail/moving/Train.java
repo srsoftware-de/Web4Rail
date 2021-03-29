@@ -443,6 +443,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public void endRoute(Route endedRoute) {
+		LOG.debug("{}.endRoute({})",this,endedRoute);
 		BrakeProcess brake = endBrake();
 		direction = endedRoute.endDirection; // muss vor der Auswertung des Destination-Tags stehen!				
 		Block endBlock = endedRoute.endBlock();
@@ -494,6 +495,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(brake)) brake.updateTime();
 		Integer waitTime = route.waitTime();
 		nextPreparedRoute = route.dropNextPreparedRoute();
+		if (isSet(nextPreparedRoute)) LOG.debug("nextPreparedRoute is now {}",nextPreparedRoute);
 		if ((!autopilot)|| isNull(nextPreparedRoute) || (isSet(waitTime) && waitTime > 0)) setSpeed(0);
 		route = null;
 		endBlock.setTrain(this);
@@ -632,13 +634,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 			public void afterLoad() {
 				if (json.has(TRACE)) json.getJSONArray(TRACE).forEach(elem -> {
 					Tile tile = plan.get(new Id(elem.toString()), false);
-					tile.setTrain(Train.this);
+					tile.setTrain(Train.this);					
 					trace.add(tile);
 				});
 				if (json.has(BLOCK)) {// do not move this up! during set, other fields will be referenced!
 					currentBlock = (Block) plan.get(Id.from(json, BLOCK), false);
 					if (isSet(currentBlock)) {
 						currentBlock.setTrain(Train.this);
+						trace.add(currentBlock);
 //						currentBlock.add(Train.this, direction);
 					}
 				}
@@ -969,21 +972,31 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 
 	public String start(boolean auto) {
+		LOG.debug("{}.start({})",this,auto?"auto":"");
 		autopilot |= auto;
-		if (isSet(nextPreparedRoute) && nextPreparedRoute.start()) {
-			nextPreparedRoute = null;
-			return null;
+		if (isSet(nextPreparedRoute)) {
+			LOG.debug("starting nextPreparedRoute: {}",nextPreparedRoute);
+			if (nextPreparedRoute.start()) {
+				LOG.debug("dropped nextPreparedRoute (was {})",nextPreparedRoute);
+				nextPreparedRoute = null;
+				return null;
+			} else {
+				LOG.debug("was not able to start {}", nextPreparedRoute);
+			}
 		}
 		if (isSet(routePrepper)) return t("Already searching route for {}",this);
 		routePrepper = new RoutePrepper(new Context(this).block(currentBlock).direction(direction));
 		
 		routePrepper.onRoutePrepared(() -> {
-			routePrepper.route().start();
+			Route newRoute = routePrepper.route();
+			LOG.debug("prepared route {} for {}",newRoute,this);
+			newRoute.start();
 			routePrepper = null;
 			plan.stream(t("Started {}",Train.this));
 		});
 		
 		routePrepper.onFail(() -> {
+			LOG.debug("preparing route for {} failed, resetting.",this);
 			Route failedRoute = routePrepper.route();
 			routePrepper = null;
 			if (isSet(failedRoute)) failedRoute.reset();
@@ -1005,7 +1018,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public void startBrake() {
 		LOG.debug("{}.startBrake()",this);
-		if (autopilot && isSet(nextPreparedRoute)) return;
+		if (autopilot && isSet(nextPreparedRoute)) {
+			LOG.debug("not braking, because autopilot is active and next roue is prepared, already");
+			return;
+		}
 		brake = new BrakeProcess(this);
 	}
 

@@ -374,6 +374,9 @@ public class Route extends BaseClass {
 	}
 	
 	public Route dropNextPreparedRoute() {
+		if (isSet(nextRoutePrepper)) nextRoutePrepper.stop();
+		nextRoutePrepper = null;
+
 		try {
 			return nextPreparedRoute;
 		} finally {
@@ -387,6 +390,7 @@ public class Route extends BaseClass {
 	
 	public void finish(Train train) {
 		LOG.debug("{}.finish()",this);
+		context.onInvalidate(null); // do in invalidate context of route's nextRoute
 		context.invalidate();
 		train.endRoute(this);
 		setSignals(Signal.RED);
@@ -690,8 +694,10 @@ public class Route extends BaseClass {
 		nextRoutePrepper.onRoutePrepared(() -> {
 			nextPreparedRoute = nextRoutePrepper.route();
 			nextRoutePrepper = null;
+			LOG.debug("prepared route after {}: {}",this,nextPreparedRoute);
 		});
 		nextRoutePrepper.onFail(() -> {
+			LOG.debug("preparing route next to {} failed, resetting.",this);
 			Route rt = nextRoutePrepper.route(); // Nachfolgeroute kann ja schon reserviert sein, oder gar schon teilweise vorbereitet!
 			if (isSet(rt)) rt.resetIgnoring(this); // angefangene Route freigeben ohne Teile der aktuellen Route freizugeben
 			nextRoutePrepper = null;
@@ -843,10 +849,16 @@ public class Route extends BaseClass {
 
 	public boolean start() {
 		LOG.debug("{}.start()",this);
-		if (isNull(context) || context.invalidated()) return false;
+		if (isNull(context) || context.invalidated()) {
+			LOG.debug("Invalid context: {}",context);
+			return false;
+		}
 		
 		Train train = context.train();
-		if (isNull(train)) return false; // can't set route's train to null
+		if (isNull(train)) {
+			LOG.debug("Context does not contain train: {}",context);
+			return false; // can't set route's train to null
+		}
 		train.setRoute(this); // set new train
 		
 		triggeredContacts.clear();
@@ -856,7 +868,10 @@ public class Route extends BaseClass {
 		if (isSet(startActions)) {
 			context.route(this);
 			String cause = this+".start("+train.name()+")";
-			if (!startActions.fire(context,cause)) return false; // start actions failed
+			if (!startActions.fire(context,cause)) {
+				LOG.debug("Failed to execute {}",startActions);
+				return false; // start actions failed
+			}
 		}
 		
 		context.waitTime(endBlock.getWaitTime(train, endDirection).random());

@@ -281,6 +281,7 @@ public class Plan extends BaseClass{
 		}
 		tile.position(x, y);
 		if (tile instanceof TileWithShadow) ((TileWithShadow)tile).placeShadows();
+		tile.parent(this);
 		place(tile);
 		return t("Added {}",tile.getClass().getSimpleName());
 	}
