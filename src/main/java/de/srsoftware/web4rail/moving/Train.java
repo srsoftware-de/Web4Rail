@@ -839,8 +839,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Train reverse() {
 		LOG.debug("train.reverse();");
 
-		if (isSet(direction)) direction = direction.inverse();
-		if (isSet(currentBlock)) plan.place(currentBlock);
+		if (isSet(direction)) direction = direction.inverse();		
+		if (isSet(currentBlock)) {
+			if (isNull(direction)) direction = currentBlock.directionA();
+			plan.place(currentBlock);
+		}
 		return this;
 	}
 	
