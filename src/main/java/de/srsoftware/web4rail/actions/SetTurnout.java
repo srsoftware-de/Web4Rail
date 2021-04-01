@@ -28,7 +28,7 @@ public class SetTurnout extends Action {
 	public boolean fire(Context context,Object cause) {
 		if (context.invalidated()) return false;
 		if (isNull(turnout)) return false;		
-		if (!turnout.state(state).succeeded()) return false;
+		if (!turnout.state(state,false).succeeded()) return false;
 		if (turnout.address() == 0) return true;
 		sleep(1000);
 		return true;

@@ -52,7 +52,7 @@ public abstract class Turnout extends Tile implements Device{
 	@Override
 	public Object click(boolean shift) throws IOException {
 		LOG.debug(getClass().getSimpleName()+".click()");
-		if (!shift) init();
+		init();
 		return super.click(shift);
 	}
 
@@ -159,9 +159,13 @@ public abstract class Turnout extends Tile implements Device{
 		return state;
 	}
 	
-	public Reply state(State newState) {
+	public Reply state(State newState,boolean shift) {
 		Train lockingTrain = lockingTrain();
-		if (isSet(lockingTrain) && newState != state) return new Reply(415, t("{} locked by {}!",this,lockingTrain));
+
+		if (isSet(lockingTrain)) {
+			if (newState != state && !shift) return new Reply(415, t("{} locked by {}!",this,lockingTrain));
+			// shift allows to switch locked turnouts...
+		} else if (shift) return new Reply(200,"OK"); // shift on a non-locked turnout skips the switch process
 		if (address == 0) { 
 			sleep(300);
 			state = newState;			

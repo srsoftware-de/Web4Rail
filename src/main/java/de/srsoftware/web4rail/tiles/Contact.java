@@ -27,7 +27,6 @@ import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.threads.DelayedExecution;
 
 public class Contact extends Tile{
-	private static Logger LOG = LoggerFactory.getLogger(Contact.class);
 	private static final String ADDRESS = "address";
 	private static final HashMap<Integer, Contact> contactsByAddr = new HashMap<Integer, Contact>();
 	private boolean state = false;

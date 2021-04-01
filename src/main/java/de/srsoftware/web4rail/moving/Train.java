@@ -979,7 +979,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		autopilot |= auto;
 		if (isSet(nextPreparedRoute)) {
 			LOG.debug("starting nextPreparedRoute: {}",nextPreparedRoute);
-			if (nextPreparedRoute.start()) {
+			if (nextPreparedRoute.startNow()) {
 				LOG.debug("dropped nextPreparedRoute (was {})",nextPreparedRoute);
 				nextPreparedRoute = null;
 				return null;

@@ -22,7 +22,6 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.actions.BrakeStart;
-import de.srsoftware.web4rail.actions.DelayedAction;
 import de.srsoftware.web4rail.actions.FinishRoute;
 import de.srsoftware.web4rail.actions.PreserveRoute;
 import de.srsoftware.web4rail.actions.SetSignal;
@@ -76,6 +75,12 @@ public class Route extends BaseClass {
 
 	private static final String ROUTE_SETUP = "route_setup";
 
+	private static final String MIN_START_DELAY = "min_start_delay";
+
+	private static final String MAX_START_DELAY = "max_start_delay";
+
+	private static final String STARt_DELAY = "start_delay";
+
 	private static HashMap<Id, String> names = new HashMap<Id, String>(); // maps id to name. needed to keep names during plan.analyze()
 
 	private HashMap<String,Integer>        brakeTimes = new HashMap<String, Integer>();
@@ -85,17 +90,17 @@ public class Route extends BaseClass {
 	private boolean                        disabled = false;
 	private Block                          endBlock = null;
 	public  Direction					   endDirection;
+	private Route                          nextPreparedRoute = null;
+	private RoutePrepper                   nextRoutePrepper = null;
 	private Vector<Tile>                   path;
 	private Vector<Signal>                 signals;
 	private HashMap<String,ActionList>     triggeredActions = new HashMap<String, ActionList>();
 	private HashMap<Turnout,Turnout.State> turnouts;
 	private Block                          startBlock = null;
+	private Range                          startDelay = null;
 	public  Direction 					   startDirection;
 	private HashSet<Contact>			   triggeredContacts = new HashSet<>();
 
-	private Route nextPreparedRoute;
-
-	private RoutePrepper nextRoutePrepper;
 	
 	public Route() {
 		conditions = new ConditionList();
@@ -303,12 +308,8 @@ public class Route extends BaseClass {
 			add(ROUTE_SETUP,new SetTurnout(this).setTurnout(turnout).setState(state));
 		}
 		for (Signal signal : signals) add(ROUTE_SETUP,new SetSignal(this).set(signal).to(Signal.GREEN));
-		if (signals.isEmpty()) {
-			add(ROUTE_START,new SetSpeed(this).to(999));
-		} else {
-			DelayedAction da = new DelayedAction(this).setMinDelay(1000).setMaxDelay(7500);
-			add(ROUTE_START,da.add(new SetSpeed(this).to(999)));
-		}
+		startDelay = signals.isEmpty() ? new Range(0,0) : new Range(1000,7500); 
+		add(ROUTE_START,new SetSpeed(this).to(999));
 		return this;
 	}
 
@@ -485,6 +486,7 @@ public class Route extends BaseClass {
 		if (isSet(name)) json.put(NAME, name);
 		
 		if (disabled) json.put(DISABLED, true);
+		if (isSet(startDelay)) json.put(STARt_DELAY, startDelay.json());
 
 		return json;
 	}
@@ -618,6 +620,7 @@ public class Route extends BaseClass {
 			JSONObject dummy = json.getJSONObject(BRAKE_TIMES);
 			dummy.keySet().forEach(key -> brakeTimes.put(key, dummy.getInt(key)));
 		}
+		if (json.has(STARt_DELAY)) startDelay = new Range().load(json.getJSONObject(STARt_DELAY));
 		return plan.registerRoute(this);
 	}
 
@@ -725,7 +728,12 @@ public class Route extends BaseClass {
 		formInputs.add(t("Name"),nameSpan);
 		Checkbox checkbox = new Checkbox(DISABLED, t("disabled"), disabled);
 		if (disabled) checkbox.clazz("disabled");
-		formInputs.add(t("State"),checkbox);		
+		formInputs.add(t("State"),checkbox);
+		
+		Tag span = new Tag("span");
+		new Input(MIN_START_DELAY,isSet(startDelay) ? startDelay.min : 0).numeric().addTo(span).content(" ... ");
+		new Input(MAX_START_DELAY,isSet(startDelay) ? startDelay.max : 0).numeric().addTo(span).content(" ms");
+		formInputs.add(t("Start delay"),span);
 		
 		postForm.add(basicProperties());
 		if (!turnouts.isEmpty()) postForm.add(turnouts());
@@ -846,9 +854,10 @@ public class Route extends BaseClass {
 		if (parts.length>1) name(parts[0].trim()+" - "+parts[parts.length-1].trim());
 		return this;
 	}
-
-	public boolean start() {
-		LOG.debug("{}.start()",this);
+	
+	public boolean startNow() {		
+		LOG.debug("{}.startNow()",this);
+		
 		if (isNull(context) || context.invalidated()) {
 			LOG.debug("Invalid context: {}",context);
 			return false;
@@ -876,6 +885,11 @@ public class Route extends BaseClass {
 		
 		context.waitTime(endBlock.getWaitTime(train, endDirection).random());
 		return true;
+	}
+
+	public boolean start() {		
+		if (isSet(startDelay)) sleep(startDelay.random());
+		return startNow();
 	}
 
 	public Block startBlock() {
@@ -916,11 +930,35 @@ public class Route extends BaseClass {
 		
 		disabled = "on".equals(params.get(DISABLED));
 		
+		String delay = params.get(MIN_START_DELAY);
+		if (isSet(delay)) try {
+			int min = Integer.parseInt(delay);
+			if (isNull(startDelay)) {
+				startDelay = new Range(min, min);
+			} else {
+				startDelay.min = min;
+				startDelay.validate();
+			}
+		} catch (NumberFormatException e) {}
+
+		delay = params.get(MAX_START_DELAY);
+		if (isSet(delay)) try {
+			int max = Integer.parseInt(delay);
+			if (isNull(startDelay)) {
+				startDelay = new Range(max, max);
+			} else {
+				startDelay.max = max;
+				startDelay.validate();
+			}
+		} catch (NumberFormatException e) {}
+
+		
 		Condition condition = Condition.create(params.get(REALM_CONDITION));
 		if (isSet(condition)) {
 			condition.parent(this);
 			conditions.add(condition);
 		}
+		
 		super.update(params);
 		return properties();
 	}

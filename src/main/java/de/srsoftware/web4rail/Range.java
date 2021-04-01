@@ -13,8 +13,18 @@ public class Range extends BaseClass{
 	private static final String MAX = "max";
 	private static final String MIN = "min";
 	
-	public int min=0,max=10000;
+	public int min,max;
 	
+	public Range(int min, int max) {
+		this.min = min;
+		this.max = max;
+		validate();
+	}
+
+	public Range() {
+		this(0,10_000);
+	}
+
 	public JSONObject json() {
 		return new JSONObject(Map.of(MIN,min,MAX,max));
 	}

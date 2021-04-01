@@ -15,7 +15,7 @@ public abstract class TurnoutL extends Turnout {
 	@Override
 	public Object click(boolean shift) throws IOException {
 		Object o = super.click(shift);
-		if (!shift) state(state == State.STRAIGHT ? State.LEFT : State.STRAIGHT);
+		state(state == State.STRAIGHT ? State.LEFT : State.STRAIGHT,shift);
 		return o;
 	}
 	

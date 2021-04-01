@@ -326,6 +326,7 @@ Start actions : Start-Aktionen
 Stock ID : Inventarnummer
 Stop settings : Halte-Einstellungen
 Start autopilot : Autopilot starten
+Start delay : Start-Verzögerung
 Started {} : {} gestartet
 starting delay : Anfahrverzögerung
 State : Status

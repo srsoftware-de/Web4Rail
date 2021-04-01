@@ -15,13 +15,12 @@ public abstract class TurnoutR extends Turnout {
 	@Override
 	public Object click(boolean shift) throws IOException {
 		Object o = super.click(shift);
-		if (!shift) state(state == State.STRAIGHT ? State.RIGHT : State.STRAIGHT);
+		state(state == State.STRAIGHT ? State.RIGHT : State.STRAIGHT,shift);
 		return o;
 	}
 	
 	@Override
 	public String commandFor(State newState) {
-
 		switch (newState) {
 		case RIGHT:			
 			return "SET {} GA "+address+" "+portB+" 1 "+delay;
