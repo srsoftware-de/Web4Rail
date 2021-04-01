@@ -55,7 +55,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private static final String NAME = "name";
 
-	public static int defaultEndSpeed;
+	public static int defaultEndSpeed = 10;
+	public static int defaultSpeedStep = 10;
 	private String name = null;
 	
 	
@@ -132,7 +133,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_TOGGLE_F4:
 				return train.toggleFunction(4);
 			case ACTION_FASTER10:
-				return train.faster(10);
+				return train.faster(Train.defaultSpeedStep);
 			case ACTION_MOVE:
 				return train.setDestination(params);
 			case ACTION_PROPS:
@@ -142,7 +143,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_REVERSE:
 				return train.reverse().properties();
 			case ACTION_SLOWER10:
-				return train.slower(10);
+				return train.slower(Train.defaultSpeedStep);
 			case ACTION_START:
 				return train.properties(train.start(false));
 			case ACTION_STOP:

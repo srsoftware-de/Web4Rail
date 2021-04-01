@@ -156,6 +156,7 @@ public class Plan extends BaseClass{
 	private static final String FINAL_SPEED = "final_speed"; 
 	private static final String FREE_BEHIND_TRAIN = "free_behind_train";
 	private static final String RENAME = "rename";
+	private static final String SPEED_STEP = "speed_step";
 	private String name = DEFAULT_NAME;
 	
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
@@ -496,6 +497,7 @@ public class Plan extends BaseClass{
 		
 		return new JSONObject()
 				.put(FINAL_SPEED, Train.defaultEndSpeed) 
+				.put(SPEED_STEP, Train.defaultSpeedStep)
 				.put(FREE_BEHIND_TRAIN, Route.freeBehindTrain)
 				.put(LENGTH_UNIT, lengthUnit)
 				.put(SPEED_UNIT, speedUnit)
@@ -525,6 +527,7 @@ public class Plan extends BaseClass{
 		if (json.has(LENGTH_UNIT)) lengthUnit = json.getString(LENGTH_UNIT);
 		if (json.has(SPEED_UNIT)) speedUnit = json.getString(SPEED_UNIT);
 		if (json.has(FINAL_SPEED)) Train.defaultEndSpeed = json.getInt(FINAL_SPEED);
+		if (json.has(SPEED_STEP)) Train.defaultSpeedStep = json.getInt(SPEED_STEP);
 		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
 		
 		try {
@@ -704,6 +707,7 @@ public class Plan extends BaseClass{
 		formInputs.add(null, new Input(ACTION,ACTION_UPDATE));
 		formInputs.add(t("Length unit"),new Input(LENGTH_UNIT, lengthUnit));
 		formInputs.add(t("Speed unit"),new Input(SPEED_UNIT, speedUnit));
+		formInputs.add(t("Speed step"),new Input(SPEED_STEP, Train.defaultSpeedStep).attr("title", t("Speeds are always increadsed/decreased by this value")));
 		formInputs.add(t("Lower speed limit"),new Input(FINAL_SPEED, Train.defaultEndSpeed).attr("title", t("Final speed after breaking, before halting")));
 		formInputs.add(t("Free tiles behind train"),new Checkbox(FREE_BEHIND_TRAIN, t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished."), Route.freeBehindTrain));
 		
@@ -1017,6 +1021,7 @@ public class Plan extends BaseClass{
 		
 		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.get(LENGTH_UNIT);
 		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);
+		if (params.containsKey(SPEED_STEP)) Train.defaultSpeedStep = Integer.parseInt(params.get(SPEED_STEP));
 		if (params.containsKey(FINAL_SPEED)) Train.defaultEndSpeed = Integer.parseInt(params.get(FINAL_SPEED)); 
 		Route.freeBehindTrain = "on".equalsIgnoreCase(params.get(FREE_BEHIND_TRAIN));
 		

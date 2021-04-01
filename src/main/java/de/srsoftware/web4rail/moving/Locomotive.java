@@ -63,7 +63,7 @@ public class Locomotive extends Car implements Constants,Device{
 				new Locomotive(params.get(Locomotive.NAME)).parent(plan).register();
 				return Locomotive.manager();
 			case ACTION_FASTER10:
-				return loco.faster(10);
+				return loco.faster(Train.defaultSpeedStep);
 			case ACTION_MOVE:
 				return loco.moveUp();
 			case ACTION_PROGRAM:
@@ -71,7 +71,7 @@ public class Locomotive extends Car implements Constants,Device{
 			case ACTION_PROPS:
 				return loco == null ? Locomotive.manager() : loco.properties();
 			case ACTION_SLOWER10:
-				return loco.faster(-10);
+				return loco.faster(-Train.defaultSpeedStep);
 			case ACTION_STOP:
 				return loco.stop();
 			case ACTION_TOGGLE_F1:
@@ -134,10 +134,10 @@ public class Locomotive extends Car implements Constants,Device{
 		Tag par = new Tag("p");
 		
 		params.put(ACTION, ACTION_FASTER10);
-		new Button(t("Faster (10 {})",speedUnit),params).addTo(par);			
+		new Button(t("Faster ({} {})",Train.defaultSpeedStep,speedUnit),params).addTo(par);			
 
 		params.put(ACTION, ACTION_SLOWER10);
-		new Button(t("Slower (10 {})",speedUnit),params).addTo(par);			
+		new Button(t("Slower ({} {})",Train.defaultSpeedStep,speedUnit),params).addTo(par);			
 		
 		par.addTo(fieldset);
 

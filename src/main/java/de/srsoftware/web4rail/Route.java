@@ -253,7 +253,7 @@ public class Route extends BaseClass {
 			table.addRow(t,isSet(fTime)? fTime+NBSP+"ms" : "–",isSet(rTime)? fTime+NBSP+"ms" : "–");			
 		}
 		table.clazz("brake-times").addTo(fieldset);
-		new Tag("p").content(t("1) Duration between 5 {} steps during brake process.",speedUnit)).addTo(fieldset);
+		new Tag("p").content(t("1) Duration between {} {} steps during brake process.",Train.defaultSpeedStep,speedUnit)).addTo(fieldset);
 		return fieldset;
 	}
 				

@@ -12,8 +12,6 @@ public class BrakeProcess extends BaseClass implements Runnable{
 
 	private static final Logger LOG = LoggerFactory.getLogger(BrakeProcess.class);
 
-	private static final int SPEED_STEP = 10;
-	
 	public static int defaultTimeStep = 500;
 	private Train train;
 	private int targetSpeed = Train.defaultEndSpeed;
@@ -41,7 +39,7 @@ public class BrakeProcess extends BaseClass implements Runnable{
 		int s = startSpeed;
 		while (s > Train.defaultEndSpeed) {
 			dist += s*ts;
-			s -= SPEED_STEP;
+			s -= Train.defaultSpeedStep;
 		}
 		LOG.debug("Estimated distamce with {} ms timestep: {}",ts,dist);
 		return dist;
@@ -64,7 +62,7 @@ public class BrakeProcess extends BaseClass implements Runnable{
 			sleep(timeStep);
 			lastSpeed = train.speed;
 			updateDistance();
-			if (lastSpeed > targetSpeed) lastSpeed -= SPEED_STEP;
+			if (lastSpeed > targetSpeed) lastSpeed -= Train.defaultSpeedStep;
 			if (ended) break;
 			if (lastSpeed <= targetSpeed && (ended = true)) lastSpeed = targetSpeed;
 			train.setSpeed(lastSpeed);
