@@ -141,6 +141,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_QUIT:
 				return train.properties(train.quitAutopilot());
 			case ACTION_REVERSE:
+				train.quitAutopilot();
 				return train.reverse().properties();
 			case ACTION_SLOWER10:
 				return train.slower(Train.defaultSpeedStep);
@@ -748,12 +749,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		button(t("reverse"), Map.of(ACTION,ACTION_REVERSE)).title(t("Turns the train, as if it went through a loop.")).addTo(directionLi).addTo(propList);
 
 		Tag dest = new Tag("li").content(t("Destination")+COL);
-		if (isNull(destination)) {
-			button(t("Select from plan"),Map.of(ACTION,ACTION_MOVE,ASSIGN,DESTINATION)).addTo(dest);
-		} else {
+		if (isSet(destination)) {
 			link("span",destination,Map.of(REALM,REALM_PLAN,ID,destination.id().toString(),ACTION,ACTION_CLICK)).addTo(dest);
 			new Button(t("Drop"),Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_MOVE,DESTINATION,"")).addTo(dest);
 		}
+		button(t("Select from plan"),Map.of(ACTION,ACTION_MOVE,ASSIGN,DESTINATION)).addTo(dest);
 		
 		dest.addTo(propList);		
 		if (isSet(route)) route.link("li", route).addTo(propList);

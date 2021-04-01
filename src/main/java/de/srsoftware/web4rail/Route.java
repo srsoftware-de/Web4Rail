@@ -888,7 +888,14 @@ public class Route extends BaseClass {
 		return true;
 	}
 
-	public boolean start() {		
+	public boolean start() {
+		if (isNull(context) || context.invalidated()) {
+			LOG.debug("Invalid context: {}",context);
+			return false;
+		}
+		
+		Train train = context.train();
+		if (train.direction() != startDirection) train.turn();
 		if (isSet(startDelay)) sleep(startDelay.random());
 		return startNow();
 	}

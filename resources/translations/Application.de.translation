@@ -172,6 +172,7 @@ Falls aktiviert, wird die Strecke anhand von Zug- und Kachel-Länge hinter dem Z
 internal contacts : interne Kontakte
 inverted : invertiert
 Inverts the direction {} is heading to. : Kehrt die Richtung, in welche {} fährt, um.
+{} is not a block! : {} ist kein Block!
 {} is off : {} ist Aus
 {} is on : {} ist Ein
 {} is oriented {} : {} ist {} gerichtet
