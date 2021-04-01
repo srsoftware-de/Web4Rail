@@ -23,3 +23,9 @@ Das Signal für die Modellbahn wird mittels [SRCPD] erzeugt – dieses Programm 
 ## Entwicklungsstand
 
 Das Programm befindet sich derzeit noch in der Entwicklung.
+
+## Links
+
+* [Website](https://srsoftware.de/web4rail)
+* [Github](https://github.com/srsoftware-de/Web4Rail)
+* [Youtube-Kanal](https://www.youtube.com/playlist?list=PL8rWmE3MFXnXHPJzXLqMuBU732eJApfL8)
