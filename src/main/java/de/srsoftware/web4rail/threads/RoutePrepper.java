@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
@@ -30,7 +31,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		
 		@Override
 		public String toString() {
-			return route+"(score: "+score+")";
+			return route.toString().replace(")", ", score: "+score+")");
 		}
 	}
 	
@@ -55,17 +56,17 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		boolean error = false;
 		
 		Block startBlock = c.block();
-		if (isNull(startBlock) && (error=true)) LOG.warn("RoutePrepper.findRoute(…) called without a startBlock!");
+		if (isNull(startBlock) && (error=true)) LOG.warn("RoutePrepper.availableRoutes(…) called without a startBlock!");
 		
 		Train train = c.train();
-		if (isNull(train) && (error=true)) LOG.warn("RoutePrepper.findRoute(…) called without a startBlock!");
+		if (isNull(train) && (error=true)) LOG.warn("RoutePrepper.availableRoutes(…) called without a startBlock!");
 		
 		if (error) return new TreeMap<>();
 		
 		Block destination = train.destination();
 		
 		Direction startDirection = c.direction();
-		LOG.debug("RoutePrepper.findRoute({},{},{}), dest = {}",startBlock,startDirection,train,destination);
+		LOG.debug("RoutePrepper.availableRoutes({},{},{}), dest = {}",startBlock,startDirection,train,destination);
 		
 		TreeMap<Integer, LinkedList<Route>> candidates = routesFrom(c);
 		
@@ -76,12 +77,23 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		
 		LOG.debug("{} is heading for {}, starting breadth-first search…",train,destination);
 		
-		HashMap<Route,Candidate> predecessors = new HashMap<>();
+		HashMap<Route,Candidate> predecessors = new HashMap<>() {
+			public String toString() {
+				return entrySet().stream()
+					.sorted((e1,e2) -> e1.getValue().toString().compareTo(e2.getValue().toString()))
+					.map(entry -> entry.getValue()+" → "+entry.getKey())
+					.collect(Collectors.joining("\n"));
+			};
+		};
+		candidates.entrySet().stream().flatMap(entry -> entry.getValue().stream()).forEach(route -> predecessors.put(route, null));
 		TreeMap<Integer,LinkedList<Route>> routesToDest = new TreeMap<>();
 		
 		int level = 0;
 		
 		while (!candidates.isEmpty()) {
+			LOG.debug("Candidates for level {}:",level);
+			candidates.entrySet().stream().flatMap(entry -> entry.getValue().stream()).forEach(route -> LOG.debug(" - {}",route));
+
 			TreeMap<Integer, LinkedList<Route>> queue = new TreeMap<>();
 			
 			while (!candidates.isEmpty()) {
@@ -99,8 +111,10 @@ public class RoutePrepper extends BaseClass implements Runnable{
 					// However it might be the last route in a long path.
 					// Thus, we need to get the first route in this path:					
 					while (predecessors.containsKey(candidate.route)) { 
-						candidate = predecessors.get(candidate.route);
-						LOG.debug("   - predecessed by {}",candidate);
+						Candidate predecessor = predecessors.get(candidate.route);
+						if (isNull(predecessor)) break;
+						LOG.debug("   - {} is predecessed by {}",candidate,predecessor);
+						candidate = predecessor;
 						score += candidate.score;
 					}
 					
@@ -111,15 +125,18 @@ public class RoutePrepper extends BaseClass implements Runnable{
 					continue;
 				}
 				
-				LOG.debug(" - {} not reaching {}, adding ongoing routes to queue:",candidate,destination);
+				LOG.debug("   - {} not reaching {}, adding ongoing routes to queue:",candidate,destination);
 				TreeMap<Integer, LinkedList<Route>> successors = routesFrom(c.clone().block(endBlock).direction(endDir));
 				while (!successors.isEmpty()) {
 					int score = successors.firstKey();
 					LinkedList<Route> best = successors.remove(score);
 					score -= 25; // Nachfolgeroute
 					for (Route route : best) {
-						LOG.debug("   - queueing {} with score {}",route,score);
-						if (predecessors.containsKey(route)) continue; // Route wurde bereits besucht
+						LOG.debug("     - queueing {} with score {}",route,score);
+						if (predecessors.containsKey(route)) {
+							LOG.debug("this route already has a predecessor: {}",predecessors.get(route));
+							continue; // Route wurde bereits besucht
+						}
 						predecessors.put(route, candidate);
 						
 						LinkedList<Route> list = queue.get(score);
@@ -132,11 +149,11 @@ public class RoutePrepper extends BaseClass implements Runnable{
 			if (!routesToDest.isEmpty()) return routesToDest;
 			LOG.debug("No routes to {} found with distance {}!",destination,level);
 			level ++;
-			candidates = queue;
+			candidates = queue;			
 		}
 		LOG.debug("No more candidates for routes towards {}!",destination);
 		
-		return new TreeMap<>();
+		return routesToDest;
 		
 	}
 	
@@ -244,19 +261,19 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		
 		Direction startDirection = c.direction();
 		
-		LOG.debug("RoutePrepper.routesFrom({},{},{}), dest = {}",startBlock,startDirection,train,destination);
+		LOG.debug("     RoutePrepper.routesFrom({},{},{}), dest = {}",startBlock,startDirection,train,destination);
 			
 		TreeMap<Integer, LinkedList<Route>> routes = new TreeMap<>();
 		
 		for (Route route : startBlock.leavingRoutes()) {
-			LOG.debug(" - evaluating {}",route);
+			LOG.debug("     - evaluating {}",route);
 
 			int score = 0;
 			
 			if (!route.allowed(new Context(train).block(startBlock).direction(startDirection))) {
-				LOG.debug("   - {} not allowed for {}", route, train);
+				LOG.debug("       - {} not allowed for {}", route, train);
 				if (route.endBlock() != destination) continue;
-				LOG.debug("       …overridden by destination of train!", route, train);
+				LOG.debug("           …overridden by destination of train!", route, train);
 			}
 			
 			if (route.endBlock() == destination) score = 100_000;
@@ -269,7 +286,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 			
 			LinkedList<Route> routesForScore = routes.get(score);
 			if (isNull(routesForScore)) routes.put(score, routesForScore = new LinkedList<Route>());
-			LOG.debug("   → candidate!");
+			LOG.debug("       → candidate!");
 			routesForScore.add(route);
 		}
 		

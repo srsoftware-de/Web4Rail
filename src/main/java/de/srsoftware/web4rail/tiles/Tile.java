@@ -290,8 +290,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 	}
 
 	@Override
-	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,
-		String... errors) {
+	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm, String... errors) {
 		Fieldset fieldset = null;
 
 		if (isSet(occupyingTrain)) {
@@ -312,12 +311,13 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		if (isSet(fieldset)) preForm.add(fieldset);
 
 		if (isTrack) {
-			formInputs.add(t("Length"),
-				new Input(LENGTH, length).numeric().addTo(new Tag("span")).content(NBSP + lengthUnit));
+			formInputs.add(t("Length"), new Input(LENGTH, length).numeric().addTo(new Tag("span")).content(NBSP + lengthUnit));
 			Checkbox checkbox = new Checkbox(DISABLED, t("disabled"), disabled);
 			if (disabled) checkbox.clazz("disabled");
 			formInputs.add(t("State"), checkbox);
 		}
+		
+		if (isSet(lockingTrain())) formInputs.add(t("Locked by {}",lockingTrain()), button(t("free"), Map.of(REALM,REALM_PLAN,ACTION,ACTION_FREE)));
 
 		List<Direction> pd = possibleDirections();
 		if (!pd.isEmpty()) {

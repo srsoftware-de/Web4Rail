@@ -203,6 +203,10 @@ public class Plan extends BaseClass{
 			Tile tile = get(Id.from(params), false);
 			if (tile instanceof Bridge) return ((Bridge)tile).requestConnect();
 			break;
+		case ACTION_FREE:
+			Tile t = get(Id.from(params), false);
+			t.free(t.lockingTrain());
+			return t.properties();
 		case ACTION_MOVE:
 			return moveTile(params.get(DIRECTION),Id.from(params));
 		case ACTION_PROPS:

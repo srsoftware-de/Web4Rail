@@ -873,6 +873,7 @@ public class Route extends BaseClass {
 		triggeredContacts.clear();
 
 		ActionList startActions = triggeredActions.get(ROUTE_START);
+		if (train.direction() != startDirection) train.turn();
 		
 		if (isSet(startActions)) {
 			context.route(this);

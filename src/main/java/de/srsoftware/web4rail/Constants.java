@@ -21,6 +21,7 @@ public interface Constants {
 	public static final String ACTION_DROP = "drop";
 	public static final String ACTION_EMERGENCY = "emergency";
 	public static final String ACTION_FASTER10 = "faster10";
+	public static final String ACTION_FREE = "free";
 	public static final String ACTION_MOVE = "move";
 	public static final String ACTION_OPEN = "open";
 	public static final String ACTION_POWER = "power";

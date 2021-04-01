@@ -497,7 +497,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		Integer waitTime = route.waitTime();
 		nextPreparedRoute = route.dropNextPreparedRoute();
 		if (isSet(nextPreparedRoute)) LOG.debug("nextPreparedRoute is now {}",nextPreparedRoute);
-		if ((!autopilot)|| isNull(nextPreparedRoute) || (isSet(waitTime) && waitTime > 0)) setSpeed(0);
+		if ((!autopilot) || isNull(nextPreparedRoute) || (isSet(waitTime) && waitTime > 0)) setSpeed(0);
 		route = null;
 		endBlock.setTrain(this);
 		currentBlock = endBlock;
