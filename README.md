@@ -8,7 +8,7 @@ Web4Rail ist eine Modellbahn-Steuerungssoftware, welche dafür zugeschnitten ist
 
 Es ist eine Client-Server-Anwendung. Das bedeutet:
 
-* Die Anwendung wird zentral auf einem Computer ausgeführt, welcher an die digital Modellbahn angeschlossen ist.
+* Die Anwendung wird zentral auf einem Computer ausgeführt, welcher an die digitale Modellbahn angeschlossen ist.
 * Zu Steuerung durch den Nutzer kann ein beliebiges internetfähiges Gerät (Desktop-PC, Laptop, Tablet, Smartphone, TV, ...) sich mit diesem Computer verbinden und die Kontrolle übernehmen
 * Es können auch mehrere Geräte/Personen gleichzeitig auf die Steuerung der Modellbahn zugreifen – damit ist ein Mehrbenutzer-Betrieb möglich
 
