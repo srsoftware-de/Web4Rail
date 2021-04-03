@@ -16,7 +16,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.keawe.tools.translations.Translation;
+import de.srsoftware.tools.translations.Translation;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Constants;

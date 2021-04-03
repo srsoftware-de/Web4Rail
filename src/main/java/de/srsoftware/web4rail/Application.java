@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
-import de.keawe.localconfig.Configuration;
+import de.srsoftware.localconfig.Configuration;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.conditions.Condition;

@@ -24,7 +24,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.keawe.localconfig.Configuration;
+import de.srsoftware.localconfig.Configuration;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Train;
