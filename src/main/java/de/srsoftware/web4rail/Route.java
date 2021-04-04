@@ -36,6 +36,7 @@ import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.threads.RoutePrepper;
+import de.srsoftware.web4rail.threads.Simulator;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.BlockContact;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -855,6 +856,10 @@ public class Route extends BaseClass {
 		return this;
 	}
 	
+	private void simulate() {
+		new Simulator(this);
+	}
+	
 	public boolean startNow() {		
 		LOG.debug("{}.startNow()",this);
 		
@@ -885,6 +890,8 @@ public class Route extends BaseClass {
 		}
 		
 		context.waitTime(endBlock.getWaitTime(train, endDirection).random());
+		
+		if (!contacts.isEmpty() && contacts.stream().filter(contact -> contact.addr() != 0).findAny().isEmpty()) simulate();
 		return true;
 	}
 

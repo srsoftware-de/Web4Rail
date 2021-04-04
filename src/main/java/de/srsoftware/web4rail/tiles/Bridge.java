@@ -67,6 +67,20 @@ public abstract class Bridge extends Tile {
 	}
 	
 	@Override
+	public boolean lockFor(Context context, boolean downgrade) {
+		if (lockingTrain() == context.train()) return true;
+		if (!super.lockFor(context, downgrade)) return false;
+		return isSet(counterpart) ? counterpart.lockFor(context, downgrade) : true;
+	}
+	
+	@Override
+	public boolean reserveFor(Context context) {
+		if (reservingTrain() == context.train()) return true;
+		if (!super.reserveFor(context)) return false;		
+		return isSet(counterpart) ? counterpart.reserveFor(context) : true;
+	}
+	
+	@Override
 	public boolean setTrain(Train newTrain) {
 		if (occupyingTrain() == newTrain) return true;
 		if (!super.setTrain(newTrain)) return false;		

@@ -434,6 +434,10 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		plan.place(this);
 		return true;
 	}
+	
+	protected Train reservingTrain() {
+		return reservingTrain;
+	}
 
 	public TreeSet<Route> routes() {
 		return routes;
