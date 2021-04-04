@@ -43,6 +43,7 @@ public abstract class Bridge extends Tile {
 	
 	@Override
 	public boolean free(Train train) {
+		if (isFree()) return true;
 		if (!super.free(train)) return false;
 		return isSet(counterpart) ? counterpart.free(train) : true;
 	}

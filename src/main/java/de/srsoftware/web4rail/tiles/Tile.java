@@ -102,7 +102,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		if (isNull(oldTrain)) return false;
 		if (isSet(reservingTrain) && reservingTrain != oldTrain) return false;
 		if (isSet(lockingTrain)   && lockingTrain != oldTrain)   return false;
-		if (isSet(occupyingTrain) && occupyingTrain != oldTrain) return false;
+		if (isSet(occupyingTrain) && occupyingTrain != oldTrain) return false;		
 		reservingTrain = lockingTrain = occupyingTrain = null; 
 		plan.place(this);
 		return true;
@@ -130,6 +130,13 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 
 	public boolean isDisabled() {
 		return disabled;
+	}
+	
+	protected boolean isFree() {
+		if (isSet(lockingTrain)) return false;
+		if (isSet(reservingTrain)) return false;
+		if (isSet(occupyingTrain)) return false;
+		return true;
 	}
 
 	public boolean isFreeFor(Context newTrain) {
@@ -369,7 +376,27 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 
 		return super.properties(preForm, formInputs, postForm, errors);
 	}
+	
+	@Override
+	public BaseClass remove() {
+		while (!routes.isEmpty()) routes.first().remove();
+		return super.remove();
+	}
+	
+	@Override
+	public void removeChild(BaseClass child) {
+		String childAsString = child.toString();
+		if (childAsString.length() > 20) childAsString = childAsString.substring(0, 20) + "…";
+		LOG.debug("Removing {} from {}", childAsString, this);
+		if (child instanceof Route) routes.remove(child);
 
+		if (child == reservingTrain) reservingTrain = null;
+		if (child == lockingTrain) lockingTrain = null;
+		if (child == occupyingTrain) occupyingTrain = null;
+		super.removeChild(child);
+		plan.place(this);
+	}
+	
 	private static String replace(String line, Entry<String, Object> replacement) {
 		String key = replacement.getKey();
 		Object val = replacement.getValue();
@@ -387,6 +414,27 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		return line;
 	}
 
+	public boolean reserveFor(Context context) {
+		Train newTrain = context.train();
+		LOG.debug("{}.reserverFor({})",this,newTrain);
+		if (isNull(newTrain)) return false;
+		if (isSet(reservingTrain)) {
+			if (reservingTrain != newTrain) return debug("{} already reserved for  {}",this,reservingTrain);
+			return true; // already reserved for newTrain
+		}
+		if (isSet(lockingTrain)) {
+			if (lockingTrain != newTrain) return debug("{} already locked by {}",this,lockingTrain);
+			return true; // do not downgrade!
+		}
+		if (isSet(occupyingTrain)) {
+			if (occupyingTrain != newTrain && !newTrain.isShunting()) return debug("{} already occupied by {}",this,occupyingTrain);
+			return true; // do not downgrade!
+		}		
+		reservingTrain = newTrain;
+		plan.place(this);
+		return true;
+	}
+
 	public TreeSet<Route> routes() {
 		return routes;
 	}
@@ -400,6 +448,13 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		file.close();
 	}
 
+	
+	public void setEnabled(boolean enabled) {
+		boolean show = (disabled == enabled);
+		disabled = !enabled;
+		if (show) plan.place(this);
+	}
+	
 	public boolean setTrain(Train newTrain) {
 		if (disabled) return false;
 		if (isNull(newTrain)) return false;		
@@ -478,55 +533,6 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		return t("{}({},{})", getClass().getSimpleName(), x, y);
 	}
 
-	@Override
-	public BaseClass remove() {
-		while (!routes.isEmpty()) routes.first().remove();
-		return super.remove();
-	}
-
-	@Override
-	public void removeChild(BaseClass child) {
-		String childAsString = child.toString();
-		if (childAsString.length() > 20) childAsString = childAsString.substring(0, 20) + "…";
-		LOG.debug("Removing {} from {}", childAsString, this);
-		if (child instanceof Route) routes.remove(child);
-
-		if (child == reservingTrain) reservingTrain = null;
-		if (child == lockingTrain) lockingTrain = null;
-		if (child == occupyingTrain) occupyingTrain = null;
-		super.removeChild(child);
-		plan.place(this);
-	}
-	
-
-
-	public boolean reserveFor(Context context) {
-		Train newTrain = context.train();
-		LOG.debug("{}.reserverFor({})",this,newTrain);
-		if (isNull(newTrain)) return false;
-		if (isSet(reservingTrain)) {
-			if (reservingTrain != newTrain) return debug("{} already reserved for  {}",this,reservingTrain);
-			return true; // already reserved for newTrain
-		}
-		if (isSet(lockingTrain)) {
-			if (lockingTrain != newTrain) return debug("{} already locked by {}",this,lockingTrain);
-			return true; // do not downgrade!
-		}
-		if (isSet(occupyingTrain)) {
-			if (occupyingTrain != newTrain && !newTrain.isShunting()) return debug("{} already occupied by {}",this,occupyingTrain);
-			return true; // do not downgrade!
-		}		
-		reservingTrain = newTrain;
-		plan.place(this);
-		return true;
-	}
-
-	public void setEnabled(boolean enabled) {
-		boolean show = (disabled == enabled);
-		disabled = !enabled;
-		if (show) plan.place(this);
-	}
-
 	public Tile update(HashMap<String, String> params) {
 		LOG.debug("{}.update({})", getClass().getSimpleName(), params);
 		String oneWayDir = params.get("oneway");
@@ -550,3 +556,4 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		return 1;
 	}
 }
+

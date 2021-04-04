@@ -1,4 +1,4 @@
-<configuration scan="true" scanPeriod="60 seconds"
+<configuration scan="true" scanPeriod="30 seconds"
 	debug="true">
 	<!-- scan="true" enables automatic updates if config file changes, see http://logback.qos.ch/manual/configuration.html -->
 	<appender name="STDOUT"
@@ -9,7 +9,7 @@
 		</encoder>
 		<filter class="de.srsoftware.web4rail.ThreadFilter">
 			<level>DEBUG</level>
-			<keywords>Brake, Contact, Feed, Route, Train</keywords>
+			<keywords>Brake, Contact, Feed, Route, e, u</keywords>
 		</filter>
 	</appender>
 
