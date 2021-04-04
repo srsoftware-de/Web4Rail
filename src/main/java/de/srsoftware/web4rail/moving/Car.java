@@ -102,8 +102,11 @@ public class Car extends BaseClass implements Comparable<Car>{
 	}
 	
 	public Object addTask(MaintnanceTask newTask) {
-		tasks.add(newTask);
-		return properties();
+		if (isSet(newTask))	{
+			tasks.add(newTask);
+			return properties();
+		}
+		return properties(t("Task name must not be empty"));
 	}
 	
 	public Car clone() {

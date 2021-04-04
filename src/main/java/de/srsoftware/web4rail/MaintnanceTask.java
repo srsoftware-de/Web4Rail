@@ -63,6 +63,7 @@ public class MaintnanceTask extends BaseClass{
 	
 	private static MaintnanceTask createTask(HashMap<String, String> params) {
 		String name = params.get(NAME);
+		if (isNull(name)||name.trim().isEmpty()) return null;
 		long interval = Long.parseLong(params.get(INTERVAL));
 		Car car = BaseClass.get(Id.from(params, REALM_CAR));
 		return new MaintnanceTask(car, name,interval);		
@@ -138,7 +139,6 @@ public class MaintnanceTask extends BaseClass{
 
 	public static AddSelect selector() {
 		AddSelect select = new AddSelect(NAME);
-		select.addOption(t("create new task type"));
 		tasks.forEach(task -> select.addOption(task));
 		return select;
 	}

@@ -152,7 +152,7 @@ Enter new name for plan : Neuen Namen für den Plan eingeben
 executed : ausgeführt
 extended address : erweiterte Adresse
 export : exportieren
-Faster (10 {}) : 10 {} schneller
+Faster ({} {}) : {} {} schneller
 Final speed after breaking, before halting : Endgeschwindigkeit nach Bremsvorgang, vor dem Anhalten
 FinishRoute : Route abschließen
 Firing {} : starte {}
@@ -323,7 +323,7 @@ Signals : Signale
 simplify all names : alle Namen vereinfachen
 simplify name : Name vereinfachen
 Simulating movement of {}... : Simuliere Fahrt von {}...
-Slower (10 {}) : 10 {} langsamer
+Slower ({} {}) : {} {} langsamer
 SOUTH : Süden
 Speed unit : Geschwindigkeits-Einheit
 Split behind : Nach 
@@ -360,6 +360,7 @@ SYSTEM : Betriebssystem
 Tag : Markierung
 Tags : Markierungen
 Task : Aufgabe
+Task name must not be empty : Aufgaben-Name darf nicht leer sein
 Task type : Aufgabe
 Text to display on clients : Text, welcher auf den Clients angezeigt werden soll
 Text to show on display : Text, welcher in der Anzeige dargestellt werden soll
