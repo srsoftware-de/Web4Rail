@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.srsoftware</groupId>
 	<artifactId>web4rail</artifactId>
-	<version>1.4.13</version>
+	<version>1.4.14</version>
 	<name>Web4Rail</name>
 	<packaging>jar</packaging>
 	<description>Java Model Railway Control</description>
@@ -58,11 +58,11 @@
 			<artifactId>json</artifactId>
 			<version>20200518</version>
 		</dependency>
-		<dependency> 
-  <groupId>ch.qos.logback</groupId>
-  <artifactId>logback-classic</artifactId>
-  <version>1.2.3</version>
-</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.2.3</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -99,6 +99,16 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.4.0</version>
+				<configuration>
+					<mainClass>de.srsoftware.web4rail.Application</mainClass>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>
