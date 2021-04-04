@@ -229,7 +229,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		boolean first = true;
 		for (Car car : cars) {
-			Tag link = car.link(car.name()+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")"));
+			Tag link = car.link(car.name()+(car.needsMaintenance()?"⚠":"")+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")"));
 			Tag buttons = new Tag("span");
 			
 			car.button(t("turn within train"),Map.of(ACTION,ACTION_TURN)).addTo(buttons);
@@ -390,6 +390,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String directedName() {
 		String result = name();
+		if (needsMainenance()) result+="⚠";
 		String mark = autopilot ? "ⓐ" : "";
 		if (isNull(direction)) return result;
 		switch (direction) {
@@ -516,6 +517,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 				}
 			};
 		}
+		
+		long len = endedRoute.length();
+		if (len>0) cars.forEach(car -> car.addDistance(len));
 	}
 
 	private Tag faster(int steps) {
@@ -733,6 +737,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 	
+	private boolean needsMainenance() {
+		for (Car car: cars) {
+			if (car.needsMaintenance()) return true;
+		}
+		return false;
+	}
+	
 	public boolean onTrace(Tile t) {
 		return trace.contains(t);
 	}
@@ -783,7 +794,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		formInputs.add(t("Tags"), new Input(TAGS,String.join(", ", tags)));
 		
 		if (this.hasLoco())	preForm.add(Locomotive.cockpit(this));
-		postForm.add(propList.addTo(new Fieldset(t("other train properties")).id("props-other")));
+		postForm.add(propList.addTo(new Fieldset(t("other train properties")+(needsMainenance()?NBSP+"⚠":"")).id("props-other")));
 		postForm.add(brakeTimes());
 		postForm.add(blockHistory());
 		

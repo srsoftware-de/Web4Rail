@@ -130,9 +130,11 @@ disable {} : {} deaktivieren
 disabled routes : deaktivierte Fahrstraßen
 DisableEnableBlock : Block (de)aktivieren
 Display "{}" on {}. : „{}“ auf {} anzeigen.
+driven distance : zurückgelegte Strecke
 Drop : Verwerfen
 Drop brake times : Bremszeiten löschen
 Dropped destination of {}. : Ziel von {} verworfen.
+due after : fällig ab
 1) Duration between 5 {} steps during brake process. : 1) Zeit zwischen 5 {}-Schritten beim Bremsvorgang.
 EAST : Osten
 edit : bearbeiten
@@ -147,6 +149,7 @@ enable {} : {} aktivieren
 Engage {} : {} aktivieren
 EngageDecoupler : Entkuppler aktivieren
 Enter new name for plan : Neuen Namen für den Plan eingeben
+executed : ausgeführt
 extended address : erweiterte Adresse
 export : exportieren
 Faster (10 {}) : 10 {} schneller
@@ -156,6 +159,7 @@ Firing {} : starte {}
 For each {} do : Mit jedem {}
 forward : vorwärts
 Found {} routes. : {} Routen gefunden.
+free : frei machen
 FreeStartBlock : Start-Block freigeben
 Free tiles behind train : Kacheln hinter dem Zug freigeben
 Fullscreen : Vollbild
@@ -170,6 +174,7 @@ If car of train\: inspect car number : Falls Fahrzeug aus Zug: Untersuche Fahrze
 If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.
 Falls aktiviert, wird die Strecke anhand von Zug- und Kachel-Länge hinter dem Zug freigegeben, Falls deaktiviert wird die Strecke hinter dem Zug erst bei Abschluss der Route freigegeben.
 internal contacts : interne Kontakte
+Interval : Intervall
 inverted : invertiert
 Inverts the direction {} is heading to. : Kehrt die Richtung, in welche {} fährt, um.
 {} is not a block! : {} ist kein Block!
@@ -181,6 +186,7 @@ known locomotives : bekannte Lokomotiven
 known trains : bekannte Züge
 Label for state {} : Beschriftung für Status {}
 Last blocks : Letzte Blöcke
+Last execution : letzte Ausführung
 last parked train : letzten geparkten Zug
 learn : lernen
 LEFT : links
@@ -195,6 +201,7 @@ Locomotives : Lokomotiven
 Locomotives and cars : Lokomotiven und Waggons
 Loop : Wiederholung
 Lower speed limit : Minimale Geschwindigkeit
+Maintenance : Wartung
 Manage cars : Waggons verwalten
 Manage locos : Lokomotiven verwalten
 Manage trains : Züge verwalten
@@ -203,6 +210,7 @@ Maximum Speed : Höchstgeschwindigkeit
 maximum speed v<sub>max</sub> : Höchstgeschwindigkeit v<sub>max</sub>
 Maximum train length : maximale Zug-Länge
 mid speed v<sub>mid</sub> : mittlere Geschwindigeit v<sub>mid</sub>
+mileage : Laufleistung
 Minimum delay : minimale Verzögerung
 Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block. : Minamle und maximale Block-Haltezeit (in Millisekunden) für Züge mit der entsprchender Markierung.
 minimum starting voltage v<sub>min</sub> : Mindestanfahrspannung v<sub>min</sub>
@@ -351,6 +359,8 @@ Switch power on : Strom anschalten
 SYSTEM : Betriebssystem
 Tag : Markierung
 Tags : Markierungen
+Task : Aufgabe
+Task type : Aufgabe
 Text to display on clients : Text, welcher auf den Clients angezeigt werden soll
 Text to show on display : Text, welcher in der Anzeige dargestellt werden soll
 Tile(s) : Kachel(n)

@@ -2,6 +2,7 @@ package de.srsoftware.web4rail;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -566,6 +567,11 @@ public abstract class BaseClass implements Constants{
 		}
 		return Translation.get(Application.class, txt, fills);
 	}
+	
+	public static String time(Date date) {
+		return isSet(date) ? new SimpleDateFormat("YYYY-dd-MM HH:mm").format(date) : null;
+	}
+
 	
 	public static long timestamp() {
 		return new Date().getTime();

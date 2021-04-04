@@ -492,6 +492,10 @@ public class Route extends BaseClass {
 		return json;
 	}
 	
+	public long length() {
+		return path.stream().mapToLong(Tile::length).sum();
+	}
+	
 	private Route load(JSONObject json,Plan plan) {
 		if (json.has(ID)) id = Id.from(json);
 		if (json.has(NAME)) name(json.getString(NAME));

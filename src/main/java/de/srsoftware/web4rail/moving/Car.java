@@ -14,12 +14,14 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.MaintnanceTask;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -45,7 +47,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 	private static final String MAX_SPEED_REVERSE = "max_speed_reverse";
 	private static final String ORDER = "order";
 	private static final String ORIENTATION = "orientation";
-	protected HashSet<String> tags = new HashSet<String>();
+
+	private static final String DRIVEN_DISTANCE = "driven_distance";
+
+	private static final String MAINTENANCE = "maintenance";
+	protected HashSet<String> tags = new HashSet<>();
+	private HashSet<MaintnanceTask> tasks = new HashSet<>();
 	
 	private String name;
 	public int length;
@@ -54,6 +61,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 	protected int maxSpeedForward = 0;
 	protected int maxSpeedReverse = 0;
 	protected boolean orientation = FORWARD;
+	protected long distanceCounter = 0;
 	
 	public Car(String name) {
 		this(name,null);
@@ -93,6 +101,11 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
+	public Object addTask(MaintnanceTask newTask) {
+		tasks.add(newTask);
+		return properties();
+	}
+	
 	public Car clone() {
 		Car clone = new Car(name);
 		clone.maxSpeedForward = maxSpeedForward;
@@ -114,6 +127,14 @@ public class Car extends BaseClass implements Comparable<Car>{
 	public int compareTo(Car o) {
 		return (stockId+":"+name).compareTo(o.stockId+":"+o.name);
 	}
+	
+	public Object addDistance(long len) {
+		return distanceCounter+= len;
+	}
+	
+	public long drivenDistance() {
+		return distanceCounter;
+	}
 
 	public JSONObject json() {
 		JSONObject json = super.json();
@@ -123,7 +144,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 		if (maxSpeedReverse != 0) json.put(MAX_SPEED_REVERSE, maxSpeedReverse);
 		json.put(ORIENTATION, orientation);
 		json.put(STOCK_ID, stockId);
+		if (distanceCounter>0) json.put(DRIVEN_DISTANCE, distanceCounter);
 		if (!tags.isEmpty()) json.put(TAGS, tags);
+		if (!tasks.isEmpty()) {
+			json.put(MAINTENANCE, tasks.stream().map(MaintnanceTask::json).collect(Collectors.toList()));
+			LOG.debug("json: {}",json);
+		}
 		return json;
 	}
 	
@@ -166,7 +192,36 @@ public class Car extends BaseClass implements Comparable<Car>{
 		if (json.has(STOCK_ID)) stockId = json.getString(STOCK_ID);
 		if (json.has(TAGS)) json.getJSONArray(TAGS).forEach(elem -> { tags.add(elem.toString()); });
 		if (json.has(ORIENTATION)) orientation=json.getBoolean(ORIENTATION);
+		if (json.has(DRIVEN_DISTANCE)) distanceCounter = json.getLong(DRIVEN_DISTANCE);
+		if (json.has(MAINTENANCE)) loadMaintenance(json.getJSONArray(MAINTENANCE));
 		return this;
+	}
+	
+	private void loadMaintenance(JSONArray arr) {
+		arr.forEach(o -> {
+			if (o instanceof JSONObject) {
+				tasks.add(new MaintnanceTask(this,null,0).load((JSONObject) o));
+			}
+		});
+	}
+
+	private Fieldset maintenance() {
+		Fieldset fieldset = new Fieldset(t("Maintenance")+(needsMaintenance()?NBSP+"⚠":""));
+		Table table = new Table();
+		table.addHead(t("Task"),t("Last execution"),t("due after"),t("Interval"),t("Actions"));
+		for (MaintnanceTask task : tasks) {
+			Tag row = table.addRow(task,time(task.lastDate())+" / "+task.lastMileage()+NBSP+Plan.lengthUnit,task.nextMileage()+NBSP+Plan.lengthUnit,task.interval()+NBSP+Plan.lengthUnit,task.execBtn()+NBSP+task.removeBtn());
+			if (task.isDue()) row.clazz("due");
+		}
+		table.addTo(fieldset);
+		Form form = new Form("create-task");
+		new Input(REALM,REALM_MAINTENANCE).hideIn(form);
+		new Input(ACTION,ACTION_ADD).hideIn(form);
+		new Input(REALM_CAR,id()).hideIn(form);
+		MaintnanceTask.selector().addTo(new Label(t("Task type")+NBSP)).addTo(form);
+		new Input(MaintnanceTask.INTERVAL,1_000_000).numeric().addTo(new Label(t("Interval")+NBSP)).content(NBSP+Plan.lengthUnit).addTo(form);
+		new Button(t("add"), form).addTo(form);
+		return form.addTo(fieldset);
 	}
 	
 	public static Object manager(Map<String, String> params) {
@@ -177,7 +232,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		String order = params.get(ORDER);
 		
 		Tag nameLink = link("span", t("Name"), Map.of(REALM,REALM_CAR,ACTION,ACTION_PROPS,ORDER,NAME));
-		Table table = new Table().addHead(t("Stock ID"),nameLink,t("Max. Speed",speedUnit),t("Length"),t("Train"),t("Tags"),t("Actions"));
+		Table table = new Table().addHead(t("Stock ID"),nameLink,t("Max. Speed",speedUnit),t("Length"),t("Train"),t("Tags"),t("driven distance"),t("Actions"));
 		List<Car> cars = BaseClass.listElements(Car.class)
 				.stream()
 				.filter(car -> !(car instanceof Locomotive))
@@ -210,6 +265,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 					car.length+NBSP+lengthUnit,
 					isSet(car.train) ? car.train.link("span", car.train) : "",
 					String.join(", ", car.tags()),
+					car.distanceCounter,
 					actions
 					);
 		}
@@ -238,6 +294,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return name;
 	}
 	
+	boolean needsMaintenance() {
+		for (MaintnanceTask task : tasks) {
+			if (task.isDue()) return true;
+		}
+		return false;
+	}
 	public boolean orientation() {
 		return orientation;
 	}
@@ -252,15 +314,17 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Input(MAX_SPEED,         maxSpeedForward).numeric().addTo(new Tag("p")).content(NBSP+speedUnit+NBSP+t("forward")).addTo(div);
 		new Input(MAX_SPEED_REVERSE, maxSpeedReverse).numeric().addTo(new Tag("p")).content(NBSP+speedUnit+NBSP+t("backward")).addTo(div);
 		formInputs.add(t("Maximum Speed"),div);
-		if (train != null) formInputs.add(t("Train"), train.link());
+		if (isSet(train)) formInputs.add(t("Train"), train.link());
 		formInputs.add(t("Current orientation"),new Tag("span").content(orientation ? t("forward") : t("reverse")));
-				
+		formInputs.add(t("driven distance"),new Tag("span").content(distanceCounter+" "+Plan.lengthUnit));
+		postForm.add(maintenance());
 		return super.properties(preForm,formInputs,postForm,errors);
 	}
-	
+
 	@Override
 	protected void removeChild(BaseClass child) {
 		if (child == train) train = null;
+		tasks.remove(child);
 		super.removeChild(child);
 	}
 

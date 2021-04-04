@@ -342,6 +342,10 @@ table tr.disabled:hover td {
     background: yellow;
 }
 
+tr.due td{
+	background: orange;
+}
+
 table.brake-times tr > *{
 	border-style: solid;
 	border-color: black;

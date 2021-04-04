@@ -270,14 +270,21 @@ public class Locomotive extends Car implements Constants,Device{
 		
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
-		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Protocol"),t("Address"),t("Length"),t("Tags"));
+		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Protocol"),t("Address"),t("Length"),t("driven distance"),t("Tags"));
 		List<Locomotive> locos = BaseClass.listElements(Locomotive.class);
 		locos.sort(Comparator.comparing(loco -> loco.address));
 		locos.sort(Comparator.comparing(loco -> loco.stockId));
 		for (Locomotive loco : locos) {
 			String maxSpeed = (loco.maxSpeedForward == 0 ? "–":""+loco.maxSpeedForward)+NBSP;
 			if (loco.maxSpeedReverse != loco.maxSpeedForward) maxSpeed += "("+loco.maxSpeedReverse+")"+NBSP;
-			table.addRow(loco.stockId,loco.link(),maxSpeed+speedUnit,loco.proto,loco.address,loco.length+NBSP+lengthUnit,String.join(", ", loco.tags()));
+			table.addRow(loco.stockId,
+				loco.link(),
+				maxSpeed+NBSP+speedUnit,
+				loco.proto,
+				loco.address,
+				loco.length+NBSP+lengthUnit,
+				loco.distanceCounter,
+				String.join(", ", loco.tags()));
 		}
 		table.addTo(win);
 
