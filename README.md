@@ -25,6 +25,7 @@ Das Signal für die Modellbahn wird mittels [SRCPD] erzeugt – dieses Programm 
 * Findest du im [doc-Ordner](doc)
 * [Funktionsweise](doc/Schema.md)
 * [Setup](doc/setup.md)
+* [Screenshots](doc/Screenshots.md)
 
 ## Entwicklungsstand
 
