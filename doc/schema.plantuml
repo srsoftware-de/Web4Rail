@@ -1,0 +1,31 @@
+@startuml
+actor Benutzer
+node "Benutzer-Oberfläche" as Iface
+node Steuerung
+package Zentrale {
+  node Signalerzeuger
+  node Booster
+}
+node Hardware
+
+Benutzer -right-> Iface
+Iface <--> Steuerung : Htt-Protokoll (Website)
+Steuerung <--> Signalerzeuger : SRC-Protokoll (SRCP)
+Signalerzeuger --> Booster : Digitalsignal
+Booster -right-> Hardware : Digitalsignal
+Hardware --> Signalerzeuger : Rückmeldungen
+
+
+note right of Iface : Webbrowser
+
+note right of Steuerung
+Web4Rail,
+Rocrail,
+JSRCP,
+…
+end note
+
+note right of Signalerzeuger : SRCPD
+
+note right of Hardware : die Modellbahn
+@enduml

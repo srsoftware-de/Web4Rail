@@ -22,7 +22,7 @@ Das Signal für die Modellbahn wird mittels [SRCPD] erzeugt – dieses Programm 
 
 ## Entwicklungsstand
 
-Das Programm befindet sich derzeit noch in der Entwicklung.
+Die Programmentwicklung hat einen Stand erreicht, mit dem sich die Software stabil für die Steuerung von Modellbahnen einsetzen lässt. Dennoch ist das Programm nicht als „fertig“ zu betrachten – es gibt immer Details zu verbessern!
 
 ## Links
 
