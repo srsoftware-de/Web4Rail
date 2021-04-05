@@ -1,10 +1,10 @@
 @startuml
 actor Benutzer
-node "Benutzer-Oberfläche" as Iface
-node Steuerung
+node "Ebene 3: Benutzer-Oberfläche" as Iface
+node "Ebene 2: Steuerung" as Steuerung
 package Zentrale {
-  node Signalerzeuger
-  node Booster
+  node "Ebene 1: Signalerzeuger" as Signalerzeuger
+  node "Ebene 0: Booster" as Booster
 }
 node Hardware
 

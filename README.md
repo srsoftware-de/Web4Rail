@@ -14,6 +14,8 @@ Es ist eine Client-Server-Anwendung. Das bedeutet:
 
 ## Ansteuerung der Modellbahn
 
+(Siehe auch [Funktionsweise](doc/Schema.md))  
+
 Das Signal für die Modellbahn wird mittels [SRCPD] erzeugt – dieses Programm *kann* ebenso auf dem zentralen Steuerungs-PC laufen, es kann aber auch auf einem separaten Computer installiert sein:
 
 ![Schema](doc/Web4Rail.png)
