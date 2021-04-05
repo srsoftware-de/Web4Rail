@@ -14,7 +14,7 @@ Diese Software-Schicht kümmert sich um die logische Steuerung. Das bedeutet, Pr
 3. Nutzer-Interaktionsschicht  
 Diese Software-Ebene stellt den Zustand der Modellbahn für den Nutzer dar und erlaubt dem Nutzer, mit der Modellbahn zu interagieren.
 
-[Schema](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/srsoftware-de/Web4Rail/master/doc/schema.plantuml)
+![Schema](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/srsoftware-de/Web4Rail/master/doc/schema.plantuml)
 
 ## Web4Rail
 
