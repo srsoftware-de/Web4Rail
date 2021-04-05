@@ -26,5 +26,7 @@ Außerdem nimmt es natürlich auch Informationen (z.B. Rückmeldungen) von der E
 
 Daneben erzeugt es die Darstellungsinformationen für die Ebene-3-Software: es erzeugt quasi eine Website, so dass der Nutzer über einen beliebigen Webbrowser seine Modellbahn steuern kann.
 
+![Screenshot](images/Web4Rail.screenshot02.png)
+
 
 [SRCPD]: http://srcpd.sourceforge.net/srcpd/
