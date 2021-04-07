@@ -15,6 +15,7 @@ var messageTimer = null;
 var messageOpacity = 0;
 var pendingAssignment = null;
 var clickHistory = [];
+var messages = [];
 
 function addClass(data){
 	parts = data.split(" ");
@@ -22,10 +23,10 @@ function addClass(data){
 }
 
 function addMessage(txt){
-	$('#messages').html(txt);
-	if (messageTimer != null) window.clearInterval(messageTimer);
-	messageOpacity = 3000;
-	messageTimer = setInterval(fadeMessage,100);		
+	messages.unshift(txt);
+	if (messages.length>5) messages.pop();
+	updateMessages();
+	setTimeout(fadeMessage,30000);
 }
 
 function addTile(x,y){	
@@ -158,11 +159,21 @@ function enableMove(ev){
 }
 
 function fadeMessage(){
-	messageOpacity -= 10;
-	if (messageOpacity < 1) window.clearInterval(messageTimer);
-	var o = messageOpacity;
-	if (o>OPAC) o=OPAC;	
-	$('#messages').css('opacity',o/OPAC);
+	if (messages.length > 1) {
+		messages.pop();
+		updateMessages();
+	} else {
+		messageOpacity -= 5;
+		if (messageOpacity < 1) {
+			messages.pop();
+			updateMessages();
+			return;
+		}
+		messageTimer = setTimeout(fadeMessage,100);
+		var o = messageOpacity;
+		if (o>OPAC) o=OPAC;	
+		$('#messages').css('opacity',o/OPAC);
+	}
 }
 
 function getCookie(key) {
@@ -279,7 +290,7 @@ function runAction(ev){
 
 function stream(ev){
 	var data = ev.data;
-	console.log("received: ",data);
+	//console.log("received: ",data);
 	if (data.startsWith('<svg')) return place(data);
 	if (data.startsWith("heartbeat")) return heartbeat(data);
 	if (data.startsWith("place ")) return place(data.substring(6));
@@ -321,6 +332,13 @@ function toggleFullscreen(){
 	if (document.fullscreenElement == null){
 		document.documentElement.requestFullscreen();
 	} else document.exitFullscreen();
+}
+
+function updateMessages() {
+	if (messages.length>0) {
+		messageOpacity = 100;
+		$('#messages').html(messages.join('<br/>')).css('opacity',messageOpacity/OPAC);
+	} else $('#messages').html('');
 }
 
 window.onload = function () {
