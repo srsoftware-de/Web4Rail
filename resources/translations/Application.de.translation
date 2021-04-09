@@ -7,6 +7,8 @@ Actions (On) : Aktionen (Ein)
 Actions (Off) : Aktionen (Aus)
 Actions and contacts : Aktionen und Kontakte
 Action type : Aktions-Typ
+Actions in case conditions are fulfilled : Aktionen, wenn Bedingungen erfüllt sind
+Actions in case conditions are <em>not</em> fulfilled : Aktionen, wenn Bedingungen <em>nicht</em> erfüllt sind
 Actions will only fire, if all conditions are fullfilled. : Aktionen werden nur ausgeführt, wenn alle Bedingungen erfüllt sind.
 ActivateRoute : Route aktivieren
 add : hinzufügen
@@ -16,6 +18,7 @@ add action : Aktion hinzufügen
 Add action to action list : Aktion zur Liste hinzufügen
 add car : Waggon hinzufügen
 Add condition : Bedingung hinzufügen
+Add entry : Eintrag hinzufügen
 add locomotive : Lok hinzufügen
 add new aspect : neues Signalbild hinzufügen
 add new car : neuen Waggon anlegen
@@ -28,6 +31,7 @@ Address : Adresse
 Add tag "{}" to train : Markierung "{}" zu Zug hinzufügen
 Add tile : Kachel hinzufügen
 Add {} to destinations of train : {} zu den Zielen des Zugs hinzufügen
+Allow editing JSON of action lists : Bearbeiten von Action-Lists per JSON-Editor erlauben
 analyze : analysieren
 Analyze : analysieren
 Analyze may overwrite these routes! : Durch die Analyse können diese Fahrstraßen überschrieben werden!
@@ -109,6 +113,7 @@ Current location\: {} : Aufenthaltsort: {}
 Current orientation : aktuelle Fahrtrichtung
 Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {}
 custom fields : benutzerdefinierte Felder
+Date/Time : Datum/Zeit
 Decoder address : Decoder-Adresse
 decouple : Abkuppeln
 decoupler : decoupler
@@ -130,6 +135,7 @@ disable {} : {} deaktivieren
 disabled routes : deaktivierte Fahrstraßen
 DisableEnableBlock : Block (de)aktivieren
 Display "{}" on {}. : „{}“ auf {} anzeigen.
+Do you know, what you are doing? : Weißt du, was du da tust?
 driven distance : zurückgelegte Strecke
 Drop : Verwerfen
 Drop brake times : Bremszeiten löschen
@@ -138,10 +144,12 @@ due after : fällig ab
 1) Duration between 5 {} steps during brake process. : 1) Zeit zwischen 5 {}-Schritten beim Bremsvorgang.
 EAST : Osten
 edit : bearbeiten
+edit JSON : JSON bearbeiten
 Editable properties : veränderliche Eigenschaften
 editable train properties : veränderliche Zug-Eigenschaften
 Edit json : JSON bearbeiten
 Effect : Effekt
+else\: : falls nicht:
 Emergency : Notfall
 empty train : leerer Zug
 enable : aktivieren
@@ -150,8 +158,9 @@ Engage {} : {} aktivieren
 EngageDecoupler : Entkuppler aktivieren
 Enter new name for plan : Neuen Namen für den Plan eingeben
 executed : ausgeführt
+executed "{}" after {} : "{}" nach {} ausgeführt
 extended address : erweiterte Adresse
-export : exportieren
+Event : Ereignis
 Faster ({} {}) : {} {} schneller
 Final speed after breaking, before halting : Endgeschwindigkeit nach Bremsvorgang, vor dem Anhalten
 FinishRoute : Route abschließen
@@ -167,12 +176,12 @@ Function : Funktion
 Hardware settings : Hardware-Einstellungen
 Height : Höhe
 Help : Hilfe
+History : Logbuch
 Hold : an lassen
 (id\: {}, length\: {}) : (Id: {}, Länge: {})
 if ({}) : falls ({})
 If car of train\: inspect car number : Falls Fahrzeug aus Zug: Untersuche Fahrzeug Nummer
-If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished.
-Falls aktiviert, wird die Strecke anhand von Zug- und Kachel-Länge hinter dem Zug freigegeben, Falls deaktiviert wird die Strecke hinter dem Zug erst bei Abschluss der Route freigegeben.
+If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished. : Falls aktiviert, wird die Strecke anhand von Zug- und Kachel-Länge hinter dem Zug freigegeben, Falls deaktiviert wird die Strecke hinter dem Zug erst bei Abschluss der Route freigegeben.
 internal contacts : interne Kontakte
 Interval : Intervall
 inverted : invertiert
@@ -215,6 +224,7 @@ Minimum delay : minimale Verzögerung
 Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block. : Minamle und maximale Block-Haltezeit (in Millisekunden) für Züge mit der entsprchender Markierung.
 minimum starting voltage v<sub>min</sub> : Mindestanfahrspannung v<sub>min</sub>
 Move tiles : Kacheln verschieben
+move up : nach oben schieben
 name : Name
 new car : neuer Waggon
 new contact : neuer Kontakt
@@ -366,6 +376,7 @@ Text to display on clients : Text, welcher auf den Clients angezeigt werden soll
 Text to show on display : Text, welcher in der Anzeige dargestellt werden soll
 Tile(s) : Kachel(n)
 Tile(s) moved. : Kachel(n) verschoben.
+Timeout : maximale Wartezeit5
 Toggle : umschalten
 toggle {} : {} umschalten
 Toggle power : Stom umschalten

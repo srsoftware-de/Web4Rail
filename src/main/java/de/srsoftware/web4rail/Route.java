@@ -348,7 +348,7 @@ public class Route extends BaseClass {
 			setupActions = new ActionList(this);
 			triggeredActions.put(ROUTE_SETUP, setupActions);
 		}
-		setupActions.list().addTo(setup).addTo(list);
+		setupActions.listAt(setup).addTo(list);
 
 		Tag start = new Tag("li").content(t("Start actions")+COL);
 		ActionList startActions = triggeredActions.get(ROUTE_START);
@@ -356,7 +356,7 @@ public class Route extends BaseClass {
 			startActions = new ActionList(this);
 			triggeredActions.put(ROUTE_START, startActions);
 		}
-		startActions.list().addTo(start).addTo(list);
+		startActions.listAt(start).addTo(list);
 
 		for (Contact c : contacts) {
 			Tag item = c.link("span", c).addTo(new Tag("li")).content(NBSP);
@@ -365,7 +365,7 @@ public class Route extends BaseClass {
 				actions = new ActionList(this);
 				triggeredActions.put(c.trigger(), actions);
 			}
-			actions.list().addTo(item).addTo(list);
+			actions.listAt(item).addTo(list);
 		}
 		list.addTo(win);
 		return win;

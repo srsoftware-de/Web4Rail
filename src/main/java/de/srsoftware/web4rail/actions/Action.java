@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
@@ -110,6 +111,7 @@ public abstract class Action extends BaseClass {
 				((ActionList)this).clear();
 			}
 			load(json);
+			LoadCallback.fire();
 			return context().properties();
 		}
 		Window win = new Window("json-import-export-"+id(), t("JSON code of {}",this));

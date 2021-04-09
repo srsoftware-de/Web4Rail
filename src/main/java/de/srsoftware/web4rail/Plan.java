@@ -157,12 +157,14 @@ public class Plan extends BaseClass{
 	private static final String FREE_BEHIND_TRAIN = "free_behind_train";
 	private static final String RENAME = "rename";
 	private static final String SPEED_STEP = "speed_step";
+	private static final String ALLOW_JSON_EDIT = "allow_json_edit";
 	private String name = DEFAULT_NAME;
 	
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
 	private Contact learningContact;
 	private Configuration appConfig;
 	private LinkedList<EventListener> listeners = new LinkedList<>();
+	public static boolean allowJsonEdit = false;
 	
 	/**
 	 * creates a new plan, starts to send heart beats
@@ -563,6 +565,9 @@ public class Plan extends BaseClass{
 		} catch (Exception e) {
 			LOG.warn("Was not able to establish connection to control unit!");
 		}
+		
+		History.load(name+".history");
+		
 		LoadCallback.fire();
 	}
 	
@@ -714,6 +719,7 @@ public class Plan extends BaseClass{
 		formInputs.add(t("Speed step"),new Input(SPEED_STEP, Train.defaultSpeedStep).attr("title", t("Speeds are always increadsed/decreased by this value")));
 		formInputs.add(t("Lower speed limit"),new Input(FINAL_SPEED, Train.defaultEndSpeed).attr("title", t("Final speed after breaking, before halting")));
 		formInputs.add(t("Free tiles behind train"),new Checkbox(FREE_BEHIND_TRAIN, t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished."), Route.freeBehindTrain));
+		formInputs.add(t("Allow editing JSON of action lists"),new Checkbox(ALLOW_JSON_EDIT, t("Do you know, what you are doing?"), allowJsonEdit ));
 		
 		postForm.add(relayProperties());
 		postForm.add(routeProperties());
@@ -858,6 +864,8 @@ public class Plan extends BaseClass{
 		BufferedWriter file = new BufferedWriter(new FileWriter(name+".plan"));
 		file.write(json().toString());
 		file.close();
+		
+		History.save(name+".history");
 		
 		return t("Plan saved as \"{}\".",name);
 	}
@@ -1026,7 +1034,8 @@ public class Plan extends BaseClass{
 		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.get(LENGTH_UNIT);
 		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);
 		if (params.containsKey(SPEED_STEP)) Train.defaultSpeedStep = Integer.parseInt(params.get(SPEED_STEP));
-		if (params.containsKey(FINAL_SPEED)) Train.defaultEndSpeed = Integer.parseInt(params.get(FINAL_SPEED)); 
+		if (params.containsKey(FINAL_SPEED)) Train.defaultEndSpeed = Integer.parseInt(params.get(FINAL_SPEED));
+		allowJsonEdit = "on".equalsIgnoreCase(params.get(ALLOW_JSON_EDIT));
 		Route.freeBehindTrain = "on".equalsIgnoreCase(params.get(FREE_BEHIND_TRAIN));
 		
 		return t("Plan updated.");		

@@ -125,6 +125,8 @@ public class Application extends BaseClass{
 				return Condition.action(params,plan);
 			case REALM_CU:
 				return plan.controlUnit().process(params);
+			case REALM_HISTORY:
+				return History.action(params);
 			case REALM_LOCO:
 				return Locomotive.action(params,plan);
 			case REALM_MAINTENANCE:

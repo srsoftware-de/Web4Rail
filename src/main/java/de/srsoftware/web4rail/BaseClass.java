@@ -18,8 +18,9 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.srsoftware.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.tools.translations.Translation;
+import de.srsoftware.web4rail.History.LogEntry;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.conditions.Condition;
@@ -54,7 +55,7 @@ public abstract class BaseClass implements Constants{
 	public static final Logger LOG = LoggerFactory.getLogger(BaseClass.class);
 	private static final String CUSTOM_FIELDS = "custom_Fields";
 	private static final String NEW_CUSTOM_FIELD_NAME = "new_custom_field_name";
-	protected HashMap<String,String> customFieldValues = new HashMap<String, String>();	
+	protected HashMap<String,String> customFieldValues = new HashMap<String, String>();
 	private BaseClass parent;
 	
 	public static class Context {
@@ -308,6 +309,12 @@ public abstract class BaseClass implements Constants{
 		}
 	}
 	
+
+	public Window addLogEntry(String text) {
+		History.assign(new History.LogEntry(text),this);
+		return properties();
+	}
+	
 	public Button button(String text,Map<String,String> additionalProps) {
 		return new Button(text,props(additionalProps));
 	}
@@ -319,6 +326,25 @@ public abstract class BaseClass implements Constants{
 	public boolean debug(String tx, Object... fills) {
 		LOG.debug(tx, fills);
 		return false;
+	}
+
+	public static String distance(long l) {
+		String unit = Plan.lengthUnit;
+		if (DEFAULT_LENGTH_UNIT.equals(unit)) {
+			if (l > 1_000_000) {
+				l/=1_000_000;
+				unit = t("km");
+			} else
+			if (l > 1_000) {
+				l/=1_000;
+				unit = t("m");
+			} else
+			if (l > 10) {
+				l/=10;
+				unit = t("cm");
+			}
+		}
+		return l+NBSP+unit;
 	}
 		
 	public Form form(String id,List<Map.Entry<String, Tag>> elements) {
@@ -502,6 +528,21 @@ public abstract class BaseClass implements Constants{
 		table.addTo(customForm);
 		new Button(t("Apply"),customForm).addTo(customForm).addTo(customFields);
 		customFields.addTo(win);		
+		
+		Fieldset history = new Fieldset(t("History"));
+		
+		Form form = new Form("add-history-entry");
+		new Input(REALM, REALM_HISTORY).hideIn(form);
+		new Input(ACTION, ACTION_ADD).hideIn(form);
+		new Input(ID,id()).hideIn(form);
+		new TextArea(NOTES).addTo(form);
+		new Button(t("Add entry"), form).addTo(form);
+		form.addTo(history);
+		
+		table = new Table();
+		table.addHead(t("Date/Time"),t("Event"));
+		for (LogEntry entry : History.getFor(this)) table.addRow(new SimpleDateFormat("YYYY-dd-MM HH:mm").format(entry.date()),entry.getText());
+		table.addTo(history).addTo(win);
 		
 		return win;
 	}

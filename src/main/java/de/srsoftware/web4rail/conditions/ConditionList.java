@@ -31,6 +31,9 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 		this.conditions.addAll(conditions.conditions);		
 	}
 
+	public void clear() {
+		conditions.clear();
+	}
 	
 	public boolean fulfilledBy(Context context) {
 		for (Condition condition : conditions) {

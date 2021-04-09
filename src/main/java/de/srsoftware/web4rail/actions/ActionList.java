@@ -123,23 +123,22 @@ public class ActionList extends Action implements Iterable<Action>{
 		return json;
 	}
 
-	public Tag list() {
-		Tag span = new Tag("span");
-		button(t("add action"), Map.of(ACTION, ACTION_ADD)).addTo(span);
-		button(t("export"), Map.of(ACTION, ACTION_SAVE)).addTo(span);
+	public <T extends Tag> T listAt(T parent) {
+		button(parent.is("fieldset") ? t("add action") : "+", Map.of(ACTION, ACTION_ADD)).title(t("add action")).addTo(parent);
+		if (plan.allowJsonEdit) button(t("edit JSON"), Map.of(ACTION, ACTION_SAVE)).addTo(parent);
 		if (!isEmpty()) {
 			Tag list = new Tag("ol");
 			for (Action action : actions) {
 				Tag item = action.link("span",action).addTo(new Tag("li")).content(NBSP);
-				action.button("-", Map.of(ACTION,ACTION_DROP)).addTo(item);
-				action.button("↑", Map.of(ACTION,ACTION_MOVE)).addTo(item);
-				if (action instanceof ActionList) ((ActionList) action).list().addTo(item);
+				action.button("↑", Map.of(ACTION,ACTION_MOVE)).title(t("move up")).addTo(item);
+				action.button("-", Map.of(ACTION,ACTION_DROP)).title(t("delete")).addTo(item);
+				if (action instanceof ActionList) ((ActionList) action).listAt(item);
 				item.addTo(list);
 			}
-			list.addTo(span);
+			list.addTo(parent);
 		}
 				
-		return span;
+		return (T)parent;
 	}
 
 	public Action load(JSONObject json) {
@@ -248,9 +247,7 @@ public class ActionList extends Action implements Iterable<Action>{
 
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
-		Fieldset fieldset = new Fieldset(t("Actions"));
-		list().addTo(fieldset);
-		postForm.add(fieldset);
+		preForm.add(listAt(new Fieldset(t("Actions")).clazz("actions")));
 		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	

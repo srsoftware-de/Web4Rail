@@ -84,6 +84,7 @@ public class MaintnanceTask extends BaseClass{
 				Block block = train.currentBlock();
 				if (isSet(block)) plan.place(block);
 			}
+			car.addLogEntry(t("executed \"{}\" after {}",name,BaseClass.distance(lastExecutionDist)));
 			return car.properties();
 		}
 		return t("parent is not a car!");		

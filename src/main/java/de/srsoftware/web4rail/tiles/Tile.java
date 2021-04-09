@@ -149,18 +149,18 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		Train train = newTrain.train();
 		
 		if (isSet(reservingTrain) && reservingTrain != train) {
-			LOG.debug("{} is reserved for {}",reservingTrain);
+			LOG.debug("{} is reserved for {}",this,reservingTrain);
 			return false; // nicht in reservierten Block einfahren!
 		}
 
 		if (isSet(lockingTrain) && lockingTrain != train) {
-			LOG.debug("{} is locked for {}",lockingTrain);
+			LOG.debug("{} is locked for {}",this,lockingTrain);
 			return false; // nicht in reservierten Block einfahren!
 		}
 
 		if (isSet(occupyingTrain) && occupyingTrain != train) {
-			LOG.debug("{} is occupied by {}",occupyingTrain);
-			return train.isShunting(); // nur in belegte Blöcke einfahren, wenn Rangiermodus aktiv!
+			LOG.debug("{} is occupied by {}",this,occupyingTrain);
+			return isSet(train) && train.isShunting(); // nur in belegte Blöcke einfahren, wenn Rangiermodus aktiv!
 		}
 
 		return true;

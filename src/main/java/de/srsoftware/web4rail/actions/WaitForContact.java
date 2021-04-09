@@ -69,14 +69,14 @@ public class WaitForContact extends ActionList {
 	}
 	
 	@Override
-	public Tag list() {
-		Tag list = super.list();
+	public <T extends Tag> T listAt(T parent) {
+		T list = super.listAt(parent);
 		for (Tag child : list.children()) {
 			if (child.is("ol")) {
 				break;
 			}
 		}
-		timeoutActions.list().addTo(new Tag("span").content(t("On timeout (after {} ms)",timeout)+":")).addTo(list);
+		timeoutActions.listAt(new Tag("span").content(t("On timeout (after {} ms)",timeout)+":")).addTo(list);
 		
 		return list;
 	}
@@ -103,7 +103,7 @@ public class WaitForContact extends ActionList {
 		
 		Fieldset fieldset = new Fieldset(t("Actions on timeout"));
 		fieldset.id("actions");
-		timeoutActions.list().addTo(fieldset);
+		timeoutActions.listAt(fieldset);
 		postForm.add(fieldset);
 
 		return super.properties(preForm, formInputs, postForm,errors);

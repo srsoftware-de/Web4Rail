@@ -5,6 +5,7 @@
 *.cu
 *.routes
 *.trains
+*.history
 /backup
 /bin/
 /Debug/
