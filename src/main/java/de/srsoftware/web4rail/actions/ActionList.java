@@ -125,7 +125,7 @@ public class ActionList extends Action implements Iterable<Action>{
 
 	public <T extends Tag> T listAt(T parent) {
 		button(parent.is("fieldset") ? t("add action") : "+", Map.of(ACTION, ACTION_ADD)).title(t("add action")).addTo(parent);
-		if (plan.allowJsonEdit) button(t("edit JSON"), Map.of(ACTION, ACTION_SAVE)).addTo(parent);
+		if (Plan.allowJsonEdit) button(t("edit JSON"), Map.of(ACTION, ACTION_SAVE)).addTo(parent);
 		if (!isEmpty()) {
 			Tag list = new Tag("ol");
 			for (Action action : actions) {
