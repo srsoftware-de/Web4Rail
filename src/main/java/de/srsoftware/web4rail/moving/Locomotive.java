@@ -189,7 +189,9 @@ public class Locomotive extends Car implements Constants,Device{
 		Button b4 = new Button(t("F4"),params);
 		if (fun4) b4.clazz("active");
 		b4.addTo(functions);
-		functions.addTo(fieldset);		
+		functions.addTo(fieldset);
+		
+		if (isSet(train)) train.button(t("Select destination"),Map.of(ACTION,ACTION_MOVE,ASSIGN,DESTINATION)).addTo(fieldset);
 
 		return fieldset;
 	}

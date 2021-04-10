@@ -319,7 +319,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		formInputs.add(t("Maximum Speed"),div);
 		if (isSet(train)) formInputs.add(t("Train"), train.link());
 		formInputs.add(t("Current orientation"),new Tag("span").content(orientation ? t("forward") : t("reverse")));
-		formInputs.add(t("driven distance"),new Tag("span").content(distanceCounter+" "+Plan.lengthUnit));
+		formInputs.add(t("driven distance"),new Tag("span").content(BaseClass.distance(distanceCounter)));
 		postForm.add(maintenance());
 		return super.properties(preForm,formInputs,postForm,errors);
 	}

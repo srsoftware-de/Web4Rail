@@ -74,8 +74,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	private static final String TAGS = "tags";
 
-	public static final String DESTINATION = "destination";
-
 	private static final String ACTION_REVERSE = "reverse";
 	public static final String DESTINATION_PREFIX = "@";
 	public static final char TURN_FLAG = '±';

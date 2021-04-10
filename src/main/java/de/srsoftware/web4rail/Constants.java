@@ -60,8 +60,9 @@ public interface Constants {
 	public static final String  CONTEXT             = "context";
 	public static final String  DEFAULT_SPEED_UNIT  = "km/h";
 	public static final String  DEFAULT_LENGTH_UNIT = "mm";
+	public static final String DESTINATION          = "destination";
 	public static final String  DISABLED            = "disabled";
-	public static final String  DIRECTION            = "direction";
+	public static final String  DIRECTION           = "direction";
 	public static final String  GITHUB_URL          = "https://github.com/srsoftware-de/Web4Rail";
 	public static final String  ID                  = "id";
 	public static final String  LOCKED              = "locked";
