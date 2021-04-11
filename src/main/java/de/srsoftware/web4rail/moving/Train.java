@@ -195,7 +195,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public String brakeId(boolean reversed) {
 		TreeSet<String> carIds = new TreeSet<String>();
-		cars.stream().map(car -> car.id()+":"+(car.orientation == reversed ? "r":"f")).forEach(carIds::add);		
+		cars.stream()
+			.filter(car -> car instanceof Locomotive)
+			.map(car -> car.id()+":"+(car.orientation == reversed ? "r":"f"))
+			.forEach(carIds::add);		
 		String brakeId = md5sum(carIds);
 		LOG.debug("generated new {} brake id for {}: {}",reversed?"backward":"forward",this,brakeId);
 		return brakeId;
@@ -885,7 +888,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Train set(Block newBlock) {
 		LOG.debug("{}.set({})",this,newBlock);
 		if (isSet(currentBlock)) {
-			if (newBlock == currentBlock) return this;
+			if (newBlock == currentBlock) {
+				if (currentBlock.occupyingTrain() != this) currentBlock.setTrain(this);
+				return this;
+			}
 			currentBlock.free(this);
 		}
 		currentBlock = newBlock;
@@ -1042,7 +1048,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		endBrake();
 		setSpeed(0);
 		quitAutopilot();
-		if (isSet(route)) {
+		if (isSet(route) && route.hasTriggeredContacts()) {
 			stuckTrace = new HashSet<Tile>(); 
 			for (Tile tile : route.path()) { // collect occupied tiles of route. stuckTrace is considered during next route search
 				if (trace.contains(tile)) stuckTrace.add(tile);

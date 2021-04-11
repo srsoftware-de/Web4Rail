@@ -503,8 +503,12 @@ public abstract class Block extends StretchableTile{
 				if (isSet(newTrain) && newTrain != occupyingTrain()) {
 					free(occupyingTrain());
 					newTrain.dropTrace();
-					if (connections(newTrain.direction()).isEmpty()) newTrain.heading(null); 
-					newTrain.set(this);
+					if (connections(newTrain.direction()).isEmpty()) newTrain.heading(null);
+					newTrain.set(this);					
+				}
+				if (newTrain.currentBlock() != this) {
+					newTrain.dropTrace();
+					newTrain.set(this);					
 				}
 			}
 		}

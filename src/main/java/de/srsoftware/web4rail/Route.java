@@ -428,6 +428,10 @@ public class Route extends BaseClass {
 		return nextPreparedRoute;
 	}
 	
+	public boolean hasTriggeredContacts() {
+		return triggeredContacts.size()>0;
+	}
+	
 	public Id id() {
 		if (isNull(id)) id = new Id(""+(generateName().hashCode()));
 		return id;

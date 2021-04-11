@@ -78,6 +78,8 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		LOG.debug("{} is heading for {}, starting breadth-first search…",train,destination);
 		
 		HashMap<Route,Candidate> predecessors = new HashMap<>() {
+			private static final long serialVersionUID = -42682947866294566L;
+
 			public String toString() {
 				return entrySet().stream()
 					.sorted((e1,e2) -> e1.getValue().toString().compareTo(e2.getValue().toString()))

@@ -26,7 +26,7 @@ function addMessage(txt){
 	messages.unshift(txt);
 	if (messages.length>5) messages.pop();
 	updateMessages();
-	setTimeout(fadeMessage,30000);
+	setTimeout(fadeMessage,60000);
 }
 
 function addTile(x,y){	
