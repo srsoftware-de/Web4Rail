@@ -18,4 +18,8 @@ Web4Rail ist in Java programmiert, entsprechend braucht man folgende Programme a
 
 ## Hardware
 
-Das Programm kann auf einem beliebigen Rechner installiert werden. Falls du es auf einem Raspberry-Pi installieren willst, brauchst du wenigstens eine Pi 3.
+Das Programm kann auf einem beliebigen Rechner installiert werden. Falls du es auf einem Raspberry-Pi installieren willst, brauchst du wenigstens einen Pi 3.
+
+## Raspberry Pi
+
+Eine ausführliche Anleitung zur Installation auf einem Raspberry Pi 3 findest du unter [srsoftware.de/web4rail-einrichtung](https://srsoftware.de/web4rail-einrichtung)
