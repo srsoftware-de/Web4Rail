@@ -41,7 +41,7 @@ install_srcpd: update_apt
 	@echo
 	@echo Installiere SRCPD...
 	@echo
-	sudo apt-get install -y automake libxml2-dev
+	sudo apt-get install -y automake libxml2-dev screen
 	-$(DO) wget https://sourceforge.net/projects/srcpd/files/srcpd/$(SRCPD)/srcpd-$(SRCPD).tar.gz/download -O srcpd.tgz -nc
 	$(DO) tar xfz srcpd.tgz
 	$(DO) cd srcpd-?.?.? && ./configure && make && sudo make install
@@ -68,14 +68,14 @@ install_s88: update_apt
 	@echo
 	@echo Installiere S88 proxy...
 	@echo
-	sudo apt-get install -y git
+	sudo apt-get install -y git screen
 	-$(DO) git clone -b S88 https://github.com/StephanRichter/model-rail-control
 
 install_w4r: update_apt
 	@echo
 	@echo Installiere Web4Rail...
 	@echo
-	sudo apt-get install -y git maven openjdk-11-jdk-headless
+	sudo apt-get install -y git maven openjdk-11-jdk-headless screen
 	-$(DO) git clone https://github.com/srsoftware-de/Web4Rail
 	$(DO) cd Web4Rail && mvn clean install
 

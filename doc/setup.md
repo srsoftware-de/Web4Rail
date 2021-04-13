@@ -23,3 +23,12 @@ Das Programm kann auf einem beliebigen Rechner installiert werden. Falls du es a
 ## Raspberry Pi
 
 Eine ausführliche Anleitung zur Installation auf einem Raspberry Pi 3 findest du unter [srsoftware.de/web4rail-einrichtung](https://srsoftware.de/web4rail-einrichtung)
+
+Auf einem – mit Noops – frisch eingerichteten Raspberry Pi kann man auch wie folgt vorgehen:
+
+1. Anmelden mit Benutername „pi“ und Passwort „raspberry“
+2. Download des Installationsskriptes per  
+`wget https://github.com/srsoftware-de/Web4Rail/raw/master/install/pi/Makefile`
+3. Start der Installation:  
+    * Falls nur Web4Rail installiert werden soll: `make install_w4r`
+    * Falls Web4Rail zusammen mit SRCPD und dem S88-Proxy installiert werden soll: `make install_all`
