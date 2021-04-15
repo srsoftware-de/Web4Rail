@@ -14,6 +14,7 @@ ActivateRoute : Route aktivieren
 add : hinzufügen
 add command for {} : Kommando für {} hinzufügen
 Added {} : {} hinzugefügt
+Added {} routes. : {} Routen hinzugefügt.
 add action : Aktion hinzufügen
 Add action to action list : Aktion zur Liste hinzufügen
 add car : Waggon hinzufügen
@@ -296,6 +297,8 @@ Route will only be available, if all conditions are fulfilled. : Route ist nur v
 Save "{}" : „{}“ speichern
 Save : speichern
 SavePlan : Plan speichern
+Search new routes, do not update existing : Neue Routen suchen, bestehende nicht verändern
+Search new routes, update existing : Neue Routen suchen, bestehende Aktualisieren
 Seek in last : Durchsuche letzte
 Select block : Block auswählen
 Select car : Fahrzeug auswählen

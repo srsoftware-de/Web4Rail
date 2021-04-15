@@ -35,6 +35,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
+import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.threads.ControlUnit;
@@ -158,6 +159,9 @@ public class Plan extends BaseClass{
 	private static final String RENAME = "rename";
 	private static final String SPEED_STEP = "speed_step";
 	private static final String ALLOW_JSON_EDIT = "allow_json_edit";
+	private static final String DISCOVERY_MODE = "discovery_mode";
+	private static final String DISCOVER_NEW = "discover_new";
+	private static final String DISCOVER_UPDATE = "discover_update";
 	private String name = DEFAULT_NAME;
 	
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
@@ -309,27 +313,54 @@ public class Plan extends BaseClass{
 			Window win = new Window("confirm-analyze", t("Confirmation required"));
 			new Tag("p").content(t("Your plan currently has {} routes.",oldRoutes.size())).addTo(win);
 			new Tag("p").content(t("Analyze may overwrite these routes!")).addTo(win);
-			button(t("analyze"), Map.of(ACTION,ACTION_ANALYZE,CONFIRM,"yes")).addTo(win);
-			button(t("abort")).addTo(win);
+			
+			Form form = new Form("plan-analyze-form");
+			
+			Tag p = new Tag("p");
+			new Input(REALM,REALM_PLAN).hideIn(form);
+			new Input(ACTION,ACTION_ANALYZE).hideIn(form);
+			new Input(CONFIRM,"yes").hideIn(form);
+			new Radio(DISCOVERY_MODE, DISCOVER_UPDATE, t("Search new routes, update existing"), true).addTo(p);
+			new Radio(DISCOVERY_MODE, DISCOVER_NEW, t("Search new routes, do not update existing"), false).addTo(p);
+			p.addTo(form);
+			
+			new Button(t("analyze"),form).addTo(form);
+			button(t("abort")).addTo(form);
+
+			form.addTo(win);
 			return win;
 		}
+		
+		boolean keepExisting = DISCOVER_NEW.equals(params.get(DISCOVERY_MODE));
 		
 		new Thread(Application.threadName("Plan.Analyzer")) {
 			public void run() {				
 				Vector<Route> newRoutes = new Vector<Route>();
 				for (Block block : BaseClass.listElements(Block.class)) {
-					for (Connector con : block.startPoints()) {
-						newRoutes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
-					}
+					for (Connector con : block.startPoints()) newRoutes.addAll(follow(new Route().begin(block,con.from.inverse()),con));
 				}
 				for (Tile tile : BaseClass.listElements(Tile.class)) tile.routes().clear();
-				for (Route route : newRoutes) registerRoute(route.complete());
+				int count = 0;
+				for (Route newRoute : newRoutes) {
+					newRoute.complete();
+					Route replacedRoute = BaseClass.get(newRoute.id());
+					if (isSet(replacedRoute)) {
+						if (keepExisting) continue;
+						newRoute.addPropertiesFrom(replacedRoute);					
+					}
+					registerRoute(newRoute);
+					count ++;
+				}
 				for (Route oldRoute : oldRoutes) {
-					oldRoute.id = new Id("test"); // new routes may have the same ids and shall not be deleted in the next step!
-					oldRoute.remove();
+					if (keepExisting) {
+						registerRoute(oldRoute);
+					} else {
+						oldRoute.id = new Id("test"); // new routes may have the same ids and shall not be deleted in the next step!
+						oldRoute.remove();
+					}
 				}
 				
-				stream(t("Found {} routes.",newRoutes.size()));
+				stream(t(keepExisting?"Added {} routes.":"Found {} routes.",count));
 			}		
 		}.start();
 		
@@ -736,16 +767,14 @@ public class Plan extends BaseClass{
 	}
 
 	/**
-	 * adds a new route to the plan
-	 * @param newRoute
+	 * adds a route to the plan
+	 * @param route
 	 * @return
 	 */
-	Route registerRoute(Route newRoute) {
-		newRoute.path().stream().filter(Tile::isSet).forEach(tile -> tile.add(newRoute));
-		Route existingRoute = BaseClass.get(newRoute.id());
-		if (isSet(existingRoute)) newRoute.addPropertiesFrom(existingRoute);
-		newRoute.parent(this).register();
-		return newRoute;
+	Route registerRoute(Route route) {
+		route.path().stream().filter(Tile::isSet).forEach(tile -> tile.add(route));
+		route.parent(this).register();
+		return route;
 	}
 	
 	private Fieldset relayProperties() {
