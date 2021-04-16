@@ -432,9 +432,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	
-	public void dropTrace() {
-		trace.forEach(tile -> tile.free(this));
+	public void dropTrace(boolean dropStuck) {
+		while (!trace.isEmpty()) trace.stream().findFirst().get().free(this);
 		trace.clear();
+		if (dropStuck) stuckTrace = null;
 	}
 	
 	private BrakeProcess endBrake() {
@@ -1103,6 +1104,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		reverse(cars);
 		return reverse();
 	}
+	
+	public void unTrace(Tile tile) {
+		if (isSet(trace)) trace.remove(tile);
+		if (isSet(stuckTrace)) stuckTrace.remove(tile);
+		
+	}
 
 	protected Window update(HashMap<String, String> params) {
 		LOG.debug("update({})",params);
@@ -1166,8 +1173,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		trace = newTrace;
 		return context;
 	}
+	
+
 
 	public boolean usesAutopilot() {
 		return autopilot;
 	}
 }
+
+

@@ -162,6 +162,8 @@ public class Plan extends BaseClass{
 	private static final String DISCOVERY_MODE = "discovery_mode";
 	private static final String DISCOVER_NEW = "discover_new";
 	private static final String DISCOVER_UPDATE = "discover_update";
+	private static final String MAINTENANCE_INTERVAL = "maintenance_interval";
+
 	private String name = DEFAULT_NAME;
 	
 	private ControlUnit controlUnit = new ControlUnit(this); // the control unit, to which the plan is connected 
@@ -536,6 +538,7 @@ public class Plan extends BaseClass{
 				.put(FINAL_SPEED, Train.defaultEndSpeed) 
 				.put(SPEED_STEP, Train.defaultSpeedStep)
 				.put(FREE_BEHIND_TRAIN, Route.freeBehindTrain)
+				.put(MAINTENANCE_INTERVAL, Car.defaulMaintenanceDist)
 				.put(LENGTH_UNIT, lengthUnit)
 				.put(SPEED_UNIT, speedUnit)
 				.put(TILE, jTiles);
@@ -566,6 +569,7 @@ public class Plan extends BaseClass{
 		if (json.has(FINAL_SPEED)) Train.defaultEndSpeed = json.getInt(FINAL_SPEED);
 		if (json.has(SPEED_STEP)) Train.defaultSpeedStep = json.getInt(SPEED_STEP);
 		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
+		if (json.has(MAINTENANCE_INTERVAL)) Car.defaulMaintenanceDist = json.getLong(MAINTENANCE_INTERVAL);
 		
 		try {
 			Car.loadAll(name+".cars",plan);
@@ -747,8 +751,9 @@ public class Plan extends BaseClass{
 		formInputs.add(null, new Input(ACTION,ACTION_UPDATE));
 		formInputs.add(t("Length unit"),new Input(LENGTH_UNIT, lengthUnit));
 		formInputs.add(t("Speed unit"),new Input(SPEED_UNIT, speedUnit));
-		formInputs.add(t("Speed step"),new Input(SPEED_STEP, Train.defaultSpeedStep).attr("title", t("Speeds are always increadsed/decreased by this value")));
-		formInputs.add(t("Lower speed limit"),new Input(FINAL_SPEED, Train.defaultEndSpeed).attr("title", t("Final speed after breaking, before halting")));
+		formInputs.add(t("Speed step"),new Input(SPEED_STEP, Train.defaultSpeedStep).attr("title", t("Speeds are always increadsed/decreased by this value")).addTo(new Tag("span")).content(NBSP+Plan.speedUnit));
+		formInputs.add(t("Lower speed limit"),new Input(FINAL_SPEED, Train.defaultEndSpeed).attr("title", t("Final speed after breaking, before halting")).addTo(new Tag("span")).content(NBSP+Plan.speedUnit));
+		formInputs.add(t("Default maintenance intervall"),new Input(MAINTENANCE_INTERVAL, Car.defaulMaintenanceDist).numeric().addTo(new Tag("span")).content(NBSP+Plan.lengthUnit));
 		formInputs.add(t("Free tiles behind train"),new Checkbox(FREE_BEHIND_TRAIN, t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished."), Route.freeBehindTrain));
 		formInputs.add(t("Allow editing JSON of action lists"),new Checkbox(ALLOW_JSON_EDIT, t("Do you know, what you are doing?"), allowJsonEdit ));
 		
@@ -1064,10 +1069,13 @@ public class Plan extends BaseClass{
 		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);
 		if (params.containsKey(SPEED_STEP)) Train.defaultSpeedStep = Integer.parseInt(params.get(SPEED_STEP));
 		if (params.containsKey(FINAL_SPEED)) Train.defaultEndSpeed = Integer.parseInt(params.get(FINAL_SPEED));
+		if (params.containsKey(MAINTENANCE_INTERVAL)) try {
+			Car.defaulMaintenanceDist = Long.parseLong(params.get(MAINTENANCE_INTERVAL));
+		} catch(NumberFormatException e) {};
 		allowJsonEdit = "on".equalsIgnoreCase(params.get(ALLOW_JSON_EDIT));
 		Route.freeBehindTrain = "on".equalsIgnoreCase(params.get(FREE_BEHIND_TRAIN));
 		
-		return t("Plan updated.");		
+		return properties(t("Plan updated."));		
 	}
 	
 	private Object updateTimes(HashMap<String, String> params) throws IOException {

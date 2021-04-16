@@ -51,6 +51,9 @@ public class Car extends BaseClass implements Comparable<Car>{
 	private static final String DRIVEN_DISTANCE = "driven_distance";
 
 	private static final String MAINTENANCE = "maintenance";
+
+	public static long defaulMaintenanceDist = 1_000_000;
+
 	protected HashSet<String> tags = new HashSet<>();
 	private HashSet<MaintnanceTask> tasks = new HashSet<>();
 	
@@ -222,7 +225,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		new Input(ACTION,ACTION_ADD).hideIn(form);
 		new Input(REALM_CAR,id()).hideIn(form);
 		MaintnanceTask.selector().addTo(new Label(t("Task type")+NBSP)).addTo(form);
-		new Input(MaintnanceTask.INTERVAL,1_000_000).numeric().addTo(new Label(t("Interval")+NBSP)).content(NBSP+Plan.lengthUnit).addTo(form);
+		new Input(MaintnanceTask.INTERVAL,Car.defaulMaintenanceDist).numeric().addTo(new Label(t("Interval")+NBSP)).content(NBSP+Plan.lengthUnit).addTo(form);
 		new Button(t("add"), form).addTo(form);
 		return form.addTo(fieldset);
 	}

@@ -118,7 +118,8 @@ Date/Time : Datum/Zeit
 Decoder address : Decoder-Adresse
 decouple : Abkuppeln
 decoupler : decoupler
-Decoupler : Entkuppler 
+Decoupler : Entkuppler
+Default maintenance intervall : Standard-Wartungsintervall 
 DelayedAction : verzögerte Aktion
 Delay must not be less than zero! : Verzögerung darf nicht kleiner als null sein!
 delete : entfernen
@@ -262,6 +263,7 @@ Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
 parked trains : abgestellte Züge
 Plan saved as "{}". : Plan als „{}“ gespeichert.
+Plan updated. : Plan aktualisiert.
 Port for state {} : Anschluss für Status {}
 PreserveRoute : Anschlußroute vorwählen
 Programming : Programmierung
@@ -339,6 +341,7 @@ simplify name : Name vereinfachen
 Simulating movement of {}... : Simuliere Fahrt von {}...
 Slower ({} {}) : {} {} langsamer
 SOUTH : Süden
+Speed step : Geschwindigketis-Schritt
 Speed unit : Geschwindigkeits-Einheit
 Split behind : Nach 
 SplitTrain : Zug teilen

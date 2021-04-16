@@ -13,6 +13,6 @@ public abstract class LoadCallback {
 	public abstract void afterLoad();
 	
 	public static void fire() {
-		for (LoadCallback callback : callbacks) callback.afterLoad();
+		while (!callbacks.isEmpty()) callbacks.removeFirst().afterLoad();
 	}
 }

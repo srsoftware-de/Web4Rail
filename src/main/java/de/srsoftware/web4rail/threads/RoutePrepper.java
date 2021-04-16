@@ -68,7 +68,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		Direction startDirection = c.direction();
 		LOG.debug("RoutePrepper.availableRoutes({},{},{}), dest = {}",startBlock,startDirection,train,destination);
 		
-		TreeMap<Integer, LinkedList<Route>> candidates = routesFrom(c);
+		TreeMap<Integer, LinkedList<Route>> candidates = routesFrom(c); // map: score → [route]
 		
 		if (isNull(destination)) {
 			LOG.debug("{} has no destination, returning {}",train,candidates);
@@ -91,6 +91,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		TreeMap<Integer,LinkedList<Route>> routesToDest = new TreeMap<>();
 		
 		int level = 0;
+		int level2 = 0;
 		
 		while (!candidates.isEmpty()) {
 			LOG.debug("Candidates for level {}:",level);
@@ -148,8 +149,9 @@ public class RoutePrepper extends BaseClass implements Runnable{
 				}
 			}
 			
-			if (!routesToDest.isEmpty()) return routesToDest;
-			LOG.debug("No routes to {} found with distance {}!",destination,level);
+			if (!routesToDest.isEmpty()) {
+				if (level2++ > 5) return routesToDest;
+			} else LOG.debug("No routes to {} found with distance {}!",destination,level);
 			level ++;
 			candidates = queue;			
 		}
@@ -263,14 +265,20 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		
 		Direction startDirection = c.direction();
 		
-		LOG.debug("     RoutePrepper.routesFrom({},{},{}), dest = {}",startBlock,startDirection,train,destination);
+		LOG.debug("     RoutePrepper.routesFrom({},{},{}), dest = {}:",startBlock,startDirection,train,destination);
 			
 		TreeMap<Integer, LinkedList<Route>> routes = new TreeMap<>();
 		
 		for (Route route : startBlock.leavingRoutes()) {
-			LOG.debug("     - evaluating {}",route);
-
 			int score = 0;
+
+			if (isSet(startDirection) && route.startDirection != startDirection) { // Route startet entgegen der aktuellen Fahrtrichtung des Zuges
+				if (!train.pushPull) continue; // Zug kann nicht wenden
+				if (!startBlock.turnAllowed) continue; // Wenden im Block nicht gestattet
+				score -= 5;
+			}
+			
+			LOG.debug("     - evaluating {}",route);
 			
 			if (!route.allowed(new Context(train).block(startBlock).direction(startDirection))) {
 				LOG.debug("       - {} not allowed for {}", route, train);
@@ -280,11 +288,6 @@ public class RoutePrepper extends BaseClass implements Runnable{
 			
 			if (route.endBlock() == destination) score = 100_000;
 			
-			if (isSet(startDirection) && route.startDirection != startDirection) { // Route startet entgegen der aktuellen Fahrtrichtung des Zuges
-				if (!train.pushPull) continue; // Zug kann nicht wenden
-				if (!startBlock.turnAllowed) continue; // Wenden im Block nicht gestattet
-				score -= 5;
-			}
 			
 			LinkedList<Route> routesForScore = routes.get(score);
 			if (isNull(routesForScore)) routes.put(score, routesForScore = new LinkedList<Route>());

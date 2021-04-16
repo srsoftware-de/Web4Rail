@@ -290,7 +290,7 @@ function runAction(ev){
 
 function stream(ev){
 	var data = ev.data;
-	//console.log("received: ",data);
+	console.log("received: ",data);
 	if (data.startsWith('<svg')) return place(data);
 	if (data.startsWith("heartbeat")) return heartbeat(data);
 	if (data.startsWith("place ")) return place(data.substring(6));
@@ -336,8 +336,8 @@ function toggleFullscreen(){
 
 function updateMessages() {
 	if (messages.length>0) {
-		messageOpacity = 100;
-		$('#messages').html(messages.join('<br/>')).css('opacity',messageOpacity/OPAC);
+		messageOpacity = 1000;
+		$('#messages').html(messages.slice().reverse().join('<br/>')).css('opacity',messageOpacity/OPAC);
 	} else $('#messages').html('');
 }
 

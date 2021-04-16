@@ -64,12 +64,11 @@ public class BlockFree extends Condition {
 
 	@Override
 	protected Object update(HashMap<String, String> params) {
-		if (!params.containsKey(BLOCK)) return t("No block id passed to BlockFree.update()!");
-		Tile tile = plan.get(new Id(params.get(BLOCK)), true);
-		if (tile instanceof Block) {
-			block = (Block) tile;
-		} else {
-			return t("Clicked tile is not a {}!",t("block"));
+		if (params.containsKey(BLOCK)) {
+			Tile tile = plan.get(new Id(params.get(BLOCK)), true);
+			if (tile instanceof Block) {
+				block = (Block) tile;
+			} else return t("Clicked tile is not a {}!",t("block"));
 		}
 		
 		return super.update(params);

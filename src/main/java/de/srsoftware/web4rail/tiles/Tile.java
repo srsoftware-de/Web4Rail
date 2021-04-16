@@ -100,12 +100,13 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 
 	public boolean free(Train oldTrain) {
 		if (isNull(oldTrain)) return false;
-		if (isSet(reservingTrain) && reservingTrain != oldTrain) return false;
-		if (isSet(lockingTrain)   && lockingTrain != oldTrain)   return false;
-		if (isSet(occupyingTrain) && occupyingTrain != oldTrain) return false;		
-		reservingTrain = lockingTrain = occupyingTrain = null; 
-		plan.place(this);
-		return true;
+		boolean result = false;
+		if (reservingTrain == oldTrain && (result = true)) reservingTrain = null;
+		if (lockingTrain   == oldTrain && (result = true)) lockingTrain   = null;
+		if (occupyingTrain == oldTrain && (result = true)) occupyingTrain = null;
+		oldTrain.unTrace(this);
+		if (result) plan.place(this);
+		return result;
 	}
 
 	public int height() {
@@ -140,7 +141,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 	}
 
 	public boolean isFreeFor(Context newTrain) {
-		LOG.debug("{}.isFreeFor({})", this, newTrain);
+		//LOG.debug("{}.isFreeFor({})", this, newTrain);
 		if (isDisabled()) {
 			LOG.debug("{} is disabled!", this);
 			return false;

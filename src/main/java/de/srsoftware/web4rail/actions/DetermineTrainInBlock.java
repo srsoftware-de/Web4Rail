@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
@@ -23,8 +24,12 @@ public class DetermineTrainInBlock extends Action {
 	
 	@Override
 	public boolean fire(Context context,Object cause) {
-		context.block(block);
-		context.train(block.occupyingTrain());		
+		if (isNull(block)) return false;
+		Train train = block.occupyingTrain();
+		if (isSet(train)) {
+			context.block(block);
+			context.train(block.occupyingTrain());
+		}
 		return true;
 	}
 	

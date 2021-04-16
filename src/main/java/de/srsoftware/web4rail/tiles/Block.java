@@ -407,7 +407,9 @@ public abstract class Block extends StretchableTile{
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		formInputs.add(t("Name"),new Input(NAME, name));
 		formInputs.add("",new Checkbox(ALLOW_TURN,t("Turn allowed"),turnAllowed));
-		formInputs.add(t("Train"),Train.selector(parkedTrains.first(), null));
+		Train train = occupyingTrain();
+		if (isNull(train)) train = parkedTrains.first();
+		formInputs.add(t("Train"),Train.selector(train, null));
 		postForm.add(contactForm());
 		postForm.add(waitTimeForm());
 		if (!parkedTrains.isEmpty()) postForm.add(trainList());
@@ -502,12 +504,12 @@ public abstract class Block extends StretchableTile{
 				Train newTrain = Train.get(trainId);
 				if (isSet(newTrain) && newTrain != occupyingTrain()) {
 					free(occupyingTrain());
-					newTrain.dropTrace();
+					newTrain.dropTrace(true);
 					if (connections(newTrain.direction()).isEmpty()) newTrain.heading(null);
 					newTrain.set(this);					
 				}
 				if (newTrain.currentBlock() != this) {
-					newTrain.dropTrace();
+					newTrain.dropTrace(true);
 					newTrain.set(this);					
 				}
 			}
