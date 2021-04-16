@@ -993,7 +993,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	public String start(boolean auto) {
 		LOG.debug("{}.start({})",this,auto?"auto":"");
-		autopilot |= auto;
+		if (auto != autopilot) {
+			autopilot |= auto;
+			if (isSet(currentBlock)) plan.place(currentBlock);
+		}
+		
 		if (isSet(nextPreparedRoute)) {
 			LOG.debug("starting nextPreparedRoute: {}",nextPreparedRoute);
 			if (nextPreparedRoute.startNow()) {
@@ -1049,10 +1053,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		endBrake();
 		setSpeed(0);
 		quitAutopilot();
-		if (isSet(route) && route.hasTriggeredContacts()) {
+		if (isSet(route)) {
+			if (route.hasTriggeredContacts()) {
 			stuckTrace = new HashSet<Tile>(); 
-			for (Tile tile : route.path()) { // collect occupied tiles of route. stuckTrace is considered during next route search
-				if (trace.contains(tile)) stuckTrace.add(tile);
+				for (Tile tile : route.path()) { // collect occupied tiles of route. stuckTrace is considered during next route search
+					if (trace.contains(tile)) stuckTrace.add(tile);
+				}
 			}
 			route.reset();
 			route = null;
@@ -1169,7 +1175,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				}
 			}			
 		}
-		for (Tile tile : trace) tile.free(this);
+		dropTrace(false);
 		trace = newTrace;
 		return context;
 	}
