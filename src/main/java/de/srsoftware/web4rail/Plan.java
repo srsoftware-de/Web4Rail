@@ -214,6 +214,7 @@ public class Plan extends BaseClass{
 		case ACTION_FREE:
 			Tile t = get(Id.from(params), false);
 			t.free(t.lockingTrain());
+			plan.alter();
 			return t.properties();
 		case ACTION_MOVE:
 			return moveTile(params.get(DIRECTION),Id.from(params));

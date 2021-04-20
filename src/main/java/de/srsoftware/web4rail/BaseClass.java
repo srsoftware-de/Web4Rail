@@ -86,7 +86,7 @@ public abstract class BaseClass implements Constants{
 		}
 		
 		public Context block(Block newBlock) {
-			LOG.debug("{}.block({})",this,newBlock);
+			//LOG.debug("{}.block({})",this,newBlock);
 			block = newBlock;
 			return this;
 		}
@@ -143,7 +143,7 @@ public abstract class BaseClass implements Constants{
 		}
 
 		public Context direction(Direction newDirection) {
-			LOG.debug("{}.direction({})",this,newDirection);
+			//LOG.debug("{}.direction({})",this,newDirection);
 			direction = newDirection;
 			return this;
 		}
@@ -164,7 +164,7 @@ public abstract class BaseClass implements Constants{
 		
 		public Context setMain(BaseClass object) {
 			main = object;
-			LOG.debug("{}.setMain({})",this,object);
+			//LOG.debug("{}.setMain({})",this,object);
 			if (main instanceof Tile) this.tile = (Tile) main;
 			if (main instanceof Contact) this.contact = (Contact) main;
 			if (main instanceof Block) this.block = (Block) main;
@@ -209,7 +209,7 @@ public abstract class BaseClass implements Constants{
 		}
 
 		public Context train(Train newTrain) {
-			LOG.debug("{}.train({})",this,newTrain);
+			//LOG.debug("{}.train({})",this,newTrain);
 			train = newTrain;
 			return this;
 		}
@@ -331,18 +331,20 @@ public abstract class BaseClass implements Constants{
 	public static String distance(long l) {
 		String unit = Plan.lengthUnit;
 		if (DEFAULT_LENGTH_UNIT.equals(unit)) {
+			double d = l;
 			if (l > 1_000_000) {
-				l/=1_000_000;
+				d = l/1_000_000d;
 				unit = t("km");
 			} else
 			if (l > 1_000) {
-				l/=1_000;
+				d = l/1_000;
 				unit = t("m");
 			} else
 			if (l > 10) {
-				l/=10;
+				d = l/10;
 				unit = t("cm");
 			}
+			return String.format("%.3f", d)+NBSP+unit;
 		}
 		return l+NBSP+unit;
 	}

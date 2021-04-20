@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeoutException;
 
@@ -334,8 +335,17 @@ public class Locomotive extends Car implements Constants,Device{
 
 		Table table = new Table();
 		table.addHead(t("setting"),t("CV"),t("value"),t("actions"));
-		for (Entry<Integer, Integer> entry : cvs.entrySet()){
+		for (int cv=1; cv<19; cv++) {
+			Object val = cvs.get(cv);
+			if (isNull(val)) {
+				if (Set.of(7, 8, 10, 11, 12, 13, 14, 15, 16).contains(cv)) continue;
+				val = t("no value");
+			}
+			table.addRow(setting(cv),cv,val,new Button(t("edit"), "copyCv(this);"));
+		}
+		for (Entry<Integer, Integer> entry : cvs.entrySet()){			
 			int cv = entry.getKey();
+			if (cv<10) continue;
 			int val = entry.getValue();
 			table.addRow(setting(cv),cv,val,new Button(t("edit"), "copyCv(this);"));
 		}
@@ -429,7 +439,7 @@ public class Locomotive extends Car implements Constants,Device{
 			return t("maximum speed v<sub>max</sub>");
 		case 6:
 			return t("mid speed v<sub>mid</sub>");
-		case 8:
+		case 9:
 			return t("PWM rate");
 		case 17:
 		case 18:
@@ -459,10 +469,10 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	public Object turn() {		
-		stop();
+		setSpeed(0);
 		super.turn();
 		plan.stream(t("Stopped and reversed {}.",this));
-		return properties();
+		return stop();
 	}
 	
 	@Override
