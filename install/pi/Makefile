@@ -23,7 +23,7 @@ define srcpd_conf
     <use_watchdog>no</use_watchdog>
     <verbosity>3</verbosity>
     <auto_power_on>yes</auto_power_on>
-    <device>/dev/ttyAMA0</device>
+    <device>/dev/serial0</device>
    </bus>
 </srcpd>
 endef
