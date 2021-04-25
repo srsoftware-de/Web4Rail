@@ -104,6 +104,11 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return t("Unknown action: {}",params.get(ACTION));
 	}
 	
+	@Override
+	public Window addLogEntry(String text) {
+		return super.addLogEntry(distance(distanceCounter)+": "+text);
+	}
+	
 	public Object addTask(MaintnanceTask newTask) {
 		if (isSet(newTask))	{
 			tasks.add(newTask);

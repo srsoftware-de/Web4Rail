@@ -531,7 +531,7 @@ public abstract class BaseClass implements Constants{
 		new Button(t("Apply"),customForm).addTo(customForm).addTo(customFields);
 		customFields.addTo(win);		
 		
-		Fieldset history = new Fieldset(t("History"));
+		Fieldset history = new Fieldset(t("History")).id("history");
 		
 		Form form = new Form("add-history-entry");
 		new Input(REALM, REALM_HISTORY).hideIn(form);
@@ -542,8 +542,11 @@ public abstract class BaseClass implements Constants{
 		form.addTo(history);
 		
 		table = new Table();
-		table.addHead(t("Date/Time"),t("Event"));
-		for (LogEntry entry : History.getFor(this)) table.addRow(new SimpleDateFormat("YYYY-dd-MM HH:mm").format(entry.date()),entry.getText());
+		table.addHead(t("Date/Time"),t("Event"),t("Actions"));
+		for (LogEntry entry : History.getFor(this)) table.addRow(
+			new SimpleDateFormat("YYYY-dd-MM HH:mm").format(entry.date()),
+			entry.getText(),
+			button(t("delete"),Map.of(REALM,REALM_HISTORY,ACTION,ACTION_DROP,TIME,""+entry.getTime())));
 		table.addTo(history).addTo(win);
 		
 		return win;

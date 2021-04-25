@@ -53,14 +53,14 @@ public interface Constants {
 	public static final String REALM_PLAN      = "plan";
 	public static final String REALM_TRAIN     = "train";
 	
-	public static final String  ASSIGN = "assign";
+	public static final String  ASSIGN              = "assign";
 	public static final String  BLOCK               = "block";
 	public static final String  COL                 = ": ";
 	public static final String  CONTACT             = "contact";
 	public static final String  CONTEXT             = "context";
 	public static final String  DEFAULT_SPEED_UNIT  = "km/h";
 	public static final String  DEFAULT_LENGTH_UNIT = "mm";
-	public static final String DESTINATION          = "destination";
+	public static final String  DESTINATION          = "destination";
 	public static final String  DISABLED            = "disabled";
 	public static final String  DIRECTION           = "direction";
 	public static final String  GITHUB_URL          = "https://github.com/srsoftware-de/Web4Rail";
@@ -76,6 +76,7 @@ public interface Constants {
 	public static final String  RESERVED            = "reserved";
 	public static final String  ROUTE               = "route";
 	public static final String  STATE               = "state";
+	public static final String  TIME                = "time";
 	public static final String  TURNOUT             = "turnout";
 	public static final String  TYPE                = "type";
 	public static final Charset UTF8                = StandardCharsets.UTF_8;

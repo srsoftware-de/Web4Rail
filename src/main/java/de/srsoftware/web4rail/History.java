@@ -37,6 +37,11 @@ public class History {
 		public String getText() {
 			return text;
 		}
+		
+		@Override
+		public String toString() {
+			return date()+": "+text;
+		}
 	};
 	
 	public static LogEntry assign(LogEntry logEntry, BaseClass object) {
@@ -47,21 +52,39 @@ public class History {
 		return logEntry;
 	}
 	
+	private static void dropEntry(BaseClass object,long time) {
+		Vector<LogEntry> list = log.get(object.id());
+		if (list == null) return;
+		for (int i=list.size(); i>0; i--) {
+			LogEntry entry = list.get(i-1);
+			if (entry.getTime() == time) list.remove(i-1);
+		}
+	}
+	
 	public static Vector<LogEntry> getFor(BaseClass object){
 		Vector<LogEntry> list = log.get(object.id());
 		return list != null ? list : new Vector<>();
 	}
 	
 	public static Object action(HashMap<String, String> params) {
-		
+		BaseClass object = BaseClass.get(Id.from(params));
 		switch (params.get(Constants.ACTION)) {
-			case Constants.ACTION_ADD:
-				BaseClass object = BaseClass.get(Id.from(params));
+			case Constants.ACTION_ADD:				
 				return object != null ? object.addLogEntry(params.get(Constants.NOTES)) : BaseClass.t("Unknown object!");
-
+			case Constants.ACTION_DROP:
+				if (BaseClass.isNull(object)) return BaseClass.t("Trying to delete log entry without specifing object!");
+				String err = null;
+				try {
+					long time = Long.parseLong(params.get(Constants.TIME));
+					dropEntry(object,time);
+				} catch (NumberFormatException e) {
+					err = BaseClass.t("Was not able to delete history entry!");
+				}
+				return object.properties(err);
 		}
 		
-		return BaseClass.t("Unknown action: {}",params.get(Constants.ACTION));
+		String message = BaseClass.t("Unknown action: {}",params.get(Constants.ACTION));
+		return (BaseClass.isNull(object)) ? message : object.properties(message);
 	}
 
 	public static void save(String filename) {

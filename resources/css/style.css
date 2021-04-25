@@ -435,3 +435,7 @@ svg.Block text{
 .Switch.on rect.enabled{
 	fill: forestgreen;	
 }
+
+#history table td:nth-child(2) {
+    padding-left: 30px;
+}
