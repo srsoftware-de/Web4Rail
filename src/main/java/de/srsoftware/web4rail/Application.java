@@ -63,7 +63,8 @@ public class Application extends BaseClass{
 		InetSocketAddress addr = new InetSocketAddress(config.getOrAdd(PORT, 8080));
 		String planName = config.getOrAdd(Plan.NAME, Plan.DEFAULT_NAME);
 		HttpServer server = HttpServer.create(addr, 0);
-		server.createContext("/plan", client -> sendPlan(client));
+		server.createContext("/", client -> sendPlan(client));
+		server.createContext("/plan", client -> sendPlan(client)); // backward compatibility
 		server.createContext("/css" , client -> sendFile(client));
 		server.createContext("/js" , client -> sendFile(client));
 		server.createContext("/stream", client -> stream(client));
@@ -75,7 +76,7 @@ public class Application extends BaseClass{
 		}
         plan.setAppConfig(config);
         try {
-			Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)+"/plan"));
+			Desktop.getDesktop().browse(URI.create("http://"+InetAddress.getLocalHost().getHostName()+":"+config.getInt(PORT)));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
