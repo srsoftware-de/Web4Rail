@@ -465,10 +465,10 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		if (isNull(newTrain)) return false;		
 		if (isSet(reservingTrain) && newTrain != reservingTrain) return false;
 		if (isSet(lockingTrain)   && newTrain != lockingTrain)   return false;
-		if (isSet(occupyingTrain) && newTrain != occupyingTrain) return false;
+		if (isSet(occupyingTrain) && (newTrain != occupyingTrain) && !newTrain.isShunting()) return false;
+		reservingTrain = lockingTrain = null;
 		if (occupyingTrain == newTrain) return true;
 		occupyingTrain = newTrain;
-		reservingTrain = lockingTrain = null;
 		plan.place(this);
 		return true;
 	}

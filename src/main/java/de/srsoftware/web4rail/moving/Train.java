@@ -432,10 +432,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	
-	public void dropTrace(boolean dropStuck) {
+	public Train dropTrace(boolean dropStuck) {
 		while (!trace.isEmpty()) trace.stream().findFirst().get().free(this);
 		trace.clear();
 		if (dropStuck) stuckTrace = null;
+		return this;
 	}
 	
 	private BrakeProcess endBrake() {
@@ -453,7 +454,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		direction = endedRoute.endDirection; // muss vor der Auswertung des Destination-Tags stehen!				
 		Block endBlock = endedRoute.endBlock();
 		Block startBlock = endedRoute.startBlock();
-		shunting = false;
 		if (endBlock == destination) {
 			destination = null;
 			
@@ -504,6 +504,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if ((!autopilot) || isNull(nextPreparedRoute) || (isSet(waitTime) && waitTime > 0)) setSpeed(0);
 		route = null;
 		endBlock.setTrain(this);
+		shunting = false; // wird in setTrain verwendet, muss also danach stehen
 		currentBlock = endBlock;
 		trace.add(endBlock);
 		if (!trace.contains(startBlock)) startBlock.dropTrain(this);

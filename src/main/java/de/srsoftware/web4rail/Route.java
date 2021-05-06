@@ -401,6 +401,7 @@ public class Route extends BaseClass {
 	}
 	
 	private void freeIgnoring(Vector<Tile> skipTiles) {
+		if (isNull(context)) return;
 		Train train = context.train();
 		Vector<Tile> reversedPath = reverse(path());
 		if (isSet(skipTiles)) reversedPath.removeAll(skipTiles);

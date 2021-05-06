@@ -85,6 +85,7 @@ public class BrakeProcess extends BaseClass implements Runnable{
 		updateDistance();
 		LOG.debug("updateTime(): start speed was {} {}.",startSpeed,BaseClass.speedUnit);
 		Integer newTimeStep = timeStep;
+		if (isNull(newTimeStep)) return;
 		long calculated;
 		int step = 32*newTimeStep;			
 		for (int i=0; i<20; i++) {

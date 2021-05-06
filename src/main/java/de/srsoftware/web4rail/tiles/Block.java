@@ -453,6 +453,15 @@ public abstract class Block extends StretchableTile{
 		internalContacts.remove(blockContact);
 	}
 	
+	@Override
+	public boolean setTrain(Train newTrain) {
+		if (isDisabled()) return false;
+		if (isNull(newTrain)) return false;
+		Train occupyingTrain = occupyingTrain();
+		if (isSet(occupyingTrain) && newTrain != occupyingTrain && newTrain.isShunting()) parkedTrains.add(occupyingTrain.dropTrace(false));
+		return super.setTrain(newTrain);
+	}
+	
 	public abstract List<Connector> startPoints();
 
 	@Override
