@@ -200,9 +200,7 @@ public abstract class Block extends StretchableTile{
 	@Override
 	protected HashSet<String> classes() {
 		HashSet<String> classes = super.classes();
-		if (!isNull(occupyingTrain()) || !parkedTrains.isEmpty()) classes.add(OCCUPIED);
-		if (!isNull(lockingTrain())) classes.add(LOCKED);
-		if (isDisabled()) classes.add(DISABLED);
+		if (!parkedTrains.isEmpty()) classes.add(OCCUPIED);
 		return classes;
 	}
 	

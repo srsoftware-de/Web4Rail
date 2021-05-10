@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 
+import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -15,7 +16,8 @@ public abstract class TurnoutL extends Turnout {
 	@Override
 	public Object click(boolean shift) throws IOException {
 		Object o = super.click(shift);
-		state(state == State.STRAIGHT ? State.LEFT : State.STRAIGHT,shift);
+		Reply reply = state(state == State.STRAIGHT ? State.LEFT : State.STRAIGHT,shift);
+		if (!reply.succeeded()) plan.stream(reply.message());
 		return o;
 	}
 	

@@ -162,10 +162,16 @@ public abstract class Turnout extends Tile implements Device{
 	public Reply state(State newState,boolean shift) {
 		Train lockingTrain = lockingTrain();
 
-		if (isSet(lockingTrain)) {
-			if (newState != state && !shift) return new Reply(415, t("{} locked by {}!",this,lockingTrain));
-			// shift allows to switch locked turnouts...
-		} else if (shift) return new Reply(200,"OK"); // shift on a non-locked turnout skips the switch process
+		if (isDisabled()) {
+			// shift allows to switch disabled turnouts...
+			if (newState != state && !shift) return new Reply(415, t("{} is disabled!",this));
+		} else {
+			if (isSet(lockingTrain)) {
+				// shift allows to switch locked turnouts...
+				if (newState != state && !shift) return new Reply(415, t("{} locked by {}!",this,lockingTrain));
+	
+			} else if (shift) return new Reply(200,"OK"); // shift on a non-locked turnout skips the switch process
+		}
 		if (address == 0) { 
 			sleep(300);
 			state = newState;			

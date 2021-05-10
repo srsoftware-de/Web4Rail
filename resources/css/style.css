@@ -295,13 +295,17 @@ h4,ul{
     display: table-row;
 }
 
+svg.disabled{
+	background: red;
+}
+
 svg.disabled circle,
 svg.disabled line,
 svg.disabled polygon,
 svg.disabled rect{
-	fill: #ddddef;
+	fill: #572e2e;
 	stroke-width:5;
-	stroke: red;
+	stroke: black;
 }
 
 #train-wait-form input{
@@ -383,6 +387,11 @@ textarea.json {
 svg.Block text{
 	fill: black;
 }
+
+svg.Block.disabled text{
+	fill: white;
+}
+
 
 .window > .tabs > legend {
 	float:left;

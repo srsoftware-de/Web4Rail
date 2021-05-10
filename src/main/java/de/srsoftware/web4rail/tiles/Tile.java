@@ -71,6 +71,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		if (isSet(reservingTrain)) classes.add(RESERVED);
 		if (isSet(lockingTrain)) classes.add(LOCKED);
 		if (isSet(occupyingTrain)) classes.add(OCCUPIED);
+		if (disabled) classes.add(DISABLED);
 		return classes;
 	}
 
@@ -554,6 +555,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		if (isSet(len)) length(Integer.parseInt(len));
 		super.update(params);
 		plan.place(this);
+		plan.alter();
 		return this;
 	}
 
