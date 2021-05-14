@@ -392,8 +392,10 @@ public class Route extends BaseClass {
 	
 	public void finish(Train train) {
 		LOG.debug("{}.finish()",this);
-		context.onInvalidate(null); // do in invalidate context of route's nextRoute
-		context.invalidate();
+		if (isSet(context)) {
+			context.onInvalidate(null); // do in invalidate context of route's nextRoute
+			context.invalidate();
+		}
 		train.endRoute(this);
 		setSignals(Signal.RED);
 		freeIgnoring(null);				

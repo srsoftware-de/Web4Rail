@@ -71,7 +71,7 @@ public abstract class Block extends StretchableTile{
 			return trains.isEmpty() ? null : trains.getLast();
 		}
 		
-		public List<Train> list() {
+		public Vector<Train> list() {
 			return new Vector<>(trains);
 		}
 
@@ -496,7 +496,7 @@ public abstract class Block extends StretchableTile{
 		return fieldset;
 	}
 	
-	public List<Train> trains(){
+	public Vector<Train> trains(){
 		return parkedTrains.list();
 	}
 	

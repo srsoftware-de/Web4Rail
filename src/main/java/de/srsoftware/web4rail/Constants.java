@@ -28,6 +28,7 @@ public interface Constants {
 	public static final String ACTION_PROPS = "props";
 	public static final String ACTION_QUIT = "quit";
 	public static final String ACTION_SAVE = "save";
+	public static final String ACTION_SET_SPEED = "setSpeed";
 	public static final String ACTION_SLOWER10 = "slower10";
 	public static final String ACTION_START = "start";
 	public static final String ACTION_STOP = "stop";
@@ -36,6 +37,7 @@ public interface Constants {
 	public static final String ACTION_TOGGLE_F2 = "f2";
 	public static final String ACTION_TOGGLE_F3 = "f3";
 	public static final String ACTION_TOGGLE_F4 = "f4";
+	public static final String ACTION_TOGGLE_SHUNTING = "shunt";
 	public static final String ACTION_TURN = "turn";
 	public static final String ACTION_UPDATE = "update";
 
@@ -75,6 +77,7 @@ public interface Constants {
 	public static final String  RELAY               = "relay";
 	public static final String  RESERVED            = "reserved";
 	public static final String  ROUTE               = "route";
+	public static final String  SPEED               = "speed";
 	public static final String  STATE               = "state";
 	public static final String  TIME                = "time";
 	public static final String  TURNOUT             = "turnout";

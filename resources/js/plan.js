@@ -65,6 +65,17 @@ function assign(context){
 	return false;
 }
 
+function changeSpeed(inputId){
+	console.log(inputId);
+	let parts = inputId.split('_');
+	let val = $('#'+inputId).val();
+	let data = 	{ realm : parts[0], id : parts[1], action : "setSpeed", speed : val};
+	console.log(data);
+	let caption = $('#'+inputId+'_caption');
+	caption.text(caption.text().replace(/\d+/,val));	
+	request(data); 
+}
+
 function clickLegend(ev){
 	lastTab = ev.data;	
 	$('.window > .tabs > legend').removeClass('front');
@@ -76,7 +87,7 @@ function clickLegend(ev){
 }
 
 function clickTile(x,y,shift){
-	console.log("clickTile("+x+","+y+")");
+	console.log("clickTile("+x+","+y+")");	
 	var id = x+"-"+y;
 	var tiles = $('#'+id);
 	if (tiles.length > 0) {

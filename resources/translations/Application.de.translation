@@ -166,6 +166,7 @@ Event : Ereignis
 Faster ({} {}) : {} {} schneller
 Final speed after breaking, before halting : Endgeschwindigkeit nach Bremsvorgang, vor dem Anhalten
 FinishRoute : Route abschließen
+first parked train : ersten abgestellten Zug wählen
 Firing {} : starte {}
 For each {} do : Mit jedem {}
 forward : vorwärts
@@ -192,6 +193,7 @@ Inverts the direction {} is heading to. : Kehrt die Richtung, in welche {} fähr
 {} is off : {} ist Aus
 {} is on : {} ist Ein
 {} is oriented {} : {} ist {} gerichtet
+JSON code of {} : JSON-Code von {}
 known cars : bekannte Waggons
 known locomotives : bekannte Lokomotiven
 known trains : bekannte Züge
@@ -235,6 +237,7 @@ new locomotive : neue Lok
 new tag : neue Markierung
 new train : neuer Zug
 No : keine
+No direct route from {} to {} : keine direkte Verbindung von {} zu {}
 No free routes from {} : keine Route von {} frei
 NORTH : Norden
 Not connected to other bridge part! : Nicht mit anderem Brücken-Teil verbunden!
@@ -262,6 +265,7 @@ other train properties : andere Zug-Eigenschaften
 other trains in {} : andere Züge in {}
 Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
+parked train : abgestellter Zug
 parked trains : abgestellte Züge
 Plan saved as "{}". : Plan als „{}“ gespeichert.
 Plan updated. : Plan aktualisiert.
@@ -336,6 +340,7 @@ SetTurnout : Weiche stellen
 Setup actions : Vorbereitung-Aktionen
 ShowText : Text anzeigen
 Shunting : Rangieren
+shunting destination : Rangier-Ziel
 Signals : Signale
 simplify all names : alle Namen vereinfachen
 simplify name : Name vereinfachen
@@ -435,6 +440,7 @@ Turns the train, as if it went through a loop. : Dreht den ZUg, als wenn er eine
 Unknown action\: {} : Unbekannte Aktion: {}
 Use negative number to count from end. : Nutze negative Nummern, um von Ende zu zählen.
 unset : ungesetzt
+update : aktualisieren
 value : Wert
 WaitForContact : Auf Kontakt warten
 Wait for {}, then : auf {} warten, dann

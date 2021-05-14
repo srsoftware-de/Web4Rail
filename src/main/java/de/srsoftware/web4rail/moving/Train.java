@@ -89,6 +89,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public int speed = 0;
 	private static final String SHUNTING = "shunting";
+
+	public static final String SHUNT = "SHUNT";
 	private boolean shunting = false;
 	private RoutePrepper routePrepper = null;
 
@@ -141,6 +143,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_REVERSE:
 				train.quitAutopilot();
 				return train.reverse().properties();
+			case ACTION_SET_SPEED:
+				return train.setSpeed(Integer.parseInt(params.get(SPEED)));
 			case ACTION_SLOWER10:
 				return train.slower(Train.defaultSpeedStep);
 			case ACTION_START:
@@ -149,6 +153,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 				return train.stopNow();
 			case ACTION_TIMES:
 				return train.removeBrakeTimes();
+			case ACTION_TOGGLE_SHUNTING:
+				train.shunting = !train.shunting;
+				return train.properties();
 			case ACTION_TURN:
 				return train.turn().properties();
 			case ACTION_UPDATE:
@@ -526,8 +533,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	private Tag faster(int steps) {
-		setSpeed(speed+steps);
-		return properties();
+		return setSpeed(speed+steps);
 	}
 	
 	public boolean getFunction(int num) {
@@ -703,7 +709,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	
-	private int maxSpeed() {
+	int maxSpeed() {
 		int maxSpeed = Integer.MAX_VALUE;
 		for (Car car : cars) {
 			int max = car.maxSpeed();
@@ -907,6 +913,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	private Object setDestination(HashMap<String, String> params) {
 		String dest = params.get(DESTINATION);
+		if (isNull(currentBlock)) return properties("{} is not in a block!");
 		if (isNull(dest)) return properties(t("No destination supplied!"));
 		if (dest.isEmpty()) {
 			destination = null;
@@ -915,6 +922,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		Tile tile = plan.get(new Id(dest), true);
 		if (isNull(tile)) return properties(t("Tile {} not known!",dest));
 		if (tile instanceof Block) {
+			if (shunting) {
+				boolean connection = currentBlock.routes().stream().anyMatch(route -> route.startBlock() == currentBlock && route.endBlock() == tile);
+				if (!connection) return t("No direct route from {} to {}",currentBlock,tile);
+			}
+			
 			destination = (Block) tile;
 			start(true);
 			return t("{} now heading for {}",this,destination);
@@ -953,17 +965,17 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 	
-	public void setSpeed(int newSpeed) {
+	public Tag setSpeed(int newSpeed) {
 		LOG.debug("{}.setSpeed({})",this,newSpeed);
 		speed = Math.min(newSpeed,maxSpeed());
 		if (speed < 0) speed = 0;
 		cars.stream().filter(c -> c instanceof Locomotive).forEach(car -> ((Locomotive)car).setSpeed(speed));
 		plan.stream(t("Set {} to {} {}",this,speed,speedUnit));
+		return properties();
 	}
 
 	private Tag slower(int steps) {
-		setSpeed(speed-steps);
-		return properties();
+		return setSpeed(speed-steps);		
 	}
 	
 	public boolean splitAfter(int position) {

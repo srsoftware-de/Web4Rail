@@ -26,6 +26,7 @@ import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Radio;
+import de.srsoftware.web4rail.tags.Range;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
@@ -71,6 +72,8 @@ public class Locomotive extends Car implements Constants,Device{
 				return loco.update(params);
 			case ACTION_PROPS:
 				return loco == null ? Locomotive.manager() : loco.properties();
+			case ACTION_SET_SPEED:
+				return loco.setSpeed(Integer.parseInt(params.get(SPEED)));
 			case ACTION_SLOWER10:
 				return loco.faster(-Train.defaultSpeedStep);
 			case ACTION_STOP:
@@ -98,41 +101,47 @@ public class Locomotive extends Car implements Constants,Device{
 		return address;
 	}
 	
-	public static Fieldset cockpit(Object locoOrTrain) {
-		Id id = null;
+	public static Fieldset cockpit(BaseClass locoOrTrain) {
 		int speed = 0;
 		String realm = null;
 		Train train = null;
 		Locomotive loco = null;
+		int maxSpeed = 0;
 		boolean fun1=false,fun2=false,fun3=false,fun4=false;
+		String id = null;
 		if (locoOrTrain instanceof Locomotive) {
 			loco = (Locomotive) locoOrTrain; 
 			realm = REALM_LOCO;
-			id = loco.id();
 			speed = loco.speed;
 			fun1 = loco.f1;
 			fun2 = loco.f2;
 			fun3 = loco.f3;
 			fun4 = loco.f4;
+			maxSpeed = loco.orientation ? loco.maxSpeedForward : loco.maxSpeedReverse;
+			id = "loco_"+loco.id();
 		} else if (locoOrTrain instanceof Train) {
 			train = (Train)locoOrTrain;
 			realm = REALM_TRAIN;			
-			id = train.id();
 			speed = train.speed;
 			fun1 = train.getFunction(1);
 			fun2 = train.getFunction(2);
 			fun3 = train.getFunction(3);
 			fun4 = train.getFunction(4);
-		}
+			maxSpeed = train.maxSpeed();
+			id = "train_"+train.id();
+		} else return null;
 		
-		HashMap<String,Object> params = new HashMap<String, Object>(Map.of(REALM,realm,ID,id));
+		HashMap<String,Object> params = new HashMap<String, Object>(Map.of(REALM,realm,ID,locoOrTrain.id()));
 		
 		Fieldset fieldset = new Fieldset(t("Control")).id("props-cockpit");
 		fieldset.clazz("cockpit");
 		
-		new Tag("span").content(t("Current velocity: {} {}",speed,speedUnit)).addTo(fieldset);
-		
 		Tag par = new Tag("p");
+		
+		Range range = new Range(t("Current velocity: {} {}",speed,speedUnit),"speed",speed,0,maxSpeed);
+		range.id(id).onChange("changeSpeed('"+id+"');");
+		range.addTo(par);
+		
 		
 		params.put(ACTION, ACTION_FASTER10);
 		new Button(t("Faster ({} {})",Train.defaultSpeedStep,speedUnit),params).addTo(par);			
@@ -149,7 +158,7 @@ public class Locomotive extends Car implements Constants,Device{
 		}
 
 		params.put(ACTION, ACTION_TURN);
-		new Button(t("Turn"),params).title(t("Inverts the direction {} is heading to.",locoOrTrain)).clazz(ACTION_TURN).addTo(direction);			
+		new Button(t("Turn"),params).title(t("Inverts the direction {} is heading to.",locoOrTrain)).clazz(ACTION_TURN).addTo(par);			
 
 		if (isSet(train)) {
 			Block currentBlock = train.currentBlock();
@@ -192,7 +201,12 @@ public class Locomotive extends Car implements Constants,Device{
 		b4.addTo(functions);
 		functions.addTo(fieldset);
 		
-		if (isSet(train)) train.button(t("Select destination"),Map.of(ACTION,ACTION_MOVE,ASSIGN,DESTINATION)).addTo(fieldset);
+		if (isSet(train)) {
+			train.button(t("Select destination"),Map.of(ACTION,ACTION_MOVE,ASSIGN,DESTINATION)).addTo(direction);
+			Button toggleShunbting = train.button(t("Shunting"),Map.of(ACTION,ACTION_TOGGLE_SHUNTING));
+			if (train.isShunting()) toggleShunbting.clazz(toggleShunbting.get("class")+" active");
+			toggleShunbting.addTo(functions);
+		}
 
 		return fieldset;
 	}
@@ -202,9 +216,8 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 
 	
-	public Object faster(int steps) {
-		setSpeed(speed + steps);
-		return properties();
+	public Tag faster(int steps) {
+		return setSpeed(speed + steps);		
 	}
 	
 	private void init() {
@@ -415,14 +428,16 @@ public class Locomotive extends Car implements Constants,Device{
 	 * @param newSpeed
 	 * @return
 	 */
-	public String setSpeed(int newSpeed) {
+	public Tag setSpeed(int newSpeed) {
 		LOG.debug(this.detail()+".setSpeed({})",newSpeed);
 		speed = newSpeed;
 		if (speed > maxSpeedForward && maxSpeedForward > 0) speed = maxSpeed();
 		if (speed < 0) speed = 0;
 		
 		queue();
-		return t("Speed of {} set to {}.",this,speed);
+		plan.stream(t("Speed of {} set to {} {}.",this,speed,BaseClass.speedUnit));
+		return properties();
+		
 	}
 	
 	private Object setting(int cv) {
