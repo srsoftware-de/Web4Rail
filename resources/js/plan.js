@@ -197,6 +197,14 @@ function heartbeat(data){
 	return false;
 }
 
+function highlight(id,enable = true){
+	if (enable) {
+		$('#'+id).addClass('highlight');
+	} else {
+		$('#'+id).removeClass('highlight');
+	}
+}
+
 function keypress(ev){
 	if (ev.code === 'Escape') return request({realm:"cu",action:"emergency"});
 	if (ev.code === 'Enter') {		

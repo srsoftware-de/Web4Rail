@@ -26,6 +26,12 @@ public class TriggerContact extends Action {
 	}
 	
 	@Override
+	protected String highlightId() {
+		return isSet(contact) ? contact.id().toString() : null;
+	}
+	
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (isSet(contact)) json.put(CONTACT, contact.id());

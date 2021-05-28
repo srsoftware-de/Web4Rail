@@ -36,6 +36,12 @@ public class SetRelayOrSwitch extends Action {
 	}
 	
 	@Override
+	protected String highlightId() {
+		return isSet(relayOrSwitch) ? relayOrSwitch.id().toString() : null;
+	}
+	
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (relayOrSwitch instanceof Relay)	{

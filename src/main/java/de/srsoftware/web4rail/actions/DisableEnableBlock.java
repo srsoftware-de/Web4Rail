@@ -42,6 +42,12 @@ public class DisableEnableBlock extends Action {
 	}
 	
 	@Override
+	protected String highlightId() {
+		return isSet(block) ? block.id().toString() : null;
+	}
+	
+	
+	@Override
 	public Action load(JSONObject json) {
 		if (json.has(STATE)) disable = !json.getBoolean(STATE);
 		if (json.has(BLOCK)) new LoadCallback() {

@@ -35,6 +35,11 @@ public class SetTurnout extends Action {
 	}
 	
 	@Override
+	protected String highlightId() {
+		return isSet(turnout) ? turnout.id().toString() : null;
+	}
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (isSet(turnout)) {

@@ -227,7 +227,7 @@ public abstract class Block extends StretchableTile{
 		if (!internalContacts.isEmpty()) {
 			Tag ul = new Tag("ul");
 			for (BlockContact contact : internalContacts) {
-				Tag li = contact.link("span", contact).content(NBSP).addTo(new Tag("li"));
+				Tag li = contact.link("span", contact, contact.id().toString()).content(NBSP).addTo(new Tag("li"));
 				contact.button(t("learn"),Map.of(ACTION,ACTION_ANALYZE)).addTo(li);
 				contact.button(t("delete"),Map.of(ACTION,ACTION_DROP)).addTo(li);
 				li.addTo(ul);
@@ -490,7 +490,7 @@ public abstract class Block extends StretchableTile{
 		Fieldset fieldset = new Fieldset(t("Trains"));
 		Tag list = new Tag("ul");
 		for (Train t : parkedTrains) {
-			if (isSet(t)) t.link("li", t).addTo(list);
+			if (isSet(t)) t.link("li", t, null).addTo(list);
 		}
 		list.addTo(fieldset);
 		return fieldset;

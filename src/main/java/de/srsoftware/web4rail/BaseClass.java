@@ -403,18 +403,29 @@ public abstract class BaseClass implements Constants{
 	}
 	
 	public Tag link(String tagClass,Object caption) {
-		return link(tagClass,caption,null);
+		String highlightId = (caption instanceof BaseClass) ? ((BaseClass)caption).id().toString() : null;
+		return link(tagClass,caption,highlightId);
 	}
 
-	public Tag link(String tagClass,Object caption,Map<String,String> additionalProps) {
+	public Tag link(String tagClass,Object caption, String highlightId) {
+		return link(tagClass,caption,null,highlightId);
+	}
+
+	
+	public Tag link(String tagClass,Object caption,Map<String,String> additionalProps,String highlightId) {
 		Tag link = link(tagClass,caption.toString(),props(additionalProps));
+		if (isSet(highlightId))	link.attr("onmouseover", "highlight('"+highlightId+"',true);").attr("onmouseout", "highlight('"+highlightId+"',false);");
+
 		if (isSet(notes) && !notes.isEmpty()) link.title(notes);
 		return link;
 	}
 	
 	public static Tag link(String tagClass,String caption,Map<String,String> props) {
 		String json = new JSONObject(props).toString().replace("\"", "'");
-		return new Tag(tagClass).clazz("link").attr("onclick","request("+json+")").content(caption.toString());
+		return new Tag(tagClass)
+			.clazz("link")
+			.attr("onclick","request("+json+");")
+			.content(caption.toString());
 	}
 	
 	@SuppressWarnings("unchecked")

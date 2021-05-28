@@ -330,7 +330,7 @@ public class Route extends BaseClass {
 		if (isNull(actions)) return context;
 		actions.fire(context,"Route.Contact("+contact.addr()+")");
 		Context previousContext = context;
-		if (context.invalidated()) context = null; // route has been freed in between.
+		if (isSet(context) && context.invalidated()) context = null; // route has been freed in between.
 		return previousContext;
 	}
 
@@ -358,12 +358,12 @@ public class Route extends BaseClass {
 		}
 		startActions.listAt(start).addTo(list);
 
-		for (Contact c : contacts) {
-			Tag item = c.link("span", c).addTo(new Tag("li")).content(NBSP);
-			ActionList actions = triggeredActions.get(c.trigger());
+		for (Contact contact : contacts) {
+			Tag item = contact.link("span", contact).addTo(new Tag("li")).content(NBSP);
+			ActionList actions = triggeredActions.get(contact.trigger());
 			if (isNull(actions)) {
 				actions = new ActionList(this);
-				triggeredActions.put(c.trigger(), actions);
+				triggeredActions.put(contact.trigger(), actions);
 			}
 			actions.listAt(item).addTo(list);
 		}

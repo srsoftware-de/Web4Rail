@@ -98,6 +98,10 @@ public abstract class Action extends BaseClass {
 	public static Action get(Id actionId) {
 		return actions.get(actionId);
 	}
+	
+	protected String highlightId() {
+		return null;
+	}
 
 	public JSONObject json() {
 		return new JSONObject().put(TYPE, getClass().getSimpleName());

@@ -435,7 +435,7 @@ public class Locomotive extends Car implements Constants,Device{
 		if (speed < 0) speed = 0;
 		
 		queue();
-		plan.stream(t("Speed of {} set to {} {}.",this,speed,BaseClass.speedUnit));
+		//plan.stream(t("Speed of {} set to {} {}.",this,speed,BaseClass.speedUnit));
 		return properties();
 		
 	}

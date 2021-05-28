@@ -41,6 +41,11 @@ public class SetSignal extends Action {
 	}
 	
 	@Override
+	protected String highlightId() {
+		return isSet(signal) ? signal.id().toString() : null;
+	}
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (isSet(signal)) {

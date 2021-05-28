@@ -30,6 +30,12 @@ public class SetDisplayText extends TextAction{
 	}
 	
 	@Override
+	protected String highlightId() {
+		return isSet(display) ? display.id().toString() : null;
+	}
+	
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (isSet(display)) json.put(DISPLAY, display.id());

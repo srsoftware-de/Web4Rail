@@ -79,7 +79,7 @@ public class ConditionList extends Condition implements Iterable<Condition>{
 		Tag list = new Tag("ul");
 		for (Condition condition : conditions) {
 			Tag item = new Tag("li");
-			condition.link("span", condition).addTo(item);
+			condition.link("span", condition, null).addTo(item);
 			condition.button(t("delete"), Map.of(ACTION,ACTION_DROP)).addTo(item.content(NBSP)).addTo(list);
 			if (condition instanceof ConditionList) {
 				((ConditionList)condition).listInternal().addTo(item);

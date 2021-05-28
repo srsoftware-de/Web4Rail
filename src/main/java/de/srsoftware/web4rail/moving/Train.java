@@ -770,7 +770,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		Tag dest = new Tag("li").content(t("Destination")+COL);
 		if (isSet(destination)) {
-			link("span",destination,Map.of(REALM,REALM_PLAN,ID,destination.id().toString(),ACTION,ACTION_CLICK)).addTo(dest);
+			link("span",destination,Map.of(REALM,REALM_PLAN,ID,destination.id().toString(),ACTION,ACTION_CLICK),null).addTo(dest);
 			new Button(t("Drop"),Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_MOVE,DESTINATION,"")).addTo(dest);
 		}
 		button(t("Select from plan"),Map.of(ACTION,ACTION_MOVE,ASSIGN,DESTINATION)).addTo(dest);
@@ -812,7 +812,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public String quitAutopilot() {
-		if (isSet(routePrepper)) routePrepper.stop();
+		if (isSet(routePrepper)) {
+			routePrepper.stop();
+			routePrepper = null;
+		}
 		if (autopilot) {
 			autopilot = false;
 			if (isSet(currentBlock)) plan.place(currentBlock);

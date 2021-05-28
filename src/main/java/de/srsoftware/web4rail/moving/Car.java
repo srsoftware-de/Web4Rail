@@ -274,7 +274,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 					car.link(),
 					maxSpeed+speedUnit,
 					car.length+NBSP+lengthUnit,
-					isSet(car.train) ? car.train.link("span", car.train) : "",
+					isSet(car.train) ? car.train.link("span", car.train, null) : "",
 					String.join(", ", car.tags()),
 					car.distanceCounter,
 					actions

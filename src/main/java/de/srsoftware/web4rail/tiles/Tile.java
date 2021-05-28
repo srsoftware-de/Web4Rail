@@ -199,7 +199,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 	public Tag link(String... args) {
 		String tx = args.length < 1 ? id() + NBSP : args[0];
 		String type = args.length < 2 ? "span" : args[1];
-		return super.link(type, (Object) tx, Map.of(ACTION, ACTION_CLICK));
+		return super.link(type, (Object) tx, Map.of(ACTION, ACTION_CLICK),this.id().toString());
 	}
 
 	public static void load(Object object, Plan plan) {

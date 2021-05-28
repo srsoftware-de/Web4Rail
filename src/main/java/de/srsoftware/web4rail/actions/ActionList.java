@@ -129,7 +129,7 @@ public class ActionList extends Action implements Iterable<Action>{
 		if (!isEmpty()) {
 			Tag list = new Tag("ol");
 			for (Action action : actions) {
-				Tag item = action.link("span",action).addTo(new Tag("li")).content(NBSP);
+				Tag item = action.link("span",action, action.highlightId()).addTo(new Tag("li")).content(NBSP);
 				action.button("↑", Map.of(ACTION,ACTION_MOVE)).title(t("move up")).addTo(item);
 				action.button("-", Map.of(ACTION,ACTION_DROP)).title(t("delete")).addTo(item);
 				if (action instanceof ActionList) ((ActionList) action).listAt(item);

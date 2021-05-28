@@ -35,6 +35,11 @@ public class DetermineTrainInBlock extends Action {
 	}
 	
 	@Override
+	protected String highlightId() {
+		return isSet(block) ? block.id().toString() : null;
+	}
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (isSet(block)) json.put(BLOCK, block.id());

@@ -538,3 +538,8 @@ input[type=range]:focus::-ms-fill-lower {
 input[type=range]:focus::-ms-fill-upper {
   background: #3071A9;
 }
+
+.highlight{
+	margin: -6px;
+	border: 6px solid purple;
+}

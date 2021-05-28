@@ -57,6 +57,12 @@ public class AddRemoveDestination extends Action {
 	}
 	
 	@Override
+	protected String highlightId() {
+		return isSet(destination) ? destination.id().toString() : null;
+	}
+	
+	
+	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		if (isSet(destination)) json.put(Train.DESTINATION,destination.id().toString());

@@ -139,7 +139,7 @@ public abstract class Signal extends Tile {
 		for (String aspect : knownStates) {
 			HashSet<int[]> commands = aspects.get(aspect);
 			if (isSet(commands)) {
-				Tag link = this.link("span", (Object)aspect, Map.of(ACTION,ACTION_POWER,STATE,aspect));
+				Tag link = this.link("span", (Object)aspect, Map.of(ACTION,ACTION_POWER,STATE,aspect),null);
 				for (int[] command : aspects.get(aspect)) {
 					Button delete = this.button(t("delete"), Map.of(ACTION,ACTION_UPDATE,ACTION_DROP+"-"+aspect,command[0]+"-"+command[1]+"-"+command[2]));
 					table.addRow(link,command[0],command[1],command[2],command[3]==1?"✓":"",delete);
