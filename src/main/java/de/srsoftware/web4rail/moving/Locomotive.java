@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.Vector;
 import java.util.concurrent.TimeoutException;
 
 import org.json.JSONObject;
@@ -16,8 +17,9 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
+import de.srsoftware.web4rail.devices.Decoder;
+import de.srsoftware.web4rail.devices.Device;
 import de.srsoftware.web4rail.Constants;
-import de.srsoftware.web4rail.Device;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.tags.Button;
@@ -31,23 +33,13 @@ import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
 
-public class Locomotive extends Car implements Constants,Device{
+public class Locomotive extends Car implements Constants{
 	
 	public static final String LOCOMOTIVE = "locomotive";
-	private static final Integer CV_ADDR = 1;
-	private static final String CVS = "cvs";
-	private static final String ACTION_PROGRAM = "program";
-	private static final String CV = "cv";
-	private static final String VALUE = "val";
-	private static final String MODE = "mode";
-	private static final String POM = "pom";
-	private static final String TRACK = "track";
-	private Protocol proto = Protocol.DCC128;
-	private int address = 3;
 	private int speed = 0;
 	private boolean f1,f2,f3,f4;
-	private boolean init = false;
-	private TreeMap<Integer,Integer> cvs = new TreeMap<Integer, Integer>();
+	//private TreeMap<Integer,Integer> cvs = new TreeMap<Integer, Integer>();
+	private Decoder decoder;
 
 	public Locomotive(String name) {
 		super(name);
@@ -68,8 +60,8 @@ public class Locomotive extends Car implements Constants,Device{
 				return loco.faster(Train.defaultSpeedStep);
 			case ACTION_MOVE:
 				return loco.moveUp();
-			case ACTION_PROGRAM:
-				return loco.update(params);
+/*			case ACTION_PROGRAM:
+				return loco.update(params); */
 			case ACTION_PROPS:
 				return loco == null ? Locomotive.manager() : loco.properties();
 			case ACTION_SET_SPEED:
@@ -94,11 +86,6 @@ public class Locomotive extends Car implements Constants,Device{
 		}
 		
 		return t("Unknown action: {}",params.get(ACTION));
-	}
-
-	@Override
-	public int address() {
-		return address;
 	}
 	
 	public static Fieldset cockpit(BaseClass locoOrTrain) {
@@ -212,55 +199,22 @@ public class Locomotive extends Car implements Constants,Device{
 	}
 	
 	private String detail() {
-		return getClass().getSimpleName()+"("+name()+", "+proto+", "+address+")";
+		return getClass().getSimpleName()+"("+name()+", "+decoder.protocol()+", "+decoder.address()+")";
 	}
 
 	
 	public Tag faster(int steps) {
 		return setSpeed(speed + steps);		
 	}
-	
-	private void init() {
-		if (init) return;
-		String proto = null;
-		switch (this.proto) {
-		case FLEISCH:
-			proto = "F"; break;
-		case MOTO:
-			proto = "M 2 100 0"; break; // TODO: make configurable
-		case DCC14:
-		case DCC27:
-		case DCC28:
-		case DCC128:
-			proto = "N 1 "+this.proto.steps+" 5"; break; // TODO: make configurable
-		case SELECTRIX:
-			proto = "S"; break;
-		}
-		plan.queue(new Command("INIT {} GL "+address+" "+proto) {
-			
-			@Override
-			public void onSuccess() {
-				super.onSuccess();
-				plan.stream(t("{} initialized.",this));
-			}
-			
-			@Override
-			public void onFailure(Reply r) {
-				super.onFailure(r);
-				plan.stream(t("Was not able to initialize {}!",this));				
-			}
-		});
-		init = true;
-	}
-
 
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		JSONObject loco = new JSONObject();
-		loco.put(PROTOCOL, proto);
+		//loco.put(PROTOCOL, proto);
 		json.put(LOCOMOTIVE, loco);
-		loco.put(CVS, cvs);
+		//loco.put(CVS, cvs);
+		loco.put(Decoder.DECODER,decoder.json());
 		return json;
 	}
 	
@@ -268,13 +222,15 @@ public class Locomotive extends Car implements Constants,Device{
 	public Car load(JSONObject json) {
 		super.load(json);
 		if (json.has(LOCOMOTIVE)) {
+			if (isNull(decoder)) decoder = new Decoder();
+			
 			JSONObject loco = json.getJSONObject(LOCOMOTIVE);
-			if (loco.has(PROTOCOL)) proto = Protocol.valueOf(loco.getString(PROTOCOL));
-			if (loco.has(ADDRESS)) setAddress(loco.getInt(ADDRESS));
-			if (loco.has(CVS)) {
-				JSONObject jCvs = loco.getJSONObject(CVS);
-				for (String key : jCvs.keySet()) cvs.put(Integer.parseInt(key),jCvs.getInt(key));
-				address = cvs.get(CV_ADDR);
+			if (loco.has(Decoder.DECODER)) decoder.load(json.getJSONObject(Decoder.DECODER));
+			if (loco.has(Decoder.CVS)) { // Legacy
+				JSONObject jCvs = loco.getJSONObject(Decoder.CVS);
+				for (String key : jCvs.keySet()) {
+					decoder.cvs.put(Integer.parseInt(key),jCvs.getInt(key)); 
+				}
 			}
 		}
 		return this;
@@ -288,7 +244,7 @@ public class Locomotive extends Car implements Constants,Device{
 		
 		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Protocol"),t("Address"),t("Length"),t("driven distance"),t("Tags"));
 		List<Locomotive> locos = BaseClass.listElements(Locomotive.class);
-		locos.sort(Comparator.comparing(loco -> loco.address));
+		locos.sort(Comparator.comparing(loco -> isSet(loco.decoder) ? loco.decoder.address() : 0));
 		locos.sort(Comparator.comparing(loco -> loco.stockId));
 		for (Locomotive loco : locos) {
 			String maxSpeed = (loco.maxSpeedForward == 0 ? "–":""+loco.maxSpeedForward)+NBSP;
@@ -296,8 +252,8 @@ public class Locomotive extends Car implements Constants,Device{
 			table.addRow(loco.stockId,
 				loco.link(),
 				maxSpeed+NBSP+speedUnit,
-				loco.proto,
-				loco.address,
+				isSet(loco.decoder) ? loco.decoder.protocol() : null,
+				isSet(loco.decoder) ? loco.decoder.address() : null,
 				loco.length+NBSP+lengthUnit,
 				loco.distanceCounter,
 				String.join(", ", loco.tags()));
@@ -315,77 +271,32 @@ public class Locomotive extends Car implements Constants,Device{
 		return win;
 	}
 	
-	private String program(int cv,int val,boolean pom) {
-		if (cv != 0) {			
-			if (val < 0) {
-				cvs.remove(cv);
-				return null;
-			}
-			init();
-			Command command = new Command("SET {} SM "+(pom?address:-1)+" CV "+cv+" "+val);
-			try {
-				Reply reply = plan.queue(command).reply();
-				if (reply.succeeded()) {
-					cvs.put(cv, val);
-					if (cv == CV_ADDR) address = val;
-					return null;
-				}
-				return reply.message();				
-			} catch (TimeoutException e) {
-				return t("Timeout while sending programming command!");		
-			}	
-		}
-		return null;
-	}
+
 	
-	private Fieldset programming() {
-		Fieldset fieldset = new Fieldset(t("Programming")).id("props-cv");
 
-		Form form = new Form("cv-form");
-		new Input(REALM,REALM_LOCO).hideIn(form);
-		new Input(ID,id()).hideIn(form);
-		new Input(ACTION,ACTION_PROGRAM).hideIn(form);
-
-		Table table = new Table();
-		table.addHead(t("setting"),t("CV"),t("value"),t("actions"));
-		for (int cv=1; cv<19; cv++) {
-			Object val = cvs.get(cv);
-			if (isNull(val)) {
-				if (Set.of(7, 8, 10, 11, 12, 13, 14, 15, 16).contains(cv)) continue;
-				val = t("no value");
-			}
-			table.addRow(setting(cv),cv,val,new Button(t("edit"), "copyCv(this);"));
-		}
-		for (Entry<Integer, Integer> entry : cvs.entrySet()){			
-			int cv = entry.getKey();
-			if (cv<10) continue;
-			int val = entry.getValue();
-			table.addRow(setting(cv),cv,val,new Button(t("edit"), "copyCv(this);"));
-		}
-		Tag mode = new Tag("div");
-		new Radio(MODE, POM, t("program on main"), true).addTo(mode);
-		new Radio(MODE, TRACK, t("prgramming track"), false).addTo(mode);
-		table.addRow(mode,new Input(CV,0).numeric(),new Input(VALUE,0).numeric(),new Button(t("Apply"),form));
-		return table.addTo(form).addTo(fieldset);
-	}
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		preForm.add(cockpit(this));
-		Tag div = new Tag("div");
-		for (Protocol proto : Protocol.values()) {
-			new Radio(PROTOCOL, proto.toString(), t(proto.toString()), proto == this.proto).addTo(div);
+		Window props = super.properties(preForm, formInputs, postForm,errors);
+		if (isSet(decoder)) {
+			Tag basicProps = props.children().stream().filter(tag -> BaseClass.PROPS_BASIC.equals(tag.get("id"))).findFirst().get();
+			Tag form = basicProps.children().stream().filter(tag -> tag.is("form")).findFirst().get();
+			Table table = (Table) form.children().stream().filter(tag -> tag.is("table")).findFirst().get();
+			table.addRow(t("Decoder"),decoder.link());
+			Vector<Tag> cols = table.children();
+			Tag lastRow = cols.lastElement();
+			cols.remove(cols.size()-1);
+			cols.insertElementAt(lastRow, 5);
 		}
-		formInputs.add(t("Protocol"),div);
-		formInputs.add(t("Address"),new Input(ADDRESS, address).numeric());
-		postForm.add(programming());
-		return super.properties(preForm, formInputs, postForm,errors);
+		return props;
 	}
-
+	
 	private void queue() {
-		int step = proto.steps * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
-		init();
-		plan.queue(new Command("SET {} GL "+address+" "+(orientation == FORWARD ? 0 : 1)+" "+step+" "+proto.steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
+		if (isNull(decoder)) return;
+		int step = decoder.protocol().steps * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
+		decoder.init();
+		plan.queue(new Command("SET {} GL "+decoder.address()+" "+(orientation == FORWARD ? 0 : 1)+" "+step+" "+decoder.protocol().steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
 
 			@Override
 			public void onFailure(Reply reply) {
@@ -393,13 +304,6 @@ public class Locomotive extends Car implements Constants,Device{
 				plan.stream(t("Failed to send command to {}: {}",this,reply.message()));
 			}			
 		});
-	}
-	
-	private Locomotive setAddress(int newAddress) {
-		address = newAddress;
-		cvs.put(CV_ADDR, newAddress);
-		init = false;
-		return this;
 	}
 	
 	public String setFunction(int num, boolean active) {
@@ -439,29 +343,7 @@ public class Locomotive extends Car implements Constants,Device{
 		return properties();
 		
 	}
-	
-	private Object setting(int cv) {
-		switch (cv) {
-		case 1:
-			return t("Address");
-		case 2:
-			return t("minimum starting voltage v<sub>min</sub>");
-		case 3:
-			return t("starting delay");
-		case 4:
-			return t("braking delay");
-		case 5:
-			return t("maximum speed v<sub>max</sub>");
-		case 6:
-			return t("mid speed v<sub>mid</sub>");
-		case 9:
-			return t("PWM rate");
-		case 17:
-		case 18:
-			return t("extended address");
-		}
-		return "";
-	}
+
 
 	
 	public Object stop() {
@@ -493,19 +375,19 @@ public class Locomotive extends Car implements Constants,Device{
 	@Override
 	protected Window update(HashMap<String, String> params) {
 		super.update(params);
-		if (params.containsKey(PROTOCOL)) proto = Protocol.valueOf(params.get(PROTOCOL));
-		if (params.containsKey(ADDRESS)) {
-			int newAddress = Integer.parseInt(params.get(ADDRESS));
-			if (newAddress != address) setAddress(newAddress);
+		if (isSet(decoder) && params.containsKey(Device.PROTOCOL)) decoder.setProtocol(Protocol.valueOf(params.get(Device.PROTOCOL)));
+		if (isSet(decoder) && params.containsKey(Device.ADDRESS)) {
+			int newAddress = Integer.parseInt(params.get(Device.ADDRESS));
+			if (newAddress != decoder.address()) decoder.cvs.put(Decoder.CV_ADDR, newAddress);
 		}
 		String error = null; 
-		if (params.get(ACTION).equals(ACTION_PROGRAM)) try {
+		/*if (params.get(ACTION).equals(ACTION_PROGRAM)) try {
 			int cv = Integer.parseInt(params.get(CV));
 			int val = Integer.parseInt(params.get(VALUE));
 			boolean pom = !params.get(MODE).equals(TRACK);
 			error = program(cv,val,pom);
 			
-		} catch (NumberFormatException e) {}
+		} catch (NumberFormatException e) {}*/
 		Window props = properties();
 		if (isSet(error)) new Tag("span").content(error).addTo(props);
 		return props;

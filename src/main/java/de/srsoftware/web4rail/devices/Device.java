@@ -1,4 +1,4 @@
-package de.srsoftware.web4rail;
+package de.srsoftware.web4rail.devices;
 
 import de.srsoftware.tools.Tag;
 

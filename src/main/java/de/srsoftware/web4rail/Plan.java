@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import de.srsoftware.localconfig.Configuration;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.devices.Device;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Button;

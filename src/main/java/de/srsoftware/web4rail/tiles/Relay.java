@@ -11,7 +11,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
-import de.srsoftware.web4rail.Device;
+import de.srsoftware.web4rail.devices.Device;
 import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
