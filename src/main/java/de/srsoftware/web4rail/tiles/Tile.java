@@ -531,8 +531,34 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 	}
 
 	public String title() {
-		return getClass().getSimpleName() + " @ (" + x + ", " + y + ")";
+		StringBuilder sb = new StringBuilder();
+		sb.append(getClass().getSimpleName());
+		sb.append(" @ (");
+		sb.append(x);
+		sb.append(", ");
+		sb.append(y);
+		sb.append(")");
+		if (isSet(occupyingTrain)) {
+			sb.append("\n");
+			sb.append(occupyingTrain);
+			sb.append(":\n");
+			occupyingTrain.cars().forEach(car -> sb.append("\t"+car+"\n"));
+		}		
+		return sb.toString();
 	}
+	
+	public String title(Train train) {
+		StringBuilder sb = new StringBuilder("\n");
+		sb.append(train);
+		sb.append(" (");
+		sb.append(train.length());
+		sb.append(" ");
+		sb.append(t(lengthUnit));
+		sb.append("):\n");
+		train.cars().forEach(car -> sb.append("\t"+car+"\n"));
+		return sb.toString();
+	}
+
 
 	@Override
 	public String toString() {

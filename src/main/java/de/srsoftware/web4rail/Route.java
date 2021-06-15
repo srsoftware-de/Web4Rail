@@ -713,6 +713,7 @@ public class Route extends BaseClass {
 		});
 		nextRoutePrepper.onFail(() -> {
 			LOG.debug("preparing route next to {} failed, resetting.",this);
+			if (isNull(nextRoutePrepper)) return;
 			Route rt = nextRoutePrepper.route(); // Nachfolgeroute kann ja schon reserviert sein, oder gar schon teilweise vorbereitet!
 			if (isSet(rt)) rt.resetIgnoring(this); // angefangene Route freigeben ohne Teile der aktuellen Route freizugeben
 			nextRoutePrepper = null;
