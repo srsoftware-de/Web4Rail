@@ -5,29 +5,21 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.Vector;
-import java.util.concurrent.TimeoutException;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
-import de.srsoftware.web4rail.Command.Reply;
-import de.srsoftware.web4rail.devices.Decoder;
-import de.srsoftware.web4rail.devices.Device;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Plan;
-import de.srsoftware.web4rail.Protocol;
+import de.srsoftware.web4rail.devices.Decoder;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Label;
-import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Range;
 import de.srsoftware.web4rail.tags.Table;
 import de.srsoftware.web4rail.tags.Window;
@@ -60,8 +52,6 @@ public class Locomotive extends Car implements Constants{
 				return loco.faster(Train.defaultSpeedStep);
 			case ACTION_MOVE:
 				return loco.moveUp();
-/*			case ACTION_PROGRAM:
-				return loco.update(params); */
 			case ACTION_PROPS:
 				return loco == null ? Locomotive.manager() : loco.properties();
 			case ACTION_SET_SPEED:
@@ -211,10 +201,8 @@ public class Locomotive extends Car implements Constants{
 	public JSONObject json() {
 		JSONObject json = super.json();
 		JSONObject loco = new JSONObject();
-		//loco.put(PROTOCOL, proto);
 		json.put(LOCOMOTIVE, loco);
-		//loco.put(CVS, cvs);
-		loco.put(Decoder.DECODER,decoder.json());
+		if (isSet(decoder))	loco.put(Decoder.DECODER,decoder.json());
 		return json;
 	}
 	
@@ -222,16 +210,20 @@ public class Locomotive extends Car implements Constants{
 	public Car load(JSONObject json) {
 		super.load(json);
 		if (json.has(LOCOMOTIVE)) {
-			if (isNull(decoder)) decoder = new Decoder();
 			
 			JSONObject loco = json.getJSONObject(LOCOMOTIVE);
-			if (loco.has(Decoder.DECODER)) decoder.load(json.getJSONObject(Decoder.DECODER));
-			if (loco.has(Decoder.CVS)) { // Legacy
-				JSONObject jCvs = loco.getJSONObject(Decoder.CVS);
-				for (String key : jCvs.keySet()) {
-					decoder.cvs.put(Integer.parseInt(key),jCvs.getInt(key)); 
-				}
+			if (loco.has(Decoder.DECODER)) {
+				if (isNull(decoder)) decoder = new Decoder();
+				decoder.load(loco.getJSONObject(Decoder.DECODER));
 			}
+			if (loco.has(Decoder.CVS)) { // Legacy
+				if (isNull(decoder)) decoder = new Decoder();
+				decoder.register();
+				JSONObject jCvs = loco.getJSONObject(Decoder.CVS);
+				for (String key : jCvs.keySet()) decoder.cvs.put(Integer.parseInt(key),jCvs.getInt(key));
+			}
+			if (isSet(decoder)) decoder.setLoco(this,false);
+			
 		}
 		return this;
 	}	
@@ -242,7 +234,7 @@ public class Locomotive extends Car implements Constants{
 		
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
-		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Protocol"),t("Address"),t("Length"),t("driven distance"),t("Tags"));
+		Table table = new Table().addHead(t("Stock ID"),t("Name"),t("Max. Speed",speedUnit),t("Address"),t("Decoder"),t("Length"),t("driven distance"),t("Tags"));
 		List<Locomotive> locos = BaseClass.listElements(Locomotive.class);
 		locos.sort(Comparator.comparing(loco -> isSet(loco.decoder) ? loco.decoder.address() : 0));
 		locos.sort(Comparator.comparing(loco -> loco.stockId));
@@ -252,8 +244,8 @@ public class Locomotive extends Car implements Constants{
 			table.addRow(loco.stockId,
 				loco.link(),
 				maxSpeed+NBSP+speedUnit,
-				isSet(loco.decoder) ? loco.decoder.protocol() : null,
 				isSet(loco.decoder) ? loco.decoder.address() : null,
+				isSet(loco.decoder) ? loco.decoder.button() : null,
 				loco.length+NBSP+lengthUnit,
 				loco.distanceCounter,
 				String.join(", ", loco.tags()));
@@ -279,18 +271,31 @@ public class Locomotive extends Car implements Constants{
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		preForm.add(cockpit(this));
 		Window props = super.properties(preForm, formInputs, postForm,errors);
-		if (isSet(decoder)) {
 			Tag basicProps = props.children().stream().filter(tag -> BaseClass.PROPS_BASIC.equals(tag.get("id"))).findFirst().get();
 			Tag form = basicProps.children().stream().filter(tag -> tag.is("form")).findFirst().get();
 			Table table = (Table) form.children().stream().filter(tag -> tag.is("table")).findFirst().get();
-			table.addRow(t("Decoder"),decoder.link());
+			Tag div = new Tag("div");
+			if (isSet(decoder)) {
+				decoder.button().addTo(div);
+				decoder.button(t("dismount"), Map.of(ACTION,ACTION_DECOUPLE)).addTo(div);
+			} else {
+				Decoder.selector(true).addTo(div);
+			}
+			table.addRow(t("Decoder"),div);
 			Vector<Tag> cols = table.children();
 			Tag lastRow = cols.lastElement();
 			cols.remove(cols.size()-1);
 			cols.insertElementAt(lastRow, 5);
-		}
 		return props;
 	}
+	
+	public void removeDecoder(Decoder decoder) {
+		if (this.decoder == decoder) {
+			addLogEntry(t("Removed decoder \"{}\".",decoder));
+			this.decoder = null;
+		}
+	}
+
 	
 	private void queue() {
 		if (isNull(decoder)) return;
@@ -304,6 +309,11 @@ public class Locomotive extends Car implements Constants{
 				plan.stream(t("Failed to send command to {}: {}",this,reply.message()));
 			}			
 		});
+	}
+	
+	public void setDecoder(Decoder newDecoder, boolean log) {
+		decoder = newDecoder;
+		if (log) addLogEntry(t("Mounted decoder \"{}\".",decoder));
 	}
 	
 	public String setFunction(int num, boolean active) {
@@ -333,13 +343,15 @@ public class Locomotive extends Car implements Constants{
 	 * @return
 	 */
 	public Tag setSpeed(int newSpeed) {
-		LOG.debug(this.detail()+".setSpeed({})",newSpeed);
-		speed = newSpeed;
-		if (speed > maxSpeedForward && maxSpeedForward > 0) speed = maxSpeed();
-		if (speed < 0) speed = 0;
-		
-		queue();
-		//plan.stream(t("Speed of {} set to {} {}.",this,speed,BaseClass.speedUnit));
+		if (isSet(decoder)) {
+			LOG.debug(this.detail()+".setSpeed({})",newSpeed);
+			speed = newSpeed;
+			if (speed > maxSpeedForward && maxSpeedForward > 0) speed = maxSpeed();
+			if (speed < 0) speed = 0;
+			
+			queue();
+			//plan.stream(t("Speed of {} set to {} {}.",this,speed,BaseClass.speedUnit));
+		}
 		return properties();
 		
 	}
@@ -375,21 +387,20 @@ public class Locomotive extends Car implements Constants{
 	@Override
 	protected Window update(HashMap<String, String> params) {
 		super.update(params);
-		if (isSet(decoder) && params.containsKey(Device.PROTOCOL)) decoder.setProtocol(Protocol.valueOf(params.get(Device.PROTOCOL)));
-		if (isSet(decoder) && params.containsKey(Device.ADDRESS)) {
-			int newAddress = Integer.parseInt(params.get(Device.ADDRESS));
-			if (newAddress != decoder.address()) decoder.cvs.put(Decoder.CV_ADDR, newAddress);
+		if (params.containsKey(REALM_DECODER)) {
+			Id decoderId = Id.from(params,REALM_DECODER);
+			Decoder decoder = null;
+			switch (decoderId.toString()) {
+				case "-1":
+					break;
+				case "0":
+					decoder = new Decoder().register();
+					break;
+				default:
+					decoder = Decoder.get(decoderId);
+			}
+			if (isSet(decoder))	decoder.setLoco(this,true);
 		}
-		String error = null; 
-		/*if (params.get(ACTION).equals(ACTION_PROGRAM)) try {
-			int cv = Integer.parseInt(params.get(CV));
-			int val = Integer.parseInt(params.get(VALUE));
-			boolean pom = !params.get(MODE).equals(TRACK);
-			error = program(cv,val,pom);
-			
-		} catch (NumberFormatException e) {}*/
-		Window props = properties();
-		if (isSet(error)) new Tag("span").content(error).addTo(props);
-		return props;
+		return properties();
 	}
 }

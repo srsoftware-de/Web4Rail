@@ -301,7 +301,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return train().moveUp(this);
 	}
 	
-	String name(){
+	public String name(){
 		return name;
 	}
 	

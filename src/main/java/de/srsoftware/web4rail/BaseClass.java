@@ -24,6 +24,7 @@ import de.srsoftware.web4rail.History.LogEntry;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.conditions.Condition;
+import de.srsoftware.web4rail.devices.Decoder;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.moving.Train;
@@ -566,6 +567,7 @@ public abstract class BaseClass implements Constants{
 	
 	public String realm() {
 		if (this instanceof Contact) return REALM_CONTACT;
+		if (this instanceof Decoder) return REALM_DECODER;
 		if (this instanceof Tile) return REALM_PLAN;
 
 		if (this instanceof Locomotive) return REALM_LOCO;
@@ -588,9 +590,10 @@ public abstract class BaseClass implements Constants{
 		return props;
 	}
 	
-	public BaseClass register() {
+	@SuppressWarnings("unchecked")
+	public <T extends BaseClass> T register() {
 		registry.put(id(),this);
-		return this;
+		return (T) this;
 	}
 	
 	public BaseClass remove() {

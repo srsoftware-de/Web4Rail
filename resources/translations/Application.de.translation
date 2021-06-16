@@ -136,6 +136,7 @@ disabled : deaktiviert
 disable {} : {} deaktivieren
 disabled routes : deaktivierte Fahrstraßen
 DisableEnableBlock : Block (de)aktivieren
+dismount : ausbauen
 Display "{}" on {}. : „{}“ auf {} anzeigen.
 Do you know, what you are doing? : Weißt du, was du da tust?
 driven distance : zurückgelegte Strecke
@@ -227,16 +228,20 @@ mileage : Laufleistung
 Minimum delay : minimale Verzögerung
 Minimum and maximum times (in Miliseconds) trains with the respective tag have to wait in this block. : Minamle und maximale Block-Haltezeit (in Millisekunden) für Züge mit der entsprchender Markierung.
 minimum starting voltage v<sub>min</sub> : Mindestanfahrspannung v<sub>min</sub>
+Mounted into "{}". : In "{}" eingebaut.
+Mounted decoder "{}". : Decoder "{}" eingebaut.
 Move tiles : Kacheln verschieben
 move up : nach oben schieben
 name : Name
 new car : neuer Waggon
 new contact : neuer Kontakt
+new decoder : neuer Decoder
 new direction : neue Fahrtrichtung
 new locomotive : neue Lok
 new tag : neue Markierung
 new train : neuer Zug
 No : keine
+no decoder : kein Decoder
 No direct route from {} to {} : keine direkte Verbindung von {} zu {}
 No free routes from {} : keine Route von {} frei
 NORTH : Norden
@@ -272,6 +277,8 @@ Plan updated. : Plan aktualisiert.
 Port for state {} : Anschluss für Status {}
 PreserveRoute : Anschlußroute vorwählen
 Programming : Programmierung
+prgramming track : Programmier-Gleis
+program on main : Hauptgleis-Programmierung
 Properties : Eigenschaften
 Properties of {} : Eigenschaften von {}
 Properties of {} @ ({},{}) : Eigenschaften von {} @ ({},{})
@@ -285,6 +292,8 @@ Relay : Relais
 Relay/Signal/Turnout : Relais/Signal/Weiche
 Remove tag "{}" from train : Markierung "{}" von Zug entfernen
 Removed {} : {} gelöscht
+Removed decoder "{}". : Decoder „{}“ ausgebaut.
+Removed decoder from "{}". : Decoder aus „{}“ entfernt. 
 Removed train "{}" : Zug „{}“ gelöscht
 rename : umbenennen
 Rename plan : Plan umbenennen
@@ -436,8 +445,10 @@ TurnoutRS : WeicheRS
 TurnoutRW : WeicheRW
 Turnouts : Weichen
 turn within train : innerhalb des Zugs drehen
-Turns the train, as if it went through a loop. : Dreht den ZUg, als wenn er eine Wendeschleife passiert hätte. 
+Turns the train, as if it went through a loop. : Dreht den ZUg, als wenn er eine Wendeschleife passiert hätte.
+Type : Typ 
 Unknown action\: {} : Unbekannte Aktion: {}
+Unknown decoder type : Unbekannter Decoder-Typ
 Use negative number to count from end. : Nutze negative Nummern, um von Ende zu zählen.
 unset : ungesetzt
 update : aktualisieren
