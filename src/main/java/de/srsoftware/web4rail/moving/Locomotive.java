@@ -3,10 +3,8 @@ package de.srsoftware.web4rail.moving;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Vector;
 
 import org.json.JSONObject;
@@ -17,9 +15,9 @@ import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.devices.Decoder;
-import de.srsoftware.web4rail.devices.Function;
+import de.srsoftware.web4rail.functions.Function;
+import de.srsoftware.web4rail.functions.FunctionList;
 import de.srsoftware.web4rail.tags.Button;
-import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
@@ -38,7 +36,7 @@ public class Locomotive extends Car implements Constants{
 	public static final String LOCOMOTIVE = "locomotive";
 	private static final String ACTION_MAPPING = "mapping";
 	private static final String FUNCTIONS = "functions";
-	private final HashMap<String,HashMap<Integer,Function>> functions = new HashMap<>(); 
+	private FunctionList functions = new FunctionList(); 
 	private int speed = 0;
 	//private TreeMap<Integer,Integer> cvs = new TreeMap<Integer, Integer>();
 	private Decoder decoder;
@@ -187,14 +185,7 @@ public class Locomotive extends Car implements Constants{
 		}
 		
 		if (isSet(train)) {
-			for (Entry<String, Boolean> fEntry : train.functions().entrySet()) {
-				String fName = fEntry.getKey();
-				params.put(ACTION, ACTION_TOGGLE_FUNCTION);
-				params.put(FUNCTION, fName);
-				Button btn = new Button(fName,params);
-				if (fEntry.getValue() == true) btn.clazz("active"); // == true is required, as getValue may return null
-				btn.addTo(functions);
-			}
+			
 		}
 
 		functions.addTo(fieldset);
@@ -224,39 +215,23 @@ public class Locomotive extends Car implements Constants{
 		new Input(REALM, REALM_LOCO).hideIn(form);
 		new Input(ACTION, ACTION_MAPPING).hideIn(form);
 		new Input(ID,id()).hideIn(form);
-		for (int i=0; i<decoder.numFunctions(); i++) functionMapping(i+1).addTo(form);
+		
+		for (Function fun : functions) {
+			fun.form(decoder).addTo(form);
+		}		
+		Fieldset newFun = new Fieldset(t("Add function"));
+		Function.selector().addTo(newFun).addTo(form);
+		
 		return new Button(t("Save"), form).addTo(form).addTo(fieldset);
 	}
 
 
 	private Tag functionMapping(int index) {
 		Fieldset mapping = new Fieldset(t("Function {}",index));
-		Tag type = new Tag("div");
-
-		new Checkbox(functionName(index,TYPE,HEADLIGHT), t("Headlight"), isMapped(HEADLIGHT,index), true).addTo(type);
-		new Checkbox(functionName(index,TYPE,TAILLIGHT), t("Tail light"), isMapped(TAILLIGHT,index), true).addTo(type);
-		new Checkbox(functionName(index,TYPE,INTERIOR_LIGHT),t("Interior light"),isMapped(INTERIOR_LIGHT,index), true).addTo(type);
-		new Checkbox(functionName(index,TYPE,COUPLER),t("Coupler"),isMapped(COUPLER,index), true).addTo(type);
-		
-		Tag dir = new Tag("div");
-		new Checkbox(functionName(index,DIRECTION,Function.DIRECTIONAL), t("directional"), isDirectional(index), true).addTo(dir);
-		new Checkbox(functionName(index,DIRECTION,Function.FORWARD), t("forward"), isForward(index), true).addTo(dir);
-		new Checkbox(functionName(index,DIRECTION,Function.REVERSE), t("reverse"), isReverse(index), true).addTo(dir);
-		
-		Table table = new Table();
-		table.addRow(t("Name"),new Input(functionName(index,NAME), functionName(index)));
-		table.addHead(t("Type"),t("Direction"));		
-		table.addRow(type,dir);
-		return table.addTo(mapping);
+		return mapping;
 	}
 	
-	private String functionName(int index) {
-		for (HashMap<Integer, Function> value : functions.values()) {
-			Function f = value.get(index);
-			if (isSet(f)) return f.name();
-		}
-		return "F"+index;
-	}
+
 
 	private static String functionName(Object...parts) {
 		StringBuilder sb = new StringBuilder(FUNCTIONS);
@@ -264,50 +239,13 @@ public class Locomotive extends Car implements Constants{
 		return sb.toString();
 	}
 	
-	public HashSet<String> functionNames() {
-		HashSet<String> names = new HashSet<>();
-		for (HashMap<Integer, Function> map : functions.values()) {
-			for (Function f : map.values()) names.add(f.name());
-		}
-		return names;
-	}
-	
-	private boolean isDirectional(int index) {
-		for (HashMap<Integer, Function> value : functions.values()) {
-			Function f = value.get(index);
-			if (isSet(f) && f.isDirectional()) return true;
-		}
-		return false;
-	}
-
-	private boolean isForward(int index) {
-		for (HashMap<Integer, Function> value : functions.values()) {
-			Function f = value.get(index);
-			if (isSet(f) && f.isForward()) return true;
-		}
-		return false;
-	}
-
-	private boolean isReverse(int index) {
-		for (HashMap<Integer, Function> value : functions.values()) {
-			Function f = value.get(index);
-			if (isSet(f) && f.isReverse()) return true;
-		}
-		return false;
-	}
-
-	private boolean isMapped(String type, int funNum) {
-		HashMap<Integer, Function> fun = functions.get(type);
-		return isSet(fun) && fun.containsKey(funNum);
-	}
-
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		JSONObject loco = new JSONObject();
 		json.put(LOCOMOTIVE, loco);
 		if (isSet(decoder))	loco.put(Decoder.DECODER,decoder.json());
-		if (functions.size()>0) loco.put(FUNCTIONS,Function.json(functions));
+		if (functions.size()>0) loco.put(FUNCTIONS,functions.json());
 		return json;
 	}
 	
@@ -329,21 +267,11 @@ public class Locomotive extends Car implements Constants{
 			}
 			if (isSet(decoder)) decoder.setLoco(this,false);
 			
-			if (loco.has(FUNCTIONS)) loadFunctions(loco);
+			if (loco.has(FUNCTIONS)) functions.load(loco.getJSONObject(FUNCTIONS));
 			
 		}
 		return this;
 	}	
-
-	private void loadFunctions(JSONObject loco) {
-		JSONObject json = loco.getJSONObject(FUNCTIONS);
-		for (String type : json.keySet()) {
-			JSONObject map = json.getJSONObject(type);
-			HashMap<Integer, Function> funMap = functions.get(type);
-			if (isNull(funMap)) functions.put(type, funMap = new HashMap<>());
-			for (String idx : map.keySet()) funMap.put(Integer.parseInt(idx), new Function(map.getJSONObject(idx))); 
-		}
-	}
 
 	public static Window manager() {
 		Window win = new Window("loco-manager", t("Locomotive manager"));
@@ -404,25 +332,6 @@ public class Locomotive extends Car implements Constants{
 		decoder = newDecoder;
 		if (log) addLogEntry(t("Mounted decoder \"{}\".",decoder));
 	}
-	
-	public void setFunction(String name, boolean newVal, boolean first, boolean last) {
-		if (isNull(decoder)) return;
-		for (HashMap<Integer, Function> map : functions.values()) {
-			for (Entry<Integer, Function> entry : map.entrySet()) {
-				Function function = entry.getValue();
-				
-				
-				if (name.equals(function.name())) {
-					boolean setVal = newVal;
-					if (function.is(HEADLIGHT) && !first) setVal = false;
-					if (function.is(TAILLIGHT) && !last)  setVal = false;
-
-					decoder.setFunction(entry.getKey(),setVal);
-				}
-			}
-		}
-	}
-
 	
 	/**
 	 * Sets the speed of the locomotive to the given velocity in [plan.speedUnit]s
@@ -486,33 +395,19 @@ public class Locomotive extends Car implements Constants{
 		return properties();
 	}
 	
-	private void updateFunction(int num, Params settings) {
-		LOG.debug("Settings for function {}: {}",num,settings);
-		Params dirs  = settings.getParams(DIRECTION);
-		Params types = settings.getParams(TYPE);
-		String name = settings.getString(NAME);
-		for (String type : types.keySet()) {
-			boolean enabled = "on".equals(types.get(type));
-			HashMap<Integer, Function> funList = functions.get(type);
-			if (enabled && isNull(funList)) {
-				funList = new HashMap<>();
-				functions.put(type, funList);
-			}
-			if (enabled) {
-				funList.put(num, new Function(type, name, dirs)); // TODO
-			} else {
-				if (isSet(funList)) {
-					funList.remove(num);
-					if (funList.isEmpty()) functions.remove(type);
-				}
+	private Object updateMapping(Params params) {
+		if (params.containsKey(Function.NEW)) {
+			String type = params.getString(Function.NEW);
+			if (!type.isEmpty()) {
+				Function newFun = Function.create(type);
+				if (isSet(newFun)) functions.add(newFun.register());
 			}
 		}
-	}
-	
-	private Object updateMapping(Params params) {
 		if (params.containsKey(FUNCTIONS)) {
-			for (Entry<String, Object> entry : params.getParams(FUNCTIONS).entrySet()) {
-				updateFunction(Integer.parseInt(entry.getKey()),(Params) entry.getValue());
+			Params funs = params.getParams(FUNCTIONS);
+			for (String id : funs.keySet()) {
+				Function function = BaseClass.get(new Id(id));
+				if (isSet(function)) function.update(funs.getParams(id));
 			}
 		}
 		return properties();

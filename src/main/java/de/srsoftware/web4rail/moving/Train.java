@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -533,16 +532,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return setSpeed(speed+steps);
 	}
 	
-	public HashMap<String, Boolean> functions() {
-		Set<String> oldKeys = new HashSet<>(functions.keySet());
-		locos().flatMap(loco -> loco.functionNames().stream()).forEach(name -> {
-			if (!functions.containsKey(name)) functions.put(name, false);
-			oldKeys.remove(name);
-		});
-		oldKeys.forEach(name -> functions.remove(name));
-		return functions;
-	}
-
 	private boolean hasLoco() {
 		return locos().count() > 0;
 	}
@@ -1068,16 +1057,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Object toggleFunction(Params params) {
 		String name = params.getString(FUNCTION);
 		String error = isNull(name) ? t("No function name passed to toggleFunction(…)") : null;
-		if (isNull(error)) {
-			boolean newVal = functions.get(name) != true;
-			functions.put(name, newVal);
-			List<Locomotive> locos = locos().collect(Collectors.toList());
-			for (int i = 0; i<locos.size(); i++) {
-				boolean first = i==0;
-				boolean last = i==locos.size()-1;
-				locos.get(i).setFunction(name,newVal,first,last);
-			}
-		}
+		// TODO
 		return properties(error);
 	}
 

@@ -20,6 +20,7 @@ Add action to action list : Aktion zur Liste hinzufügen
 add car : Waggon hinzufügen
 Add condition : Bedingung hinzufügen
 Add entry : Eintrag hinzufügen
+Add function : Funktion hinzufügen
 add locomotive : Lok hinzufügen
 add new aspect : neues Signalbild hinzufügen
 add new car : neuen Waggon anlegen
@@ -115,6 +116,7 @@ Current location\: {} : Aufenthaltsort: {}
 Current orientation : aktuelle Fahrtrichtung
 Current velocity\: {} {} : Aktuelle Geschwindigkeit: {} {}
 custom fields : benutzerdefinierte Felder
+CustomFunction : benutzerdefinierte Funktion
 Date/Time : Datum/Zeit
 Decoder address : Decoder-Adresse
 decouple : Abkuppeln
@@ -182,7 +184,7 @@ Function : Funktion
 Function {} : Funktion {}
 Function mapping : Funktionszuordnung
 Hardware settings : Hardware-Einstellungen
-Headlight : Spitzenlicht
+HeadLight : Spitzenlicht
 Height : Höhe
 Help : Hilfe
 History : Logbuch
@@ -191,7 +193,7 @@ Hold : an lassen
 if ({}) : falls ({})
 If car of train\: inspect car number : Falls Fahrzeug aus Zug: Untersuche Fahrzeug Nummer
 If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished. : Falls aktiviert, wird die Strecke anhand von Zug- und Kachel-Länge hinter dem Zug freigegeben, Falls deaktiviert wird die Strecke hinter dem Zug erst bei Abschluss der Route freigegeben.
-Interior light : Innenbeleuchtung
+InteriorLight : Innenbeleuchtung
 internal contacts : interne Kontakte
 Interval : Intervall
 inverted : invertiert
@@ -329,6 +331,7 @@ Select contact : Kotakt auswählen
 Select destination : Ziel wählen
 Select display : Anzeige auswählen
 Select from plan : Auf Plan auswählen
+Select function : Funktion wählen
 Select object : Objekt auswählen
 Select relay : Relais auswählen
 Select state : Status auswählen
@@ -398,7 +401,7 @@ Switch power on : Strom anschalten
 SYSTEM : Betriebssystem
 Tag : Markierung
 Tags : Markierungen
-Tail light : Schlusslicht
+TailLight : Schlusslicht
 Task : Aufgabe
 Task name must not be empty : Aufgaben-Name darf nicht leer sein
 Task type : Aufgabe

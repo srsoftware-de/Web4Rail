@@ -74,7 +74,7 @@ public abstract class Condition extends BaseClass {
 	}
 
 	public static Condition create(String type) {
-		if (type == null) return null;
+		if (isNull(type)) return null;
 		try {
 			return (Condition) Class.forName(PREFIX+"."+type).getDeclaredConstructor().newInstance();
 		} catch (Exception e) {

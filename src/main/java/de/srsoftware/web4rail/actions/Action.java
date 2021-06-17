@@ -82,6 +82,7 @@ public abstract class Action extends BaseClass {
 	
 	@SuppressWarnings("unchecked")
 	public static <T extends Action> T create(String type,BaseClass parent) {
+		if (isNull(type)) return null;
 		try {
 			return (T) Class.forName(PREFIX+"."+type).getDeclaredConstructor(BaseClass.class).newInstance(parent);
 		} catch (Exception e) {
