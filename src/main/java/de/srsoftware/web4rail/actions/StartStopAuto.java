@@ -1,12 +1,12 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
@@ -55,7 +55,7 @@ public class StartStopAuto extends Action {
 		return inverted ? t("Start autopilot") : t("Stop autopilot");
 	}
 	
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		inverted = "on".equals(params.get(INVERTED));
 		return super.update(params);
 	}

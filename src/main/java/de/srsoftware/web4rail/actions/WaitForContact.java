@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +9,7 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.EventListener;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -121,14 +121,14 @@ public class WaitForContact extends ActionList {
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		if (params.containsKey(CONTACT)) {
-			Tile tile = BaseClass.get(new Id(params.get(CONTACT)));
+			Tile tile = BaseClass.get(new Id(params.getString(CONTACT)));
 			if (tile instanceof Contact) {
 				contact = (Contact) tile;
 			} else return t("Clicked tile is not a {}!",t("contact"));
 		}
-		if (params.containsKey(TIMEOUT)) timeout = Integer.parseInt(params.get(TIMEOUT));
+		if (params.containsKey(TIMEOUT)) timeout = params.getInt(TIMEOUT);
 		return super.update(params);
 	}
 }

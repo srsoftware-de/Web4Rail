@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.devices;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -15,6 +14,7 @@ import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Constants;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.tags.Button;
@@ -44,9 +44,9 @@ public class Decoder extends BaseClass implements Constants, Device {
 	private String type;
 	private Locomotive loco;
 
-	public static Object action(HashMap<String, String> params) {
+	public static Object action(Params params) {
 		Decoder decoder = BaseClass.get(Id.from(params));
-		switch (params.get(Constants.ACTION)) {
+		switch (params.getString(Constants.ACTION)) {
 			case ACTION_DECOUPLE:
 				return decoder.dismount();
 			case ACTION_PROGRAM:
@@ -57,7 +57,7 @@ public class Decoder extends BaseClass implements Constants, Device {
 				return decoder.update(params);
 		}
 		
-		String message = BaseClass.t("Unknown action: {}",params.get(Constants.ACTION));
+		String message = BaseClass.t("Unknown action: {}",params.getString(Constants.ACTION));
 		return (BaseClass.isNull(decoder)) ? message : decoder.properties(message);
 	}
 	
@@ -142,10 +142,10 @@ public class Decoder extends BaseClass implements Constants, Device {
 	
 	private Window program(HashMap<String, String> params) {
 		String error = null;
-		if (params.get(ACTION).equals(ACTION_PROGRAM)) try {
-			int cv = Integer.parseInt(params.get(CV));
-			int val = Integer.parseInt(params.get(VALUE));
-			boolean pom = !params.get(MODE).equals(TRACK);
+		if (ACTION_PROGRAM.equals(params.get(ACTION))) try {
+			int cv = params.getInt(CV);
+			int val = params.getInt(VALUE);
+			boolean pom = !TRACK.equals(params.get(MODE));
 			error = program(cv,val,pom);			
 		} catch (NumberFormatException e) {}
 		return properties(error);
@@ -281,7 +281,7 @@ public class Decoder extends BaseClass implements Constants, Device {
 	}
 	
 	@Override
-	protected Window update(HashMap<String, String> params) {
+	protected Window update(Params params) {
 		super.update(params);
 		if (params.containsKey(TYPE)) type = params.get(TYPE);
 		if (params.containsKey(Device.PROTOCOL)) setProtocol(Protocol.valueOf(params.get(Device.PROTOCOL)));

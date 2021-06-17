@@ -1,12 +1,12 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Contact;
@@ -63,7 +63,7 @@ public class TriggerContact extends Action {
 	};
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		LOG.debug("update: {}",params);
 		Id contactId = Id.from(params,CONTACT);
 		if (isSet(contactId)) contact = Contact.get(contactId);

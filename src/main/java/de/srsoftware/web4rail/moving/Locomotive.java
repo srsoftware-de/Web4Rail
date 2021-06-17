@@ -13,6 +13,7 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Constants;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.devices.Decoder;
 import de.srsoftware.web4rail.tags.Button;
@@ -41,12 +42,12 @@ public class Locomotive extends Car implements Constants{
 		super(name,id);
 	}
 	
-	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
-		String id = params.get(ID);
+	public static Object action(Params params, Plan plan) throws IOException {
+		String id = params.getString(ID);
 		Locomotive loco = id == null ? null : BaseClass.get(new Id(id));
-		switch (params.get(ACTION)) {
+		switch (params.getString(ACTION)) {
 			case ACTION_ADD:
-				new Locomotive(params.get(Locomotive.NAME)).parent(plan).register();
+				new Locomotive(params.getString(Locomotive.NAME)).parent(plan).register();
 				return Locomotive.manager();
 			case ACTION_FASTER10:
 				return loco.faster(Train.defaultSpeedStep);
@@ -55,7 +56,7 @@ public class Locomotive extends Car implements Constants{
 			case ACTION_PROPS:
 				return loco == null ? Locomotive.manager() : loco.properties();
 			case ACTION_SET_SPEED:
-				return loco.setSpeed(Integer.parseInt(params.get(SPEED)));
+				return loco.setSpeed(params.getInt(SPEED));
 			case ACTION_SLOWER10:
 				return loco.faster(-Train.defaultSpeedStep);
 			case ACTION_STOP:
@@ -75,7 +76,7 @@ public class Locomotive extends Car implements Constants{
 				return Locomotive.manager();
 		}
 		
-		return t("Unknown action: {}",params.get(ACTION));
+		return t("Unknown action: {}",params.getString(ACTION));
 	}
 	
 	public static Fieldset cockpit(BaseClass locoOrTrain) {
@@ -385,7 +386,7 @@ public class Locomotive extends Car implements Constants{
 	}
 	
 	@Override
-	protected Window update(HashMap<String, String> params) {
+	protected Window update(Params params) {
 		super.update(params);
 		if (params.containsKey(REALM_DECODER)) {
 			Id decoderId = Id.from(params,REALM_DECODER);

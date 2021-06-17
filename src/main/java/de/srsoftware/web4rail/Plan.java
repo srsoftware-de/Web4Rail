@@ -195,10 +195,10 @@ public class Plan extends BaseClass{
 	 * @throws NoSuchMethodException
 	 * @throws SecurityException
 	 */
-	public Object action(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		switch (params.get(ACTION)) {
+	public Object action(Params params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		switch (params.getString(ACTION)) {
 		case ACTION_ADD:
-			return addTile(params.get(TILE),params.get(X),params.get(Y),null);
+			return addTile(params.getString(TILE),params.getInt(X),params.getInt(Y),null);
 		case Block.ACTION_ADD_CONTACT:
 			Block block = get(Id.from(params));
 			return block.addContact();
@@ -207,7 +207,7 @@ public class Plan extends BaseClass{
 		case ACTION_AUTO:
 			return simplifyRouteName(params);
 		case ACTION_CLICK:
-			return click(get(Id.from(params),true),params.get("shift"));
+			return click(get(Id.from(params),true),params.getString("shift"));
 		case ACTION_CONNECT:
 			Tile tile = get(Id.from(params), false);
 			if (tile instanceof Bridge) return ((Bridge)tile).requestConnect();
@@ -218,13 +218,13 @@ public class Plan extends BaseClass{
 			plan.alter();
 			return t.properties();
 		case ACTION_MOVE:
-			return moveTile(params.get(DIRECTION),Id.from(params));
+			return moveTile(params.getString(DIRECTION),Id.from(params));
 		case ACTION_PROPS:
 			return properties(params);
 		case ACTION_POWER:
 			Signal signal = get(Id.from(params));
 			if (isSet(signal)) {
-				signal.state(params.get(Signal.STATE));
+				signal.state(params.getString(Signal.STATE));
 				return signal.properties();
 			}
 			return null;
@@ -237,7 +237,7 @@ public class Plan extends BaseClass{
 		case ACTION_UPDATE:
 			return update(params);
 		}
-		return t("Unknown action: {}",params.get(ACTION));
+		return t("Unknown action: {}",params.getString(ACTION));
 	}
 
 	/**
@@ -279,9 +279,7 @@ public class Plan extends BaseClass{
 	 * @throws SecurityException
 	 * @throws IOException
 	 */
-	private String addTile(String clazz, String xs, String ys, String configJson) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
-		int x = Integer.parseInt(xs);
-		int y = Integer.parseInt(ys);
+	private String addTile(String clazz, int x, int y, String configJson) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, IOException {
 		if (clazz == null) throw new NullPointerException(TILE+" must not be null!");
 		Class<Tile> tc = Tile.class;		
 		clazz = tc.getName().replace(".Tile", "."+clazz);		
@@ -310,7 +308,7 @@ public class Plan extends BaseClass{
 	 * @param params 
 	 * @return a string giving information how many routes have been found
 	 */
-	private Object analyze(HashMap<String, String> params) {
+	private Object analyze(Params params) {
 		List<Route> oldRoutes = BaseClass.listElements(Route.class);
 
 		if (!oldRoutes.isEmpty() && !"yes".equals(params.get(CONFIRM))) {
@@ -335,7 +333,7 @@ public class Plan extends BaseClass{
 			return win;
 		}
 		
-		boolean keepExisting = DISCOVER_NEW.equals(params.get(DISCOVERY_MODE));
+		boolean keepExisting = DISCOVER_NEW.equals(params.getString(DISCOVERY_MODE));
 		
 		new Thread(Application.threadName("Plan.Analyzer")) {
 			public void run() {				
@@ -737,7 +735,7 @@ public class Plan extends BaseClass{
 		return actions.addTo(actionMenu);
 	}
 	
-	public Window properties(HashMap<String, String> params) {
+	public Window properties(Params params) {
 		
 		if (params.containsKey(ID)) {
 			Tile tile = get(Id.from(params), true);
@@ -832,8 +830,8 @@ public class Plan extends BaseClass{
 		super.removeChild(child);
 	}
 	
-	private Object rename(HashMap<String, String> params) {
-		String newName = params.get(NAME);
+	private Object rename(Params params) {
+		String newName = params.getString(NAME);
 		Window win = new Window("rename-plan", t("Rename plan"));
 		if (isSet(newName)) {
 			newName = newName.trim();
@@ -931,8 +929,8 @@ public class Plan extends BaseClass{
 	}
 
 	
-	private Object simplifyRouteName(HashMap<String, String> params) {
-		String routeId = params.get(ROUTE);
+	private Object simplifyRouteName(Params params) {
+		String routeId = params.getString(ROUTE);
 		if (isSet(routeId)) {
 			Route route = BaseClass.get(new Id(routeId));
 			if (isSet(route)) route.simplyfyName();
@@ -1062,25 +1060,25 @@ public class Plan extends BaseClass{
 	 * @return
 	 * @throws IOException
 	 */
-	public Object update(HashMap<String, String> params) {
+	public Object update(Params params) {
 		super.update(params);
 		Tile tile = get(Id.from(params),true);
 		if (isSet(tile)) return tile.update(params).properties();
 		
-		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.get(LENGTH_UNIT);
-		if (params.containsKey(SPEED_UNIT)) speedUnit = params.get(SPEED_UNIT);
-		if (params.containsKey(SPEED_STEP)) Train.defaultSpeedStep = Integer.parseInt(params.get(SPEED_STEP));
-		if (params.containsKey(FINAL_SPEED)) Train.defaultEndSpeed = Integer.parseInt(params.get(FINAL_SPEED));
+		if (params.containsKey(LENGTH_UNIT)) lengthUnit = params.getString(LENGTH_UNIT);
+		if (params.containsKey(SPEED_UNIT)) speedUnit = params.getString(SPEED_UNIT);
+		if (params.containsKey(SPEED_STEP)) Train.defaultSpeedStep = params.getInt(SPEED_STEP);
+		if (params.containsKey(FINAL_SPEED)) Train.defaultEndSpeed = params.getInt(FINAL_SPEED);
 		if (params.containsKey(MAINTENANCE_INTERVAL)) try {
-			Car.defaulMaintenanceDist = Long.parseLong(params.get(MAINTENANCE_INTERVAL));
+			Car.defaulMaintenanceDist = params.getLong(MAINTENANCE_INTERVAL);
 		} catch(NumberFormatException e) {};
-		allowJsonEdit = "on".equalsIgnoreCase(params.get(ALLOW_JSON_EDIT));
-		Route.freeBehindTrain = "on".equalsIgnoreCase(params.get(FREE_BEHIND_TRAIN));
+		allowJsonEdit = "on".equalsIgnoreCase(params.getString(ALLOW_JSON_EDIT));
+		Route.freeBehindTrain = "on".equalsIgnoreCase(params.getString(FREE_BEHIND_TRAIN));
 		
 		return properties(t("Plan updated."));		
 	}
 	
-	private Object updateTimes(HashMap<String, String> params) throws IOException {
+	private Object updateTimes(Params params) throws IOException {
 		Tile tile = get(Id.from(params),false);
 		if (tile instanceof Block) {
 			Block block = (Block) tile;

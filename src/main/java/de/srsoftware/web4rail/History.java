@@ -66,16 +66,16 @@ public class History {
 		return list != null ? list : new Vector<>();
 	}
 	
-	public static Object action(HashMap<String, String> params) {
+	public static Object action(Params params) {
 		BaseClass object = BaseClass.get(Id.from(params));
-		switch (params.get(Constants.ACTION)) {
+		switch (params.getString(Constants.ACTION)) {
 			case Constants.ACTION_ADD:				
-				return object != null ? object.addLogEntry(params.get(Constants.NOTES)) : BaseClass.t("Unknown object!");
+				return object != null ? object.addLogEntry(params.getString(Constants.NOTES)) : BaseClass.t("Unknown object!");
 			case Constants.ACTION_DROP:
 				if (BaseClass.isNull(object)) return BaseClass.t("Trying to delete log entry without specifing object!");
 				String err = null;
 				try {
-					long time = Long.parseLong(params.get(Constants.TIME));
+					long time = params.getLong(Constants.TIME);
 					dropEntry(object,time);
 				} catch (NumberFormatException e) {
 					err = BaseClass.t("Was not able to delete history entry!");

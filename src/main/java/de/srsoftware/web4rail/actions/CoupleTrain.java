@@ -1,11 +1,11 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -63,7 +63,7 @@ public class CoupleTrain extends Action {
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		last = "on".equals(params.get(LAST));
 		swap = "on".equals(params.get(SWAP));
 		return super.update(params);

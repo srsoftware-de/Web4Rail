@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Vector;
@@ -10,6 +9,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.conditions.ConditionList;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -133,8 +133,8 @@ public class ConditionalAction extends ActionList {
 	}
 
 	@Override
-	protected Object update(HashMap<String, String> params) {
-		String conditionClass = params.get(REALM_CONDITION);
+	protected Object update(Params params) {
+		String conditionClass = params.getString(REALM_CONDITION);
 		Condition condition = Condition.create(conditionClass);
 		if (isNull(condition)) return t("Unknown type of condition: {}",conditionClass);
 		condition.parent(this);

@@ -1,12 +1,12 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Select;
@@ -93,13 +93,13 @@ public class SwitchFunction extends Action {
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
-		String fn = params.get(FUNCTION);
+	protected Object update(Params params) {
+		String fn = params.getString(FUNCTION);
 		if (isSet(fn)) {
 			function = Integer.parseInt(fn);
 			if (function < 1 || function > 4) function = 1;
 		}
-		String effect = params.get(EFFECT);
+		String effect = params.getString(EFFECT);
 		if (isSet(effect)) switch (effect) {
 		case "1":
 		case "0":

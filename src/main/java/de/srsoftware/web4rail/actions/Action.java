@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
@@ -107,9 +108,9 @@ public abstract class Action extends BaseClass {
 		return new JSONObject().put(TYPE, getClass().getSimpleName());
 	}
 	
-	protected Object jsonImportExport(HashMap<String, String> params) {
+	protected Object jsonImportExport(Params params) {
 		if (params.containsKey(JSON)) {
-			String jString = params.get(JSON);
+			String jString = params.getString(JSON);
 			JSONObject json = new JSONObject(jString);
 			if (this instanceof ActionList) {
 				((ActionList)this).clear();
@@ -169,7 +170,7 @@ public abstract class Action extends BaseClass {
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		super.update(params);
 		return context().properties();		
 	}

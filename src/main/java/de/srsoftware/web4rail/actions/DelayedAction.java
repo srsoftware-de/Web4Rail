@@ -1,12 +1,12 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -85,8 +85,8 @@ public class DelayedAction extends ActionList {
 	}
 
 	@Override
-	protected Object update(HashMap<String, String> params) {
-		String d = params.get(MIN_DELAY);
+	protected Object update(Params params) {
+		String d = params.getString(MIN_DELAY);
 		if (isSet(d))	try {
 			int ms = Integer.parseInt(d);
 			if (ms < 0) throw new NumberFormatException(t("Delay must not be less than zero!"));
@@ -96,7 +96,7 @@ public class DelayedAction extends ActionList {
 			props.children().insertElementAt(new Tag("div").content(nfe.getMessage()), 2);
 			return props;
 		}		
-		d = params.get(MAX_DELAY);
+		d = params.getString(MAX_DELAY);
 		if (isSet(d))	try {
 			int ms = Integer.parseInt(d);
 			if (ms < 0) throw new NumberFormatException(t("Delay must not be less than zero!"));

@@ -23,6 +23,7 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
@@ -565,9 +566,9 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		return t("{}({},{})", getClass().getSimpleName(), x, y);
 	}
 
-	public Tile update(HashMap<String, String> params) {
+	public Tile update(Params params) {
 		LOG.debug("{}.update({})", getClass().getSimpleName(), params);
-		String oneWayDir = params.get("oneway");
+		String oneWayDir = params.getString("oneway");
 		if (isSet(oneWayDir)) {
 			try {
 				oneWay = Direction.valueOf(oneWayDir);
@@ -577,7 +578,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		}
 		disabled = "on".equals(params.get(DISABLED));
 
-		String len = params.get(LENGTH);
+		String len = params.getString(LENGTH);
 		if (isSet(len)) length(Integer.parseInt(len));
 		super.update(params);
 		plan.place(this);

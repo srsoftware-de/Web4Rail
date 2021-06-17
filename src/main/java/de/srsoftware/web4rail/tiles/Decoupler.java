@@ -2,7 +2,6 @@ package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.TimeoutException;
@@ -13,8 +12,9 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
-import de.srsoftware.web4rail.devices.Device;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Protocol;
+import de.srsoftware.web4rail.devices.Device;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
@@ -158,16 +158,16 @@ public abstract class Decoupler extends Tile implements Device{
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) {
-		if (params.containsKey(PROTOCOL)) protocol = Protocol.valueOf(params.get(PROTOCOL));
+	public Tile update(Params params) {
+		if (params.containsKey(PROTOCOL)) protocol = Protocol.valueOf(params.getString(PROTOCOL));
 		if (params.containsKey(ADDRESS)) {
-			int newAddress = Integer.parseInt(params.get(ADDRESS));
+			int newAddress = params.getInt(ADDRESS);
 			if (newAddress != address) {
 				initialized = false;
 				address = newAddress;
 			}
 		}
-		String newPort = params.get(PORT);
+		String newPort = params.getString(PORT);
 		if (isSet(newPort)) {
 			int npa = Integer.parseInt(newPort);
 			if (npa != port) {

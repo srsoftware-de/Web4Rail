@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.conditions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +8,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
@@ -67,8 +67,8 @@ public class SwitchIsOn extends Condition {
 	}
 
 	@Override
-	protected Object update(HashMap<String, String> params) {
-		String switchId = params.get(SWITCH);
+	protected Object update(Params params) {
+		String switchId = params.getString(SWITCH);
 		Tile tile = isSet(switchId) ? BaseClass.get(new Id(switchId)) : null;
 		if (tile instanceof Switch) swtch = (Switch) tile; 
 		return super.update(params);

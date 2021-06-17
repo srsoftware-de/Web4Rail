@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -8,6 +7,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -97,9 +97,9 @@ public class Loop extends ActionList {
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		LOG.debug("update: {}",params);
-		String newObject = params.get(OBJECT);
+		String newObject = params.getString(OBJECT);
 		if (isSet(newObject)) object = newObject;
 		return super.update(params);
 	}

@@ -1,12 +1,12 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
@@ -66,8 +66,8 @@ public class AddRemoveTag extends Action{
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
-		tag = params.get(TAG);
+	protected Object update(Params params) {
+		tag = params.getString(TAG);
 		remove = ACTION_DROP.equals(params.get(TYPE));
 		return super.update(params);
 	}

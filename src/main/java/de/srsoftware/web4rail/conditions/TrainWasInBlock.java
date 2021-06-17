@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.conditions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +7,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
@@ -68,13 +68,13 @@ public class TrainWasInBlock extends Condition {
 
 
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		if (!params.containsKey(BLOCK)) return t("No block id passed to TrainWasInBlock.update()!");
-		Id bid = new Id(params.get(BLOCK));
+		Id bid = new Id(params.getString(BLOCK));
 		Tile tile = BaseClass.get(bid);
 		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay();
 		if (tile instanceof Block) block = (Block) tile;
-		if (params.containsKey(COUNT)) count=Integer.parseInt(params.get(COUNT));
+		if (params.containsKey(COUNT)) count=params.getInt(COUNT);
 		return super.update(params);
 	}
 }

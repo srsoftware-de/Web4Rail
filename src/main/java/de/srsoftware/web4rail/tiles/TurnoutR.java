@@ -1,9 +1,9 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -44,9 +44,9 @@ public abstract class TurnoutR extends Turnout {
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) {
-		if (params.containsKey(STRAIGHT)) portA = Integer.parseInt(params.get(STRAIGHT));
-		if (params.containsKey(RIGHT)) portB = Integer.parseInt(params.get(RIGHT));
+	public Tile update(Params params) {
+		if (params.containsKey(STRAIGHT)) portA = params.getInt(STRAIGHT);
+		if (params.containsKey(RIGHT)) portB = params.getInt(RIGHT);
 		return super.update(params);
 	}
 }

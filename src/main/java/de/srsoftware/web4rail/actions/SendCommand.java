@@ -1,7 +1,6 @@
 package de.srsoftware.web4rail.actions;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
@@ -9,6 +8,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Command;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Radio;
@@ -86,10 +86,10 @@ public class SendCommand extends Action{
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		LOG.debug("update: {}",params);
-		command = params.get(COMMAND);
-		String t = params.get(TARGET);
+		command = params.getString(COMMAND);
+		String t = params.getString(TARGET);
 		if (isSet(t)) target = Target.valueOf(t);
 		return properties();
 	}

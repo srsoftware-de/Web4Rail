@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +9,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -105,9 +105,9 @@ public class AddRemoveDestination extends Action {
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		if (params.containsKey(Train.DESTINATION)) {
-			String destId = params.get(Train.DESTINATION);
+			String destId = params.getString(Train.DESTINATION);
 			if ("0".equals(destId)) {
 				destination = null;
 			} else {
@@ -119,8 +119,8 @@ public class AddRemoveDestination extends Action {
 				}
 			}
 		}
-		turnAtDestination = "on".equals(params.get(TURN));
-		shunting = "on".equals(params.get(SHUNTING));
+		turnAtDestination = "on".equals(params.getString(TURN));
+		shunting = "on".equals(params.getString(SHUNTING));
 		return context().properties();
 	}
 }

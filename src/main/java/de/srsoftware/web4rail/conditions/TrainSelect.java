@@ -1,11 +1,11 @@
 package de.srsoftware.web4rail.conditions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
@@ -58,9 +58,9 @@ public class TrainSelect extends Condition {
 
 
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		if (!params.containsKey(TRAIN)) return t("No train id passed to TrainSelect.update()!");
-		Id tid = new Id(params.get(TRAIN));
+		Id tid = new Id(params.getString(TRAIN));
 		Train train = Train.get(tid);
 		if (train == null) return t("No train with id {} found!",tid);
 		this.train = train;

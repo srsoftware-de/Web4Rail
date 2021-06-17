@@ -1,7 +1,6 @@
 package de.srsoftware.web4rail;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -37,8 +36,8 @@ public class MaintnanceTask extends BaseClass{
 		if (isSet(name)) tasks.add(name);
 	}
 	
-	public static Object action(HashMap<String, String> params) {
-		String action = params.get(ACTION);
+	public static Object action(Params params) {
+		String action = params.getString(ACTION);
 		if (isNull(action)) return t("No action set!");
 
 		MaintnanceTask task = BaseClass.get(Id.from(params));
@@ -61,10 +60,10 @@ public class MaintnanceTask extends BaseClass{
 		return (isSet(task)) ? task.parent().properties(err) : err;
 	}
 	
-	private static MaintnanceTask createTask(HashMap<String, String> params) {
-		String name = params.get(NAME);
+	private static MaintnanceTask createTask(Params params) {
+		String name = params.getString(NAME);
 		if (isNull(name)||name.trim().isEmpty()) return null;
-		long interval = Long.parseLong(params.get(INTERVAL));
+		long interval = params.getLong(INTERVAL);
 		Car car = BaseClass.get(Id.from(params, REALM_CAR));
 		return new MaintnanceTask(car, name,interval);		
 	}

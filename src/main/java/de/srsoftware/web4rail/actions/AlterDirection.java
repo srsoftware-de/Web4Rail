@@ -1,12 +1,12 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -101,9 +101,9 @@ public class AlterDirection extends Action{
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		if (params.containsKey(NEW_DIRECTION)) {
-			newDir = NEWDIR.valueOf(params.get(NEW_DIRECTION));
+			newDir = NEWDIR.valueOf(params.getString(NEW_DIRECTION));
 		}
 		return super.update(params);
 	}

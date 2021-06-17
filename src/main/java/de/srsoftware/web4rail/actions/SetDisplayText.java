@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +7,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Label;
 import de.srsoftware.web4rail.tags.Window;
@@ -76,9 +76,9 @@ public class SetDisplayText extends TextAction{
 	}
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		if (params.containsKey(DISPLAY)) {
-			Tile object = plan.get(new Id(params.get(DISPLAY)), true);
+			Tile object = plan.get(new Id(params.getString(DISPLAY)), true);
 			if (object instanceof TextDisplay) {
 				display = (TextDisplay) object;
 			} else return t("Clicked tile is not a {}!",t("display"));

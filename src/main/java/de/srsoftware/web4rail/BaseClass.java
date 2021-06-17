@@ -272,13 +272,13 @@ public abstract class BaseClass implements Constants{
 			return json.has(key) ? new Id(""+json.get(key)) : null;
 		}
 		
-		public static Id from(Map<String,String> params) {
+		public static Id from(Params params) {
 			return Id.from(params,ID);
 		}
 
 
-		public static Id from(Map<String, String> params, String key) {
-			String sid = params.get(key);
+		public static Id from(Params params, String key) {
+			String sid = params.getString(key);
 			return sid == null ? null : new Id(sid);
 		}
 
@@ -642,13 +642,13 @@ public abstract class BaseClass implements Constants{
 		return registry.remove(this.id());
 	}
 
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		LOG.debug("update: {}",params);
-		if (params.containsKey(NOTES)) notes = params.get(NOTES).trim();
-		String newCustomFieldName = params.get(NEW_CUSTOM_FIELD_NAME);
+		if (params.containsKey(NOTES)) notes = params.getString(NOTES).trim();
+		String newCustomFieldName = params.getString(NEW_CUSTOM_FIELD_NAME);
 		Set<String> fieldNames = customFieldNames.get(getClass());
 		if (isSet(fieldNames)) for (String fieldName : fieldNames) {
-			String fieldValue = params.get(fieldName);
+			String fieldValue = params.getString(fieldName);
 			if (isSet(fieldValue)) customFieldValues.put(fieldName, fieldValue);
 		}
 		if (isSet(newCustomFieldName) && !newCustomFieldName.trim().isEmpty()) {

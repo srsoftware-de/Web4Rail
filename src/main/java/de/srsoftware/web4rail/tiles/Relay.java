@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Command.Reply;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.devices.Device;
 import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -223,14 +224,14 @@ public class Relay extends Tile implements Device{
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) {
-		if (params.containsKey(PROTOCOL)) protocol = Protocol.valueOf(params.get(PROTOCOL));
-		if (params.containsKey(ADDRESS)) address = Integer.parseInt(params.get(ADDRESS));
-		if (params.containsKey(PORT_A)) portA = Integer.parseInt(params.get(PORT_A));
-		if (params.containsKey(PORT_B)) portB = Integer.parseInt(params.get(PORT_B));
-		if (params.containsKey(LABEL_A)) stateLabelA = params.get(LABEL_A);
-		if (params.containsKey(LABEL_B)) stateLabelB = params.get(LABEL_B);
-		if (params.containsKey(NAME)) name = params.get(NAME);
+	public Tile update(Params params) {
+		if (params.containsKey(PROTOCOL)) protocol = Protocol.valueOf(params.getString(PROTOCOL));
+		if (params.containsKey(ADDRESS)) address = params.getInt(ADDRESS);
+		if (params.containsKey(PORT_A)) portA = params.getInt(PORT_A);
+		if (params.containsKey(PORT_B)) portB = params.getInt(PORT_B);
+		if (params.containsKey(LABEL_A)) stateLabelA = params.getString(LABEL_A);
+		if (params.containsKey(LABEL_B)) stateLabelB = params.getString(LABEL_B);
+		if (params.containsKey(NAME)) name = params.getString(NAME);
 		return super.update(params);
 	}
 }

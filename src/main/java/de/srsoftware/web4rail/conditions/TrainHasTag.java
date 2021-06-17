@@ -1,11 +1,11 @@
 package de.srsoftware.web4rail.conditions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
@@ -58,8 +58,8 @@ public class TrainHasTag extends Condition {
 	}
 
 	@Override
-	protected Object update(HashMap<String, String> params) {
-		tag = params.get(TAG);
+	protected Object update(Params params) {
+		tag = params.getString(TAG);
 		return super.update(params);
 	}
 }

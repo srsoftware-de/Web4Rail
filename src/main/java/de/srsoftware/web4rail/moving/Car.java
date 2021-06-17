@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.MaintnanceTask;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -76,15 +77,15 @@ public class Car extends BaseClass implements Comparable<Car>{
 		register();		
 	}	
 	
-	public static Object action(HashMap<String, String> params,Plan plan) throws IOException {
-		String id = params.get(ID);
+	public static Object action(Params params,Plan plan) throws IOException {
+		String id = params.getString(ID);
 		Car car = id == null ? null : Car.get(new Id(id));
 
-		switch (params.get(ACTION)) {
+		switch (params.getString(ACTION)) {
 			case ACTION_ADD:
 				if (isSet(car)) {
 					car.clone();
-				} else new Car(params.get(Car.NAME)).parent(plan);
+				} else new Car(params.getString(Car.NAME)).parent(plan);
 				return Car.manager(params);
 			case ACTION_DECOUPLE:
 				return car.train().decoupleAfter(car);
@@ -101,7 +102,7 @@ public class Car extends BaseClass implements Comparable<Car>{
 				return car.update(params);
 		}
 		if (car instanceof Locomotive) return Locomotive.action(params,plan);
-		return t("Unknown action: {}",params.get(ACTION));
+		return t("Unknown action: {}",params.getString(ACTION));
 	}
 	
 	@Override
@@ -235,12 +236,12 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return form.addTo(fieldset);
 	}
 	
-	public static Object manager(Map<String, String> params) {
+	public static Object manager(Params params) {
 		Window win = new Window("car-manager", t("Car manager"));
 		new Tag("h4").content(t("known cars")).addTo(win);
 		new Tag("p").content(t("Click on a name to edit the entry.")).addTo(win);
 		
-		String order = params.get(ORDER);
+		String order = params.getString(ORDER);
 		
 		Tag nameLink = link("span", t("Name"), Map.of(REALM,REALM_CAR,ACTION,ACTION_PROPS,ORDER,NAME));
 		Table table = new Table().addHead(t("Stock ID"),nameLink,t("Max. Speed",speedUnit),t("Length"),t("Train"),t("Tags"),t("driven distance"),t("Actions"));
@@ -364,22 +365,22 @@ public class Car extends BaseClass implements Comparable<Car>{
 		return this;
 	}
 
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		super.update(params);
-		if (params.containsKey(NAME)) name = params.get(NAME).trim();
-		if (params.containsKey(LENGTH)) length = Integer.parseInt(params.get(LENGTH));
-		if (params.containsKey(MAX_SPEED)) maxSpeedForward  = Integer.parseInt(params.get(MAX_SPEED));
-		if (params.containsKey(MAX_SPEED_REVERSE)) maxSpeedReverse = Integer.parseInt(params.get(MAX_SPEED_REVERSE));
-		if (params.containsKey(STOCK_ID)) stockId  = params.get(STOCK_ID);
+		if (params.containsKey(NAME)) name = params.getString(NAME).trim();
+		if (params.containsKey(LENGTH)) length = params.getInt(LENGTH);
+		if (params.containsKey(MAX_SPEED)) maxSpeedForward  = params.getInt(MAX_SPEED);
+		if (params.containsKey(MAX_SPEED_REVERSE)) maxSpeedReverse = params.getInt(MAX_SPEED_REVERSE);
+		if (params.containsKey(STOCK_ID)) stockId  = params.getString(STOCK_ID);
 		if (params.containsKey(TAGS)) {
-			String[] parts = params.get(TAGS).replace(",", " ").split(" ");
+			String[] parts = params.getString(TAGS).replace(",", " ").split(" ");
 			tags.clear();
 			for (String tag : parts) {
 				tag = tag.trim();
 				if (!tag.isEmpty()) tags.add(tag);
 			}
 		}
-		return Car.manager(Map.of());
+		return Car.manager(new Params());
 	}
 
 	public Object turn() {

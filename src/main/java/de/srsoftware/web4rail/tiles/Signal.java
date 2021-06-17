@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Command;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Protocol;
 import de.srsoftware.web4rail.tags.Button;
@@ -211,11 +212,11 @@ public abstract class Signal extends Tile {
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) {
+	public Tile update(Params params) {
 		HashMap<String,int[]> newAspects = new HashMap<String, int[]>();
-		for (Entry<String, String> entry : params.entrySet()) {
+		for (Entry<String, Object> entry : params.entrySet()) {
 			String key = entry.getKey();
-			String val = entry.getValue().trim();
+			String val = entry.getValue().toString().trim();
 			
 			String[] parts = key.split("-");
 			if (parts.length>1) {

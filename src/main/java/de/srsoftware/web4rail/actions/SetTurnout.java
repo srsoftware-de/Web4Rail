@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +8,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
@@ -101,15 +101,15 @@ public class SetTurnout extends Action {
 	};
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		LOG.debug("update: {}",params);
 		if (params.containsKey(TURNOUT)) {
-			BaseClass object = BaseClass.get(new Id(params.get(TURNOUT)));
+			BaseClass object = BaseClass.get(new Id(params.getString(TURNOUT)));
 			if (object instanceof Turnout) {
 				turnout = (Turnout) object;
 			} else return t("Clicked tile is not a {}!",t("turnout"));
 		}
-		String st = params.get(Turnout.STATE);
+		String st = params.getString(Turnout.STATE);
 		if (isSet(st)) state = Turnout.State.valueOf(st);
 		return super.update(params);
 	}

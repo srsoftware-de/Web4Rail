@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -47,8 +47,8 @@ public class ActionList extends Action implements Iterable<Action>{
 		return this;
 	}
 	
-	private Object addActionForm(HashMap<String, String> params, Plan plan) {
-		String type = params.get(TYPE);
+	private Object addActionForm(Params params, Plan plan) {
+		String type = params.getString(TYPE);
 		if (isNull(type)) return actionTypeForm();
 		Action action = Action.create(type,this);
 		if (action instanceof Action) {
@@ -212,8 +212,8 @@ public class ActionList extends Action implements Iterable<Action>{
 		return this;
 	}
 	
-	public static Object process(HashMap<String, String> params, Plan plan) {
-		String command = params.get(ACTION);
+	public static Object process(Params params, Plan plan) {
+		String command = params.getString(ACTION);
 		if (command == null) return t("No action passed to ActionList.process()!");
 		
 		Id actionId = Id.from(params);

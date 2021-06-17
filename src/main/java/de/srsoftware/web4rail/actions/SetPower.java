@@ -1,12 +1,12 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Window;
@@ -81,9 +81,9 @@ public class SetPower extends Action{
 	}
 	
 	@Override
-	protected Window update(HashMap<String, String> params) {
+	protected Window update(Params params) {
 		LOG.debug("update: {}",params);
-		String newState = params.get(STATE);
+		String newState = params.getString(STATE);
 		if (isSet(newState)) pc = POWERCHANGE.valueOf(newState);
 		return parent().properties();
 	}

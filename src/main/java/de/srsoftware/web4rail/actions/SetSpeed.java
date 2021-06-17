@@ -1,12 +1,12 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -68,21 +68,13 @@ public class SetSpeed extends Action{
 	}
 
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		String error = null;
-		String ms = params.get(MAX_SPEED);
-		if (ms == null) {
-			ms = ""+128;
-		} else {
-			try {
-				int s = Integer.parseInt(ms);
-				if (s<0) error = t("Speed must not be less than zero!");
-				if (isNull(error)) speed = s;
-			} catch (NumberFormatException e) {
-				error = t("Not a valid number!");
-			}
-		}
+		Integer ms = params.getInt(MAX_SPEED);
+		if (ms == null) ms = 128;
+		if (ms<0) error = t("Speed must not be less than zero!");
 		if (isSet(error)) return error;
+		speed = ms;
 		return super.update(params);
 	}
 }

@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +7,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
@@ -99,12 +99,12 @@ public class SetSignal extends Action {
 	};
 	
 	@Override
-	public Object update(HashMap<String, String> params) {
-		String signalId = params.get(SIGNAL);
+	public Object update(Params params) {
+		String signalId = params.getString(SIGNAL);
 		Id tileId = isSet(signalId) ? new Id(signalId) : null;
 		Tile tile = isSet(tileId) ? plan.get(tileId, false) : null;
 		if (tile instanceof Signal) signal = (Signal) tile;
-		String st = params.get(Signal.STATE);
+		String st = params.getString(Signal.STATE);
 		if (isSet(st)) state = st;
 		return super.update(params);
 	}

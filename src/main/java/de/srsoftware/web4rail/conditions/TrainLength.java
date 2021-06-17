@@ -1,11 +1,11 @@
 package de.srsoftware.web4rail.conditions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -45,9 +45,9 @@ public class TrainLength extends Condition {
 	}
 
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		if (params.containsKey(LENGTH)) try {
-			int ml = Integer.parseInt(params.get(LENGTH));
+			int ml = params.getInt(LENGTH);
 			if (ml < 1) throw new NumberFormatException(t("length must be larger than zero!"));
 			treshold = ml;
 		} catch (NumberFormatException nfe) {

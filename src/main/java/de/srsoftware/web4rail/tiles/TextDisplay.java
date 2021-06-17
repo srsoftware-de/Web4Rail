@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Select;
@@ -70,11 +71,11 @@ public class TextDisplay extends StretchableTile {
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) {
-		for (Entry<String, String> entry : params.entrySet()) {
+	public Tile update(Params params) {
+		for (Entry<String, Object> entry : params.entrySet()) {
 			switch (entry.getKey()) {
 				case TEXT:
-					text(entry.getValue());
+					text(entry.getValue().toString());
 					break;
 			}
 		}

@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +7,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -80,10 +80,10 @@ public class DetermineTrainInBlock extends Action {
 	};
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		LOG.debug("update: {}",params);
 		if (params.containsKey(BLOCK)) {
-			Tile tile = plan.get(new Id(params.get(BLOCK)), true);
+			Tile tile = plan.get(new Id(params.getString(BLOCK)), true);
 			if (tile instanceof Block) {
 				block = (Block) tile;
 			} else return t("Clicked tile is not a {}!",t("block"));

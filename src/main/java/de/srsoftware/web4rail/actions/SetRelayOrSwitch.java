@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.actions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +8,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
@@ -113,14 +113,14 @@ public class SetRelayOrSwitch extends Action {
 	};
 	
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		LOG.debug("update: {}",params);
-		String tileId = params.get(Relay.class.getSimpleName());
+		String tileId = params.getString(Relay.class.getSimpleName());
 		Tile tile = isSet(tileId) ? BaseClass.get(new Id(tileId)) : relayOrSwitch;
 		if (tile instanceof Relay || tile instanceof Switch) {
 			relayOrSwitch = tile;
 		}
-		String st = params.get(Relay.STATE);
+		String st = params.getString(Relay.STATE);
 		if (isSet(st)) state = st.equals("true");
 		return context().properties();
 	}

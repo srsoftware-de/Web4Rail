@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
@@ -20,6 +19,7 @@ import de.srsoftware.tools.translations.Translation;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Constants;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -158,8 +158,8 @@ public class ControlUnit extends Thread implements Constants{
 	 * @param params
 	 * @return
 	 */
-	public Object process(HashMap<String, String> params) {
-		switch (params.get(ACTION)) {
+	public Object process(Params params) {
+		switch (params.getString(ACTION)) {
 		case ACTION_CONNECT:
 			restart();
 			return t("Control unit (re)started.");
@@ -173,7 +173,7 @@ public class ControlUnit extends Thread implements Constants{
 			return update(params);
 		}
 		
-		return t("Unknown action: {}",params.get(ACTION));
+		return t("Unknown action: {}",params.getString(ACTION));
 	}
 	
 	/**
@@ -391,10 +391,10 @@ public class ControlUnit extends Thread implements Constants{
 	 * @param params
 	 * @return
 	 */
-	public String update(HashMap<String, String> params) {
-		if (params.containsKey(HOST)) host = params.get(HOST);
-		if (params.containsKey(PORT)) port = Integer.parseInt(params.get(PORT));
-		if (params.containsKey(BUS)) bus = Integer.parseInt(params.get(BUS));
+	public String update(Params params) {
+		if (params.containsKey(HOST)) host = params.getString(HOST);
+		if (params.containsKey(PORT)) port = params.getInt(PORT);
+		if (params.containsKey(BUS)) bus = params.getInt(BUS);
 		return t("Updated control unit settings");
 	}
 }

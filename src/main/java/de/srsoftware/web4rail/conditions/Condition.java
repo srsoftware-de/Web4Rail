@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.conditions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,10 +9,11 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.srsoftware.tools.translations.Translation;
 import de.srsoftware.tools.Tag;
+import de.srsoftware.tools.translations.Translation;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.tags.Checkbox;
@@ -36,8 +36,8 @@ public abstract class Condition extends BaseClass {
 		register();
 	}	
 	
-	public static Object action(HashMap<String, String> params,Plan plan) {
-		String action = params.get(ACTION);
+	public static Object action(Params params,Plan plan) {
+		String action = params.getString(ACTION);
 		if (action == null) return t("No action passed to Condition.action!");
 		
 		Id id = Id.from(params);
@@ -58,8 +58,8 @@ public abstract class Condition extends BaseClass {
 		return t("Unknown action: {}",action);
 	}
 	
-	private static Object addCondition(HashMap<String, String> params) {
-		String type = params.get(REALM_CONDITION);
+	private static Object addCondition(Params params) {
+		String type = params.getString(REALM_CONDITION);
 		if (isNull(type)) return t("No type supplied to addCondition!");
 		
 		Id parentId = Id.from(params);
@@ -169,7 +169,7 @@ public abstract class Condition extends BaseClass {
 		return t("invalid condition");
 	}
 
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		inverted = "on".equals(params.get(INVERTED));
 		super.update(params);
 		return context().properties();

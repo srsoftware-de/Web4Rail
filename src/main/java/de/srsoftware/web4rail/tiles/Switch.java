@@ -1,7 +1,6 @@
 package de.srsoftware.web4rail.tiles;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -13,6 +12,7 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -106,8 +106,8 @@ public class Switch extends Tile{
 		return this;
 	}
 	
-	public static Object process(HashMap<String, String> params) {
-		String action = params.get(ACTION);
+	public static Object process(Params params) {
+		String action = params.getString(ACTION);
 		Id id = Id.from(params);
 		if (action == null) return t("Missing ACTION on call to {}.process()",Switch.class.getSimpleName());
 		Switch swtch = isSet(id) ? BaseClass.get(id) : null;

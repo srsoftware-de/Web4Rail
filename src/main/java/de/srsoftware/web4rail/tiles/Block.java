@@ -22,6 +22,7 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Range;
 import de.srsoftware.web4rail.Route;
@@ -505,8 +506,8 @@ public abstract class Block extends StretchableTile{
 	}
 	
 	@Override
-	public Tile update(HashMap<String, String> params) {		
-		if (params.containsKey(NAME)) name=params.get(NAME);
+	public Tile update(Params params) {		
+		if (params.containsKey(NAME)) name=params.getString(NAME);
 		if (params.containsKey(Train.class.getSimpleName())) {
 			Id trainId = Id.from(params,Train.class.getSimpleName());
 			if (trainId.equals(0)) { // remove first train
@@ -525,25 +526,25 @@ public abstract class Block extends StretchableTile{
 				}
 			}
 		}
-		turnAllowed = params.containsKey(ALLOW_TURN) && params.get(ALLOW_TURN).equals("on");
+		turnAllowed = params.containsKey(ALLOW_TURN) && "on".equals(params.get(ALLOW_TURN));
 		
 		return super.update(params);
 	}
 		
-	public Tile updateTimes(HashMap<String, String> params) throws IOException {
-		String tag = params.get(ACTION_DROP);
+	public Tile updateTimes(Params params) throws IOException {
+		String tag = params.getString(ACTION_DROP);
 		if (isSet(tag)) return drop(tag);
-		tag = params.get(RAISE);
+		tag = params.getString(RAISE);
 		if (isSet(tag)) return raise(tag);
-		String newTag = params.get(NEW_TAG);
+		String newTag = params.getString(NEW_TAG);
 		if (isSet(newTag)) {
 			newTag = newTag.replace(" ", "_").trim();
 			if (newTag.isEmpty()) newTag = null;
 		}
 		
-		for (Entry<String, String> entry:params.entrySet()) {
+		for (Entry<String, Object> entry:params.entrySet()) {
 			String key = entry.getKey();
-			String val = entry.getValue();
+			Object val = entry.getValue();
 			
 			if (key.startsWith("max.") || key.startsWith("min.")) {
 				String[] parts = key.split("\\.");
@@ -558,8 +559,8 @@ public abstract class Block extends StretchableTile{
 					waitTimes.add(wt);
 				}
 				if (isMin) {
-					wt.setMin(dir, Integer.parseInt(val));
-				} else wt.setMax(dir, Integer.parseInt(val));
+					wt.setMin(dir, Integer.parseInt(val.toString()));
+				} else wt.setMax(dir, Integer.parseInt(val.toString()));
 			}			
 		}
 		for (WaitTime wt: waitTimes) wt.validate();

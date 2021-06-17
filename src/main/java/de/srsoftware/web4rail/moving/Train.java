@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
@@ -100,8 +100,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private BrakeProcess brake;
 
-	public static Object action(HashMap<String, String> params, Plan plan) throws IOException {
-		String action = params.get(ACTION);
+	public static Object action(Params params, Plan plan) throws IOException {
+		String action = params.getString(ACTION);
 		if (isNull(action)) return t("No action passed to Train.action!");
 		if (!params.containsKey(Train.ID)) {
 			switch (action) {
@@ -144,7 +144,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				train.quitAutopilot();
 				return train.reverse().properties();
 			case ACTION_SET_SPEED:
-				return train.setSpeed(Integer.parseInt(params.get(SPEED)));
+				return train.setSpeed(params.getInt(SPEED));
 			case ACTION_SLOWER10:
 				return train.slower(Train.defaultSpeedStep);
 			case ACTION_START:
@@ -161,7 +161,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_UPDATE:
 				return train.update(params);		 
 		}
-		return t("Unknown action: {}",params.get(ACTION));
+		return t("Unknown action: {}",params.getString(ACTION));
 	}
 	
 	public Train add(Car car) {
@@ -176,12 +176,12 @@ public class Train extends BaseClass implements Comparable<Train> {
 		tags.add(tag);
 	}
 	
-	private Object addCar(HashMap<String, String> params) {
+	private Object addCar(Params params) {
 		LOG.debug("addCar({})",params);
-		String carId = params.get(CAR_ID);
+		String carId = params.getString(CAR_ID);
 		if (isNull(carId)) return t("No car id passed to Train.addCar!");
 		Car car = BaseClass.get(new Id(carId));
-		if (isNull(car)) return t("No car with id \"{}\" known!",params.get(CAR_ID));
+		if (isNull(car)) return t("No car with id \"{}\" known!",params.getString(CAR_ID));
 		add(car);
 		return properties();
 	}
@@ -310,8 +310,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return name().compareTo(o.toString());
 	}
 	
-	public Window connect(HashMap<String, String> params) {
-		Train other = BaseClass.get(new Id(params.get(REALM_TRAIN)));
+	public Window connect(Params params) {
+		Train other = BaseClass.get(new Id(params.getString(REALM_TRAIN)));
 		if (isSet(other)) coupleWith(other, false);
 		return properties();
 	}
@@ -339,14 +339,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(currentBlock)) currentBlock.setTrain(this);
 	}
 	
-	private static Object create(HashMap<String, String> params, Plan plan) {
-		String locoId = params.get(Train.LOCO_ID);
+	private static Object create(Params params, Plan plan) {
+		String locoId = params.getString(Train.LOCO_ID);
 		if (isNull(locoId)) return t("Need loco id to create new train!");
 		Locomotive loco = BaseClass.get(new Id(locoId));
-		if (isNull(loco)) return t("unknown locomotive: {}",params.get(ID));
+		if (isNull(loco)) return t("unknown locomotive: {}",params.getString(ID));
 		Train train = new Train().add(loco);
 		train.parent(plan);
-		if (params.containsKey(NAME)) train.name(params.get(NAME));
+		if (params.containsKey(NAME)) train.name(params.getString(NAME));
 		train.register();
 		return train.properties();
 	}
@@ -416,8 +416,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return direction;
 	}
 		
-	private Object dropCar(HashMap<String, String> params) {
-		String carId = params.get(CAR_ID);
+	private Object dropCar(Params params) {
+		String carId = params.getString(CAR_ID);
 		if (isNull(carId)) return t("Cannot drop car without car id!");
 		Car car = BaseClass.get(new Id(carId));		
 		if (isSet(car)) {
@@ -914,8 +914,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 	
-	private Object setDestination(HashMap<String, String> params) {
-		String dest = params.get(DESTINATION);
+	private Object setDestination(Params params) {
+		String dest = params.getString(DESTINATION);
 		if (isNull(currentBlock)) return properties("{} is not in a block!");
 		if (isNull(dest)) return properties(t("No destination supplied!"));
 		if (dest.isEmpty()) {
@@ -1133,16 +1133,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 		
 	}
 
-	protected Window update(HashMap<String, String> params) {
+	protected Window update(Params params) {
 		LOG.debug("update({})",params);
-		pushPull = params.containsKey(PUSH_PULL) && params.get(PUSH_PULL).equals("on");
-		shunting = params.containsKey(SHUNTING) && params.get(SHUNTING).equals("on");
+		pushPull = params.containsKey(PUSH_PULL) && "on".equals(params.get(PUSH_PULL));
+		shunting = params.containsKey(SHUNTING) && "on".equals(params.get(SHUNTING));
 		if (params.containsKey(NAME)) {
-			name = params.get(NAME);
+			name = params.getString(NAME);
 			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
 		if (params.containsKey(TAGS)) {
-			String[] parts = params.get(TAGS).replace(",", " ").split(" ");
+			String[] parts = params.getString(TAGS).replace(",", " ").split(" ");
 			tags.clear();
 			for (String tag : parts) {
 				tag = tag.trim();

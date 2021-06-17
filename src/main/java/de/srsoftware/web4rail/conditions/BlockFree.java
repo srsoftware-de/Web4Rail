@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.conditions;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +7,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
@@ -63,9 +63,9 @@ public class BlockFree extends Condition {
 
 
 	@Override
-	protected Object update(HashMap<String, String> params) {
+	protected Object update(Params params) {
 		if (params.containsKey(BLOCK)) {
-			Tile tile = plan.get(new Id(params.get(BLOCK)), true);
+			Tile tile = plan.get(new Id(params.getString(BLOCK)), true);
 			if (tile instanceof Block) {
 				block = (Block) tile;
 			} else return t("Clicked tile is not a {}!",t("block"));

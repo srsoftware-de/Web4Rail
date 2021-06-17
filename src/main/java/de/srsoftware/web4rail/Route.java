@@ -114,25 +114,25 @@ public class Route extends BaseClass {
 	 * @return
 	 * @throws IOException 
 	 */
-	public static Object action(HashMap<String, String> params) throws IOException {
+	public static Object action(Params params) throws IOException {
 		Route route = BaseClass.get(Id.from(params));
-		String action = params.get(ACTION);
-		if (isNull(route) && !ACTION_AUTO.equals(action)) return t("Unknown route: {}",params.get(ID));
-		switch (params.get(ACTION)) {
+		String action = params.getString(ACTION);
+		if (isNull(route) && !ACTION_AUTO.equals(action)) return t("Unknown route: {}",params.getString(ID));
+		switch (action) {
 			case ACTION_AUTO:
 				if (isSet(route)) return route.simplyfyName().properties();
 				for (Route rt : BaseClass.listElements(Route.class)) rt.simplyfyName();
-				return plan.properties(new HashMap<String, String>());
+				return plan.properties(new Params());
 			case ACTION_DROP:
 				route.remove();
 				plan.stream(t("Removed {}.",route));				
-				return plan.properties(new HashMap<String,String>());
+				return plan.properties(new Params());
 			case ACTION_PROPS:
 				return route.properties();
 			case ACTION_UPDATE:
 				return route.update(params,plan);
 		}
-		return t("Unknown action: {}",params.get(ACTION));
+		return t("Unknown action: {}",action);
 	}
 
 	/**
@@ -950,14 +950,14 @@ public class Route extends BaseClass {
 		return win;
 	}
 	
-	protected Object update(HashMap<String, String> params,Plan plan) {
+	protected Object update(Params params,Plan plan) {
 		LOG.debug("update({})",params);
-		String name = params.get(NAME);
+		String name = params.getString(NAME);
 		if (isSet(name)) name(name);
 		
 		disabled = "on".equals(params.get(DISABLED));
 		
-		String delay = params.get(MIN_START_DELAY);
+		String delay = params.getString(MIN_START_DELAY);
 		if (isSet(delay)) try {
 			int min = Integer.parseInt(delay);
 			if (isNull(startDelay)) {
@@ -968,7 +968,7 @@ public class Route extends BaseClass {
 			}
 		} catch (NumberFormatException e) {}
 
-		delay = params.get(MAX_START_DELAY);
+		delay = params.getString(MAX_START_DELAY);
 		if (isSet(delay)) try {
 			int max = Integer.parseInt(delay);
 			if (isNull(startDelay)) {
@@ -980,7 +980,7 @@ public class Route extends BaseClass {
 		} catch (NumberFormatException e) {}
 
 		
-		Condition condition = Condition.create(params.get(REALM_CONDITION));
+		Condition condition = Condition.create(params.getString(REALM_CONDITION));
 		if (isSet(condition)) {
 			condition.parent(this);
 			conditions.add(condition);

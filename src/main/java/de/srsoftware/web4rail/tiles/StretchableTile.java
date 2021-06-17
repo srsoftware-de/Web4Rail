@@ -1,6 +1,5 @@
 package de.srsoftware.web4rail.tiles;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -8,6 +7,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
@@ -72,9 +72,9 @@ public abstract class StretchableTile extends TileWithShadow {
 		return stretch;
 	}
 	
-	private void stretch(String value) {
+	private void stretch(Object value) {
 		try {
-			stretch(Integer.parseInt(value));
+			stretch(Integer.parseInt(value.toString()));
 		} catch (NumberFormatException nfe) {
 			LOG.warn("{} is not a valid length!",value);
 		}
@@ -91,8 +91,8 @@ public abstract class StretchableTile extends TileWithShadow {
 	protected abstract String stretchType();
 	
 	@Override
-	public Tile update(HashMap<String, String> params) {
-		for (Entry<String, String> entry : params.entrySet()) {
+	public Tile update(Params params) {
+		for (Entry<String, Object> entry : params.entrySet()) {
 			switch (entry.getKey()) {
 				case STRETCH_LENGTH:
 					stretch(entry.getValue());

@@ -15,6 +15,7 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.EventListener;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.moving.Train;
@@ -154,8 +155,8 @@ public class Contact extends Tile{
 		return this;
 	}
 	
-	public static Object process(HashMap<String, String> params) {
-		String action = params.get(ACTION);
+	public static Object process(Params params) {
+		String action = params.getString(ACTION);
 		Id id = Id.from(params);
 		if (action == null) return t("Missing ACTION on call to {}.process()",Contact.class.getSimpleName());
 		Contact contact = isSet(id) ? BaseClass.get(id) : null;
@@ -254,8 +255,8 @@ public class Contact extends Tile{
 		return true;
 	}
 	@Override
-	public Tile update(HashMap<String, String> params) {
-		if (params.containsKey(ADDRESS)) addr(Integer.parseInt(params.get(ADDRESS)));
+	public Tile update(Params params) {
+		if (params.containsKey(ADDRESS)) addr(params.getInt(ADDRESS));
 		return super.update(params);
 	}
 }

@@ -106,12 +106,12 @@ public class Application extends BaseClass{
 	 * @throws NoSuchMethodException
 	 * @throws SecurityException
 	 */
-	private static Object handle(HashMap<String, String> params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	private static Object handle(Params params) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		LOG.debug("Application.handle({})",params);
-		String realm = params.get(REALM);
+		String realm = params.getString(REALM);
 		if (isNull(realm)) throw new NullPointerException(REALM+" should not be null!");
 		
-		String action = params.get(ACTION);
+		String action = params.getString(ACTION);
 		if (isNull(action)) throw new NullPointerException(ACTION+" should not be null!");
 		
 		if (action.equals(ACTION_OPEN)) return open(params);
@@ -151,9 +151,9 @@ public class Application extends BaseClass{
 	 * @param data
 	 * @return
 	 */
-	private static HashMap<String, String> inflate(String data) {
+	private static Params inflate(String data) {
 		//LOG.debug("inflate({})",data);
-		HashMap<String, String> params = new HashMap<String, String>();
+		Params params = new Params();
 		if (data == null || data.trim().isEmpty()) return params;
 		String[] parts = data.split("&");
 		
@@ -170,7 +170,7 @@ public class Application extends BaseClass{
 	 * @param data
 	 * @return
 	 */
-	private static HashMap<String, String> inflate(byte[] data) {
+	private static Params inflate(byte[] data) {
 		return inflate(new String(data,UTF8));
 	}
 	
@@ -186,9 +186,9 @@ public class Application extends BaseClass{
 		return Files.probeContentType(file.toPath());
 	}
 	
-	private static Object open(HashMap<String, String> params) {
+	private static Object open(Params params) {
 		Window win = new Window("open-plan", t("Open plan..."));
-		String filename = params.get(FILENAME);
+		String filename = params.getString(FILENAME);
 		if (isNull(filename)) {
 			filename = ".";
 		} else if (filename.startsWith("."+File.separator)) {
@@ -296,7 +296,7 @@ public class Application extends BaseClass{
 	 */
 	private static void sendPlan(HttpExchange client) throws IOException {
 		try {
-			HashMap<String, String> params = inflate(client.getRequestBody().readAllBytes());
+			Params params = inflate(client.getRequestBody().readAllBytes());
 			LOG.debug("sendPlan({})",params);
 
 			if (params.isEmpty()) {

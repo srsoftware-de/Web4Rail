@@ -1,11 +1,11 @@
 package de.srsoftware.web4rail.conditions;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -51,8 +51,8 @@ public class CarInTrain extends Condition {
 	}
 
 	@Override
-	protected Object update(HashMap<String, String> params) {
-		String carId = params.get(Car.class.getSimpleName());
+	protected Object update(Params params) {
+		String carId = params.getString(Car.class.getSimpleName());
 		if (isSet(carId)) car = BaseClass.get(new Id(carId));
 		return super.update(params);
 	}
