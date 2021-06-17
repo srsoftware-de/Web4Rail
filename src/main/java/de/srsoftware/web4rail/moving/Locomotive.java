@@ -17,6 +17,7 @@ import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.devices.Decoder;
+import de.srsoftware.web4rail.devices.Function;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -29,15 +30,12 @@ import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
 
 public class Locomotive extends Car implements Constants{
-	
-	public static final String LOCOMOTIVE = "locomotive";
 	private static final String HEADLIGHT = "headlight";
 	private static final String TAILLIGHT = "taillight";
-	private static final String DIRECTIONAL = "directional";
 	private static final String INTERIOR_LIGHT = "interior";
 	private static final String COUPLER = "coupler";
-	private static final String FORWARD = "forward";
-	private static final String REVERSE = "reverse";
+	
+	public static final String LOCOMOTIVE = "locomotive";
 	private static final String ACTION_MAPPING = "mapping";
 	private static final String FUNCTIONS = "functions";
 	private final HashMap<String,HashMap<Integer,Function>> functions = new HashMap<>(); 
@@ -46,50 +44,6 @@ public class Locomotive extends Car implements Constants{
 	//private TreeMap<Integer,Integer> cvs = new TreeMap<Integer, Integer>();
 	private Decoder decoder;
 	
-	private class Function{
-		private boolean directional;
-		private boolean reverse;
-		private boolean forward;
-		private String type;
-
-		public Function(String type, Params dirs) {
-			this.type = type;
-			for (Entry<String, Object> entry : dirs.entrySet()) {
-				boolean enabled = "on".equals(entry.getValue());
-				switch (entry.getKey()) {
-					case DIRECTIONAL:
-						directional = enabled;
-						break;
-					case FORWARD:
-						forward = enabled;
-						break;
-					case REVERSE:
-						reverse = enabled;
-						break;
-					default:
-						LOG.debug("unknwon direction {}",entry.getKey());
-				}
-			}
-		}
-
-		public boolean isDirectional() {
-			return directional;
-		}
-
-		public boolean isForward() {
-			return forward;
-		}
-
-		public boolean isReverse() {
-			return reverse;
-		}
-		
-		@Override
-		public String toString() {
-			return type+"("+(forward?t("forward"):"")+(reverse?" "+t("reverse"):"")+(directional?" "+t("directional"):"").trim()+")";
-		}
-	}
-
 	public Locomotive(String name) {
 		super(name);
 	}
@@ -296,9 +250,9 @@ public class Locomotive extends Car implements Constants{
 		new Checkbox(functionName(index,TYPE,COUPLER),t("Coupler"),isMapped(COUPLER,index), true).addTo(type);
 		
 		Tag dir = new Tag("div");
-		new Checkbox(functionName(index,DIRECTION,DIRECTIONAL), t("directional"), isDirectional(index), true).addTo(dir);
-		new Checkbox(functionName(index,DIRECTION,FORWARD), t("forward"), isForward(index), true).addTo(dir);
-		new Checkbox(functionName(index,DIRECTION,REVERSE), t("reverse"), isReverse(index), true).addTo(dir);
+		new Checkbox(functionName(index,DIRECTION,Function.DIRECTIONAL), t("directional"), isDirectional(index), true).addTo(dir);
+		new Checkbox(functionName(index,DIRECTION,Function.FORWARD), t("forward"), isForward(index), true).addTo(dir);
+		new Checkbox(functionName(index,DIRECTION,Function.REVERSE), t("reverse"), isReverse(index), true).addTo(dir);
 		
 		Table table = new Table();
 		table.addHead(t("Type"),t("Direction"));
@@ -345,6 +299,7 @@ public class Locomotive extends Car implements Constants{
 		JSONObject loco = new JSONObject();
 		json.put(LOCOMOTIVE, loco);
 		if (isSet(decoder))	loco.put(Decoder.DECODER,decoder.json());
+		if (functions.size()>0) loco.put(FUNCTIONS,Function.json(functions));
 		return json;
 	}
 	
@@ -366,9 +321,21 @@ public class Locomotive extends Car implements Constants{
 			}
 			if (isSet(decoder)) decoder.setLoco(this,false);
 			
+			if (loco.has(FUNCTIONS)) loadFunctions(loco);
+			
 		}
 		return this;
 	}	
+
+	private void loadFunctions(JSONObject loco) {
+		JSONObject json = loco.getJSONObject(FUNCTIONS);
+		for (String type : json.keySet()) {
+			JSONObject map = json.getJSONObject(type);
+			HashMap<Integer, Function> funMap = functions.get(type);
+			if (isNull(funMap)) functions.put(type, funMap = new HashMap<>());
+			for (String idx : map.keySet()) funMap.put(Integer.parseInt(idx), new Function(map.getJSONArray(idx).toList()));			
+		}
+	}
 
 	public static Window manager() {
 		Window win = new Window("loco-manager", t("Locomotive manager"));
