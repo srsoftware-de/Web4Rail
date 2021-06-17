@@ -65,6 +65,8 @@ public class Car extends BaseClass implements Comparable<Car>{
 	protected int maxSpeedReverse = 0;
 	protected boolean orientation = FORWARD;
 	protected long distanceCounter = 0;
+
+	private boolean isFirst,isLast;
 	
 	public Car(String name) {
 		this(name,null);
@@ -145,6 +147,24 @@ public class Car extends BaseClass implements Comparable<Car>{
 	
 	public long drivenDistance() {
 		return distanceCounter;
+	}
+	
+	public boolean isFirst() {
+		return isFirst;
+	}
+	
+	public Car isFirst(boolean first) {
+		isFirst = first;
+		return this;
+	}
+	
+	public boolean isLast() {
+		return isLast;
+	}
+
+	public Car isLast(boolean last) {
+		isLast = last;
+		return this;
 	}
 
 	public JSONObject json() {

@@ -49,6 +49,10 @@ public abstract class Function extends BaseClass{
 		return null;	
 	}
 	
+	public boolean enabled() {
+		return enabled;
+	}
+	
 	public boolean enabled(Decoder decoder) {
 		return enabled;
 	}
@@ -101,8 +105,9 @@ public abstract class Function extends BaseClass{
 		return selector;
 	}
 
-	public void setState(boolean enabled) {
+	public Function setState(boolean enabled) {
 		this.enabled = enabled;
+		return this;
 	}
 
 	@Override

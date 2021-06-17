@@ -44,4 +44,13 @@ public class FunctionList extends HashSet<Function> implements Constants{
 		stream().filter(fun -> name.equals(fun.name())).forEach(fun -> fun.setState(enabled));
 		return this;
 	}
+
+
+	public HashSet<Function> with(String name) {
+		HashSet<Function> subset = new HashSet<>();
+		for (Function f: this) {
+			if (f.name().equals(name)) subset.add(f);
+		}
+		return subset;
+	}
 }

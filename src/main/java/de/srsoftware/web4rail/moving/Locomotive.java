@@ -3,6 +3,7 @@ package de.srsoftware.web4rail.moving;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -100,23 +101,24 @@ public class Locomotive extends Car implements Constants{
 	public static Fieldset cockpit(BaseClass locoOrTrain) {
 		int speed = 0;
 		String realm = null;
-		Train train = null;
+		final Train train;
 		final Locomotive loco;
 		int maxSpeed = 0;
 		String id = null;
 		if (locoOrTrain instanceof Locomotive) {
-			loco = (Locomotive) locoOrTrain; 
+			loco = (Locomotive) locoOrTrain;
+			train = null;
 			realm = REALM_LOCO;
 			speed = loco.speed;
 			maxSpeed = loco.orientation ? loco.maxSpeedForward : loco.maxSpeedReverse;
 			id = "loco_"+loco.id();
 		} else if (locoOrTrain instanceof Train) {
+			loco = null;
 			train = (Train)locoOrTrain;
 			realm = REALM_TRAIN;			
 			speed = train.speed;
 			maxSpeed = train.maxSpeed();
 			id = "train_"+train.id();
-			loco = null;
 		} else return null;
 		
 		HashMap<String,Object> params = new HashMap<String, Object>(Map.of(REALM,realm,ID,locoOrTrain.id()));
@@ -178,7 +180,12 @@ public class Locomotive extends Car implements Constants{
 		}
 		
 		if (isSet(train)) {
-			
+			train.functionNames().sorted().forEach(name -> {
+				Button btn = train.button(name, Map.of(ACTION,ACTION_TOGGLE_FUNCTION,FUNCTION,name));
+				if (train.functionEnabled(name)) btn.clazz("active");
+				btn.addTo(functions);	
+				
+			});
 		}
 
 		functions.addTo(fieldset);
@@ -222,12 +229,16 @@ public class Locomotive extends Car implements Constants{
 		return new Button(t("Save"), form).addTo(form).addTo(fieldset);
 	}
 	
-	private Stream<String> functionNames() {
+	public Stream<String> functionNames() {
 		return functions.stream().map(Function::name).sorted().distinct();
 	}
 
 	public FunctionList functions() {
 		return functions;
+	}
+	
+	public HashSet<Function> functions(String name){
+		return functions.with(name);
 	}
 	
 	@Override

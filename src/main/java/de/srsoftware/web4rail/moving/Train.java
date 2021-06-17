@@ -7,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +28,7 @@ import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
+import de.srsoftware.web4rail.functions.Function;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -100,7 +100,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Route nextPreparedRoute;
 
 	private BrakeProcess brake;
-	private HashMap<String,Boolean> functions = new HashMap<>();
 
 	public static Object action(Params params, Plan plan) throws IOException {
 		String action = params.getString(ACTION);
@@ -530,6 +529,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private Tag faster(int steps) {
 		return setSpeed(speed+steps);
+	}
+	
+	public boolean functionEnabled(String name) {
+		return locos().flatMap(
+			loco -> loco.functions().stream().filter(f -> f.enabled() && f.name().equals(name))
+			).findAny().isPresent();
+	}
+	
+	public Stream<String> functionNames() {
+		return locos().flatMap(Locomotive::functionNames).distinct();
 	}
 	
 	private boolean hasLoco() {
@@ -1057,7 +1066,14 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Object toggleFunction(Params params) {
 		String name = params.getString(FUNCTION);
 		String error = isNull(name) ? t("No function name passed to toggleFunction(…)") : null;
-		// TODO
+		boolean enable = !functionEnabled(name);
+		locos().forEach(loco -> {
+			Function any = null;
+			for (Function f : loco.functions(name)) {
+				any = f.setState(enable);
+			}
+			if (isSet(any)) loco.decoder().queue();
+		});
 		return properties(error);
 	}
 
@@ -1074,12 +1090,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 	 */
 	public Train turn() {
 		LOG.debug("{}.turn()",this);
-		setSpeed(0);
-		for (Car car : cars) car.turn();
 		reverse(cars);
+		updateEnds();
+		for (Car car : cars) car.turn();
 		return reverse();
 	}
 	
+	private void updateEnds() {
+		for (Car car : cars) car.isFirst(false).isLast(false);
+		cars.firstElement().isFirst(true);
+		cars.lastElement().isLast(true);
+	}
+
 	public void unTrace(Tile tile) {
 		if (isSet(trace)) trace.remove(tile);
 		if (isSet(stuckTrace)) stuckTrace.remove(tile);

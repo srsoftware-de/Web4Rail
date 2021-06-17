@@ -45,7 +45,6 @@ public class Decoder extends BaseClass implements Constants, Device {
 	private static final String CV = "cv";
 	private static final String NUM_FUNCTIONS = "numFunctions";
 	private String type;
-	private Locomotive loco;
 	private int numFunctions = 2;
 	private int step;
 	private boolean reverse;
@@ -78,22 +77,26 @@ public class Decoder extends BaseClass implements Constants, Device {
 	}
 	
 	private Window dismount() {
-		if (isNull(loco)) return properties();
-		Locomotive locomotive = loco;
+		Locomotive locomotive = parent();
+		if (isNull(locomotive)) return properties();
 		locomotive.removeDecoder(this);
-		loco = null;
+		parent(null);
 		addLogEntry(t("Removed decoder from \"{}\".",locomotive));
 		return locomotive.properties();
 	}
 	
 	public StringBuilder functions() {
-		HashSet<Integer> enabledFunctions = new HashSet<>();
-		for (Function fun : loco.functions()) {
-			if (fun.enabled(this)) enabledFunctions.add(fun.index());
-		}
-		
+		Locomotive loco = parent();
 		StringBuilder sb = new StringBuilder();
-		for (int i=1; i<=numFunctions; i++) sb.append(" ").append(enabledFunctions.contains(i)?1:0);
+		
+		if (isSet(loco)) { 
+			HashSet<Integer> enabledFunctions = new HashSet<>();
+			for (Function fun : loco.functions()) {
+				if (fun.enabled(this)) enabledFunctions.add(fun.index());
+			}
+			
+			for (int i=1; i<=numFunctions; i++) sb.append(" ").append(enabledFunctions.contains(i)?1:0);
+		}
 		return sb;
 	}
 	
@@ -161,6 +164,12 @@ public class Decoder extends BaseClass implements Constants, Device {
 	
 	public int numFunctions() {
 		return numFunctions ;
+	}
+	
+	@Override
+	public Locomotive parent() {
+		BaseClass p = super.parent();
+		return p instanceof Locomotive ? (Locomotive) p : null;
 	}
 
 	private Window program(Params params) {
@@ -239,6 +248,7 @@ public class Decoder extends BaseClass implements Constants, Device {
 		formInputs.add(t("Protocol"),div);
 		formInputs.add(t("Address"),new Tag("span").content(""+address()));
 		formInputs.add(t("Number of functions"),new Input(NUM_FUNCTIONS,numFunctions).numeric());
+		Locomotive loco = parent();
 		if (isSet(loco)) formInputs.add(t("Locomotive"),loco.button(loco.name()));
 		postForm.add(programming());
 		return super.properties(preForm, formInputs, postForm, errorMessages);
@@ -270,15 +280,15 @@ public class Decoder extends BaseClass implements Constants, Device {
 		selector.addOption(-1,t("no decoder"));
 		selector.addOption(0,t("new decoder"));
 		for (Decoder d: decoders) {
-			if (freeOnly && isSet(d.loco)) continue;
+			if (freeOnly && isSet(d.parent())) continue;
 			selector.addOption(d.id(), d);
 		}
 		return selector;
 	}
 		
 	public Decoder setLoco(Locomotive locomotive, boolean log) {
-		loco = locomotive;
-		if (log) addLogEntry(t("Mounted into \"{}\".",loco));
+		parent(locomotive);
+		if (log) addLogEntry(t("Mounted into \"{}\".",locomotive));
 		locomotive.setDecoder(this,log);
 		return this;
 	}
@@ -332,11 +342,7 @@ public class Decoder extends BaseClass implements Constants, Device {
 		if (params.containsKey(TYPE)) type = params.getString(TYPE);
 		if (params.containsKey(Device.PROTOCOL)) setProtocol(Protocol.valueOf(params.getString(Device.PROTOCOL)));
 		if (params.containsKey(NUM_FUNCTIONS)) numFunctions = params.getInt(NUM_FUNCTIONS);
+		Locomotive loco = parent();
 		return isSet(loco) ? loco.properties() : properties();
 	}
-
-
-		
-
-
 }
