@@ -28,4 +28,10 @@ public class Params extends HashMap<String, Object> {
 			return null;
 		}
 	}
+
+	public Params getParams(Object key) {
+		Object v = super.get(key);
+		if (v instanceof Params) return (Params) v;		
+		return null;
+	}
 }
