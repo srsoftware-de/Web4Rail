@@ -12,7 +12,6 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
-import de.srsoftware.web4rail.Command;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
@@ -40,7 +39,6 @@ public class Locomotive extends Car implements Constants{
 	private static final String FUNCTIONS = "functions";
 	private final HashMap<String,HashMap<Integer,Function>> functions = new HashMap<>(); 
 	private int speed = 0;
-	private boolean f1,f2,f3,f4;
 	//private TreeMap<Integer,Integer> cvs = new TreeMap<Integer, Integer>();
 	private Decoder decoder;
 	
@@ -73,14 +71,8 @@ public class Locomotive extends Car implements Constants{
 				return loco.faster(-Train.defaultSpeedStep);
 			case ACTION_STOP:
 				return loco.stop();
-			case ACTION_TOGGLE_F1:
-				return loco.toggleFunction(1);
-			case ACTION_TOGGLE_F2:
-				return loco.toggleFunction(2);
-			case ACTION_TOGGLE_F3:
-				return loco.toggleFunction(3);
-			case ACTION_TOGGLE_F4:
-				return loco.toggleFunction(4);
+			case ACTION_TOGGLE_FUNCTION:
+				return loco.toggleFunction(params);
 			case ACTION_TURN:
 				return loco.turn();
 			case ACTION_UPDATE:
@@ -116,26 +108,17 @@ public class Locomotive extends Car implements Constants{
 		Train train = null;
 		Locomotive loco = null;
 		int maxSpeed = 0;
-		boolean fun1=false,fun2=false,fun3=false,fun4=false;
 		String id = null;
 		if (locoOrTrain instanceof Locomotive) {
 			loco = (Locomotive) locoOrTrain; 
 			realm = REALM_LOCO;
 			speed = loco.speed;
-			fun1 = loco.f1;
-			fun2 = loco.f2;
-			fun3 = loco.f3;
-			fun4 = loco.f4;
 			maxSpeed = loco.orientation ? loco.maxSpeedForward : loco.maxSpeedReverse;
 			id = "loco_"+loco.id();
 		} else if (locoOrTrain instanceof Train) {
 			train = (Train)locoOrTrain;
 			realm = REALM_TRAIN;			
 			speed = train.speed;
-			fun1 = train.getFunction(1);
-			fun2 = train.getFunction(2);
-			fun3 = train.getFunction(3);
-			fun4 = train.getFunction(4);
 			maxSpeed = train.maxSpeed();
 			id = "train_"+train.id();
 		} else return null;
@@ -187,27 +170,26 @@ public class Locomotive extends Car implements Constants{
 		}
 		direction.addTo(fieldset);
 		
-		Tag functions = new Tag("p");	
 		
-		params.put(ACTION, ACTION_TOGGLE_F1);
-		Button b1 = new Button(t("F1"),params);
-		if (fun1) b1.clazz("active");
-		b1.addTo(functions);
+		Tag functions = new Tag("p");
 
-		params.put(ACTION, ACTION_TOGGLE_F2);
-		Button b2 = new Button(t("F2"),params);
-		if (fun2) b2.clazz("active");
-		b2.addTo(functions);
+		if (isSet(loco) && isSet(loco.decoder)) {
+			
+			for (int i = 1; i<=loco.decoder.numFunctions(); i++) {
+				params.put(ACTION, ACTION_TOGGLE_FUNCTION);
+				params.put(FUNCTION,i);
+				Button btn = new Button(loco.functionName(i),params);
+				if (loco.decoder.isEnabled(i)) btn.clazz("active");
+				btn.addTo(functions);
+			}
+		}
 		
-		params.put(ACTION, ACTION_TOGGLE_F3);
-		Button b3 = new Button(t("F3"),params);
-		if (fun3) b3.clazz("active");
-		b3.addTo(functions);
+		if (isSet(train)) {
+			params.put(ACTION, HEADLIGHT);
+			//headlight = new Button(t("Headlight"), params);
+			
+		}
 
-		params.put(ACTION, ACTION_TOGGLE_F4);
-		Button b4 = new Button(t("F4"),params);
-		if (fun4) b4.clazz("active");
-		b4.addTo(functions);
 		functions.addTo(fieldset);
 		
 		if (isSet(train)) {
@@ -255,9 +237,24 @@ public class Locomotive extends Car implements Constants{
 		new Checkbox(functionName(index,DIRECTION,Function.REVERSE), t("reverse"), isReverse(index), true).addTo(dir);
 		
 		Table table = new Table();
-		table.addHead(t("Type"),t("Direction"));
+		table.addRow(t("Name"),new Input(functionName(index,NAME), functionName(index)));
+		table.addHead(t("Type"),t("Direction"));		
 		table.addRow(type,dir);
 		return table.addTo(mapping);
+	}
+	
+	private String functionName(int index) {
+		for (HashMap<Integer, Function> value : functions.values()) {
+			Function f = value.get(index);
+			if (isSet(f)) return f.name();
+		}
+		return "F"+index;
+	}
+
+	private static String functionName(Object...parts) {
+		StringBuilder sb = new StringBuilder(FUNCTIONS);
+		for (Object part : parts) sb.append("/"+part);
+		return sb.toString();
 	}
 	
 	private boolean isDirectional(int index) {
@@ -287,10 +284,6 @@ public class Locomotive extends Car implements Constants{
 	private boolean isMapped(String type, int funNum) {
 		HashMap<Integer, Function> fun = functions.get(type);
 		return isSet(fun) && fun.containsKey(funNum);
-	}
-
-	private static String functionName(int index,String map,String key) {
-		return FUNCTIONS+"/"+index+"/"+map+"/"+key;
 	}
 
 	@Override
@@ -333,7 +326,7 @@ public class Locomotive extends Car implements Constants{
 			JSONObject map = json.getJSONObject(type);
 			HashMap<Integer, Function> funMap = functions.get(type);
 			if (isNull(funMap)) functions.put(type, funMap = new HashMap<>());
-			for (String idx : map.keySet()) funMap.put(Integer.parseInt(idx), new Function(map.getJSONArray(idx).toList()));			
+			for (String idx : map.keySet()) funMap.put(Integer.parseInt(idx), new Function(map.getJSONObject(idx))); 
 		}
 	}
 
@@ -391,48 +384,12 @@ public class Locomotive extends Car implements Constants{
 			this.decoder = null;
 		}
 	}
-
-	
-	private void queue() {
-		if (isNull(decoder)) return;
-		int step = decoder.protocol().steps * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
-		decoder.init();
-		plan.queue(new Command("SET {} GL "+decoder.address()+" "+(orientation == Car.FORWARD ? 0 : 1)+" "+step+" "+decoder.protocol().steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
-
-			@Override
-			public void onFailure(Reply reply) {
-				super.onFailure(reply);
-				plan.stream(t("Failed to send command to {}: {}",this,reply.message()));
-			}			
-		});
-	}
 	
 	public void setDecoder(Decoder newDecoder, boolean log) {
 		decoder = newDecoder;
 		if (log) addLogEntry(t("Mounted decoder \"{}\".",decoder));
 	}
 	
-	public String setFunction(int num, boolean active) {
-		switch (num) {
-		case 1:
-			f1 = active;	
-			break;
-		case 2:
-			f2 = active;	
-			break;
-		case 3:
-			f3 = active;	
-			break;
-		case 4:
-			f4 = active;
-			break;
-		default:
-			return t("Unknown function: {}",num);
-		}
-		queue();
-		return t("{} F{}",t(active?"Activated":"Deavtivated"),num);
-	}
-
 	/**
 	 * Sets the speed of the locomotive to the given velocity in [plan.speedUnit]s
 	 * @param newSpeed
@@ -445,8 +402,8 @@ public class Locomotive extends Car implements Constants{
 			if (speed > maxSpeedForward && maxSpeedForward > 0) speed = maxSpeed();
 			if (speed < 0) speed = 0;
 			
-			queue();
-			//plan.stream(t("Speed of {} set to {} {}.",this,speed,BaseClass.speedUnit));
+			double step = 1.0 * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
+			decoder.queue(step,orientation != FORWARD);
 		}
 		return properties();
 		
@@ -459,18 +416,12 @@ public class Locomotive extends Car implements Constants{
 		return properties();
 	}
 	
-	Object toggleFunction(int f) {
-		switch (f) {
-		case 1:
-			return setFunction(1, !f1);
-		case 2:
-			return setFunction(2, !f2);
-		case 3:
-			return setFunction(3, !f3);
-		case 4:
-			return setFunction(4, !f4);
-		}
-		return t("Unknown function: {}",f);
+	Object toggleFunction(Params params) {
+		Integer index = params.getInt(FUNCTION);
+		if (isNull(index)) return t("No function number provided!");
+		if (isNull(decoder)) return t("{} has no decoder!",this);
+		decoder.toggleFunction(index);
+		return t("Unknown function: {}",params);
 	}
 	
 	public Object turn() {		
@@ -504,6 +455,7 @@ public class Locomotive extends Car implements Constants{
 		LOG.debug("Settings for function {}: {}",num,settings);
 		Params dirs  = settings.getParams(DIRECTION);
 		Params types = settings.getParams(TYPE);
+		String name = settings.getString(NAME);
 		for (String type : types.keySet()) {
 			boolean enabled = "on".equals(types.get(type));
 			HashMap<Integer, Function> funList = functions.get(type);
@@ -512,7 +464,7 @@ public class Locomotive extends Car implements Constants{
 				functions.put(type, funList);
 			}
 			if (enabled) {
-				funList.put(num, new Function(type,dirs));
+				funList.put(num, new Function(type, name, dirs)); // TODO
 			} else {
 				if (isSet(funList)) {
 					funList.remove(num);

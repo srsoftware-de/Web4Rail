@@ -81,7 +81,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public static final char SHUNTING_FLAG = '¥';
 
 	private HashSet<String> tags = new HashSet<String>();
-	private boolean f1,f2,f3,f4;
 
 	private Block currentBlock,destination = null;
 	HashSet<Tile> trace = new HashSet<Tile>();
@@ -124,14 +123,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 				return train.connect(params);
 			case ACTION_DROP:
 				return train.dropCar(params);
-			case ACTION_TOGGLE_F1:
-				return train.toggleFunction(1);
-			case ACTION_TOGGLE_F2:
-				return train.toggleFunction(2);
-			case ACTION_TOGGLE_F3:
-				return train.toggleFunction(3);
-			case ACTION_TOGGLE_F4:
-				return train.toggleFunction(4);
 			case ACTION_FASTER10:
 				return train.faster(Train.defaultSpeedStep);
 			case ACTION_MOVE:
@@ -536,21 +527,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return setSpeed(speed+steps);
 	}
 	
-	public boolean getFunction(int num) {
-		switch (num) {
-		case 1:
-			return f1;
-		case 2:
-			return f2;
-		case 3:
-			return f3;
-		case 4:
-			return f4;
-		default:
-			return false;
-		}
-	}
-	
 	private boolean hasLoco() {
 		for (Car c:cars) {
 			if (c instanceof Locomotive) return true;
@@ -938,29 +914,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Object setFunction(int num, boolean active) {
-		switch (num) {
-		case 1:
-			f1 = active;	
-			break;
-		case 2:
-			f2 = active;	
-			break;
-		case 3:
-			f3 = active;	
-			break;
-		case 4:
-			f4 = active;
-			break;
-		default:
-			return t("Unknown function: {}",num);
-		}
-		for (Car car : cars) {
-			if (car instanceof Locomotive) {
-				Locomotive loco = (Locomotive) car;
-				loco.setFunction(num,active);
-				if (active) break;
-			}
-		}
+		// TODO
 		return properties();
 	}
 	
@@ -1092,21 +1046,6 @@ public class Train extends BaseClass implements Comparable<Train> {
 		TreeSet<String> list = new TreeSet<String>(tags);
 		for (Car car:cars) list.addAll(car.tags());
 		return list;
-	}
-	
-	
-	public Object toggleFunction(int f) {
-		switch (f) {
-		case 1:
-			return setFunction(1, !f1);
-		case 2:
-			return setFunction(2, !f2);
-		case 3:
-			return setFunction(3, !f3);
-		case 4:
-			return setFunction(4, !f4);
-		}
-		return t("Unknown function: {}",f);
 	}
 	
 	@Override

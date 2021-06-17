@@ -31,7 +31,8 @@ public class SwitchFunction extends Action {
 		if (isNull(context) || isNull(context.train())) return false;
 		switch (effect) {
 			case TOGGLE:
-				context.train().toggleFunction(function);
+//				context.train().toggleFunction(function);
+				// TODO
 				return true;
 			case ON:
 				context.train().setFunction(function, true);

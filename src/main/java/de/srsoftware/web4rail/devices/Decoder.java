@@ -1,5 +1,6 @@
 package de.srsoftware.web4rail.devices;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,6 +46,9 @@ public class Decoder extends BaseClass implements Constants, Device {
 	private String type;
 	private Locomotive loco;
 	private int numFunctions = 2;
+	private HashSet<Integer> enabledFunctions = new HashSet<>();
+	private int step;
+	private boolean reverse;
 
 	public static Object action(Params params) {
 		Decoder decoder = BaseClass.get(Id.from(params));
@@ -63,15 +67,6 @@ public class Decoder extends BaseClass implements Constants, Device {
 		return (BaseClass.isNull(decoder)) ? message : decoder.properties(message);
 	}
 	
-	private Window dismount() {
-		if (isNull(loco)) return properties();
-		Locomotive locomotive = loco;
-		locomotive.removeDecoder(this);
-		loco = null;
-		addLogEntry(t("Removed decoder from \"{}\".",locomotive));
-		return locomotive.properties();
-	}
-
 	@Override
 	public int address() {
 		if (isNull(address)) address = cvs.get(CV_ADDR);
@@ -80,6 +75,21 @@ public class Decoder extends BaseClass implements Constants, Device {
 	
 	public Button button() {
 		return super.button(type(),Map.of(REALM,REALM_DECODER));
+	}
+	
+	private Window dismount() {
+		if (isNull(loco)) return properties();
+		Locomotive locomotive = loco;
+		locomotive.removeDecoder(this);
+		loco = null;
+		addLogEntry(t("Removed decoder from \"{}\".",locomotive));
+		return locomotive.properties();
+	}
+	
+	public StringBuilder functions() {
+		StringBuilder sb = new StringBuilder();
+		for (int i=1; i<=numFunctions; i++) sb.append(" ").append(isEnabled(i)?1:0);
+		return sb;
 	}
 	
 	public void init() {
@@ -115,6 +125,11 @@ public class Decoder extends BaseClass implements Constants, Device {
 		init = true;
 	}
 	
+	public boolean isEnabled(int function) {
+		return enabledFunctions.contains(function);
+	}
+
+	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
@@ -145,10 +160,6 @@ public class Decoder extends BaseClass implements Constants, Device {
 	public int numFunctions() {
 		return numFunctions ;
 	}
-
-
-
-
 
 	private Window program(Params params) {
 		String error = null;
@@ -281,6 +292,11 @@ public class Decoder extends BaseClass implements Constants, Device {
 		return "";
 	}
 	
+	public void toggleFunction(Integer index) {
+		if (!enabledFunctions.remove(index)) enabledFunctions.add(index);
+		queue();
+	}
+	
 	@Override
 	public String toString() {
 		return type()+" ("+t("Address")+": "+address()+")";
@@ -296,17 +312,25 @@ public class Decoder extends BaseClass implements Constants, Device {
 		super.update(params);
 		if (params.containsKey(TYPE)) type = params.getString(TYPE);
 		if (params.containsKey(Device.PROTOCOL)) setProtocol(Protocol.valueOf(params.getString(Device.PROTOCOL)));
-
-
-
-
-
 		if (params.containsKey(NUM_FUNCTIONS)) numFunctions = params.getInt(NUM_FUNCTIONS);
-
-
-
-
-
 		return isSet(loco) ? loco.properties() : properties();
+	}
+
+	public void queue(double speed, boolean reverse) {
+		step = (int)(speed*proto.steps);
+		this.reverse = reverse;
+		queue();
+	}
+		
+	public void queue() {
+		init();
+		plan.queue(new Command("SET {} GL "+address()+" "+(reverse ? 0 : 1)+" "+step+" "+protocol().steps+functions()) {
+
+			@Override
+			public void onFailure(Reply reply) {
+				super.onFailure(reply);
+				plan.stream(t("Failed to send command to {}: {}",this,reply.message()));
+			}			
+		});
 	}
 }

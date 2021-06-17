@@ -33,10 +33,7 @@ public interface Constants {
 	public static final String ACTION_START = "start";
 	public static final String ACTION_STOP = "stop";
 	public static final String ACTION_TIMES = "update_times";
-	public static final String ACTION_TOGGLE_F1 = "f1";
-	public static final String ACTION_TOGGLE_F2 = "f2";
-	public static final String ACTION_TOGGLE_F3 = "f3";
-	public static final String ACTION_TOGGLE_F4 = "f4";
+	public static final String ACTION_TOGGLE_FUNCTION = "function";
 	public static final String ACTION_TOGGLE_SHUNTING = "shunt";
 	public static final String ACTION_TURN = "turn";
 	public static final String ACTION_UPDATE = "update";
@@ -66,6 +63,7 @@ public interface Constants {
 	public static final String  DESTINATION          = "destination";
 	public static final String  DISABLED            = "disabled";
 	public static final String  DIRECTION           = "direction";
+	public static final String  FUNCTION            = "function";
 	public static final String  GITHUB_URL          = "https://github.com/srsoftware-de/Web4Rail";
 	public static final String  ID                  = "id";
 	public static final String  LOCKED              = "locked";
