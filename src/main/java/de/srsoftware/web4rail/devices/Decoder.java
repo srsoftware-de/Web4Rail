@@ -17,6 +17,7 @@ import de.srsoftware.web4rail.Command.Reply;
 import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Protocol;
+import de.srsoftware.web4rail.functions.Function;
 import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.tags.Button;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -46,7 +47,6 @@ public class Decoder extends BaseClass implements Constants, Device {
 	private String type;
 	private Locomotive loco;
 	private int numFunctions = 2;
-	private HashSet<Integer> enabledFunctions = new HashSet<>();
 	private int step;
 	private boolean reverse;
 
@@ -87,8 +87,13 @@ public class Decoder extends BaseClass implements Constants, Device {
 	}
 	
 	public StringBuilder functions() {
+		HashSet<Integer> enabledFunctions = new HashSet<>();
+		for (Function fun : loco.functions()) {
+			if (fun.enabled(this)) enabledFunctions.add(fun.index());
+		}
+		
 		StringBuilder sb = new StringBuilder();
-		for (int i=1; i<=numFunctions; i++) sb.append(" ").append(isEnabled(i)?1:0);
+		for (int i=1; i<=numFunctions; i++) sb.append(" ").append(enabledFunctions.contains(i)?1:0);
 		return sb;
 	}
 	
@@ -125,17 +130,13 @@ public class Decoder extends BaseClass implements Constants, Device {
 		init = true;
 	}
 	
-	public boolean isEnabled(int function) {
-		return enabledFunctions.contains(function);
-	}
-
-	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(CVS, cvs);
 		json.put(PROTOCOL, proto);
 		json.put(TYPE, type);
+		json.put(FUNCTIONS, numFunctions);
 		return json;
 	}
 	
@@ -154,6 +155,7 @@ public class Decoder extends BaseClass implements Constants, Device {
 			for (String key : jCvs.keySet()) cvs.put(Integer.parseInt(key),jCvs.getInt(key)); 
 		}
 		if (json.has(TYPE)) type = json.getString(TYPE);
+		if (json.has(FUNCTIONS)) numFunctions = json.getInt(FUNCTIONS);
 		return this;
 	}
 	
@@ -258,12 +260,9 @@ public class Decoder extends BaseClass implements Constants, Device {
 		});
 	}
 	
-	public void queue(double speed, boolean reverse) {
-		step = (int)(speed*proto.steps);
-		this.reverse = reverse;
-		queue();
+	public boolean reverse() {
+		return reverse;
 	}
-
 	
 	public static Select selector(boolean freeOnly) {
 		Select selector = new Select(REALM_DECODER);
@@ -276,13 +275,7 @@ public class Decoder extends BaseClass implements Constants, Device {
 		}
 		return selector;
 	}
-	
-	public void setFunction(Integer function, boolean enabled) {
-		if (enabled) {
-			if (enabledFunctions.add(function)) queue();
-		} else if (enabledFunctions.remove(function)) queue();
-	}
-	
+		
 	public Decoder setLoco(Locomotive locomotive, boolean log) {
 		loco = locomotive;
 		if (log) addLogEntry(t("Mounted into \"{}\".",loco));
@@ -292,6 +285,12 @@ public class Decoder extends BaseClass implements Constants, Device {
 	
 	public void setProtocol(Protocol proto) {
 		this.proto = proto;
+	}
+	
+	public void setSpeed(double speed, boolean reverse) {
+		step = (int)(speed*proto.steps);
+		this.reverse = reverse;
+		queue();
 	}
 	
 	private Object setting(int cv) {
@@ -315,11 +314,6 @@ public class Decoder extends BaseClass implements Constants, Device {
 			return t("extended address");
 		}
 		return "";
-	}
-	
-	public void toggleFunction(Integer index) {
-		if (!enabledFunctions.remove(index)) enabledFunctions.add(index);
-		queue();
 	}
 	
 	@Override

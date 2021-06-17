@@ -25,6 +25,7 @@ import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.actions.Action;
 import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.devices.Decoder;
+import de.srsoftware.web4rail.functions.Function;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.moving.Train;
@@ -569,10 +570,9 @@ public abstract class BaseClass implements Constants{
 		if (this instanceof Contact) return REALM_CONTACT;
 		if (this instanceof Decoder) return REALM_DECODER;
 		if (this instanceof Tile) return REALM_PLAN;
-
+		if (this instanceof Function) return REALM_FUNCTION;
 		if (this instanceof Locomotive) return REALM_LOCO;
-		if (this instanceof Car) return REALM_CAR;
-		
+		if (this instanceof Car) return REALM_CAR;		
 		if (this instanceof Action) return REALM_ACTIONS;
 		if (this instanceof Condition) return REALM_CONDITION;
 		if (this instanceof Route) return REALM_ROUTE;

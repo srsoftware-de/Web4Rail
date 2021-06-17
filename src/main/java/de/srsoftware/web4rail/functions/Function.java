@@ -2,8 +2,11 @@ package de.srsoftware.web4rail.functions;
 
 import java.util.List;
 
+import org.json.JSONObject;
+
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Constants;
 import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.devices.Decoder;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -18,23 +21,25 @@ public abstract class Function extends BaseClass{
 	static final String FORWARD = "forward";
 	static final String REVERSE = "reverse";
 	
-	private int decoderFunction = 1; 
+	private int decoderFunction = 1;
+	private boolean enabled; 
 
-	public static Tag selector() {
-		Select selector = new Select(NEW);
-		selector.addOption("", t("Select function"));
-		
-		for (Class<? extends Function> fun : List.of(HeadLight.class,TailLight.class,InteriorLight.class,Coupler.class,CustomFunction.class)) {
-			String className = fun.getSimpleName();
-			selector.addOption(className,t(className));
+	public static Object action(Params params) {
+		String action = params.getString(ACTION);
+		Function function = BaseClass.get(Id.from(params));
+		BaseClass parent = isSet(function) ? function.parent() : null;
+		switch (action) {
+			case ACTION_DROP:
+				if (isSet(function)) {
+					function.remove();
+					return parent.properties();
+				}
 		}
-		
-		return selector;
+		String message = t("Unknown action: {}",params.get(Constants.ACTION));
+		return isSet(parent) ? parent.properties(message) : message;
 	}
 
 	public static Function create(String className) {
-		
-
 		if (isNull(className)) return null;
 		try {
 			return (Function) Class.forName(PACKAGE+"."+className).getDeclaredConstructor().newInstance();
@@ -42,6 +47,10 @@ public abstract class Function extends BaseClass{
 			e.printStackTrace();
 		}
 		return null;	
+	}
+	
+	public boolean enabled(Decoder decoder) {
+		return enabled;
 	}
 
 	public Fieldset form(Decoder decoder) {
@@ -56,9 +65,53 @@ public abstract class Function extends BaseClass{
 				
 		return fieldset;		
 	}
+	
+	public int index() {
+		return decoderFunction;
+	}
+	
+	@Override
+	public JSONObject json() {
+		JSONObject json = super.json();
+		json.put(TYPE, type());
+		json.put(INDEX, decoderFunction);
+		return json;
+	}
+	
+	@Override
+	public Function load(JSONObject json) {
+		super.load(json);
+		if (json.has(INDEX)) decoderFunction = json.getInt(INDEX);
+		return this;
+	}
 
-	private String name() {
-		return t(getClass().getSimpleName());
+	public String name() {
+		return t(type());
+	}
+	
+	public static Tag selector() {
+		Select selector = new Select(NEW);
+		selector.addOption("", t("Select function"));
+		
+		for (Class<? extends Function> fun : List.of(HeadLight.class,TailLight.class,InteriorLight.class,Coupler.class,CustomFunction.class)) {
+			String className = fun.getSimpleName();
+			selector.addOption(className,t(className));
+		}
+		
+		return selector;
+	}
+
+	public void setState(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	@Override
+	public String toString() {
+		return name()+"("+decoderFunction+"="+enabled+")";
+	}
+	
+	private String type() {
+		return getClass().getSimpleName();
 	}
 	
 	@Override

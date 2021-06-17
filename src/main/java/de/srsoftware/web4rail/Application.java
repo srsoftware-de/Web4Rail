@@ -25,6 +25,7 @@ import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.conditions.Condition;
 import de.srsoftware.web4rail.devices.Decoder;
+import de.srsoftware.web4rail.functions.Function;
 import de.srsoftware.web4rail.moving.Car;
 import de.srsoftware.web4rail.moving.Locomotive;
 import de.srsoftware.web4rail.moving.Train;
@@ -128,6 +129,8 @@ public class Application extends BaseClass{
 				return plan.controlUnit().process(params);
 			case REALM_DECODER:
 				return Decoder.action(params);
+			case REALM_FUNCTION:
+				return Function.action(params);
 			case REALM_HISTORY:
 				return History.action(params);
 			case REALM_LOCO:

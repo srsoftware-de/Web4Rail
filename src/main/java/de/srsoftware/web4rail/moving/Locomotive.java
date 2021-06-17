@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.stream.Stream;
 
 import org.json.JSONObject;
 
@@ -28,14 +29,8 @@ import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
 
 public class Locomotive extends Car implements Constants{
-	private static final String HEADLIGHT = "headlight";
-	private static final String TAILLIGHT = "taillight";
-	private static final String INTERIOR_LIGHT = "interior";
-	private static final String COUPLER = "coupler";
-	
 	public static final String LOCOMOTIVE = "locomotive";
 	private static final String ACTION_MAPPING = "mapping";
-	private static final String FUNCTIONS = "functions";
 	private FunctionList functions = new FunctionList(); 
 	private int speed = 0;
 	//private TreeMap<Integer,Integer> cvs = new TreeMap<Integer, Integer>();
@@ -106,7 +101,7 @@ public class Locomotive extends Car implements Constants{
 		int speed = 0;
 		String realm = null;
 		Train train = null;
-		Locomotive loco = null;
+		final Locomotive loco;
 		int maxSpeed = 0;
 		String id = null;
 		if (locoOrTrain instanceof Locomotive) {
@@ -121,6 +116,7 @@ public class Locomotive extends Car implements Constants{
 			speed = train.speed;
 			maxSpeed = train.maxSpeed();
 			id = "train_"+train.id();
+			loco = null;
 		} else return null;
 		
 		HashMap<String,Object> params = new HashMap<String, Object>(Map.of(REALM,realm,ID,locoOrTrain.id()));
@@ -173,15 +169,12 @@ public class Locomotive extends Car implements Constants{
 		
 		Tag functions = new Tag("p");
 
-		if (isSet(loco) && isSet(loco.decoder)) {
-			
-			for (int i = 1; i<=loco.decoder.numFunctions(); i++) {
-				params.put(ACTION, ACTION_TOGGLE_FUNCTION);
-				params.put(FUNCTION,i);
-				Button btn = new Button(loco.functionName(i),params);
-				if (loco.decoder.isEnabled(i)) btn.clazz("active");
-				btn.addTo(functions);
-			}
+		if (isSet(loco)) {
+			loco.functionNames().forEach(name -> {
+				Button btn = loco.button(name, Map.of(ACTION,ACTION_TOGGLE_FUNCTION,FUNCTION,name));
+				if (loco.functions.enabled(name)) btn.clazz("active");
+				btn.addTo(functions);	
+			});
 		}
 		
 		if (isSet(train)) {
@@ -200,6 +193,10 @@ public class Locomotive extends Car implements Constants{
 		return fieldset;
 	}
 	
+	public Decoder decoder() {
+		return decoder;
+	}
+	
 	private String detail() {
 		return getClass().getSimpleName()+"("+name()+", "+decoder.protocol()+", "+decoder.address()+")";
 	}
@@ -216,27 +213,21 @@ public class Locomotive extends Car implements Constants{
 		new Input(ACTION, ACTION_MAPPING).hideIn(form);
 		new Input(ID,id()).hideIn(form);
 		
-		for (Function fun : functions) {
-			fun.form(decoder).addTo(form);
-		}		
+		functions.stream()
+			.sorted((a,b) -> a.index() - b.index())
+			.forEach(fun -> fun.button(t("delete"), Map.of(ACTION,ACTION_DROP)).addTo(fun.form(decoder)).addTo(form));
 		Fieldset newFun = new Fieldset(t("Add function"));
 		Function.selector().addTo(newFun).addTo(form);
 		
 		return new Button(t("Save"), form).addTo(form).addTo(fieldset);
 	}
-
-
-	private Tag functionMapping(int index) {
-		Fieldset mapping = new Fieldset(t("Function {}",index));
-		return mapping;
-	}
 	
+	private Stream<String> functionNames() {
+		return functions.stream().map(Function::name).sorted().distinct();
+	}
 
-
-	private static String functionName(Object...parts) {
-		StringBuilder sb = new StringBuilder(FUNCTIONS);
-		for (Object part : parts) sb.append("/"+part);
-		return sb.toString();
+	public FunctionList functions() {
+		return functions;
 	}
 	
 	@Override
@@ -267,7 +258,7 @@ public class Locomotive extends Car implements Constants{
 			}
 			if (isSet(decoder)) decoder.setLoco(this,false);
 			
-			if (loco.has(FUNCTIONS)) functions.load(loco.getJSONObject(FUNCTIONS));
+			if (loco.has(FUNCTIONS)) functions.load(loco.getJSONArray(FUNCTIONS),this);
 			
 		}
 		return this;
@@ -308,9 +299,6 @@ public class Locomotive extends Car implements Constants{
 		return win;
 	}
 	
-
-	
-
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
@@ -319,6 +307,12 @@ public class Locomotive extends Car implements Constants{
 		Window props = super.properties(preForm, formInputs, postForm,errors);
 		addDecoderButtons(props);
 		return props;
+	}
+	
+	@Override
+	protected void removeChild(BaseClass child) {
+		functions.remove(child);
+		super.removeChild(child);
 	}
 	
 	public void removeDecoder(Decoder decoder) {
@@ -346,7 +340,7 @@ public class Locomotive extends Car implements Constants{
 			if (speed < 0) speed = 0;
 			
 			double step = 1.0 * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
-			decoder.queue(step,orientation != FORWARD);
+			decoder.setSpeed(step,orientation != FORWARD);
 		}
 		return properties();
 		
@@ -360,12 +354,9 @@ public class Locomotive extends Car implements Constants{
 	}
 	
 	private Window toggleFunction(Params params) {
-		Integer index = params.getInt(FUNCTION);
-		Vector<String> errors = new Vector<String>();
-		if (isNull(index)) errors.add(t("No function number provided!"));
-		if (isNull(decoder)) errors.add(t("{} has no decoder!",this));
-		if (errors.isEmpty()) decoder.toggleFunction(index);
-		return properties(errors.toArray(new String[errors.size()]));
+		functions.toggle(params.getString(FUNCTION));
+		if (isSet(decoder)) decoder.queue();
+		return properties();
 	}
 	
 	public Object turn() {		
@@ -410,6 +401,7 @@ public class Locomotive extends Car implements Constants{
 				if (isSet(function)) function.update(funs.getParams(id));
 			}
 		}
+		if (isSet(decoder)) decoder.queue();
 		return properties();
 	}
 }

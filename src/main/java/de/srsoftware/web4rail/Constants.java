@@ -46,6 +46,7 @@ public interface Constants {
 	public static final String REALM_CONTACT   = "contact";
 	public static final String REALM_CU        = "cu";
 	public static final String REALM_DECODER   = "decoder";
+	public static final String REALM_FUNCTION  = "function";
 	public static final String REALM_HISTORY   = "history";
 	public static final String REALM_LOCO      = "loco";
 	public static final String REALM_MAINTENANCE = "maintenance";
@@ -64,6 +65,7 @@ public interface Constants {
 	public static final String  DISABLED            = "disabled";
 	public static final String  DIRECTION           = "direction";
 	public static final String  FUNCTION            = "function";
+	public static final String  FUNCTIONS           = "functions";
 	public static final String  GITHUB_URL          = "https://github.com/srsoftware-de/Web4Rail";
 	public static final String  ID                  = "id";
 	public static final String  LOCKED              = "locked";
