@@ -154,12 +154,29 @@ public class Application extends BaseClass{
 	private static Params inflate(String data) {
 		//LOG.debug("inflate({})",data);
 		Params params = new Params();
-		if (data == null || data.trim().isEmpty()) return params;
+		if (isNull(data) || data.trim().isEmpty()) return params;
 		String[] parts = data.split("&");
 		
 		for (String part : parts) {
-			String[] entry = part.split("=", 2);
-			params.put(URLDecoder.decode(entry[0],UTF8),URLDecoder.decode(entry[1], UTF8));
+			String[] map = part.split("=", 2);
+			String key = URLDecoder.decode(map[0],UTF8);
+			String value = URLDecoder.decode(map[1], UTF8);
+			
+			Params level = params;
+			while (key.contains("/")) { // root/path/entry=value mappen zu params[root][path][entry]=value
+				String[] path = key.split("/", 2);
+				key = path[0];
+				Object entry = level.get(key);
+				if (entry instanceof Params) {
+					level = (Params) entry;
+				} else {
+					Params dummy = new Params();
+					level.put(key, dummy);
+					level = dummy;					
+				}
+				key = path[1];
+			}
+			level.put(key,value);
 		}
 		
 		return params;
