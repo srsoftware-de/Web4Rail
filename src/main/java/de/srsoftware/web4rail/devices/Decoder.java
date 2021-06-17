@@ -41,8 +41,10 @@ public class Decoder extends BaseClass implements Constants, Device {
 	private static final String TRACK = "track";
 	private static final String VALUE = "val";
 	private static final String CV = "cv";
+	private static final String NUM_FUNCTIONS = "numFunctions";
 	private String type;
 	private Locomotive loco;
+	private int numFunctions = 2;
 
 	public static Object action(Params params) {
 		Decoder decoder = BaseClass.get(Id.from(params));
@@ -140,7 +142,15 @@ public class Decoder extends BaseClass implements Constants, Device {
 		return this;
 	}
 	
-	private Window program(HashMap<String, String> params) {
+	public int numFunctions() {
+		return numFunctions ;
+	}
+
+
+
+
+
+	private Window program(Params params) {
 		String error = null;
 		if (ACTION_PROGRAM.equals(params.get(ACTION))) try {
 			int cv = params.getInt(CV);
@@ -215,6 +225,7 @@ public class Decoder extends BaseClass implements Constants, Device {
 		}
 		formInputs.add(t("Protocol"),div);
 		formInputs.add(t("Address"),new Tag("span").content(""+address()));
+		formInputs.add(t("Number of functions"),new Input(NUM_FUNCTIONS,numFunctions).numeric());
 		if (isSet(loco)) formInputs.add(t("Locomotive"),loco.button(loco.name()));
 		postForm.add(programming());
 		return super.properties(preForm, formInputs, postForm, errorMessages);
@@ -283,8 +294,19 @@ public class Decoder extends BaseClass implements Constants, Device {
 	@Override
 	protected Window update(Params params) {
 		super.update(params);
-		if (params.containsKey(TYPE)) type = params.get(TYPE);
-		if (params.containsKey(Device.PROTOCOL)) setProtocol(Protocol.valueOf(params.get(Device.PROTOCOL)));
+		if (params.containsKey(TYPE)) type = params.getString(TYPE);
+		if (params.containsKey(Device.PROTOCOL)) setProtocol(Protocol.valueOf(params.getString(Device.PROTOCOL)));
+
+
+
+
+
+		if (params.containsKey(NUM_FUNCTIONS)) numFunctions = params.getInt(NUM_FUNCTIONS);
+
+
+
+
+
 		return isSet(loco) ? loco.properties() : properties();
 	}
 }

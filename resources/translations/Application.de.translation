@@ -131,6 +131,7 @@ DetermineTrainInBlock : Zug im Block bestimmen
 Determine, which train is in {} : Bestimmen, welcher Zug sich in {} befindet
 Direction : Richtung
 Direction\: heading {} : Richtung: nach {}
+directional : fahrtrichtungs-abhängig
 disable : deaktivieren
 disabled : deaktiviert
 disable {} : {} deaktivieren
@@ -177,7 +178,10 @@ FreeStartBlock : Start-Block freigeben
 Free tiles behind train : Kacheln hinter dem Zug freigeben
 Fullscreen : Vollbild
 Function : Funktion
+Function {} : Funktion {}
+Function mapping : Funktionszuordnung
 Hardware settings : Hardware-Einstellungen
+Headlight : Spitzenlicht
 Height : Höhe
 Help : Hilfe
 History : Logbuch
@@ -252,6 +256,7 @@ No tile moved. : keine Kachel verschoben.
 no value : kein Wert
 {} now heading for {} : {} ist nun unterwegs nach {}
 {} now in auto-mode : {} ist nun im Automatikmodus
+Number of functions : Anzahl der Funktionen
 Occupied area : Belegte Abschnitte
 Off : Aus
 OFF : aus
@@ -298,7 +303,7 @@ Removed train "{}" : Zug „{}“ gelöscht
 rename : umbenennen
 Rename plan : Plan umbenennen
 Report Issue : Problem melden
-reverse : wenden
+reverse : rückwärts
 reverse train : Zug wenden
 Reversed {}. : {} umgedreht.
 RIGHT : rechts
@@ -391,6 +396,7 @@ Switch power on : Strom anschalten
 SYSTEM : Betriebssystem
 Tag : Markierung
 Tags : Markierungen
+Tail light : Schlusslicht
 Task : Aufgabe
 Task name must not be empty : Aufgaben-Name darf nicht leer sein
 Task type : Aufgabe

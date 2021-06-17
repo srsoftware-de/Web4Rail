@@ -17,6 +17,7 @@ import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.devices.Decoder;
 import de.srsoftware.web4rail.tags.Button;
+import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
@@ -29,6 +30,14 @@ import de.srsoftware.web4rail.tiles.Block;
 public class Locomotive extends Car implements Constants{
 	
 	public static final String LOCOMOTIVE = "locomotive";
+	private static final String HEADLIGHT = "headlight";
+	private static final String TAILLIGHT = "taillight";
+	private static final String DIRECTIONAL = "directional";
+	private static final String INTERIOR_LIGHT = "interior";
+	private static final String COUPLER = "coupler";
+	private static final String FORWARD = "forward";
+	private static final String REVERSE = "reverse";
+	private static final String ACTION_MAPPING = "mapping";
 	private int speed = 0;
 	private boolean f1,f2,f3,f4;
 	//private TreeMap<Integer,Integer> cvs = new TreeMap<Integer, Integer>();
@@ -51,6 +60,8 @@ public class Locomotive extends Car implements Constants{
 				return Locomotive.manager();
 			case ACTION_FASTER10:
 				return loco.faster(Train.defaultSpeedStep);
+			case ACTION_MAPPING:
+				return loco.updateMapping(params);
 			case ACTION_MOVE:
 				return loco.moveUp();
 			case ACTION_PROPS:
@@ -78,6 +89,25 @@ public class Locomotive extends Car implements Constants{
 		
 		return t("Unknown action: {}",params.getString(ACTION));
 	}
+	
+	private void addDecoderButtons(Window props) {
+		Tag basicProps = props.children().stream().filter(tag -> BaseClass.PROPS_BASIC.equals(tag.get("id"))).findFirst().get();
+		Tag form = basicProps.children().stream().filter(tag -> tag.is("form")).findFirst().get();
+		Table table = (Table) form.children().stream().filter(tag -> tag.is("table")).findFirst().get();
+		Tag div = new Tag("div");
+		if (isSet(decoder)) {
+			decoder.button().addTo(div);
+			decoder.button(t("dismount"), Map.of(ACTION,ACTION_DECOUPLE)).addTo(div);
+		} else {
+			Decoder.selector(true).addTo(div);
+		}
+		table.addRow(t("Decoder"),div);
+		Vector<Tag> cols = table.children();
+		Tag lastRow = cols.lastElement();
+		cols.remove(cols.size()-1);
+		cols.insertElementAt(lastRow, 5);
+	}
+
 	
 	public static Fieldset cockpit(BaseClass locoOrTrain) {
 		int speed = 0;
@@ -197,6 +227,40 @@ public class Locomotive extends Car implements Constants{
 	public Tag faster(int steps) {
 		return setSpeed(speed + steps);		
 	}
+	
+	private Fieldset functionMapping() {
+		Fieldset fieldset = new Fieldset(t("Function mapping")).id("props-functions");
+		Form form = new Form("function-mapping");
+		new Input(REALM, REALM_LOCO).hideIn(form);
+		new Input(ACTION, ACTION_MAPPING).hideIn(form);
+		new Input(ID,id()).hideIn(form);
+		for (int i=0; i<decoder.numFunctions(); i++) functionMapping(i).addTo(form);
+		return new Button(t("Save"), form).addTo(form).addTo(fieldset);
+	}
+
+
+	private Tag functionMapping(int index) {
+		Fieldset mapping = new Fieldset(t("Function {}",index));
+		Tag type = new Tag("div");
+		new Checkbox(functionName(index,HEADLIGHT), t("Headlight"), false, true).addTo(type);
+		new Checkbox(functionName(index,TAILLIGHT), t("Tail light"), false, true).addTo(type);
+		new Checkbox(functionName(index,INTERIOR_LIGHT),t("Interior light"),false, true).addTo(type);
+		new Checkbox(functionName(index,COUPLER),t("Coupler"),false, true).addTo(type);
+		
+		Tag dir = new Tag("div");
+		new Checkbox(functionName(index,DIRECTIONAL), t("directional"), false, true).addTo(dir);
+		new Checkbox(functionName(index,FORWARD), t("forward"), false, true).addTo(dir);
+		new Checkbox(functionName(index,REVERSE), t("reverse"), false, true).addTo(dir);
+		
+		Table table = new Table();
+		table.addHead(t("Type"),t("Direction"));
+		table.addRow(type,dir);
+		return table.addTo(mapping);
+	}
+	
+	private static String functionName(int index,String key) {
+		return "function["+index+"]["+key+"]";
+	}
 
 	@Override
 	public JSONObject json() {
@@ -271,22 +335,9 @@ public class Locomotive extends Car implements Constants{
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		preForm.add(cockpit(this));
+		if (isSet(decoder) && decoder.numFunctions()>0)	postForm.add(functionMapping());
 		Window props = super.properties(preForm, formInputs, postForm,errors);
-			Tag basicProps = props.children().stream().filter(tag -> BaseClass.PROPS_BASIC.equals(tag.get("id"))).findFirst().get();
-			Tag form = basicProps.children().stream().filter(tag -> tag.is("form")).findFirst().get();
-			Table table = (Table) form.children().stream().filter(tag -> tag.is("table")).findFirst().get();
-			Tag div = new Tag("div");
-			if (isSet(decoder)) {
-				decoder.button().addTo(div);
-				decoder.button(t("dismount"), Map.of(ACTION,ACTION_DECOUPLE)).addTo(div);
-			} else {
-				Decoder.selector(true).addTo(div);
-			}
-			table.addRow(t("Decoder"),div);
-			Vector<Tag> cols = table.children();
-			Tag lastRow = cols.lastElement();
-			cols.remove(cols.size()-1);
-			cols.insertElementAt(lastRow, 5);
+		addDecoderButtons(props);
 		return props;
 	}
 	
@@ -302,7 +353,7 @@ public class Locomotive extends Car implements Constants{
 		if (isNull(decoder)) return;
 		int step = decoder.protocol().steps * speed / (maxSpeedForward == 0 ? 100 : maxSpeedForward); 
 		decoder.init();
-		plan.queue(new Command("SET {} GL "+decoder.address()+" "+(orientation == FORWARD ? 0 : 1)+" "+step+" "+decoder.protocol().steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
+		plan.queue(new Command("SET {} GL "+decoder.address()+" "+(orientation == Car.FORWARD ? 0 : 1)+" "+step+" "+decoder.protocol().steps+" "+(f1?1:0)+" "+(f2?1:0)+" "+(f3?1:0)+" "+(f4?1:0)) {
 
 			@Override
 			public void onFailure(Reply reply) {
@@ -402,6 +453,11 @@ public class Locomotive extends Car implements Constants{
 			}
 			if (isSet(decoder))	decoder.setLoco(this,true);
 		}
+		return properties();
+	}
+	
+	private Object updateMapping(Params params) {
+		// TODO Auto-generated method stub
 		return properties();
 	}
 }

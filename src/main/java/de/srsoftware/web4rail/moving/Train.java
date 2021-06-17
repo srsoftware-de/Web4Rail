@@ -958,6 +958,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			if (car instanceof Locomotive) {
 				Locomotive loco = (Locomotive) car;
 				loco.setFunction(num,active);
+				if (active) break;
 			}
 		}
 		return properties();
