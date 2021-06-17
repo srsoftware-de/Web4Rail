@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import org.json.JSONObject;
@@ -38,10 +39,56 @@ public class Locomotive extends Car implements Constants{
 	private static final String FORWARD = "forward";
 	private static final String REVERSE = "reverse";
 	private static final String ACTION_MAPPING = "mapping";
+	private static final String FUNCTIONS = "functions";
+	private final HashMap<String,HashMap<Integer,Function>> functions = new HashMap<>(); 
 	private int speed = 0;
 	private boolean f1,f2,f3,f4;
 	//private TreeMap<Integer,Integer> cvs = new TreeMap<Integer, Integer>();
 	private Decoder decoder;
+	
+	private class Function{
+		private boolean directional;
+		private boolean reverse;
+		private boolean forward;
+		private String type;
+
+		public Function(String type, Params dirs) {
+			this.type = type;
+			for (Entry<String, Object> entry : dirs.entrySet()) {
+				boolean enabled = "on".equals(entry.getValue());
+				switch (entry.getKey()) {
+					case DIRECTIONAL:
+						directional = enabled;
+						break;
+					case FORWARD:
+						forward = enabled;
+						break;
+					case REVERSE:
+						reverse = enabled;
+						break;
+					default:
+						LOG.debug("unknwon direction {}",entry.getKey());
+				}
+			}
+		}
+
+		public boolean isDirectional() {
+			return directional;
+		}
+
+		public boolean isForward() {
+			return forward;
+		}
+
+		public boolean isReverse() {
+			return reverse;
+		}
+		
+		@Override
+		public String toString() {
+			return type+"("+(forward?t("forward"):"")+(reverse?" "+t("reverse"):"")+(directional?" "+t("directional"):"").trim()+")";
+		}
+	}
 
 	public Locomotive(String name) {
 		super(name);
@@ -234,7 +281,7 @@ public class Locomotive extends Car implements Constants{
 		new Input(REALM, REALM_LOCO).hideIn(form);
 		new Input(ACTION, ACTION_MAPPING).hideIn(form);
 		new Input(ID,id()).hideIn(form);
-		for (int i=0; i<decoder.numFunctions(); i++) functionMapping(i).addTo(form);
+		for (int i=0; i<decoder.numFunctions(); i++) functionMapping(i+1).addTo(form);
 		return new Button(t("Save"), form).addTo(form).addTo(fieldset);
 	}
 
@@ -242,15 +289,16 @@ public class Locomotive extends Car implements Constants{
 	private Tag functionMapping(int index) {
 		Fieldset mapping = new Fieldset(t("Function {}",index));
 		Tag type = new Tag("div");
-		new Checkbox(functionName(index,HEADLIGHT), t("Headlight"), false, true).addTo(type);
-		new Checkbox(functionName(index,TAILLIGHT), t("Tail light"), false, true).addTo(type);
-		new Checkbox(functionName(index,INTERIOR_LIGHT),t("Interior light"),false, true).addTo(type);
-		new Checkbox(functionName(index,COUPLER),t("Coupler"),false, true).addTo(type);
+
+		new Checkbox(functionName(index,TYPE,HEADLIGHT), t("Headlight"), isMapped(HEADLIGHT,index), true).addTo(type);
+		new Checkbox(functionName(index,TYPE,TAILLIGHT), t("Tail light"), isMapped(TAILLIGHT,index), true).addTo(type);
+		new Checkbox(functionName(index,TYPE,INTERIOR_LIGHT),t("Interior light"),isMapped(INTERIOR_LIGHT,index), true).addTo(type);
+		new Checkbox(functionName(index,TYPE,COUPLER),t("Coupler"),isMapped(COUPLER,index), true).addTo(type);
 		
 		Tag dir = new Tag("div");
-		new Checkbox(functionName(index,DIRECTIONAL), t("directional"), false, true).addTo(dir);
-		new Checkbox(functionName(index,FORWARD), t("forward"), false, true).addTo(dir);
-		new Checkbox(functionName(index,REVERSE), t("reverse"), false, true).addTo(dir);
+		new Checkbox(functionName(index,DIRECTION,DIRECTIONAL), t("directional"), isDirectional(index), true).addTo(dir);
+		new Checkbox(functionName(index,DIRECTION,FORWARD), t("forward"), isForward(index), true).addTo(dir);
+		new Checkbox(functionName(index,DIRECTION,REVERSE), t("reverse"), isReverse(index), true).addTo(dir);
 		
 		Table table = new Table();
 		table.addHead(t("Type"),t("Direction"));
@@ -258,8 +306,37 @@ public class Locomotive extends Car implements Constants{
 		return table.addTo(mapping);
 	}
 	
-	private static String functionName(int index,String key) {
-		return "functions/"+index+"/"+key;
+	private boolean isDirectional(int index) {
+		for (HashMap<Integer, Function> value : functions.values()) {
+			Function f = value.get(index);
+			if (isSet(f) && f.isDirectional()) return true;
+		}
+		return false;
+	}
+
+	private boolean isForward(int index) {
+		for (HashMap<Integer, Function> value : functions.values()) {
+			Function f = value.get(index);
+			if (isSet(f) && f.isForward()) return true;
+		}
+		return false;
+	}
+
+	private boolean isReverse(int index) {
+		for (HashMap<Integer, Function> value : functions.values()) {
+			Function f = value.get(index);
+			if (isSet(f) && f.isReverse()) return true;
+		}
+		return false;
+	}
+
+	private boolean isMapped(String type, int funNum) {
+		HashMap<Integer, Function> fun = functions.get(type);
+		return isSet(fun) && fun.containsKey(funNum);
+	}
+
+	private static String functionName(int index,String map,String key) {
+		return FUNCTIONS+"/"+index+"/"+map+"/"+key;
 	}
 
 	@Override
@@ -456,8 +533,34 @@ public class Locomotive extends Car implements Constants{
 		return properties();
 	}
 	
+	private void updateFunction(int num, Params settings) {
+		LOG.debug("Settings for function {}: {}",num,settings);
+		Params dirs  = settings.getParams(DIRECTION);
+		Params types = settings.getParams(TYPE);
+		for (String type : types.keySet()) {
+			boolean enabled = "on".equals(types.get(type));
+			HashMap<Integer, Function> funList = functions.get(type);
+			if (enabled && isNull(funList)) {
+				funList = new HashMap<>();
+				functions.put(type, funList);
+			}
+			if (enabled) {
+				funList.put(num, new Function(type,dirs));
+			} else {
+				if (isSet(funList)) {
+					funList.remove(num);
+					if (funList.isEmpty()) functions.remove(type);
+				}
+			}
+		}
+	}
+	
 	private Object updateMapping(Params params) {
-		// TODO Auto-generated method stub
+		if (params.containsKey(FUNCTIONS)) {
+			for (Entry<String, Object> entry : params.getParams(FUNCTIONS).entrySet()) {
+				updateFunction(Integer.parseInt(entry.getKey()),(Params) entry.getValue());
+			}
+		}
 		return properties();
 	}
 }
