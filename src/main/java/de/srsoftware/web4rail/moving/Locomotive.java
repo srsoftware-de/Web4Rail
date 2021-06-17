@@ -259,7 +259,7 @@ public class Locomotive extends Car implements Constants{
 	}
 	
 	private static String functionName(int index,String key) {
-		return "function["+index+"]["+key+"]";
+		return "functions/"+index+"/"+key;
 	}
 
 	@Override

@@ -107,6 +107,7 @@ Counterpart : Gegenstück
 couple : kuppeln
 Couple first parked train : ersten geparkten Zug kuppeln
 Couple last parked train : letzten geparkten Zug kuppeln
+Coupler : Kupplung
 CoupleTrain : Zug kuppeln
 Create action : Aktion erzeugen
 Current location : Aufenthaltsort
@@ -190,6 +191,7 @@ Hold : an lassen
 if ({}) : falls ({})
 If car of train\: inspect car number : Falls Fahrzeug aus Zug: Untersuche Fahrzeug Nummer
 If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished. : Falls aktiviert, wird die Strecke anhand von Zug- und Kachel-Länge hinter dem Zug freigegeben, Falls deaktiviert wird die Strecke hinter dem Zug erst bei Abschluss der Route freigegeben.
+Interior light : Innenbeleuchtung
 internal contacts : interne Kontakte
 Interval : Intervall
 inverted : invertiert
