@@ -37,6 +37,10 @@ public class Function extends BaseClass{
 		if (json.has(DIRECTION)) json.getJSONArray(DIRECTION).forEach(o -> setDirection(o.toString(), true));
 	}
 
+	public boolean is(String type) {
+		return this.type.equals(type);
+	}
+
 	public boolean isDirectional() {
 		return directional;
 	}
@@ -48,7 +52,6 @@ public class Function extends BaseClass{
 	public boolean isReverse() {
 		return reverse;
 	}
-
 
 
 	public JSONObject json() {
@@ -99,9 +102,13 @@ public class Function extends BaseClass{
 	
 	@Override
 	public String toString() {
-		return type+"("+(forward?BaseClass.t("forward"):"")+(reverse?" "+BaseClass.t("reverse"):"")+(directional?" "+BaseClass.t("directional"):"").trim()+")";
+		return (BaseClass.isSet(name)?name+":":"") +type+"("+(forward?BaseClass.t("forward"):"")+(reverse?" "+BaseClass.t("reverse"):"")+(directional?" "+BaseClass.t("directional"):"").trim()+")";
 	}
 	
+	
+	public String type() {
+		return type;
+	}
 
 
 }

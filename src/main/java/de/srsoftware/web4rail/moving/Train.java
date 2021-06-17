@@ -7,14 +7,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -98,6 +101,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Route nextPreparedRoute;
 
 	private BrakeProcess brake;
+	private HashMap<String,Boolean> functions = new HashMap<>();
 
 	public static Object action(Params params, Plan plan) throws IOException {
 		String action = params.getString(ACTION);
@@ -144,6 +148,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 				return train.stopNow();
 			case ACTION_TIMES:
 				return train.removeBrakeTimes();
+			case ACTION_TOGGLE_FUNCTION:
+				return train.toggleFunction(params);
 			case ACTION_TOGGLE_SHUNTING:
 				train.shunting = !train.shunting;
 				return train.properties();
@@ -152,7 +158,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_UPDATE:
 				return train.update(params);		 
 		}
-		return t("Unknown action: {}",params.getString(ACTION));
+		String message = t("Unknown action: {}",action);
+		return train.properties(message);
 	}
 	
 	public Train add(Car car) {
@@ -192,12 +199,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public String brakeId(boolean reversed) {
-		TreeSet<String> carIds = new TreeSet<String>();
-		cars.stream()
-			.filter(car -> car instanceof Locomotive)
-			.map(car -> car.id()+":"+(car.orientation == reversed ? "r":"f"))
-			.forEach(carIds::add);		
-		String brakeId = md5sum(carIds);
+		TreeSet<String> locoIds = new TreeSet<String>();
+		locos()
+			.map(loco -> loco.id()+":"+(loco.orientation == reversed ? "r":"f"))
+			.forEach(locoIds::add);		
+		String brakeId = md5sum(locoIds);
 		LOG.debug("generated new {} brake id for {}: {}",reversed?"backward":"forward",this,brakeId);
 		return brakeId;
 	}
@@ -527,11 +533,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return setSpeed(speed+steps);
 	}
 	
+	public HashMap<String, Boolean> functions() {
+		Set<String> oldKeys = new HashSet<>(functions.keySet());
+		locos().flatMap(loco -> loco.functionNames().stream()).forEach(name -> {
+			if (!functions.containsKey(name)) functions.put(name, false);
+			oldKeys.remove(name);
+		});
+		oldKeys.forEach(name -> functions.remove(name));
+		return functions;
+	}
+
 	private boolean hasLoco() {
-		for (Car c:cars) {
-			if (c instanceof Locomotive) return true;
-		}
-		return false;
+		return locos().count() > 0;
 	}
 	
 	public boolean hasNextPreparedRoute() {
@@ -642,6 +655,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return this;
 	}
 	
+	private Stream<Locomotive> locos() {
+		return cars.stream().filter(c -> c instanceof Locomotive).map(c -> (Locomotive)c);
+	}
+
 	public static Object manager() {
 		Window win = new Window("train-manager", t("Train manager"));
 		new Tag("h4").content(t("known trains")).addTo(win);
@@ -742,7 +759,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		Tag directionLi = null;
 		if (isSet(direction)) directionLi = new Tag("li").content(t("Direction: heading {}",direction)+NBSP);
 		if (isNull(directionLi)) directionLi = new Tag("li");
-		button(t("reverse"), Map.of(ACTION,ACTION_REVERSE)).title(t("Turns the train, as if it went through a loop.")).addTo(directionLi).addTo(propList);
+		button(t("reverse train"), Map.of(ACTION,ACTION_REVERSE)).title(t("Turns the train, as if it went through a loop.")).addTo(directionLi).addTo(propList);
 
 		Tag dest = new Tag("li").content(t("Destination")+COL);
 		if (isSet(destination)) {
@@ -927,7 +944,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		LOG.debug("{}.setSpeed({})",this,newSpeed);
 		speed = Math.min(newSpeed,maxSpeed());
 		if (speed < 0) speed = 0;
-		cars.stream().filter(c -> c instanceof Locomotive).forEach(car -> ((Locomotive)car).setSpeed(speed));
+		locos().forEach(loco -> loco.setSpeed(speed));
 		plan.stream(t("Set {} to {} {}",this,speed,speedUnit));
 		return properties();
 	}
@@ -1048,6 +1065,22 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return list;
 	}
 	
+	private Object toggleFunction(Params params) {
+		String name = params.getString(FUNCTION);
+		String error = isNull(name) ? t("No function name passed to toggleFunction(…)") : null;
+		if (isNull(error)) {
+			boolean newVal = functions.get(name) != true;
+			functions.put(name, newVal);
+			List<Locomotive> locos = locos().collect(Collectors.toList());
+			for (int i = 0; i<locos.size(); i++) {
+				boolean first = i==0;
+				boolean last = i==locos.size()-1;
+				locos.get(i).setFunction(name,newVal,first,last);
+			}
+		}
+		return properties(error);
+	}
+
 	@Override
 	public String toString() {
 		return name();

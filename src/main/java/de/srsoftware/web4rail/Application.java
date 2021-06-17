@@ -12,7 +12,6 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.file.Files;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;

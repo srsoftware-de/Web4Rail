@@ -246,6 +246,25 @@ public class Decoder extends BaseClass implements Constants, Device {
 		return proto;
 	}
 	
+	public void queue() {
+		init();
+		plan.queue(new Command("SET {} GL "+address()+" "+(reverse ? 0 : 1)+" "+step+" "+protocol().steps+functions()) {
+
+			@Override
+			public void onFailure(Reply reply) {
+				super.onFailure(reply);
+				plan.stream(t("Failed to send command to {}: {}",this,reply.message()));
+			}			
+		});
+	}
+	
+	public void queue(double speed, boolean reverse) {
+		step = (int)(speed*proto.steps);
+		this.reverse = reverse;
+		queue();
+	}
+
+	
 	public static Select selector(boolean freeOnly) {
 		Select selector = new Select(REALM_DECODER);
 		List<Decoder> decoders = BaseClass.listElements(Decoder.class);
@@ -256,6 +275,12 @@ public class Decoder extends BaseClass implements Constants, Device {
 			selector.addOption(d.id(), d);
 		}
 		return selector;
+	}
+	
+	public void setFunction(Integer function, boolean enabled) {
+		if (enabled) {
+			if (enabledFunctions.add(function)) queue();
+		} else if (enabledFunctions.remove(function)) queue();
 	}
 	
 	public Decoder setLoco(Locomotive locomotive, boolean log) {
@@ -316,21 +341,8 @@ public class Decoder extends BaseClass implements Constants, Device {
 		return isSet(loco) ? loco.properties() : properties();
 	}
 
-	public void queue(double speed, boolean reverse) {
-		step = (int)(speed*proto.steps);
-		this.reverse = reverse;
-		queue();
-	}
-		
-	public void queue() {
-		init();
-		plan.queue(new Command("SET {} GL "+address()+" "+(reverse ? 0 : 1)+" "+step+" "+protocol().steps+functions()) {
 
-			@Override
-			public void onFailure(Reply reply) {
-				super.onFailure(reply);
-				plan.stream(t("Failed to send command to {}: {}",this,reply.message()));
-			}			
-		});
-	}
+		
+
+
 }

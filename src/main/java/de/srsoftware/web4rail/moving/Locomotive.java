@@ -3,6 +3,7 @@ package de.srsoftware.web4rail.moving;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -80,7 +81,8 @@ public class Locomotive extends Car implements Constants{
 				return Locomotive.manager();
 		}
 		
-		return t("Unknown action: {}",params.getString(ACTION));
+		String message = t("Unknown action: {}",params.getString(ACTION));
+		return (isNull(loco)) ? message : loco.properties(message);
 	}
 	
 	private void addDecoderButtons(Window props) {
@@ -185,9 +187,14 @@ public class Locomotive extends Car implements Constants{
 		}
 		
 		if (isSet(train)) {
-			params.put(ACTION, HEADLIGHT);
-			//headlight = new Button(t("Headlight"), params);
-			
+			for (Entry<String, Boolean> fEntry : train.functions().entrySet()) {
+				String fName = fEntry.getKey();
+				params.put(ACTION, ACTION_TOGGLE_FUNCTION);
+				params.put(FUNCTION, fName);
+				Button btn = new Button(fName,params);
+				if (fEntry.getValue() == true) btn.clazz("active"); // == true is required, as getValue may return null
+				btn.addTo(functions);
+			}
 		}
 
 		functions.addTo(fieldset);
@@ -255,6 +262,14 @@ public class Locomotive extends Car implements Constants{
 		StringBuilder sb = new StringBuilder(FUNCTIONS);
 		for (Object part : parts) sb.append("/"+part);
 		return sb.toString();
+	}
+	
+	public HashSet<String> functionNames() {
+		HashSet<String> names = new HashSet<>();
+		for (HashMap<Integer, Function> map : functions.values()) {
+			for (Function f : map.values()) names.add(f.name());
+		}
+		return names;
 	}
 	
 	private boolean isDirectional(int index) {
@@ -390,6 +405,25 @@ public class Locomotive extends Car implements Constants{
 		if (log) addLogEntry(t("Mounted decoder \"{}\".",decoder));
 	}
 	
+	public void setFunction(String name, boolean newVal, boolean first, boolean last) {
+		if (isNull(decoder)) return;
+		for (HashMap<Integer, Function> map : functions.values()) {
+			for (Entry<Integer, Function> entry : map.entrySet()) {
+				Function function = entry.getValue();
+				
+				
+				if (name.equals(function.name())) {
+					boolean setVal = newVal;
+					if (function.is(HEADLIGHT) && !first) setVal = false;
+					if (function.is(TAILLIGHT) && !last)  setVal = false;
+
+					decoder.setFunction(entry.getKey(),setVal);
+				}
+			}
+		}
+	}
+
+	
 	/**
 	 * Sets the speed of the locomotive to the given velocity in [plan.speedUnit]s
 	 * @param newSpeed
@@ -416,12 +450,13 @@ public class Locomotive extends Car implements Constants{
 		return properties();
 	}
 	
-	Object toggleFunction(Params params) {
+	private Window toggleFunction(Params params) {
 		Integer index = params.getInt(FUNCTION);
-		if (isNull(index)) return t("No function number provided!");
-		if (isNull(decoder)) return t("{} has no decoder!",this);
-		decoder.toggleFunction(index);
-		return t("Unknown function: {}",params);
+		Vector<String> errors = new Vector<String>();
+		if (isNull(index)) errors.add(t("No function number provided!"));
+		if (isNull(decoder)) errors.add(t("{} has no decoder!",this));
+		if (errors.isEmpty()) decoder.toggleFunction(index);
+		return properties(errors.toArray(new String[errors.size()]));
 	}
 	
 	public Object turn() {		
