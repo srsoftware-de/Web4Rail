@@ -164,6 +164,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (isSet(car)) {
 			cars.add(car);
 			car.train(this);
+			updateEnds();
 		}
 		return this;		
 	}

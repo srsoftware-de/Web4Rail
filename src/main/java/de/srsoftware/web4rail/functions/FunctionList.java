@@ -40,8 +40,8 @@ public class FunctionList extends HashSet<Function> implements Constants{
 
 	public FunctionList toggle(String name) {
 		boolean enabled = !enabledFunctions.remove(name);
-		if (enabled) enabledFunctions.add(name);
-		stream().filter(fun -> name.equals(fun.name())).forEach(fun -> fun.setState(enabled));
+		if (enabled) enabledFunctions.add(name);		
+		for (Function fun : with(name)) fun.setState(enabled);
 		return this;
 	}
 
