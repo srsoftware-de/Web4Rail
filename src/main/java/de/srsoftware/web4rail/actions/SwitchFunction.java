@@ -1,12 +1,16 @@
 package de.srsoftware.web4rail.actions;
 
 import java.util.List;
+import java.util.Vector;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Params;
+import de.srsoftware.web4rail.functions.CustomFunction;
+import de.srsoftware.web4rail.functions.Function;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Radio;
 import de.srsoftware.web4rail.tags.Select;
@@ -20,7 +24,8 @@ public class SwitchFunction extends Action {
 	private static final int ON = 1;
 	private static final int OFF = 0;
 	
-	private int function = 1,effect=-1;
+	private int effect=-1;
+	private String function = "["+t("Select function")+"]";
 	
 	public SwitchFunction(BaseClass parent) {
 		super(parent);
@@ -31,8 +36,7 @@ public class SwitchFunction extends Action {
 		if (isNull(context) || isNull(context.train())) return false;
 		switch (effect) {
 			case TOGGLE:
-//				context.train().toggleFunction(function);
-				// TODO
+				context.train().toggleFunction(function);
 				return true;
 			case ON:
 				context.train().setFunction(function, true);
@@ -56,18 +60,31 @@ public class SwitchFunction extends Action {
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		if (json.has(EFFECT)) effect = json.getInt(EFFECT);
-		if (json.has(FUNCTION)) function = json.getInt(FUNCTION);
+		try {
+			if (json.has(EFFECT)) effect = json.getInt(EFFECT);
+			if (json.has(FUNCTION)) function = json.getString(FUNCTION);
+		} catch(JSONException je) {
+			LOG.warn("Was not able to load function!",je);
+		}
 		return this;
 	}
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
 		
-		Select selector = new Select(FUNCTION);
-		for (int i=1; i<5;i++) {
-			Tag option = selector.addOption(i,t("F"+i));
-			if (function == i) option.attr("selected", "selected");
+		Select selector = Function.selector(function);
+		Vector<Tag> options = selector.children();
+		for (Tag option : options) { // remove unconfigured CustomFunction
+			if (CustomFunction.class.getSimpleName().equals(option.get("value"))) {
+				options.remove(option);
+				break;
+			}
+		}
+		List<CustomFunction> customFunctions = BaseClass.listElements(CustomFunction.class);
+		for (CustomFunction cf : customFunctions) { // add configured custom functions
+			String cfName = cf.name();
+			Tag option = selector.addOption(cfName);
+			if (function.equals(cfName)) option.attr("selected", "selected");
 		}
 		formInputs.add(t("Function"), selector);
 		
@@ -84,22 +101,19 @@ public class SwitchFunction extends Action {
 	public String toString() {
 		switch (effect) {
 			case TOGGLE:				
-				return t("toggle {}","F"+function);
+				return t("toggle {}",function);
 			case ON:
-				return t("enable {}","F"+function);
+				return t("enable {}",function);
 			case OFF:
-				return t("disable {}","F"+function);
+				return t("disable {}",function);
 		}
 		return null;
 	}
 	
 	@Override
 	protected Object update(Params params) {
-		String fn = params.getString(FUNCTION);
-		if (isSet(fn)) {
-			function = Integer.parseInt(fn);
-			if (function < 1 || function > 4) function = 1;
-		}
+		String fn = params.getString(Function.SELECTOR);
+		if (isSet(fn) && !fn.isEmpty()) function = t(fn);
 		String effect = params.getString(EFFECT);
 		if (isSet(effect)) switch (effect) {
 		case "1":

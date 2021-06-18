@@ -2,14 +2,16 @@ abort : abbrechen
 Aborting route allocation... : Routen-Reservierung wird abgebrochen...
 Accessory : Zubehör
 Action : Aktion
+Action fired : Aktion ausgeführt
+Action failed : Aktion fehlgeschlagen
 Actions : Aktionen
 Actions (On) : Aktionen (Ein)
 Actions (Off) : Aktionen (Aus)
 Actions and contacts : Aktionen und Kontakte
-Action type : Aktions-Typ
 Actions in case conditions are fulfilled : Aktionen, wenn Bedingungen erfüllt sind
 Actions in case conditions are <em>not</em> fulfilled : Aktionen, wenn Bedingungen <em>nicht</em> erfüllt sind
 Actions will only fire, if all conditions are fullfilled. : Aktionen werden nur ausgeführt, wenn alle Bedingungen erfüllt sind.
+Action type : Aktions-Typ
 ActivateRoute : Route aktivieren
 add : hinzufügen
 add command for {} : Kommando für {} hinzufügen
@@ -408,6 +410,7 @@ Task name must not be empty : Aufgaben-Name darf nicht leer sein
 Task type : Aufgabe
 Text to display on clients : Text, welcher auf den Clients angezeigt werden soll
 Text to show on display : Text, welcher in der Anzeige dargestellt werden soll
+test : testen
 Tile(s) : Kachel(n)
 Tile(s) moved. : Kachel(n) verschoben.
 Timeout : maximale Wartezeit5

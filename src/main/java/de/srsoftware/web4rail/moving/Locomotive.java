@@ -398,8 +398,8 @@ public class Locomotive extends Car implements Constants{
 	}
 	
 	private Object updateMapping(Params params) {
-		if (params.containsKey(Function.NEW)) {
-			String type = params.getString(Function.NEW);
+		if (params.containsKey(Function.SELECTOR)) {
+			String type = params.getString(Function.SELECTOR);
 			if (!type.isEmpty()) {
 				Function newFun = Function.create(type);
 				if (isSet(newFun)) functions.add(newFun.register());

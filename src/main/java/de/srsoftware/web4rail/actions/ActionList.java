@@ -19,6 +19,7 @@ import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Form;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Window;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class ActionList extends Action implements Iterable<Action>{
 	static final Logger LOG = LoggerFactory.getLogger(ActionList.class);
@@ -239,6 +240,8 @@ public class ActionList extends Action implements Iterable<Action>{
 				return action.properties();
 			case ACTION_SAVE:
 				return action.jsonImportExport(params);
+			case ACTION_START:
+				return start(action); 
 			case ACTION_UPDATE:
 				return action.update(params);
 		}
@@ -263,6 +266,18 @@ public class ActionList extends Action implements Iterable<Action>{
 	public void removeChild(BaseClass child) {
 		actions.remove(child);
 		super.removeChild(child);
+	}
+	
+	private static Window start(Action action) {
+		BaseClass ctx = action.parent();
+		while (isSet(ctx) && !(ctx instanceof Tile) && isSet(ctx.parent())) ctx = ctx.parent();
+		Context startContext = new Context(ctx);
+		if (ctx instanceof Tile) {
+			Tile tile = (Tile) ctx;
+			startContext.train(tile.lockingTrain());
+		}
+		String message = action.fire(startContext) ? t("Action fired") : t("Action failed");
+		return action.properties(message);
 	}
 	
 	@Override

@@ -533,7 +533,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public boolean functionEnabled(String name) {
-		return locos().flatMap(
+		return locos().flatMap(			
 			loco -> loco.functions().stream().filter(f -> f.enabled() && f.name().equals(name))
 			).findAny().isPresent();
 	}
@@ -1064,18 +1064,24 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return list;
 	}
 	
-	private Object toggleFunction(Params params) {
-		String name = params.getString(FUNCTION);
-		String error = isNull(name) ? t("No function name passed to toggleFunction(…)") : null;
-		boolean enable = !functionEnabled(name);
+	public String toggleFunction(String name) {
+		if (isNull(name)) return t("No function name passed to toggleFunction(…)");
+		return setFunction(name,!functionEnabled(name));
+	}
+	
+	public String setFunction(String name,boolean enable) {
+		if (isNull(name)) return t("No function name passed to toggleFunction(…)");
+		LOG.debug("Setting function \"{}\" to {}",name,enable);
 		locos().forEach(loco -> {
 			Function any = null;
-			for (Function f : loco.functions(name)) {
-				any = f.setState(enable);
-			}
+			for (Function f : loco.functions(name)) any = f.setState(enable);
 			if (isSet(any)) loco.decoder().queue();
 		});
-		return properties(error);
+		return null;
+	}
+	
+	private Object toggleFunction(Params params) {
+		return properties(toggleFunction(params.getString(FUNCTION)));
 	}
 
 	@Override

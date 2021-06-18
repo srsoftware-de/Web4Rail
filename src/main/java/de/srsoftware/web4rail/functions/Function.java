@@ -15,7 +15,7 @@ import de.srsoftware.web4rail.tags.Select;
 
 public abstract class Function extends BaseClass{
 	
-	public static final String NEW = "new_function";
+	public static final String SELECTOR = "selected_fun";
 	private static final String PACKAGE = Function.class.getPackageName();
 	private static final String INDEX = "index";
 	static final String FORWARD = "forward";
@@ -93,15 +93,21 @@ public abstract class Function extends BaseClass{
 		return t(type());
 	}
 	
-	public static Tag selector() {
-		Select selector = new Select(NEW);
-		selector.addOption("", t("Select function"));
+	public static Select selector() {
+		return selector(null);
+	}
+	
+	public static Select selector(String preselect) {
+		Select selector = new Select(SELECTOR);
+		selector.addOption("", "["+t("Select function")+"]");
 		
 		for (Class<? extends Function> fun : List.of(HeadLight.class,TailLight.class,InteriorLight.class,Coupler.class,CustomFunction.class)) {
 			String className = fun.getSimpleName();
-			selector.addOption(className,t(className));
+			String name = t(className);
+			Tag option = selector.addOption(className,name);
+			if (name.equals(t(preselect))) option.attr("selected", "selected");
 		}
-		
+		selector.children().sort((c1,c2) -> c1.children().toString().compareToIgnoreCase(c2.children().toString()));
 		return selector;
 	}
 
@@ -115,7 +121,7 @@ public abstract class Function extends BaseClass{
 		return name()+"("+decoderFunction+"="+enabled+")";
 	}
 	
-	private String type() {
+	protected String type() {
 		return getClass().getSimpleName();
 	}
 	
