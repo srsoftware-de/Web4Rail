@@ -24,7 +24,7 @@ public class CoupleTrain extends Action {
 	}
 
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		Train train = context.train();
 		if (isNull(train)) return false;		
 		Block block = train.currentBlock();

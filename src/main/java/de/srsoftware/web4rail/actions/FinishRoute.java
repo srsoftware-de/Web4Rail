@@ -11,7 +11,7 @@ public class FinishRoute extends Action {
 	}
 
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		Route route = context.route();
 		Train train = context.train();
 		if (isNull(train)) return false;

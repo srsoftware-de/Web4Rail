@@ -27,7 +27,7 @@ public class DetermineTrainInBlock extends Action {
 	private Block block = null;
 	
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		if (isNull(block)) return false;		
 		Train train = parked ? (block.trains().isEmpty() ? null : block.trains().firstElement()) : block.occupyingTrain();
 		context.train(train);

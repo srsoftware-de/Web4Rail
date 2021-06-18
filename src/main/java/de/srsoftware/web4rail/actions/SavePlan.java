@@ -11,7 +11,7 @@ public class SavePlan extends Action{
 	}
 
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		try {
 			plan.stream(plan.save());
 		} catch (IOException e) {

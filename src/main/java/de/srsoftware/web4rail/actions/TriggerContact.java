@@ -20,7 +20,7 @@ public class TriggerContact extends Action {
 	private Contact contact = null;
 	
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		if (isSet(contact)) return contact.trigger(200);
 		return false;
 	}

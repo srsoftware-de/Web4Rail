@@ -11,7 +11,7 @@ public class ShowText extends TextAction{
 	}
 
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		plan.stream(fill(text,context));
 		return true;
 	}

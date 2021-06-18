@@ -25,7 +25,7 @@ public class SetTurnout extends Action {
 	private Turnout.State state = State.STRAIGHT;
 
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		if (context.invalidated()) return false;
 		if (isNull(turnout)) return false;		
 		if (!turnout.state(state,false).succeeded()) return false;

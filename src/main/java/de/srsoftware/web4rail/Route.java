@@ -328,7 +328,7 @@ public class Route extends BaseClass {
 		ActionList actions = triggeredActions.get(contact.trigger());
 		LOG.debug("Contact has id {} / trigger {} and is assigned with {}",contact.id(),contact.trigger(),isNull(actions)?t("nothing"):actions);
 		if (isNull(actions)) return context;
-		actions.fire(context,"Route.Contact("+contact.addr()+")");
+		actions.fire(context);
 		Context previousContext = context;
 		if (isSet(context) && context.invalidated()) context = null; // route has been freed in between.
 		return previousContext;
@@ -689,7 +689,7 @@ public class Route extends BaseClass {
 		LOG.debug("{}.prepareAndLock()",this);
 		Train train = context.train();
 		ActionList setupActions = triggeredActions.get(ROUTE_SETUP);
-		if (isSet(setupActions) && !setupActions.fire(context.route(this),this+".prepare()")) {
+		if (isSet(setupActions) && !setupActions.fire(context.route(this))) {
 			LOG.debug("Was not able to prepare route for {}.",train);
 			return false;
 		}
@@ -894,8 +894,7 @@ public class Route extends BaseClass {
 		
 		if (isSet(startActions)) {
 			context.route(this);
-			String cause = this+".start("+train.name()+")";
-			if (!startActions.fire(context,cause)) {
+			if (!startActions.fire(context)) {
 				LOG.debug("Failed to execute {}",startActions);
 				return false; // start actions failed
 			}

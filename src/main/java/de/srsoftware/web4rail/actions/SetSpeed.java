@@ -26,7 +26,7 @@ public class SetSpeed extends Action{
 	}
 	
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		if (context.invalidated()) return false;
 		if (isNull(context.train())) return false;
 		context.train().setSpeed(speed);

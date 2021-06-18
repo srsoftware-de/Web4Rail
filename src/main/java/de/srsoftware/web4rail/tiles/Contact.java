@@ -82,7 +82,7 @@ public class Contact extends Tile{
 			if (isSet(timer)) timer.abort();
 			Train train = lockingTrain();
 			Context context = isSet(train) ? train.contact(this) : new Context(this);
-			actions.fire(context,"Contact("+addr+")");
+			actions.fire(context);
 			
 			for (EventListener listener : listeners) listener.fire();
 			

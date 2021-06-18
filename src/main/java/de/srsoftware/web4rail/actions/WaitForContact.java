@@ -31,7 +31,7 @@ public class WaitForContact extends ActionList {
 	private int timeout = 10000;
 	
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		LOG.debug("{}.fire(...) called, waiting for {}.",this,contact);
 		if (isNull(contact)) return false;
 		fired = false;
@@ -41,17 +41,17 @@ public class WaitForContact extends ActionList {
 				LOG.debug("{} triggered, firing {}",contact,actions);
 				fired = true;
 				contact.removeListener(this);
-				WaitForContact.super.fire(context,cause);
+				WaitForContact.super.fire(context);
 			}
 		};		
 		contact.addListener(listener);
-		new DelayedExecution(timeout,cause) {
+		new DelayedExecution(timeout) {
 			
 			@Override
 			public void execute() {
 				contact.removeListener(listener);
 				LOG.debug("{} timed out, firing {}",this,timeoutActions);
-				if (!fired) timeoutActions.fire(context,cause);
+				if (!fired) timeoutActions.fire(context);
 			}
 		};
 		return true;

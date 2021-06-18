@@ -24,7 +24,7 @@ public class SetDisplayText extends TextAction{
 	}
 	
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		plan.place(display.text(fill(text, context)));
 		return true;
 	}

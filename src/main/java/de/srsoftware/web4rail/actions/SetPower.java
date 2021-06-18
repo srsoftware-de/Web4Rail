@@ -26,7 +26,7 @@ public class SetPower extends Action{
 	}
 
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		ControlUnit cu = plan.controlUnit();
 		switch (pc) {
 		case ON:

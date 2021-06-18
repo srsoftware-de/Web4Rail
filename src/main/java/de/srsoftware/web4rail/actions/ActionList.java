@@ -80,10 +80,10 @@ public class ActionList extends Action implements Iterable<Action>{
 		return actions.remove(action);
 	}
 
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		for (Action action : actions) {
 			LOG.debug("firing \"{}\"",action);
-			if (!action.fire(context,cause)) {
+			if (!action.fire(context)) {
 				LOG.warn("{} failed",action);
 				return false;			
 			}

@@ -21,7 +21,7 @@ public class StartStopAuto extends Action {
 	}
 
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		if (isNull(context.train())) return false;
 		if (inverted) {
 			context.train().start(true);

@@ -26,7 +26,7 @@ public class DisableEnableBlock extends Action {
 	private boolean disable = true;
 	
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		if (isNull(block)) block = context.block();
 		if (isNull(block)) return false;
 		block.setEnabled(!disable);

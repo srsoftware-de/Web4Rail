@@ -28,7 +28,7 @@ public class SetRelayOrSwitch extends Action {
 	private boolean state = false;
 
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		if (isNull(relayOrSwitch)) return false;
 		if (relayOrSwitch instanceof Relay)	((Relay)relayOrSwitch).state(state);
 		if (relayOrSwitch instanceof Switch) ((Switch)relayOrSwitch).state(state);

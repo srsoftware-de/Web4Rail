@@ -30,16 +30,16 @@ public class DelayedAction extends ActionList {
 	}
 		
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		int delay = min_delay + (min_delay < max_delay ? random.nextInt(max_delay - min_delay) : 0);
 		
-		new DelayedExecution(delay,cause) {
+		new DelayedExecution(delay) {
 			
 			@Override	
 			public void execute() {
 				LOG.debug("{} ms passed by, firing actions:",delay);
 				if (context.invalidated()) return;
-				DelayedAction.super.fire(context,cause);
+				DelayedAction.super.fire(context);
 				plan.alter();
 			}
 		};

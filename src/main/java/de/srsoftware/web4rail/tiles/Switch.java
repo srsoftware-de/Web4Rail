@@ -170,8 +170,8 @@ public class Switch extends Tile{
 			public void run() {
 				Context context = new Context(Switch.this);
 				if (state) {
-					actionsOn.fire(context,Switch.this);
-				} else actionsOff.fire(context,Switch.this);
+					actionsOn.fire(context);
+				} else actionsOff.fire(context);
 			}
 		}.start();
 		stream();

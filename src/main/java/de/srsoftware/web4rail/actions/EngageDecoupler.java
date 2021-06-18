@@ -24,7 +24,7 @@ public class EngageDecoupler extends Action {
 	private Decoupler decoupler = null;
 
 	@Override
-	public boolean fire(Context context, Object cause) {
+	public boolean fire(Context context) {
 		if (isNull(decoupler)) return false;
 		decoupler.engage();
 		return true;

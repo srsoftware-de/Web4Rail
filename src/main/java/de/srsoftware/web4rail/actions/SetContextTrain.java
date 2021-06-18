@@ -20,7 +20,7 @@ public class SetContextTrain extends Action {
 	}
 	
 	@Override
-	public boolean fire(Context context,Object cause) {
+	public boolean fire(Context context) {
 		context.train(train);		
 		return true;
 	}
