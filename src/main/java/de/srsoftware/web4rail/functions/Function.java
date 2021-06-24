@@ -26,16 +26,22 @@ public abstract class Function extends BaseClass{
 
 	public static Object action(Params params) {
 		String action = params.getString(ACTION);
-		Function function = BaseClass.get(Id.from(params));
+		Id funId = Id.from(params);
+		Function function = BaseClass.get(funId);
 		BaseClass parent = isSet(function) ? function.parent() : null;
+		String message = null;
 		switch (action) {
 			case ACTION_DROP:
 				if (isSet(function)) {
 					function.remove();
 					return parent.properties();
 				}
+				message = t("Unknown function: {}",funId);
+				break;
+			default:
+				message = t("Unknown action: {}",params.get(Constants.ACTION));
 		}
-		String message = t("Unknown action: {}",params.get(Constants.ACTION));
+		
 		return isSet(parent) ? parent.properties(message) : message;
 	}
 
