@@ -49,7 +49,7 @@ public abstract class Action extends BaseClass {
 			CoupleTrain.class,
 			DelayedAction.class,
 			DetermineTrainInBlock.class,
-			DisableEnableBlock.class,
+			DisableEnableTile.class,
 			EngageDecoupler.class,
 			FinishRoute.class,
 			Loop.class,

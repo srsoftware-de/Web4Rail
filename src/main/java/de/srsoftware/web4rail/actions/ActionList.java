@@ -162,6 +162,8 @@ public class ActionList extends Action implements Iterable<Action>{
 		switch (type) {
 			case "AddDestination":
 				return AddRemoveDestination.class.getSimpleName();
+			case "DisableEnableBlock":
+				return DisableEnableTile.class.getSimpleName();
 			default:
 				return type;
 		}		

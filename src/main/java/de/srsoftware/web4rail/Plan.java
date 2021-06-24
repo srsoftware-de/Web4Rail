@@ -910,20 +910,22 @@ public class Plan extends BaseClass{
 
 	public void sensor(int addr, boolean active) {
 		Contact contact = Contact.get(addr);
-		if (active && isSet(learningContact)) {
-			if (isSet(contact)) {
-				contact.addr(0);
-				LOG.debug("unsibscribed {} from {}",contact,addr);
-			}
-			
-			stream(learningContact.addr(addr).properties().toString());
-			LOG.debug("learned: {} = {}",addr,learningContact);			
-			learningContact = null;
-			return;
-		}
+		if (active && isSet(learningContact)) learnContact(addr,contact);
 		if (isSet(contact)) contact.activate(active);
 	}
 	
+	private void learnContact(int addr, Contact contact) {
+		if (isSet(contact)) {
+			contact.addr(0);
+			LOG.debug("unsibscribed {} from {}",contact,addr);
+		}
+		
+		stream(learningContact.addr(addr).properties().toString());
+		LOG.debug("learned: {} = {}",addr,learningContact);			
+		learningContact = null;
+		return;
+	}
+
 	public void setAppConfig(Configuration config) {
 		appConfig = config;
 	}

@@ -142,7 +142,7 @@ disable : deaktivieren
 disabled : deaktiviert
 disable {} : {} deaktivieren
 disabled routes : deaktivierte Fahrstraßen
-DisableEnableBlock : Block (de)aktivieren
+DisableEnableTile : Kachel (de)aktivieren
 dismount : ausbauen
 Display "{}" on {}. : „{}“ auf {} anzeigen.
 Do you know, what you are doing? : Weißt du, was du da tust?
