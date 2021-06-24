@@ -107,7 +107,7 @@ public class Contact extends Tile{
 
 	@Override
 	public Object click(boolean shift) throws IOException {
-		if (!shift) trigger(200);
+		if (!(isDisabled() || shift)) trigger(10);
 		return super.click(shift);
 	}
 	
@@ -244,7 +244,6 @@ public class Contact extends Tile{
 	}
 	
 	public boolean trigger(int duration) {
-		activate(true);
 		new DelayedExecution(duration,"Contact("+Contact.this.addr+")") {
 			
 			@Override
@@ -252,6 +251,7 @@ public class Contact extends Tile{
 				activate(false);
 			}
 		};
+		activate(true);
 		return true;
 	}
 	@Override
