@@ -45,7 +45,7 @@ public class WaitForContact extends ActionList {
 			}
 		};		
 		contact.addListener(listener);
-		new DelayedExecution(timeout) {
+		new DelayedExecution(timeout,this) {
 			
 			@Override
 			public void execute() {

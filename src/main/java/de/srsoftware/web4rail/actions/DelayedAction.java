@@ -33,7 +33,7 @@ public class DelayedAction extends ActionList {
 	public boolean fire(Context context) {
 		int delay = min_delay + (min_delay < max_delay ? random.nextInt(max_delay - min_delay) : 0);
 		
-		new DelayedExecution(delay) {
+		new DelayedExecution(delay,this) {
 			
 			@Override	
 			public void execute() {
