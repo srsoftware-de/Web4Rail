@@ -985,6 +985,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
 		
+x		if (isSet(route)) {
+			LOG.debug("Train already on route {}",route);
+			return null;
+		}
+		
 		if (isSet(nextPreparedRoute)) {
 			LOG.debug("starting nextPreparedRoute: {}",nextPreparedRoute);
 			if (nextPreparedRoute.startNow()) {
