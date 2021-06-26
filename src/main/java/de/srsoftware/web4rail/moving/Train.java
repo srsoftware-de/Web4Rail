@@ -360,7 +360,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Block destination(){
-		LOG.debug("{}.destination()",this);
+		//LOG.debug("{}.destination()",this);
 		if (isNull(destination)) {
 			String destTag = destinationTag();
 			LOG.debug("→ processing \"{}\"...",destTag);
@@ -985,7 +985,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			if (isSet(currentBlock)) plan.place(currentBlock);
 		}
 		
-x		if (isSet(route)) {
+		if (isSet(route)) {
 			LOG.debug("Train already on route {}",route);
 			return null;
 		}
@@ -1141,6 +1141,7 @@ x		if (isSet(route)) {
 	
 	public Context updateTrace(Context context) {
 		LOG.debug("updateTrace({})",context);
+		if (isNull(context)) return null;
 		Tile from = context.tile();
 		if (isNull(from)) from = context.contact();
 		if (isNull(from)) {

@@ -1,12 +1,11 @@
 package de.srsoftware.web4rail.threads;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
+import java.util.PriorityQueue;
+import java.util.Vector;
 
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
@@ -19,21 +18,65 @@ import de.srsoftware.web4rail.tiles.Tile;
 
 public class RoutePrepper extends BaseClass implements Runnable{
 	
-	private static class Candidate{
+	
 
-		private int score;
-		private Route route;
+	public static class Trail extends Vector<Route> implements Comparable<Trail> {
 
-		public Candidate(Route r, int s) {
-			route = r;
-			score = s;
+		private static final long serialVersionUID = -620911121007236751L;
+		private int score = 0;
+
+		@Override
+		public int compareTo(Trail other) {
+			return other.score() - this.score();
 		}
 		
-		@Override
-		public String toString() {
-			return route.toString().replace(")", ", score: "+score+")");
+		public Trail add(Route route, int score) {
+			add(route);
+			this.score += score;		
+			return this;
 		}
+		
+		public Collection<Trail> derive(Collection<Trail> ongoing) {
+			Vector<Trail> derived = new Vector<>();
+			for (Trail trail : ongoing) {
+				derived.add(trail.prepend(this));
+			}
+			return derived;
+		}
+		
+		public boolean endsAt(Block block) {
+			return lastElement().endBlock() == block;
+		}
+		
+		private Trail prepend(Trail trail) {
+			addAll(0, trail);
+			score += trail.score;
+			return this;
+		}
+		
+		public int score() {
+			return score;
+		}
+
+		@Override
+		public synchronized String toString() {
+			StringBuilder sb = new StringBuilder("\n"+getClass().getSimpleName());
+			sb.append("(Score ");
+			sb.append(score);
+			sb.append(": ");
+			for (Route r : this) {
+				sb.append(r.startBlock().name);
+				sb.append(" → ");
+			}
+			if (!isEmpty())sb.append(lastElement().endBlock().name);
+			return sb+")";
+		}
+
+
+
+
 	}
+
 	
 	private Context context;
 	private Route route;
@@ -52,7 +95,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		context = c;
 	}
 		
-	private static TreeMap<Integer,LinkedList<Route>> availableRoutes(Context c){
+	private static PriorityQueue<Trail> availableRoutes(Context c){
 		boolean error = false;
 		
 		Block startBlock = c.block();
@@ -61,14 +104,14 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		Train train = c.train();
 		if (isNull(train) && (error=true)) LOG.warn("RoutePrepper.availableRoutes(…) called without a startBlock!");
 		
-		if (error) return new TreeMap<>();
+		if (error) return new PriorityQueue<>();
 		
 		Block destination = train.destination();
 		
 		Direction startDirection = c.direction();
 		LOG.debug("RoutePrepper.availableRoutes({},{},{}), dest = {}",startBlock,startDirection,train,destination);
 		
-		TreeMap<Integer, LinkedList<Route>> candidates = routesFrom(c); // map: score → [route]
+		PriorityQueue<Trail> candidates = routesFrom(c); // map: route → score
 		
 		if (isNull(destination)) {
 			LOG.debug("{} has no destination, returning {}",train,candidates);
@@ -77,114 +120,57 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		
 		LOG.debug("{} is heading for {}, starting breadth-first search…",train,destination);
 		
-		HashMap<Route,Candidate> predecessors = new HashMap<>() {
-			private static final long serialVersionUID = -42682947866294566L;
-
-			public String toString() {
-				return entrySet().stream()
-					.sorted((e1,e2) -> e1.getValue().toString().compareTo(e2.getValue().toString()))
-					.map(entry -> entry.getValue()+" → "+entry.getKey())
-					.collect(Collectors.joining("\n"));
-			};
-		};
-		candidates.entrySet().stream().flatMap(entry -> entry.getValue().stream()).forEach(route -> predecessors.put(route, null));
-		TreeMap<Integer,LinkedList<Route>> routesToDest = new TreeMap<>();
-		
-		int level = 0;
-		int level2 = 0;
-		
-		while (!candidates.isEmpty()) {
-			LOG.debug("Candidates for level {}:",level);
-			candidates.entrySet().stream().flatMap(entry -> entry.getValue().stream()).forEach(route -> LOG.debug(" - {}",route));
-
-			TreeMap<Integer, LinkedList<Route>> queue = new TreeMap<>();
+		for (int depth=1; depth<99; depth++) {
+			if (candidates.stream().filter(trail -> trail.endsAt(destination)).count() > 0) return candidates; // return connectingTrails + other routes, in case all connecting trails are occupied
 			
-			while (!candidates.isEmpty()) {
-				Candidate candidate = pop(candidates);
-				LOG.debug(" - examining {}…",candidate);
-				
-				Block endBlock = candidate.route.endBlock();
-				Direction endDir = candidate.route.endDirection;
-				
-				if (endBlock == destination) {
-					LOG.debug(" - {} reaches destination!",candidate);
-					int score = candidate.score;
-					
-					// The route we found leads to the destination block.
-					// However it might be the last route in a long path.
-					// Thus, we need to get the first route in this path:					
-					while (predecessors.containsKey(candidate.route)) { 
-						Candidate predecessor = predecessors.get(candidate.route);
-						if (isNull(predecessor)) break;
-						LOG.debug("   - {} is predecessed by {}",candidate,predecessor);
-						candidate = predecessor;
-						score += candidate.score;
-					}
-					
-					LOG.debug(" → path starts with {} and has total score of {}",candidate.route,score);
-					LinkedList<Route> routesForScore = routesToDest.get(score);
-					if (isNull(routesForScore)) routesToDest.put(score, routesForScore = new LinkedList<Route>());
-					routesForScore.add(candidate.route);
-					continue;
-				}
-				
-				LOG.debug("   - {} not reaching {}, adding ongoing routes to queue:",candidate,destination);
-				TreeMap<Integer, LinkedList<Route>> successors = routesFrom(c.clone().block(endBlock).direction(endDir));
-				while (!successors.isEmpty()) {
-					int score = successors.firstKey();
-					LinkedList<Route> best = successors.remove(score);
-					score -= 25; // Nachfolgeroute
-					for (Route route : best) {
-						LOG.debug("     - queueing {} with score {}",route,score);
-						if (predecessors.containsKey(route)) {
-							LOG.debug("this route already has a predecessor: {}",predecessors.get(route));
-							continue; // Route wurde bereits besucht
-						}
-						predecessors.put(route, candidate);
-						
-						LinkedList<Route> list = queue.get(score);
-						if (isNull(list)) queue.put(score, list = new LinkedList<>());
-						list.add(route);
-					}
-				}
+			PriorityQueue<Trail> nextLevelCandidates = new PriorityQueue<Trail>();
+			for (Trail trail : candidates) {
+				Route lastRoute = trail.lastElement();
+				c.block(lastRoute.endBlock()).direction(lastRoute.endDirection);
+				PriorityQueue<Trail> ongoing = routesFrom(c);
+				if (!ongoing.isEmpty()) nextLevelCandidates.addAll(trail.derive(ongoing));
 			}
-			
-			if (!routesToDest.isEmpty()) {
-				if (level2++ > 5) return routesToDest;
-			} else LOG.debug("No routes to {} found with distance {}!",destination,level);
-			level ++;
-			candidates = queue;			
-		}
-		LOG.debug("No more candidates for routes towards {}!",destination);
+			candidates = nextLevelCandidates;
 		
-		return routesToDest;
+		}
+		return new PriorityQueue<>();
 		
 	}
 	
 	private static Route chooseRoute(Context context) {
 		LOG.debug("{}.chooseRoute({})", RoutePrepper.class.getSimpleName(), context);
-		TreeMap<Integer, LinkedList<Route>> availableRoutes = availableRoutes(context);
+		PriorityQueue<Trail> availableRoutes = availableRoutes(context);
 		LOG.debug("available routes: {}",availableRoutes);
 		while (!availableRoutes.isEmpty()) {
 			if (context.invalidated()) break;
 			LOG.debug("availableRoutes: {}", availableRoutes);
-			Entry<Integer, LinkedList<Route>> entry = availableRoutes.lastEntry();
-			List<Route> preferredRoutes = entry.getValue();
-			LOG.debug("preferredRoutes: {}", preferredRoutes);
-			Route selectedRoute = preferredRoutes.get(random.nextInt(preferredRoutes.size()));
 			
-			HashSet<Tile> stuckTrace = context.train().stuckTrace(); // if train has been stopped in between two blocks lastly: 
-                                                                     // only allow starting routes that do not conflict with current train position
-			if (isSet(stuckTrace) && !selectedRoute.path().containsAll(stuckTrace)) {
-				LOG.debug("Stuck train occupies tiles ({}) outside of {} – not allowed.", stuckTrace, selectedRoute);
-			} else if (selectedRoute.isFreeFor(context)) {
-				LOG.debug("Chose \"{}\" with priority {}.", selectedRoute, entry.getKey());
-				return selectedRoute;
+			Vector<Route> preferredRoutes = new Vector<>();
+			Integer score = null;
+			while (!availableRoutes.isEmpty()) {
+				Trail trail = availableRoutes.peek();
+				if (score == null) score = trail.score();
+				if (score != trail.score()) break;
+				availableRoutes.remove(trail);
+				preferredRoutes.add(trail.firstElement());
 			}
 
-			LOG.debug("Selected route \"{}\" is not free for {}", selectedRoute, context);
-			preferredRoutes.remove(selectedRoute);
-			if (preferredRoutes.isEmpty()) availableRoutes.remove(availableRoutes.lastKey());
+			LOG.debug("preferredRoutes: {}", preferredRoutes);
+
+			while (!preferredRoutes.isEmpty()) {
+				Route selectedRoute = preferredRoutes.remove(random.nextInt(preferredRoutes.size()));
+				HashSet<Tile> stuckTrace = context.train().stuckTrace(); // if train has been stopped in between two blocks lastly: 
+	                                                                     // only allow starting routes that do not conflict with current train position
+				if (isSet(stuckTrace) && !selectedRoute.path().containsAll(stuckTrace)) {
+					LOG.debug("Stuck train occupies tiles ({}) outside of {} – not allowed.", stuckTrace, selectedRoute);
+					continue;
+				} else if (!selectedRoute.isFreeFor(context)) {
+					LOG.debug("Selected route \"{}\" is not free for {}", selectedRoute, context);
+					continue;
+				}
+				LOG.debug("Chose \"{}\" with priority {}.", selectedRoute, score);
+				return selectedRoute;				
+			}
 		}
 		return null;
 	}
@@ -217,21 +203,6 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		preparedListener = l;
 	}
 	
-	private static Candidate pop(TreeMap<Integer, LinkedList<Route>> candidates) {
-		while (!candidates.isEmpty()) {
-			int score = candidates.firstKey();
-			LinkedList<Route> list = candidates.get(score);
-			if (isNull(list) || list.isEmpty()) {
-				candidates.remove(score);
-			} else {
-				Candidate candidate = new Candidate(list.removeFirst(),score);
-				if (list.isEmpty()) candidates.remove(score);
-				return candidate;
-			}
-		}
-		return null;
-	}
-	
 	public boolean prepareRoute() {
 		if (isNull(context) || context.invalidated()) return fail();
 		route = chooseRoute(context);		
@@ -250,28 +221,28 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		return route;
 	}
 
-	private static TreeMap<Integer,LinkedList<Route>> routesFrom(Context c){
+	private static PriorityQueue<Trail> routesFrom(Context context){
 		boolean error = false;
 		
-		Block startBlock = c.block();
+		Block startBlock = context.block();
 		if (isNull(startBlock) && (error=true)) LOG.warn("RoutePrepper.routesFrom(…) called without a startBlock!");
 		
-		Train train = c.train();
+		Train train = context.train();
 		if (isNull(train) && (error=true)) LOG.warn("RoutePrepper.routesFrom(…) called without a startBlock!");
 		
 		if (error) return null;
 		
 		Block destination = train.destination();
 		
-		Direction startDirection = c.direction();
+		Direction startDirection = context.direction();
 		
 		LOG.debug("     RoutePrepper.routesFrom({},{},{}), dest = {}:",startBlock,startDirection,train,destination);
 			
-		TreeMap<Integer, LinkedList<Route>> routes = new TreeMap<>();
+		PriorityQueue<Trail> trails = new PriorityQueue<>();
 		
 		for (Route route : startBlock.leavingRoutes()) {
-			int score = 0;
-
+			int score = (route.endBlock() == destination) ? 100_000 : 0;
+			
 			if (isSet(startDirection) && route.startDirection != startDirection) { // Route startet entgegen der aktuellen Fahrtrichtung des Zuges
 				if (!train.pushPull) continue; // Zug kann nicht wenden
 				if (!startBlock.turnAllowed) continue; // Wenden im Block nicht gestattet
@@ -286,16 +257,10 @@ public class RoutePrepper extends BaseClass implements Runnable{
 				LOG.debug("           …overridden by destination of train!", route, train);
 			}
 			
-			if (route.endBlock() == destination) score = 100_000;
-			
-			
-			LinkedList<Route> routesForScore = routes.get(score);
-			if (isNull(routesForScore)) routes.put(score, routesForScore = new LinkedList<Route>());
-			LOG.debug("       → candidate!");
-			routesForScore.add(route);
+			trails.add(new Trail().add(route,score));
 		}
 		
-		return routes;
+		return trails;
 	}
 	
 	@Override
