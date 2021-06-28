@@ -113,7 +113,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		
 		PriorityQueue<Trail> candidates = routesFrom(c); // map: route → score
 		
-		if (isNull(destination)) {
+		if (isNull(destination) || train.isShunting()) {
 			LOG.debug("{} has no destination, returning {}",train,candidates);
 			return candidates;
 		}
