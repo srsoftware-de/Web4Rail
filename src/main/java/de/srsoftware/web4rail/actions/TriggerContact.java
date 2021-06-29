@@ -6,6 +6,7 @@ import java.util.Map;
 import org.json.JSONObject;
 
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
@@ -42,7 +43,14 @@ public class TriggerContact extends Action {
 	public Action load(JSONObject json) {
 		super.load(json);
 		Id contactId = Id.from(json,CONTACT);
-		if (isSet(contactId)) contact = Contact.get(contactId);
+		if (isSet(contactId)) new LoadCallback() {
+			
+			@Override
+			public void afterLoad() {
+				contact = Contact.get(contactId);
+			}
+		};
+ 
 		return this;
 	}
 	

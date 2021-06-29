@@ -1171,7 +1171,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 			} else { // behind train
 				if (Route.freeBehindTrain) {
 					LOG.debug("{} is behind train and will be freed in the next step",tile);
-					trace.add(tile); // old trace will be cleared afterwards
+					if (tile != route.endBlock()) { // if train is shorter than contact after endblock, the endblock would be cleared…
+						trace.add(tile); // old trace will be cleared afterwards
+					}
 				} else {
 					LOG.debug("{} is behind train and will be reset to \"locked\" state",tile);
 					tile.lockFor(context,true);
