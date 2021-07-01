@@ -332,6 +332,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		
 		parkingTrain.remove();
+		updateEnds();
 		if (isSet(currentBlock)) currentBlock.setTrain(this);
 	}
 	
