@@ -113,7 +113,7 @@ stop:
 
 
 update_apt:
-	sudo apt-get update
+	sudo apt update -y
 
 update: update_apt update_w4r
 
