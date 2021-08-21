@@ -79,6 +79,7 @@ import de.srsoftware.web4rail.tiles.Switch;
 import de.srsoftware.web4rail.tiles.TextDisplay;
 import de.srsoftware.web4rail.tiles.Tile;
 import de.srsoftware.web4rail.tiles.TileWithShadow;
+import de.srsoftware.web4rail.tiles.Turnout;
 import de.srsoftware.web4rail.tiles.Turnout.State;
 import de.srsoftware.web4rail.tiles.Turnout3E;
 import de.srsoftware.web4rail.tiles.TurnoutLE;
@@ -541,6 +542,7 @@ public class Plan extends BaseClass{
 				.put(MAINTENANCE_INTERVAL, Car.defaulMaintenanceDist)
 				.put(LENGTH_UNIT, lengthUnit)
 				.put(SPEED_UNIT, speedUnit)
+				.put(Turnout.DELAY, Turnout.delay)
 				.put(TILE, jTiles);
 	}
 	
@@ -570,6 +572,7 @@ public class Plan extends BaseClass{
 		if (json.has(SPEED_STEP)) Train.defaultSpeedStep = json.getInt(SPEED_STEP);
 		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
 		if (json.has(MAINTENANCE_INTERVAL)) Car.defaulMaintenanceDist = json.getLong(MAINTENANCE_INTERVAL);
+		if (json.has(Turnout.DELAY)) Turnout.delay = json.getInt(Turnout.DELAY);
 		
 		try {
 			Car.loadAll(name+".cars",plan);
@@ -756,6 +759,7 @@ public class Plan extends BaseClass{
 		formInputs.add(t("Default maintenance intervall"),new Input(MAINTENANCE_INTERVAL, Car.defaulMaintenanceDist).numeric().addTo(new Tag("span")).content(NBSP+Plan.lengthUnit));
 		formInputs.add(t("Free tiles behind train"),new Checkbox(FREE_BEHIND_TRAIN, t("If checked, tiles behind the train are freed according to the length of the train and the tiles. If it is unchecked, tiles will not get free before route is finished."), Route.freeBehindTrain));
 		formInputs.add(t("Allow editing JSON of action lists"),new Checkbox(ALLOW_JSON_EDIT, t("Do you know, what you are doing?"), allowJsonEdit ));
+		formInputs.add(t("Pause between switching turnouts of route"),new Input(Turnout.DELAY, Turnout.delay).numeric());
 		
 		postForm.add(relayProperties());
 		postForm.add(routeProperties());
@@ -1071,6 +1075,7 @@ public class Plan extends BaseClass{
 		if (params.containsKey(SPEED_UNIT)) speedUnit = params.getString(SPEED_UNIT);
 		if (params.containsKey(SPEED_STEP)) Train.defaultSpeedStep = params.getInt(SPEED_STEP);
 		if (params.containsKey(FINAL_SPEED)) Train.defaultEndSpeed = params.getInt(FINAL_SPEED);
+		if (params.containsKey(Turnout.DELAY)) Turnout.delay = params.getInt(Turnout.DELAY);
 		if (params.containsKey(MAINTENANCE_INTERVAL)) try {
 			Car.defaulMaintenanceDist = params.getLong(MAINTENANCE_INTERVAL);
 		} catch(NumberFormatException e) {};

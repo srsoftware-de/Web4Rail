@@ -30,7 +30,7 @@ public class SetTurnout extends Action {
 		if (isNull(turnout)) return false;		
 		if (!turnout.state(state,false).succeeded()) return false;
 		if (turnout.address() == 0) return true;
-		sleep(1000);
+		sleep(Turnout.delay);
 		return true;
 	}
 	

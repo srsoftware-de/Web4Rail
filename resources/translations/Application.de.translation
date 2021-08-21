@@ -284,6 +284,7 @@ Origin and destination : Start und Ziel
 Origin\: {} to {} : Start: {} nach {}
 parked train : abgestellter Zug
 parked trains : abgestellte Züge
+Pause between switching turnouts of route : Pause zwischen Weichen einer Route
 Plan saved as "{}". : Plan als „{}“ gespeichert.
 Plan updated. : Plan aktualisiert.
 Port for state {} : Anschluss für Status {}

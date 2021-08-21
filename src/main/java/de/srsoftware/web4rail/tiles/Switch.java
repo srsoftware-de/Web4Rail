@@ -25,7 +25,7 @@ public class Switch extends Tile{
 	private ActionList actionsOn,actionsOff;
 	private static final String ON = "ON";
 	private static final String OFF = "OFF";
-	
+
 	public Switch() {
 		actionsOn = new ActionList(this);
 		actionsOff = new ActionList(this);

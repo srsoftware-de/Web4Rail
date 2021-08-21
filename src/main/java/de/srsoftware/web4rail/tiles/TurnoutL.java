@@ -25,9 +25,9 @@ public abstract class TurnoutL extends Turnout {
 	protected String commandFor(State newState) {
 		switch (newState) {
 		case LEFT:			
-			return "SET {} GA "+address+" "+portB+" 1 "+delay;
+			return "SET {} GA "+address+" "+portB+" 1 "+duration;
 		case STRAIGHT:
-			return "SET {} GA "+address+" "+portA+" 1 "+delay;
+			return "SET {} GA "+address+" "+portA+" 1 "+duration;
 		default:
 			throw new IllegalStateException();
 		}

@@ -31,10 +31,11 @@ public abstract class Turnout extends Tile implements Device{
 	private   static final String PORT_A   = "port_a";
 	private   static final String PORT_B   = "port_b";	
 	public    static final String STATE    = "state";
+	public    static final String DELAY    = "turnout_delay";
 	protected static final String STRAIGHT = "straight";
-
+	public    static       int    delay    = 1000;
 	protected int      address     = 0;
-	protected int      delay       = 400;
+	protected int      duration    = 400;
 	protected boolean  error       = false;
 	protected boolean  initialized = false;
 	private   Protocol protocol    = Protocol.DCC128;
