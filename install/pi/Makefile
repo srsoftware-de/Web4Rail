@@ -115,4 +115,8 @@ stop:
 update_apt:
 	sudo apt-get update
 
+update: update_apt update_w4r
+
+update_w4r:
+	cd Web4Rail && git pull && mvn clean
 
