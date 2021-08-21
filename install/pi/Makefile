@@ -118,5 +118,5 @@ update_apt:
 update: update_apt update_w4r
 
 update_w4r:
-	cd Web4Rail && git pull && mvn clean
+	cd Web4Rail && git pull && mvn clean install
 
