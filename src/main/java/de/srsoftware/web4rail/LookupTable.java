@@ -3,6 +3,7 @@ package de.srsoftware.web4rail;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -31,7 +32,7 @@ public class LookupTable extends BaseClass{
 	private String colType;
 	private String rowType;
 	private String name;
-	private int defaultValue = 0;
+	private Integer defaultValue = 0;
 	
 	private HashSet<Object> cols = new HashSet<>();
 	private HashSet<Object> rows = new HashSet<>();
@@ -87,6 +88,7 @@ public class LookupTable extends BaseClass{
 		json.put(DEFAULT_VALUE, defaultValue);
 		json.put(NAME, name);
 		json.put(ROWS, rowType);
+		json.put("values", values);
 		return json;
 	}
 	
@@ -124,11 +126,29 @@ public class LookupTable extends BaseClass{
 		return selector;
 	}
 	
+	private void setValue(String key, Object value) {
+		try {
+			Integer intVal = Integer.parseInt(value.toString());
+			if (intVal == defaultValue) return;
+			key = key.substring(1,key.length()-1);
+			LOG.debug("Setting value of {} to {}",key,intVal);
+			String[] parts = key.split("\\]\\[",2);
+			String rowKey = parts[0];
+			String colKey = parts[1];
+			LOG.debug("Setting value of {}/{} to {}",rowKey,colKey,intVal);
+			HashMap<Object, Integer> entries = values.get(rowKey);
+			if (isNull(entries)) values.put(rowKey, entries = new HashMap<>());
+			entries.put(colKey, intVal);
+		} catch (NumberFormatException nfe) {
+			LOG.warn("invalid value: {}",value,nfe);
+		}
+		
+	}
+	
 	private Fieldset table() {
 		
 		Fieldset fieldset = new Fieldset(t("Values"));
 		
-		rowAdder().addTo(fieldset);
 		
 		Table table = new Table();
 		Vector<Object> head = new Vector<Object>();
@@ -138,24 +158,32 @@ public class LookupTable extends BaseClass{
 		for (Object row : rows) {
 			Vector<Object> entries = new Vector<>();
 			entries.add(row);
+			String rowId = (row instanceof BaseClass ? ((BaseClass)row).id() : row).toString();
 			
-			HashMap<Object, Integer> items = values.get(row);
+			HashMap<Object, Integer> items = values.get(rowId);
 			for (Object col : cols) {
-				Integer item = isSet(items) ? items.get(col) : defaultValue;
-				entries.add(item);
+				
+				String colId = (col instanceof BaseClass ? ((BaseClass)col).id() : col).toString();
+				Integer value = isSet(items) ? items.get(colId) : defaultValue;
+				if (isNull(value)) value = defaultValue;
+				Input input = new Input("value["+rowId+"]["+colId+"]", value).numeric();
+				
+				entries.add(input);
 			}
 			table.addRow(entries.toArray());
 		}
 		
-		return table.addTo(fieldset);
-	}	
-
-	private Tag rowAdder() {
-		Fieldset fieldset = new Fieldset("Add column/row");
-		Form form = new Form("add_row_form");
+		Form form = table.addTo(rowAdder(new Form(id()+"_values")));
 		new Input(REALM,REALM_LOOKUP).hideIn(form);
 		new Input(ID,id()).hideIn(form);
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
+
+		new Button(t("Apply"), form).addTo(form);
+		
+		return form.addTo(fieldset);
+	}	
+
+	private Form rowAdder(Form form) {
 		Tag select = null;
 		switch (colType) {
 			case REALM_CAR:
@@ -177,7 +205,7 @@ public class LookupTable extends BaseClass{
 				break;
 		}
 		if (isSet(select)) select.addTo(new Label(t("add row ({})",t(rowType))+':'+NBSP)).addTo(form);
-		return new Button(t("add"), form).addTo(form).addTo(fieldset);
+		return form;
 	}
 
 	@Override
@@ -188,7 +216,7 @@ public class LookupTable extends BaseClass{
 	@Override
 	protected Object update(Params params) {
 		if (params.containsKey(NAME)) name = params.getString(NAME);
-		if (params.containsKey(DEFAULT_VALUE)) defaultValue = params.getInt(DEFAULT_VALUE);
+		if (params.containsKey(DEFAULT_VALUE)) updateDefault(params.getInt(DEFAULT_VALUE));
 		if (params.containsKey(NEW_COL)) {
 			Object o = BaseClass.get(Id.from(params, NEW_COL));
 			if (isSet(o) && !cols.contains(o)) cols.add(o);
@@ -197,8 +225,43 @@ public class LookupTable extends BaseClass{
 			Object o = BaseClass.get(Id.from(params, NEW_ROW));
 			if (isSet(o) && !rows.contains(o)) rows.add(o);
 		}
+		for (Entry<String, Object> entry : params.entrySet()) {
+			String key = entry.getKey();			
+			if (key.startsWith("value[")) setValue(key.substring(5),entry.getValue());
+		}
 
 		super.update(params);
 		return properties();
+	}
+
+	/**
+	 * keep table sparse!
+	 * @param newDefault
+	 */
+	private void updateDefault(Integer newDefault) {
+		boolean restart = false;
+		do {
+			restart = false;
+			for (Entry<Object, HashMap<Object, Integer>> row : values.entrySet()) {
+				Object rowKey = row.getKey();
+				HashMap<Object, Integer> columns = row.getValue();
+				if (isNull(columns)) continue;
+				for (Entry<Object, Integer> col :columns.entrySet()) {
+					Object colKey = col.getKey();
+					Integer oldVal = col.getValue();
+					if (oldVal == defaultValue || oldVal == newDefault) {
+						columns.remove(colKey);
+						restart = true;
+					}
+					if (columns.isEmpty()) {
+						values.remove(rowKey);
+						restart = true;
+					}
+					if (restart) break;
+				}
+				if (restart) break;
+			}
+		} while (restart);
+		defaultValue = newDefault;		
 	}
 }
