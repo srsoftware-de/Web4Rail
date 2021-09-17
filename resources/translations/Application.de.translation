@@ -13,14 +13,16 @@ Actions in case conditions are <em>not</em> fulfilled : Aktionen, wenn Bedingung
 Actions will only fire, if all conditions are fullfilled. : Aktionen werden nur ausgeführt, wenn alle Bedingungen erfüllt sind.
 Action type : Aktions-Typ
 ActivateRoute : Route aktivieren
-add : hinzufügen
-add command for {} : Kommando für {} hinzufügen
-Added {} : {} hinzugefügt
-Added {} routes. : {} Routen hinzugefügt.
 add action : Aktion hinzufügen
 Add action to action list : Aktion zur Liste hinzufügen
 add car : Waggon hinzufügen
+add : hinzufügen
+add column ({}) : Spalte ({}) hinzufügen
+Add column/row : Spalte/Zeile hinzufügen
+add command for {} : Kommando für {} hinzufügen
 Add condition : Bedingung hinzufügen
+Added {} : {} hinzugefügt
+Added {} routes. : {} Routen hinzugefügt.
 Add entry : Eintrag hinzufügen
 Add function : Funktion hinzufügen
 add locomotive : Lok hinzufügen
@@ -30,6 +32,7 @@ add new car : neuen Waggon anlegen
 Add new custom field : neues benutzerdefiniertes Feld hinzufügen
 add new locomotive : neue Lok anlegen
 add new train : neuen Zug anlegen
+add row ({}) : Zeile ({}) hinzufügen
 AddRemoveDestination : Ziel hinzufügen/löschen
 AddRemoveTag : Markierung hinzufügen/entfernen
 Address : Adresse
@@ -71,13 +74,14 @@ BrakeStop : Bremsvorgang abschließen
 Brake time¹, forward : Bremszeit¹, vorwärts
 Brake time¹, reverse : Bremszeit¹, rückwärts
 Brake time table : Bremszeit-Tabelle
+car : Fahrzeug
 Car : Fahrzeug
 CarInTrain : Fahrzeug im Zug
 Car manager : Waggon-Verwaltung
 Car of train : Fahrzeug des Zuges
 Car {} of train : Fahrzeug {} des Zuges
 CarOrientation : Wagen-Laufrichtung
-Cars : Waggons
+Cars : Fahrzeuge
 &nbsp;cars : &nbsp;Fahrzeugen teilen
 Clear destinations : Ziele löschen
 Clear destinations of train : Ziele des Zugs löschen
@@ -127,7 +131,8 @@ Decoder function : Decoder-Funktion
 decouple : Abkuppeln
 decoupler : decoupler
 Decoupler : Entkuppler
-Default maintenance intervall : Standard-Wartungsintervall 
+Default maintenance intervall : Standard-Wartungsintervall
+default value : Standard-Wert 
 DelayedAction : verzögerte Aktion
 Delay must not be less than zero! : Verzögerung darf nicht kleiner als null sein!
 delete : entfernen
@@ -210,6 +215,7 @@ Inverts the direction {} is heading to. : Kehrt die Richtung, in welche {} fähr
 JSON code of {} : JSON-Code von {}
 known cars : bekannte Waggons
 known locomotives : bekannte Lokomotiven
+known lookup tables: bekannte Wertetabellen:
 known trains : bekannte Züge
 Label for state {} : Beschriftung für Status {}
 Last blocks : Letzte Blöcke
@@ -227,6 +233,7 @@ Locomotive manager : Lok-Verwaltung
 Locomotives : Lokomotiven
 Locomotives and cars : Lokomotiven und Waggons
 lookup tables : Wertetabellen
+LookupTable : Wertetabelle
 Loop : Wiederholung
 Lower speed limit : Minimale Geschwindigkeit
 Maintenance : Wartung
@@ -416,12 +423,14 @@ Task type : Aufgabe
 Text to display on clients : Text, welcher auf den Clients angezeigt werden soll
 Text to show on display : Text, welcher in der Anzeige dargestellt werden soll
 test : testen
+This value is used, when no entry is set for a specific input pair. : Dieser Wert wird benutzt, wenn für ein Eingabe-Paar kein anderer WErt gesetzt ist.
 Tile(s) : Kachel(n)
 Tile(s) moved. : Kachel(n) verschoben.
 Timeout : maximale Wartezeit5
 Toggle : umschalten
 toggle {} : {} umschalten
 Toggle power : Stom umschalten
+train : Zug
 Train : Zug
 train contains {} : {} ist im Zug
 train does not contain {} : {} ist nicht im Zug
@@ -473,6 +482,7 @@ Use negative number to count from end. : Nutze negative Nummern, um von Ende zu 
 unset : ungesetzt
 update : aktualisieren
 value : Wert
+Values : Werte
 WaitForContact : Auf Kontakt warten
 Wait for {}, then : auf {} warten, dann
 Wait {} ms, then : {} ms warten, dann

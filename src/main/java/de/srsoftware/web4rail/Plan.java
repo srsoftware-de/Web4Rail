@@ -543,7 +543,8 @@ public class Plan extends BaseClass{
 				.put(LENGTH_UNIT, lengthUnit)
 				.put(SPEED_UNIT, speedUnit)
 				.put(Turnout.DELAY, Turnout.delay)
-				.put(TILE, jTiles);
+				.put(TILE, jTiles)
+				.put(REALM_LOOKUP, LookupTable.jsonList());
 	}
 	
 	/**
@@ -613,6 +614,14 @@ public class Plan extends BaseClass{
 		Fieldset fieldset = new Fieldset(t("lookup tables"));
 		Button button = button(t("add"),Map.of(REALM,REALM_LOOKUP,ACTION,ACTION_ADD));
 		button.addTo(fieldset);
+		List<LookupTable> tables = BaseClass.listElements(LookupTable.class);
+
+		if (!tables.isEmpty()) {
+			new Tag("div").content("known lookup tables:").addTo(fieldset);
+			Tag list = new Tag("ul");
+			for (LookupTable table : tables) table.button(table.name()).addTo(list);
+			list.addTo(fieldset);
+		}
 		return fieldset;
 	}
 	
