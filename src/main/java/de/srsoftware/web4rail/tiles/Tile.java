@@ -252,7 +252,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 			return true; // already locked!
 		}
 		if (isSet(occupyingTrain)) {
-			if (occupyingTrain != newTrain && !newTrain.isShunting()) return debug("{} already occupied by {}",this,occupyingTrain);
+			if (occupyingTrain != newTrain && this != newTrain.currentBlock() && !newTrain.isShunting()) return debug("{} already occupied by {}",this,occupyingTrain);
 			lockingTrain = newTrain;
 			if (!downgrade) return true;
 		}
@@ -430,7 +430,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 			return true; // do not downgrade!
 		}
 		if (isSet(occupyingTrain)) {
-			if (occupyingTrain != newTrain && !newTrain.isShunting()) return debug("{} already occupied by {}",this,occupyingTrain);
+			if (occupyingTrain != newTrain && newTrain.currentBlock() != this && !newTrain.isShunting()) return debug("{} already occupied by {}",this,occupyingTrain);
 			return true; // do not downgrade!
 		}		
 		reservingTrain = newTrain;

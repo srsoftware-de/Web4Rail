@@ -448,7 +448,7 @@ public class Route extends BaseClass {
 		LOG.debug("{}.isFreeFor({})",this,train);
 		if (isNull(train.train())) return false;
 		for (Tile tile : path) {			
-			if (!tile.isFreeFor(train)) return false;
+			if (!tile.isFreeFor(train) && tile != startBlock) return false;
 		}
 		return true;
 	}
@@ -798,7 +798,7 @@ public class Route extends BaseClass {
 		context = newContext;
 		for (Tile tile : path) {
 			if (newContext.invalidated() || !tile.reserveFor(newContext)) {
-				LOG.debug("Was not able to allocate route for {}.",newContext);				
+				LOG.debug("Was not able to allocate {} for {}.",tile,newContext);				
 				return false;
 			}
 		}

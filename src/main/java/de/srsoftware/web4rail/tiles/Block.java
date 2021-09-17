@@ -398,7 +398,7 @@ public abstract class Block extends StretchableTile{
 		Train newTrain = context.train();
 		LOG.debug("{}.lockFor({})",this,newTrain);
 		Train train = lockingTrain();
-		if (newTrain == train || parkedTrains.isEmpty() || parkedTrains.contains(newTrain) || newTrain.isShunting()) return super.lockFor(context, downgrade);
+		if (newTrain == train || parkedTrains.isEmpty() || parkedTrains.contains(newTrain) || this == newTrain.currentBlock() || newTrain.isShunting()) return super.lockFor(context, downgrade);
 		return false;
 	}
 	
@@ -432,7 +432,7 @@ public abstract class Block extends StretchableTile{
 		Train newTrain = context.train();
 		LOG.debug("{}.lockFor({})",this,newTrain);
 		Train train = lockingTrain();
-		if (newTrain == train || parkedTrains.isEmpty() || parkedTrains.contains(newTrain) || newTrain.isShunting()) return super.reserveFor(context);
+		if (newTrain == train || parkedTrains.isEmpty() || parkedTrains.contains(newTrain) || this == newTrain.currentBlock() || newTrain.isShunting()) return super.reserveFor(context);
 		return false;
 	}
 
