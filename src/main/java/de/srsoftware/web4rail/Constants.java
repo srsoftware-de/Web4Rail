@@ -49,6 +49,7 @@ public interface Constants {
 	public static final String REALM_FUNCTION  = "function";
 	public static final String REALM_HISTORY   = "history";
 	public static final String REALM_LOCO      = "loco";
+	public static final String REALM_LOOKUP    = "lookup";
 	public static final String REALM_MAINTENANCE = "maintenance";
 	public static final String REALM_ROUTE     = "route";
 	public static final String REALM_PLAN      = "plan";

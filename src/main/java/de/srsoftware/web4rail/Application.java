@@ -135,6 +135,8 @@ public class Application extends BaseClass{
 				return History.action(params);
 			case REALM_LOCO:
 				return Locomotive.action(params,plan);
+			case REALM_LOOKUP:
+				return LookupTable.action(params);
 			case REALM_MAINTENANCE:
 				return MaintnanceTask.action(params);
 			case REALM_PLAN:

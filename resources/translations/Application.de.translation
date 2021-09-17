@@ -24,6 +24,7 @@ Add condition : Bedingung hinzufügen
 Add entry : Eintrag hinzufügen
 Add function : Funktion hinzufügen
 add locomotive : Lok hinzufügen
+add lookup table : Wertetabelle hinzufügen
 add new aspect : neues Signalbild hinzufügen
 add new car : neuen Waggon anlegen
 Add new custom field : neues benutzerdefiniertes Feld hinzufügen
@@ -94,6 +95,7 @@ click here to setup signal : Hier klicken, um Signal einzurichten
 Click here to setup tag : Hier klicken, um Markierung anzugeben
 click here to setup turnout : Hier klicken, um Weiche einzurichten
 Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
+columns : Spalten
 Command to send : Kommando, welches gesendet werden soll
 ConditionalAction : bedingte Aktion
 Condition : Bedingung
@@ -224,6 +226,7 @@ Locked by {} : Durch {} besetzt
 Locomotive manager : Lok-Verwaltung
 Locomotives : Lokomotiven
 Locomotives and cars : Lokomotiven und Waggons
+lookup tables : Wertetabellen
 Loop : Wiederholung
 Lower speed limit : Minimale Geschwindigkeit
 Maintenance : Wartung
@@ -323,6 +326,7 @@ Route properties : Routen-Eigenschaften
 Routes : Fahrstraßen
 Routes using this tile : Fahrstraßen, die diesen Abschnitt verwenden
 Route will only be available, if all conditions are fulfilled. : Route ist nur verfügbar, wenn alle Bedingungen erfüllt sind.
+rows : Zeilen
 Save "{}" : „{}“ speichern
 Save : speichern
 SavePlan : Plan speichern

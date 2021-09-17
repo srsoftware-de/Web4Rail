@@ -156,8 +156,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			case ACTION_UPDATE:
 				return train.update(params);		 
 		}
-		String message = t("Unknown action: {}",action);
-		return train.properties(message);
+		return train.properties(t("Unknown action: {}",action));
 	}
 	
 	public Train add(Car car) {

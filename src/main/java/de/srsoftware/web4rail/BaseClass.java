@@ -226,7 +226,7 @@ public abstract class BaseClass implements Constants{
 		}
 	}
 	
-	public class FormInput extends ArrayList<Map.Entry<String, Tag>>{
+	public static class FormInput extends ArrayList<Map.Entry<String, Tag>>{
 		
 		private static final long serialVersionUID = -2371203388908395216L;
 
@@ -352,7 +352,7 @@ public abstract class BaseClass implements Constants{
 		return l+NBSP+unit;
 	}
 		
-	public Form form(String id,List<Map.Entry<String, Tag>> elements) {
+	public static Form form(String id,List<Map.Entry<String, Tag>> elements) {
 		Form form = new Form(id);
 
 		Table table = new Table();
@@ -383,8 +383,11 @@ public abstract class BaseClass implements Constants{
 		return o==null;
 	}
 
-	public static boolean isSet(Object o) {
-		return o != null;
+	public static boolean isSet(Object...o) {
+		for (Object x : o) {
+			if (x == null) return false;
+		}
+		return true;
 	}
 	
 	public JSONObject json() {

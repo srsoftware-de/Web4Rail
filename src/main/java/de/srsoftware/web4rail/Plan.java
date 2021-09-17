@@ -609,6 +609,13 @@ public class Plan extends BaseClass{
 		LoadCallback.fire();
 	}
 	
+	private Fieldset lookupTables() {
+		Fieldset fieldset = new Fieldset(t("lookup tables"));
+		Button button = button(t("add"),Map.of(REALM,REALM_LOOKUP,ACTION,ACTION_ADD));
+		button.addTo(fieldset);
+		return fieldset;
+	}
+	
 	/**
 	 * creates the main menu attached to the plan
 	 * @return
@@ -763,6 +770,7 @@ public class Plan extends BaseClass{
 		
 		postForm.add(relayProperties());
 		postForm.add(routeProperties());
+		postForm.add(lookupTables());
 		return super.properties(preForm, formInputs, postForm, errorMessages);
 	}
 
