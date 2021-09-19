@@ -1,5 +1,7 @@
 package de.srsoftware.web4rail;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -117,6 +119,52 @@ public class LookupTable extends BaseClass{
 		return properties(div.toString());
 	}
 	
+	public int getValue(Context context) {
+		Train train = context.train();
+		Car car = context.car();			
+		
+		Object rowKey = null;
+		switch (rowType) {
+			case REALM_TRAIN:
+				if (isSet(train)) rowKey = train.id();
+				break;
+			case REALM_CAR:
+				if (isSet(car )) rowKey = car.id();
+				break;
+			case LENGTH:
+				if (isSet(train)) {
+					int len = train.length();
+					Vector<Object> rows = new Vector<>(this.rows);
+					Collections.reverse(rows);
+					for (Object row : rows) {
+						try {
+						int val = Integer.parseInt(row.toString());
+						if (len < val) rowKey = row;
+						} catch (NumberFormatException nfe) {}
+					}
+				}
+				break;
+		}
+		
+		Object colKey = null;
+		switch (colType) {
+			case REALM_TRAIN:
+				if (isSet(train))colKey = train.id();
+				break;
+			case REALM_CAR:
+				if (isSet(car ))colKey = car.id();
+				break;
+			case LENGTH:
+				if (isSet(train)) colKey = train.length();
+				break;
+		}
+		
+		if (!isSet(colKey,rowKey)) throw new NullPointerException();
+		TreeMap<Object, Integer> dummy = values.get(rowKey.toString());
+		
+		return dummy.get(colKey.toString());
+	}
+	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
@@ -197,6 +245,21 @@ public class LookupTable extends BaseClass{
 		selector.addOption(REALM_TRAIN, t("Trains"));
 		selector.addOption(LENGTH, t("TrainLength"));
 		return selector;
+	}
+	
+	public static Select selector(LookupTable preselected,Collection<LookupTable> exclude) {
+		if (isNull(exclude)) exclude = new Vector<LookupTable>();
+		Select select = new Select(LookupTable.class.getSimpleName());
+		new Tag("option").attr("value","0").content(t("unset")).addTo(select);
+
+		List<LookupTable> tables = BaseClass.listElements(LookupTable.class);
+		tables.sort((t1,t2)->t1.name().compareTo(t2.name()));
+		for (LookupTable table : tables) {			
+			if (exclude.contains(table)) continue;
+			Tag opt = select.addOption(table.id, table);
+			if (table == preselected) opt.attr("selected", "selected");
+		}
+		return select;
 	}
 	
 	private void setValue(String key, Object value) {

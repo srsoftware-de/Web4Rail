@@ -98,6 +98,11 @@ public abstract class BaseClass implements Constants{
 			return car;
 		}
 		
+		public Context car(Car newCar) {
+			car = newCar;
+			return this;
+		}
+		
 		public void clear() {
 			action = null;
 			block = null;
@@ -200,6 +205,7 @@ public abstract class BaseClass implements Constants{
 			if (isSet(train)) sb.append(", "+t("Train: {}",train));
 			if (isSet(direction)) sb.append(", "+t("Direction: {}",direction));
 			if (isSet(block)) sb.append(", "+t("Block: {}",block));
+			if (isSet(car))   sb.append(", "+t("Fahrzeug: {}",car));
 			if (isSet(route))   sb.append(", "+t("Route: {}",route));
 			if (isSet(contact)) sb.append(", "+t("Contact: {}",contact));
 			if (isSet(waitTime)) sb.append(", "+t("Wait time: {} ms",waitTime));

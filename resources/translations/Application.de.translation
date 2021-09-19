@@ -140,6 +140,7 @@ delete route : Route löschen
 depart : abfahren
 Destination : Ziel
 Destination\: {} from {} : Ziel: {} von {}
+DetermineCarAtPosition : Fahrzeug im Zug bestimmen
 DetermineTrainInBlock : Zug im Block bestimmen
 Determine, which train is in {} : Bestimmen, welcher Zug sich in {} befindet
 Direction : Richtung
