@@ -1,9 +1,11 @@
 package de.srsoftware.web4rail;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.json.JSONArray;
@@ -26,23 +28,42 @@ public class LookupTable extends BaseClass{
 	private static final String ADD_FORM = "add_lookup";
 	private static final String COLUMNS = "columns";
 	private static final String ROWS = "rows";
-	private static final String DEFAULT_VALUE = "default";
 	private static final String NEW_ROW = "new_row";
 	private static final String NEW_COL = "new_col";
+	private static final String VALUES = "values";
+	private static final String LENGTH = "length";
+	private static final String CONFIRM = "confirm";
 	private String colType;
 	private String rowType;
 	private String name;
-	private Integer defaultValue = 0;
 	
-	private HashSet<Object> cols = new HashSet<>();
-	private HashSet<Object> rows = new HashSet<>();
-	private HashMap<Object,HashMap<Object,Integer>> values = new HashMap<>();
+	private Comparator<Object> comp = new Comparator<Object>() {
+		
+		@Override
+		public int compare(Object a, Object b) {
+			String sa = a.toString();
+			String sb = b.toString();
+			try {
+				int ia = Integer.parseInt(sa);
+				int ib = Integer.parseInt(sb);
+				return ia-ib;
+			} catch (NumberFormatException nfe) {}
+			return sa.compareTo(sb);
+		}
+	};
+	private TreeSet<Object> cols = new TreeSet<>(comp);
+	private TreeSet<Object> rows = new TreeSet<>(comp);
+	private TreeMap<Object,TreeMap<Object,Integer>> values = new TreeMap<>();
+	
+
+	private LookupTable() {}
 
 	public LookupTable(String name, String cols, String rows) {
 		this.name = name;
 		this.colType = cols;
 		this.rowType = rows;
 	}
+
 
 	public static Object action(Params params) {
 		String action = params.getString(ACTION);
@@ -51,6 +72,8 @@ public class LookupTable extends BaseClass{
 		switch (action) {
 			case ACTION_ADD:
 				return addForm(params);
+			case ACTION_DROP:
+				return isSet(table) ? table.drop(params) : plan.properties();
 			case ACTION_PROPS:
 				return isSet(table) ? table.properties() : plan.properties();
 			case ACTION_UPDATE:
@@ -81,14 +104,26 @@ public class LookupTable extends BaseClass{
 		return new LookupTable(name, cols, rows).register().properties();
 	}
 	
+
+	private Window drop(Params params) {
+		String confirm = params.getString(CONFIRM);
+		if (CONFIRM.equals(confirm)) {
+			this.remove();
+			return plan.properties();
+		}
+		Tag div = new Tag("div").content(t("Are you sure you want to delete {}?",this));
+		button(t("delete"), Map.of(ACTION,ACTION_DROP,CONFIRM,CONFIRM)).addTo(div);
+		button(t("abort"), Map.of()).addTo(div);
+		return properties(div.toString());
+	}
+	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
 		json.put(COLUMNS, colType);
-		json.put(DEFAULT_VALUE, defaultValue);
 		json.put(NAME, name);
 		json.put(ROWS, rowType);
-		json.put("values", values);
+		json.put(VALUES, values);
 		return json;
 	}
 	
@@ -97,6 +132,47 @@ public class LookupTable extends BaseClass{
 		listElements(LookupTable.class).forEach(table -> list.put(table.json()));
 		return list;
 	}
+	
+	@Override
+	public LookupTable load(JSONObject json) {
+		super.load(json);
+		if (json.has(COLUMNS))  colType = json.getString(COLUMNS);
+		if (json.has(ROWS))  rowType = json.getString(ROWS);
+		if (json.has(NAME)) name = json.getString(NAME);
+		if (json.has(VALUES)) {
+			JSONObject vals = json.getJSONObject(VALUES);
+			for (String rowKey : vals.keySet()) {
+				if (LENGTH.equals(rowType)) {
+					rows.add(rowKey);
+				} else {
+					BaseClass row = BaseClass.get(new Id(rowKey));
+					if (isSet(row)) rows.add(row);
+				}
+				JSONObject columns = vals.getJSONObject(rowKey);
+				for (String colKey : columns.keySet()) {
+					TreeMap<Object, Integer> colVals = values.get(rowKey);
+					if (isNull(colVals)) values.put(rowKey, colVals = new TreeMap<>());
+					colVals.put(colKey, columns.getInt(colKey));
+					
+					if (LENGTH.equals(colType)) {
+						cols.add(colKey);
+					} else {
+						BaseClass col = BaseClass.get(new Id(colKey));
+						if (isSet(col)) cols.add(col);
+					}
+				}
+			};
+			LOG.debug("Values: {}",vals);
+		}
+		return this;
+	}
+	
+	public static void loadAll(JSONArray list) {
+		for (int i=0; i<list.length(); i++) {
+			new LookupTable().load(list.getJSONObject(i));
+		}
+	}
+
 
 	
 	public String name() {
@@ -106,10 +182,7 @@ public class LookupTable extends BaseClass{
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm, String... errorMessages) {
 		formInputs.add(t(NAME),new Input(NAME,name));
-		formInputs.add(t("default value"),new Input(DEFAULT_VALUE, defaultValue).numeric().title(t("This value is used, when no entry is set for a specific input pair.")));
-		
-		postForm.add(table());
-		
+		postForm.add(table());		
 		return super.properties(preForm, formInputs, postForm, errorMessages);
 	}
 	
@@ -122,56 +195,60 @@ public class LookupTable extends BaseClass{
 		Select selector = new Select(name);
 		selector.addOption(REALM_CAR, t("Cars"));
 		selector.addOption(REALM_TRAIN, t("Trains"));
-		selector.addOption(REALM_TRAIN+"_length", t("TrainLength"));
+		selector.addOption(LENGTH, t("TrainLength"));
 		return selector;
 	}
 	
 	private void setValue(String key, Object value) {
 		try {
 			Integer intVal = Integer.parseInt(value.toString());
-			if (intVal == defaultValue) return;
 			key = key.substring(1,key.length()-1);
-			LOG.debug("Setting value of {} to {}",key,intVal);
 			String[] parts = key.split("\\]\\[",2);
 			String rowKey = parts[0];
 			String colKey = parts[1];
 			LOG.debug("Setting value of {}/{} to {}",rowKey,colKey,intVal);
-			HashMap<Object, Integer> entries = values.get(rowKey);
-			if (isNull(entries)) values.put(rowKey, entries = new HashMap<>());
+			TreeMap<Object, Integer> entries = values.get(rowKey);
+			if (isNull(entries)) values.put(rowKey, entries = new TreeMap<>());
 			entries.put(colKey, intVal);
 		} catch (NumberFormatException nfe) {
-			LOG.warn("invalid value: {}",value,nfe);
+			LOG.debug("invalid value: {}",value,nfe);
 		}
 		
 	}
 	
-	private Fieldset table() {
-		
-		Fieldset fieldset = new Fieldset(t("Values"));
-		
+	private Fieldset table() {		
+		Fieldset fieldset = new Fieldset(t("Values"));		
 		
 		Table table = new Table();
 		Vector<Object> head = new Vector<Object>();
 		head.add("");
-		head.addAll(cols);
+		if (LENGTH.equals(colType)) {
+			for (Object col : cols) head.add("&lt; "+col);
+		} else head.addAll(cols);
+		
 		table.addHead(head.toArray());
-		for (Object row : rows) {
+		boolean prefix = LENGTH.equals(rowType);
+		for (Object row : rows) { // Zeilen
+			if ("".equals(row)) continue;
 			Vector<Object> entries = new Vector<>();
-			entries.add(row);
+			entries.add((prefix ? "&lt; ":"")+row);
 			String rowId = (row instanceof BaseClass ? ((BaseClass)row).id() : row).toString();
 			
-			HashMap<Object, Integer> items = values.get(rowId);
-			for (Object col : cols) {
-				
+			TreeMap<Object, Integer> items = values.get(rowId);		
+			
+			for (Object col : cols) { // Spalten
+				if ("".equals(col)) continue;
 				String colId = (col instanceof BaseClass ? ((BaseClass)col).id() : col).toString();
-				Integer value = isSet(items) ? items.get(colId) : defaultValue;
-				if (isNull(value)) value = defaultValue;
-				Input input = new Input("value["+rowId+"]["+colId+"]", value).numeric();
+				Object value = isSet(items) ? items.get(colId) : null;
 				
-				entries.add(input);
+				Input input = isSet(value) ? new Input("value["+rowId+"]["+colId+"]", value) : new Input("value["+rowId+"]["+colId+"]");
+				
+				entries.add(input.numeric());
 			}
+			
 			table.addRow(entries.toArray());
 		}
+		
 		
 		Form form = table.addTo(rowAdder(new Form(id()+"_values")));
 		new Input(REALM,REALM_LOOKUP).hideIn(form);
@@ -179,9 +256,10 @@ public class LookupTable extends BaseClass{
 		new Input(ACTION,ACTION_UPDATE).hideIn(form);
 
 		new Button(t("Apply"), form).addTo(form);
+		button(t("Delete"),Map.of(ACTION,ACTION_DROP)).addTo(form);
 		
 		return form.addTo(fieldset);
-	}	
+	}
 
 	private Form rowAdder(Form form) {
 		Tag select = null;
@@ -191,6 +269,9 @@ public class LookupTable extends BaseClass{
 				break;
 			case REALM_TRAIN:
 				select = Train.selector(null, null).attr(NAME, NEW_COL);
+				break;
+			case LENGTH:
+				select = new Input(NEW_COL);
 				break;
 		}		
 		if (isSet(select)) select.addTo(new Label(t("add column ({})",t(colType))+':'+NBSP)).addTo(form);
@@ -202,6 +283,9 @@ public class LookupTable extends BaseClass{
 				break;
 			case REALM_TRAIN:
 				select = Train.selector(null, null).attr(NAME, NEW_ROW);
+				break;
+			case LENGTH:
+				select = new Input(NEW_ROW);
 				break;
 		}
 		if (isSet(select)) select.addTo(new Label(t("add row ({})",t(rowType))+':'+NBSP)).addTo(form);
@@ -216,14 +300,21 @@ public class LookupTable extends BaseClass{
 	@Override
 	protected Object update(Params params) {
 		if (params.containsKey(NAME)) name = params.getString(NAME);
-		if (params.containsKey(DEFAULT_VALUE)) updateDefault(params.getInt(DEFAULT_VALUE));
 		if (params.containsKey(NEW_COL)) {
-			Object o = BaseClass.get(Id.from(params, NEW_COL));
-			if (isSet(o) && !cols.contains(o)) cols.add(o);
+			if (LENGTH.equals(colType)) {
+				cols.add(params.getString(NEW_COL));
+			} else {
+				Object o = BaseClass.get(Id.from(params, NEW_COL));
+				if (isSet(o) && !cols.contains(o)) cols.add(o);
+			}
 		}
-		if (params.containsKey(NEW_ROW)) {
-			Object o = BaseClass.get(Id.from(params, NEW_ROW));
-			if (isSet(o) && !rows.contains(o)) rows.add(o);
+		if (params.containsKey(NEW_ROW)) { 
+			if (LENGTH.equals(rowType)){
+				rows.add(params.getString(NEW_ROW));
+			} else {			
+				Object o = BaseClass.get(Id.from(params, NEW_ROW));
+				if (isSet(o) && !rows.contains(o)) rows.add(o);
+			}
 		}
 		for (Entry<String, Object> entry : params.entrySet()) {
 			String key = entry.getKey();			
@@ -232,36 +323,5 @@ public class LookupTable extends BaseClass{
 
 		super.update(params);
 		return properties();
-	}
-
-	/**
-	 * keep table sparse!
-	 * @param newDefault
-	 */
-	private void updateDefault(Integer newDefault) {
-		boolean restart = false;
-		do {
-			restart = false;
-			for (Entry<Object, HashMap<Object, Integer>> row : values.entrySet()) {
-				Object rowKey = row.getKey();
-				HashMap<Object, Integer> columns = row.getValue();
-				if (isNull(columns)) continue;
-				for (Entry<Object, Integer> col :columns.entrySet()) {
-					Object colKey = col.getKey();
-					Integer oldVal = col.getValue();
-					if (oldVal == defaultValue || oldVal == newDefault) {
-						columns.remove(colKey);
-						restart = true;
-					}
-					if (columns.isEmpty()) {
-						values.remove(rowKey);
-						restart = true;
-					}
-					if (restart) break;
-				}
-				if (restart) break;
-			}
-		} while (restart);
-		defaultValue = newDefault;		
 	}
 }

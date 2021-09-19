@@ -574,7 +574,7 @@ public class Plan extends BaseClass{
 		if (json.has(FREE_BEHIND_TRAIN)) Route.freeBehindTrain = json.getBoolean(FREE_BEHIND_TRAIN);
 		if (json.has(MAINTENANCE_INTERVAL)) Car.defaulMaintenanceDist = json.getLong(MAINTENANCE_INTERVAL);
 		if (json.has(Turnout.DELAY)) Turnout.delay = json.getInt(Turnout.DELAY);
-		
+	
 		try {
 			Car.loadAll(name+".cars",plan);
 		} catch (Exception e) {
@@ -603,6 +603,12 @@ public class Plan extends BaseClass{
 			plan.controlUnit.start();
 		} catch (Exception e) {
 			LOG.warn("Was not able to establish connection to control unit!");
+		}
+		
+		try {
+			LookupTable.loadAll(json.getJSONArray(REALM_LOOKUP));
+		} catch (Exception e) {
+			LOG.warn("Was not able to load lookup tables!");
 		}
 		
 		History.load(name+".history");
