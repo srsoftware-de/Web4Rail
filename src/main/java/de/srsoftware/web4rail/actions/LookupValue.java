@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.json.JSONObject;
 
+import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.LookupTable;
@@ -61,14 +62,17 @@ public class LookupValue extends Action {
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
-		formInputs.add(t("Lookup table"),LookupTable.selector(lookupTable, null));
+		Tag div = new Tag("div");
+		LookupTable.selector(lookupTable, null).addTo(div);
+		if (isSet(lookupTable)) lookupTable.button(t("show")).addTo(div);
+		formInputs.add(t("Lookup table"),div);
 		formInputs.add(t("Store"), new Input(STORE,isSet(store)?store.name():""));
 		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override
 	public String toString() {
-		if (isSet(store,lookupTable)) return t("Set {} to value from {}",store.name(),lookupTable);
+		if (isSet(store,lookupTable)) return t("Set \"{}\" to value from {}",store.name(),lookupTable);
 		return t("[Click here to setup look-up]");
 	}
 		

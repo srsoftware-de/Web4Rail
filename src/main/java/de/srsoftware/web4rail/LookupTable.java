@@ -155,14 +155,22 @@ public class LookupTable extends BaseClass{
 				if (isSet(car ))colKey = car.id();
 				break;
 			case LENGTH:
-				if (isSet(train)) colKey = train.length();
+				if (isSet(train)) {
+					int len = train.length();
+					Vector<Object> cols = new Vector<>(this.cols);
+					Collections.reverse(cols);
+					for (Object col : cols) {
+						try {
+						int val = Integer.parseInt(col.toString());
+						if (len < val) colKey = col;
+						} catch (NumberFormatException nfe) {}
+					}
+				}
 				break;
 		}
 		
 		if (!isSet(colKey,rowKey)) throw new NullPointerException();
-		TreeMap<Object, Integer> dummy = values.get(rowKey.toString());
-		
-		return dummy.get(colKey.toString());
+		return values.get(rowKey.toString()).get(colKey.toString());
 	}
 	
 	@Override

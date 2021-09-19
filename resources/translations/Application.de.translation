@@ -142,6 +142,7 @@ Destination : Ziel
 Destination\: {} from {} : Ziel: {} von {}
 DetermineCarAtPosition : Fahrzeug im Zug bestimmen
 DetermineTrainInBlock : Zug im Block bestimmen
+Determine, which car is at position {} of the current train : Bestimmen, welches Fahrzeug sich an Position {} des Zuges befindet
 Determine, which train is in {} : Bestimmen, welcher Zug sich in {} befindet
 Direction : Richtung
 Direction\: heading {} : Richtung: nach {}
@@ -234,6 +235,7 @@ Locomotive manager : Lok-Verwaltung
 Locomotives : Lokomotiven
 Locomotives and cars : Lokomotiven und Waggons
 lookup tables : Wertetabellen
+Lookup table : Wertetabelle
 LookupTable : Wertetabelle
 Loop : Wiederholung
 Lower speed limit : Minimale Geschwindigkeit
@@ -312,6 +314,8 @@ PWM rate : PWM-Frequenz
 quit autopilot : Autopilot beenden
 {} reached it`s destination! : {} ist am Ziel angekommen!
 ReactivateContact : Kontakt reaktivieren
+Read delay from store\: : Wartezeit aus Speicher laden: 
+Read delay from "{}", wait, then : Zeit aus „{}“ lesen, warten, dann
 Relay : Relais
 Relay/Signal/Turnout : Relais/Signal/Weiche
 Remove tag "{}" from train : Markierung "{}" von Zug entfernen
@@ -368,6 +372,7 @@ SetSpeed : Geschwindigkeit ändern
 Set {} to {} {} : {} auf {} {} gesetzt
 Set speed to {} {} : Geschwindigkeit auf {} {} setzen
 Set {} to {} : {} auf {} setzen
+Set "{}" to value from {} : Setze „{}“ auf Wert von {}
 setting : Einstellung
 SetPower : Strom schalten
 Set speed to : Geschwindigkeit setzen
@@ -392,6 +397,7 @@ SRCP daemon : SRCP-Dienst
 Start actions : Start-Aktionen
 Stock ID : Inventarnummer
 Stop settings : Halte-Einstellungen
+Store : Speicher
 Start autopilot : Autopilot starten
 Start delay : Start-Verzögerung
 Started {} : {} gestartet
