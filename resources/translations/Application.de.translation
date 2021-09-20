@@ -49,6 +49,7 @@ AlterDirection : Fahrtrichtung ändern
 AndCondition : Und-Bedingung
 Application will load "{}" on next launch and will now quit! : Anwendung wird beim nächsten Start „{}“ laden und wird jetzt beendet. 
 Apply : Übernehmen
+Are you sure you want to delete {}? : Sind Sie sicher, dass Sie {} löschen möchten?
 Aspect : Signalbild
 Aspects : Signalbilder
 Auto pilot : Autopilot
@@ -144,6 +145,7 @@ DetermineCarAtPosition : Fahrzeug im Zug bestimmen
 DetermineTrainInBlock : Zug im Block bestimmen
 Determine, which car is at position {} of the current train : Bestimmen, welches Fahrzeug sich an Position {} des Zuges befindet
 Determine, which train is in {} : Bestimmen, welcher Zug sich in {} befindet
+Determine, which train is parked in {} : Bestimmen, welcher Zug in {} abgestellt ist
 Direction : Richtung
 Direction\: heading {} : Richtung: nach {}
 directional : fahrtrichtungs-abhängig
@@ -237,6 +239,7 @@ Locomotives and cars : Lokomotiven und Waggons
 lookup tables : Wertetabellen
 Lookup table : Wertetabelle
 LookupTable : Wertetabelle
+LookupValue : Wert aus Tabelle laden
 Loop : Wiederholung
 Lower speed limit : Minimale Geschwindigkeit
 Maintenance : Wartung
@@ -378,6 +381,7 @@ SetPower : Strom schalten
 Set speed to : Geschwindigkeit setzen
 SetTurnout : Weiche stellen
 Setup actions : Vorbereitung-Aktionen
+show : zeigen
 ShowText : Text anzeigen
 Shunting : Rangieren
 shunting destination : Rangier-Ziel

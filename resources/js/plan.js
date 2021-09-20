@@ -16,6 +16,7 @@ var messageOpacity = 0;
 var pendingAssignment = null;
 var clickHistory = [];
 var messages = [];
+var android = false;
 
 function addClass(data){
 	parts = data.split(" ");
@@ -82,7 +83,7 @@ function clickLegend(ev){
 	$(ev.target).addClass('front');
 	$('.window > fieldset').hide();
 	$('#'+lastTab).show();
-	$('#'+lastTab+" input:not([type=hidden])").first().focus().select();
+	if (!android) $('#'+lastTab+" input:not([type=hidden])").first().focus().select();
 	if (!('no-update' in ev)) remember(lastTab);
 }
 
@@ -361,7 +362,7 @@ function updateMessages() {
 }
 
 window.onload = function () {
-	var isDragging = false;
+	android = navigator.userAgent.toLowerCase().includes('android')
 	$('.menu > div').click(closeMenu);
 	$('.menu .addtile .list svg').click(enableAdding);
 	$('.menu .move .list div').click(enableMove);

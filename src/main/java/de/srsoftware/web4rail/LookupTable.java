@@ -294,7 +294,10 @@ public class LookupTable extends BaseClass{
 		Vector<Object> head = new Vector<Object>();
 		head.add("");
 		if (LENGTH.equals(colType)) {
-			for (Object col : cols) head.add("&lt; "+col);
+			for (Object col : cols) {
+				if ("".equals(col)) continue;
+				head.add("&lt; "+col);
+			}
 		} else head.addAll(cols);
 		
 		table.addHead(head.toArray());

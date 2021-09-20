@@ -89,6 +89,6 @@ public class DisableEnableTile extends Action {
 		if (newTile instanceof Shadow) newTile = ((Shadow)newTile).overlay();
 		if (isSet(newTile)) tile = newTile;
 		disable = !"enable".equals(params.get(STATE)); 
-		return properties();
+		return parent().properties();
 	}
 }
