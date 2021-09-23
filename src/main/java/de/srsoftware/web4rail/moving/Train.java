@@ -319,6 +319,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	
 	public void coupleWith(Train parkingTrain,boolean swap) {
 		if (isSet(direction) && isSet(parkingTrain.direction) && parkingTrain.direction != direction) parkingTrain.turn();
+		boolean locoOnly = !cars.stream().anyMatch(car -> !(car instanceof Locomotive));
 		if (swap) {
 			Vector<Car> dummy = new Vector<Car>();
 			for (Car car : parkingTrain.cars) dummy.add(car.train(this));
@@ -329,9 +330,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 				cars.add(car.train(this));
 			}
 		}
-		
+		if (locoOnly && isSet(parkingTrain.name)) name = parkingTrain.name;
 		parkingTrain.remove();
-		updateEnds();
+		updateEnds();		
 		if (isSet(currentBlock)) currentBlock.setTrain(this);
 	}
 	
@@ -411,6 +412,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public Direction direction() {
 		return direction;
 	}
+	
+	public void disableShunting() {
+		shunting = false;
+	}
 		
 	private Object dropCar(Params params) {
 		String carId = params.getString(CAR_ID);
@@ -457,7 +462,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		direction = endedRoute.endDirection; // muss vor der Auswertung des Destination-Tags stehen!				
 		Block endBlock = endedRoute.endBlock();
 		Block startBlock = endedRoute.startBlock();
-		if (endBlock == destination) {
+		boolean resetDest = endBlock == destination;
+		if (resetDest){
 			destination = null;
 			
 			String destTag = destinationTag();
@@ -507,7 +513,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if ((!autopilot) || isNull(nextPreparedRoute) || (isSet(waitTime) && waitTime > 0)) setSpeed(0);
 		route = null;
 		endBlock.setTrain(this);
-		shunting = false; // wird in setTrain verwendet, muss also danach stehen
+		shunting = false; // is used in endBlock.setTrain(…), this it must be set thereafter
+		if (resetDest) destination = null; // destination is called during endBlock.setTrain(…)
 		currentBlock = endBlock;
 		trace.add(endBlock);
 		if (!trace.contains(startBlock)) startBlock.dropTrain(this);
@@ -724,13 +731,27 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 
 	public String name() {
-		if (isSet(name)) return name;
+		if (isSet(name) && !name.isEmpty()) return name;
 		if (cars.isEmpty()) return t("emtpy train");
+		StringBuffer sb = new StringBuffer();
+		String lastName = null;
+		int count = 0;
 		for (Car car : cars) {
-			String name = car.name();
-			if (isSet(name)) return name;
+			String carName = car.name();
+			if (isNull(carName)) continue;
+			if (carName.equals(lastName)) {
+				count++;
+			} else {
+				if (count>1) sb.append("x").append(count);
+				count = 1;
+				lastName = carName;
+				sb.append(", ").append(carName);
+			}
 		}
-		return t("empty train");
+		if (count>1) sb.append("x").append(count);
+		if (sb.length()>2) sb.delete(0, 2);
+		return sb.toString();
+		//return t("empty train");
 	}
 	
 	private Train name(String newName) {
@@ -955,17 +976,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public boolean splitAfter(int position) {
 		if (isNull(currentBlock)) return false; // can only split within blocks!
 		Train remaining = new Train();
+		remaining.name = name;
 		int len = cars.size();
 		for (int i=0; i<len; i++) {
 			if (i>=position) {
 				Car car = cars.remove(position);
 				LOG.debug("Moving {} from {} to {}",car,this,remaining);
 				remaining.add(car);
-				if (isNull(remaining.name)) {
-					remaining.name = car.name();					
-				} else if (remaining.name.length()+car.name().length()<30){
-					remaining.name += ", "+car.name();
-				}
 			} else LOG.debug("Skipping {}",cars.get(i));
 		}
 		if (remaining.cars.isEmpty()) return false;
@@ -1159,23 +1176,23 @@ public class Train extends BaseClass implements Comparable<Train> {
 		for (Tile tile : reversedPath) {
 			if (isNull(remainingLength) && onTrace(tile)) remainingLength = length();
 			if (remainingLength == null) { // ahead of train
-				LOG.debug("{} is ahead of train and will not be touched.",tile);
+				//LOG.debug("{} is ahead of train and will not be touched.",tile);
 				trace.remove(tile); // old trace will be cleared afterwards. but this tile shall not be cleared, so remove it from old trace				
 			} else if (remainingLength > 0) { // within train
-				LOG.debug("{} is occupied by train and will be marked as \"occupied\"",tile);
+				//LOG.debug("{} is occupied by train and will be marked as \"occupied\"",tile);
 				remainingLength -= tile.length();
 				newTrace.add(tile);
 				trace.remove(tile); // old trace will be cleared afterwards. but this tile shall not be cleared, so remove it from old trace
 				tile.setTrain(this);
-				LOG.debug("remaining length: {}",remainingLength);
+				//LOG.debug("remaining length: {}",remainingLength);
 			} else { // behind train
 				if (Route.freeBehindTrain) {
-					LOG.debug("{} is behind train and will be freed in the next step",tile);
+					//LOG.debug("{} is behind train and will be freed in the next step",tile);
 					if (tile != route.endBlock()) { // if train is shorter than contact after endblock, the endblock would be cleared…
 						trace.add(tile); // old trace will be cleared afterwards
 					}
 				} else {
-					LOG.debug("{} is behind train and will be reset to \"locked\" state",tile);
+					//LOG.debug("{} is behind train and will be reset to \"locked\" state",tile);
 					tile.lockFor(context,true);
 					trace.remove(tile); // old trace will be cleared afterwards. but this tile shall not be cleared, so remove it from old trace
 				}

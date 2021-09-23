@@ -976,7 +976,7 @@ public class Plan extends BaseClass{
 	 * @param data
 	 */
 	public synchronized void stream(String data) {
-		String fixedData = data.replaceAll("\n", "").replaceAll("\r", "");
+		String fixedData = data.replaceAll("\n", "%newline%").replaceAll("\r", ""); 
 		new Thread("Plan") {
 			@Override
 			public void run() {

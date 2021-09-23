@@ -310,6 +310,7 @@ function runAction(ev){
 
 function stream(ev){
 	var data = ev.data;
+	data = data.replace(/%newline%/g,"\n");
 	console.log("received: ",data);
 	if (data.startsWith('<svg')) return place(data);
 	if (data.startsWith("heartbeat")) return heartbeat(data);

@@ -468,7 +468,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		if (isSet(reservingTrain) && newTrain != reservingTrain) return false;
 		if (isSet(lockingTrain)   && newTrain != lockingTrain)   return false;
 		if (isSet(occupyingTrain) && (newTrain != occupyingTrain) && !newTrain.isShunting()) return false;
-		reservingTrain = lockingTrain = null;
+		lockingTrain = reservingTrain = null;
 		if (occupyingTrain == newTrain) return true;
 		occupyingTrain = newTrain;
 		plan.place(this);
@@ -539,12 +539,9 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		sb.append(", ");
 		sb.append(y);
 		sb.append(")");
-		if (isSet(occupyingTrain)) {
-			sb.append("\n");
-			sb.append(occupyingTrain);
-			sb.append(":\n");
-			occupyingTrain.cars().forEach(car -> sb.append("\t"+car+"\n"));
-		}		
+		if (isSet(occupyingTrain)) 
+			sb.append(title(occupyingTrain));
+		
 		return sb.toString();
 	}
 	
@@ -555,8 +552,11 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		sb.append(train.length());
 		sb.append(" ");
 		sb.append(t(lengthUnit));
-		sb.append("):\n");
-		train.cars().forEach(car -> sb.append("\t"+car+"\n"));
+		sb.append(")");
+		Block dest = train.destination();
+		if (isSet(dest)) sb.append(" → ").append(dest);
+		sb.append(":\n");
+		train.cars().forEach(car -> sb.append("\t- ").append(car).append("\n"));
 		return sb.toString();
 	}
 
