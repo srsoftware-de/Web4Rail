@@ -11,6 +11,8 @@ import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Contact;
+import de.srsoftware.web4rail.tiles.Switch;
+import de.srsoftware.web4rail.tiles.Tile;
 
 public class TriggerContact extends Action {
 		
@@ -18,64 +20,78 @@ public class TriggerContact extends Action {
 		super(parent);
 	}
 
-	private Contact contact = null;
+	private Tile contactOrSwitch = null;
 	
 	@Override
 	public boolean fire(Context context) {
-		if (isSet(contact)) return contact.trigger(200);
+		if (contactOrSwitch instanceof Contact) return ((Contact)contactOrSwitch).trigger(200);
+		if (contactOrSwitch instanceof Switch) return ((Switch)contactOrSwitch).trigger(context);
 		return false;
 	}
 	
 	@Override
 	protected String highlightId() {
-		return isSet(contact) ? contact.id().toString() : null;
+		return isSet(contactOrSwitch) ? contactOrSwitch.id().toString() : null;
 	}
 	
 	
 	@Override
 	public JSONObject json() {
 		JSONObject json = super.json();
-		if (isSet(contact)) json.put(CONTACT, contact.id());
+		if (contactOrSwitch instanceof Contact) json.put(CONTACT, contactOrSwitch.id());
+		if (contactOrSwitch instanceof Switch) json.put(SWITCH, contactOrSwitch.id());
 		return json;
 	}
 	
 	@Override
 	public Action load(JSONObject json) {
 		super.load(json);
-		Id contactId = Id.from(json,CONTACT);
-		if (isSet(contactId)) new LoadCallback() {
 			
+		if (json.has(CONTACT)) new LoadCallback() {
 			@Override
 			public void afterLoad() {
-				contact = Contact.get(contactId);
+				contactOrSwitch = Contact.get(Id.from(json,CONTACT));
 			}
 		};
  
+		if (json.has(SWITCH)) new LoadCallback() {
+			@Override
+			public void afterLoad() {
+				contactOrSwitch = Switch.get(Id.from(json,SWITCH));
+			}
+		};
+
 		return this;
 	}
 	
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
-		formInputs.add(t("Select contact")+": "+(isNull(contact) ? t("unset") : contact),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,CONTACT)));
+		formInputs.add(t("Select contact or switch")+": "+(isNull(contactOrSwitch) ? t("unset") : contactOrSwitch),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,CONTACT)));
 		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
 	@Override
 	protected void removeChild(BaseClass child) {
-		if (child == contact) contact = null;
+		if (child == contactOrSwitch) contactOrSwitch = null;
 		super.removeChild(child);
 	}
 	
 	public String toString() {
-		return isSet(contact) ? t("Trigger {}",contact) : "["+t("Click here to setup contact")+"]";
+		return isSet(contactOrSwitch) ? t("Trigger {}",contactOrSwitch) : "["+t("Click here to setup contact/switch")+"]";
 	};
 	
 	@Override
 	protected Object update(Params params) {
 		LOG.debug("update: {}",params);
 		Id contactId = Id.from(params,CONTACT);
-		if (isSet(contactId)) contact = Contact.get(contactId);
-		return properties();
+		String error = null;
+		if (isSet(contactId)) {
+			Tile tile = BaseClass.get(contactId);
+			if (tile instanceof Contact || tile instanceof Switch) {
+				contactOrSwitch = tile;
+			} else error = t("{} is neither a contact nor a switch!",tile);
+		}
+		return properties(error);
 	}
 
 }

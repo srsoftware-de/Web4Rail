@@ -127,6 +127,7 @@ public abstract class Condition extends BaseClass {
 				OrCondition.class,
 				PushPullTrain.class,
 				RouteEndBlock.class,
+				StoreHasValue.class,
 				SwitchIsOn.class,
 				TrainHasTag.class,
 				TrainIsShunting.class,

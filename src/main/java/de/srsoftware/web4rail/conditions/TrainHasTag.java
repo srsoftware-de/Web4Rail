@@ -47,7 +47,7 @@ public class TrainHasTag extends Condition {
 
 	@Override
 	protected Window properties(List<Fieldset> preForm, FormInput formInputs, List<Fieldset> postForm,String...errors) {
-		formInputs.add(t("Tag"),new Input(TAG, tag == null ? "" : tag));
+		formInputs.add(t("Tag"),new Input(TAG, isNull(tag) ? "" : tag));
 		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	

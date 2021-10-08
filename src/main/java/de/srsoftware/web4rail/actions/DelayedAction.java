@@ -34,7 +34,7 @@ public class DelayedAction extends ActionList {
 	@Override
 	public boolean fire(Context context) {
 		try {
-			int delay = isSet(store) ? store.value() : min_delay + (min_delay < max_delay ? random.nextInt(max_delay - min_delay) : 0);
+			int delay = isSet(store) ? store.intValue() : min_delay + (min_delay < max_delay ? random.nextInt(max_delay - min_delay) : 0);
 		
 			new DelayedExecution(delay,this) {
 				

@@ -81,6 +81,7 @@ public interface Constants {
 	public static final String  ROUTE               = "route";
 	public static final String  SPEED               = "speed";
 	public static final String  STATE               = "state";
+	public static final String  SWITCH              = "switch";
 	public static final String  TIME                = "time";
 	public static final String  TURNOUT             = "turnout";
 	public static final String  TYPE                = "type";

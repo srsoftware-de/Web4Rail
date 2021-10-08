@@ -66,6 +66,7 @@ public abstract class Action extends BaseClass {
 			SetSignal.class,
 			SetSpeed.class,
 			SetTurnout.class,
+			SetValue.class,
 			ShowText.class,
 			SplitTrain.class,
 			StartStopAuto.class,

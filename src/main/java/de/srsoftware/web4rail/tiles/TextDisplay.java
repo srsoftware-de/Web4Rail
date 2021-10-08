@@ -13,14 +13,16 @@ import org.json.JSONObject;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Params;
+import de.srsoftware.web4rail.Store;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Input;
 import de.srsoftware.web4rail.tags.Select;
 import de.srsoftware.web4rail.tags.Window;
 
-public class TextDisplay extends StretchableTile {
+public class TextDisplay extends StretchableTile implements Store.Listener {
 	private static final String TEXT = "text";
 	private String text = "Hello, world!";
+	private String displayText = text;
 	
 	@Override
 	public JSONObject json() {
@@ -29,7 +31,7 @@ public class TextDisplay extends StretchableTile {
 	
 	@Override
 	public Tile load(JSONObject json) {
-		if (json.has(TEXT))	text = json.getString(TEXT);
+		if (json.has(TEXT)) text(json.getString(TEXT));
 		return super.load(json);
 	}
 	
@@ -50,6 +52,12 @@ public class TextDisplay extends StretchableTile {
 		}
 		return select;
 	}
+	
+	@Override
+	public void storeUpdated(Store store) {
+		displayText = text.replace("{"+store.name()+"}", store.value());
+		plan.place(this);
+	}
 
 	@Override
 	protected String stretchType() {
@@ -60,13 +68,24 @@ public class TextDisplay extends StretchableTile {
 	@Override
 	public Tag tag(Map<String, Object> replacements) throws IOException {
 		if (isNull(replacements)) replacements = new HashMap<String, Object>();
-		replacements.put("%text%",text);
+		replacements.put("%text%",displayText);
 		Tag tag = super.tag(replacements);
 		return tag.clazz(tag.get("class")+" fill");
 	}
 
 	public TextDisplay text(String tx) {
 		text = tx;
+		displayText = tx;
+		int pos = text.indexOf("{");
+		Store.removeListener(this);
+		while (pos > -1) {
+			int end = text.indexOf("}",pos);
+			if (end < 0) break;
+			String storeName = text.substring(pos+1, end);
+			Store.get(storeName).addListener(this);
+			pos = text.indexOf("{",end);
+		}
+		
 		return this;
 	}
 	

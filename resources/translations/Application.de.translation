@@ -93,10 +93,12 @@ Click here to select car! : Hier klicken, um Fahrzeug auszuwählen!
 Click here to select display! : Hier klicken, um Anzeige auszuwählen!
 Click here to select switch! : Hier klicken, um Schalter auszuwählen!
 Click here to select train! : Hier klicken, um Zug auszuwählen!
-Click here to setup contact : Hier klicken, um Kontakt auszuwählen
+Click here to setup assignment : Hier klicken, um Zuweisung zu bearbeiten!
+Click here to setup contact/switch : Hier klicken, um Kontakt/Schalter auszuwählen
 Click here to setup decoupler : Hier klicken, um Entkuppler einzurichten
 click here to setup relay or switch : Hier klicken, um Relais oder Schalter einzurichten
 click here to setup signal : Hier klicken, um Signal einzurichten
+Click setup store lookup : Hier klicken, um Speichervergleich einzurichten
 Click here to setup tag : Hier klicken, um Markierung anzugeben
 click here to setup turnout : Hier klicken, um Weiche einzurichten
 Click on a name to edit the entry. : Klicke auf einen Namen, um einen Eintrag zu bearbeiten.
@@ -212,6 +214,7 @@ internal contacts : interne Kontakte
 Interval : Intervall
 inverted : invertiert
 Inverts the direction {} is heading to. : Kehrt die Richtung, in welche {} fährt, um.
+{} is neither a contact nor a switch! : {} ist weder ein Kontakt, noch ein Schalter!
 {} is not a block! : {} ist kein Block!
 {} is off : {} ist Aus
 {} is on : {} ist Ein
@@ -350,7 +353,7 @@ Search new routes, update existing : Neue Routen suchen, bestehende Aktualisiere
 Seek in last : Durchsuche letzte
 Select block : Block auswählen
 Select car : Fahrzeug auswählen
-Select contact : Kotakt auswählen
+Select contact or switch : Kontakt oder Schalter auswählen
 Select destination : Ziel wählen
 Select display : Anzeige auswählen
 Select from plan : Auf Plan auswählen
@@ -358,6 +361,7 @@ Select function : Funktion wählen
 Select object : Objekt auswählen
 Select relay : Relais auswählen
 Select state : Status auswählen
+Select store to read from\: : Speicher für Vergleich auswählen:
 Select switch : Schalter auswählen
 Select train : Zug auswählen
 Select turnout : Weiche wählen
@@ -375,12 +379,14 @@ SetSpeed : Geschwindigkeit ändern
 Set {} to {} {} : {} auf {} {} gesetzt
 Set speed to {} {} : Geschwindigkeit auf {} {} setzen
 Set {} to {} : {} auf {} setzen
+Set "{}" to "{}" : „{}“ auf „{}“ setzen
 Set "{}" to value from {} : Setze „{}“ auf Wert von {}
 setting : Einstellung
 SetPower : Strom schalten
 Set speed to : Geschwindigkeit setzen
 SetTurnout : Weiche stellen
 Setup actions : Vorbereitung-Aktionen
+SetValue : Wert zuweisen
 show : zeigen
 ShowText : Text anzeigen
 Shunting : Rangieren
@@ -402,6 +408,8 @@ Start actions : Start-Aktionen
 Stock ID : Inventarnummer
 Stop settings : Halte-Einstellungen
 Store : Speicher
+Store "{}" does not have value "{}" : Wert des Speichers „{}“ ist nicht „{}”
+Store "{}" has value "{}" : Wert des Speichers „{}“ ist gleich „{}“
 Start autopilot : Autopilot starten
 Start delay : Start-Verzögerung
 Started {} : {} gestartet
@@ -466,7 +474,7 @@ Train speed : Zug-Geschwindigkeit
 TrainWasInBlock : Zug war im Block
 Trigger {} : {} betätigen
 Trigger a feedback sensor to assign it with this contact! : Rückmeldekontakt auslösen, um ihn diesem Kontakt zuzuweisen!
-TriggerContact : Kontakt auslösen
+TriggerContact : Kontakt oder Schalter auslösen
 Trigger contact to learn new contact : Kontakt auslösen, um neuen Kontakt zu lernen
 Turn : Richtung wechseln
 turn train : Richtung des Zuges Wechseln
@@ -493,6 +501,7 @@ Use negative number to count from end. : Nutze negative Nummern, um von Ende zu 
 unset : ungesetzt
 update : aktualisieren
 value : Wert
+Value : Wert
 Values : Werte
 WaitForContact : Auf Kontakt warten
 Wait for {}, then : auf {} warten, dann

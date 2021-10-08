@@ -1,6 +1,8 @@
 package de.srsoftware.web4rail;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.slf4j.Logger;
 
@@ -9,15 +11,25 @@ import de.srsoftware.web4rail.tags.Select;
 
 public class Store {
 	
+	public interface Listener{
+		public void storeUpdated(Store store);
+	}
+	
 	private static final Logger LOG = org.slf4j.LoggerFactory.getLogger(Store.class);
 	
 	private static HashMap<String,Store> stores = new HashMap<>();
+	private HashSet<Listener> listeners = new HashSet<>();
 	private String name;
-	private Integer value = null;
+	private String value = null;
+	private Integer intValue = null;
 
 	public Store(String name) {
 		this.name = name;
 		stores.put(name, this);
+	}
+	
+	public void addListener(Listener listener) {
+		listeners.add(listener);
 	}
 
 	public static Store get(String name) {
@@ -25,11 +37,22 @@ public class Store {
 		if (BaseClass.isNull(store)) store = new Store(name); 
 		return store;
 	}
+	
+	public Integer intValue() {
+		return intValue;
+	}
 
 	public String name() {
 		return name;
 	}
 	
+	public static Set<String> names() {
+		return stores.keySet();
+	}
+	
+	public static void removeListener(Listener listener) {
+		stores.values().forEach(store -> store.listeners.remove(listener));
+	}
 	
 	public static Select selector(Store store) {
 		Select selector = new Select(Store.class.getSimpleName());
@@ -45,9 +68,19 @@ public class Store {
 		return BaseClass.t(txt, fills);
 	}
 
-	public void setValue(int newVal) {
+	public void setValue(String newVal) {
 		LOG.debug("Updating {}: {} → {}",name,value,newVal);
 		value = newVal;
+		intValue = null;
+		for (char c : value.toCharArray()) {
+			if (!Character.isDigit(c)) {
+				if (isSet(intValue)) break;
+			} else {
+				int add = ((byte)c-48);
+				intValue = isNull(intValue) ? add : 10*intValue + add;
+			}  
+		}
+		listeners.forEach(listener -> listener.storeUpdated(this));
 	}
 	
 	@Override
@@ -55,7 +88,7 @@ public class Store {
 		return name+"&nbsp;("+(BaseClass.isNull(value) ? t("no value") : value)+")";
 	}
 
-	public Integer value() {
+	public String value() {
 		return value;
 	}
 }
