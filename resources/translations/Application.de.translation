@@ -1,4 +1,5 @@
 abort : abbrechen
+AbortActions : Aktions-Ausführung abbrechen
 Aborting route allocation... : Routen-Reservierung wird abgebrochen...
 Accessory : Zubehör
 Action : Aktion
@@ -376,12 +377,13 @@ SetRelayOrSwitch : Relais oder Schalter schalten
 SetSignal : Signal stellen
 SetSignalsToStop : Signale auf Halt stellen
 SetSpeed : Geschwindigkeit ändern
-Set {} to {} {} : {} auf {} {} gesetzt
 Set speed to {} {} : Geschwindigkeit auf {} {} setzen
+Set {} to {} {} : {} auf {} {} gesetzt
 Set {} to {} : {} auf {} setzen
 Set "{}" to "{}" : „{}“ auf „{}“ setzen
 Set "{}" to value from {} : Setze „{}“ auf Wert von {}
 setting : Einstellung
+Set train of {} as context : Setze Zug von {} als Kontext
 SetPower : Strom schalten
 Set speed to : Geschwindigkeit setzen
 SetTurnout : Weiche stellen
@@ -410,6 +412,7 @@ Stop settings : Halte-Einstellungen
 Store : Speicher
 Store "{}" does not have value "{}" : Wert des Speichers „{}“ ist nicht „{}”
 Store "{}" has value "{}" : Wert des Speichers „{}“ ist gleich „{}“
+StoreHasValue : Wert eines Speichers prüfen
 Start autopilot : Autopilot starten
 Start delay : Start-Verzögerung
 Started {} : {} gestartet
@@ -476,6 +479,8 @@ Trigger {} : {} betätigen
 Trigger a feedback sensor to assign it with this contact! : Rückmeldekontakt auslösen, um ihn diesem Kontakt zuzuweisen!
 TriggerContact : Kontakt oder Schalter auslösen
 Trigger contact to learn new contact : Kontakt auslösen, um neuen Kontakt zu lernen
+Trigger Contact/Switch at destination : Kontakt/Schalter am Ziel auslösen
+Triggers {} when reaching destination : Löst bei Erreichen des Ziels {} aus
 Turn : Richtung wechseln
 turn train : Richtung des Zuges Wechseln
 Turn allowed : Wenden erlaubt
@@ -497,6 +502,7 @@ Turns the train, as if it went through a loop. : Dreht den Zug, als wenn er eine
 Type : Typ 
 Unknown action\: {} : Unbekannte Aktion: {}
 Unknown decoder type : Unbekannter Decoder-Typ
+Updating {}\: {} → {} : Aktualisiere {}: {} → {}
 Use negative number to count from end. : Nutze negative Nummern, um von Ende zu zählen.
 unset : ungesetzt
 update : aktualisieren

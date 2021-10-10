@@ -74,10 +74,10 @@ public class Store {
 		intValue = null;
 		for (char c : value.toCharArray()) {
 			if (!Character.isDigit(c)) {
-				if (isSet(intValue)) break;
+				if (BaseClass.isSet(intValue)) break;
 			} else {
 				int add = ((byte)c-48);
-				intValue = isNull(intValue) ? add : 10*intValue + add;
+				intValue = BaseClass.isNull(intValue) ? add : 10*intValue + add;
 			}  
 		}
 		listeners.forEach(listener -> listener.storeUpdated(this));

@@ -25,7 +25,8 @@ public class BlockFree extends Condition {
 
 	@Override
 	public boolean fulfilledBy(Context context) {
-		return block.isFreeFor(context) != inverted;
+		if (!inverted) return block.isFreeFor(context);
+		return !block.isFreeFor(new Context(block)); // block.isFreeFor würde true liefern, wenn der Zug im Kontext gleich dem Zug im Block wäre. Da wir aber nur wissen wollen, ob der Block belegt ist, brauchen wir einen Context ohne Zug.
 	}
 	
 	@Override
@@ -69,6 +70,7 @@ public class BlockFree extends Condition {
 			if (tile instanceof Block) {
 				block = (Block) tile;
 			} else return t("Clicked tile is not a {}!",t("block"));
+			return context().properties();
 		}
 		
 		return super.update(params);

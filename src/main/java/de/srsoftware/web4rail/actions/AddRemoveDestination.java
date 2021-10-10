@@ -15,15 +15,19 @@ import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Window;
 import de.srsoftware.web4rail.tiles.Block;
+import de.srsoftware.web4rail.tiles.Contact;
+import de.srsoftware.web4rail.tiles.Switch;
 import de.srsoftware.web4rail.tiles.Tile;
 
 public class AddRemoveDestination extends Action {
 
 	private static final String TURN = "turn";
 	private static final String SHUNTING = "shunting";
+	private static final String TRIGGER = "destination_trigger";
 	private Block destination;
 	private boolean turnAtDestination;
 	private boolean shunting;
+	private Tile destinationTrigger = null;
 	
 	public AddRemoveDestination(BaseClass parent) {
 		super(parent);
@@ -53,6 +57,7 @@ public class AddRemoveDestination extends Action {
 			}
 		}		
 		train.addTag(dest);
+		train.setDestinationTrigger(destinationTrigger);
 		return true;
 	}
 	
@@ -68,6 +73,7 @@ public class AddRemoveDestination extends Action {
 		if (isSet(destination)) json.put(Train.DESTINATION,destination.id().toString());
 		if (turnAtDestination) json.put(TURN,true);
 		if (shunting) json.put(SHUNTING, true);
+		if (isSet(destinationTrigger)) json.put(TRIGGER, destinationTrigger.id());
 		return json;
 	}
 	
@@ -81,7 +87,13 @@ public class AddRemoveDestination extends Action {
 				destination = BaseClass.get(Id.from(json, Train.DESTINATION));
 			}
 		};
-		
+		if (json.has(TRIGGER)) new LoadCallback() {
+			
+			@Override
+			public void afterLoad() {
+				destinationTrigger = Tile.get(Id.from(json, TRIGGER));
+			}
+		};
 		return super.load(json);
 	}
 
@@ -93,6 +105,7 @@ public class AddRemoveDestination extends Action {
 		formInputs.add(t("Destination")+": "+(isNull(destination) ? t("Clear destinations") : destination),span);
 		formInputs.add(t("Turn at destination"),new Checkbox(TURN, t("Turn"), turnAtDestination));
 		formInputs.add(t("Shunting"),new Checkbox(SHUNTING, t("Shunting"), shunting));
+		formInputs.add(t("Trigger Contact/Switch at destination")+": "+(isNull(destinationTrigger) ? t("unset") : destinationTrigger),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,CONTACT)));
 		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
@@ -118,6 +131,10 @@ public class AddRemoveDestination extends Action {
 					return t("Clicked tile is not a {}!",t("block"));
 				}
 			}
+		}
+		if (params.containsKey(CONTACT)) {
+			Tile tile = Tile.get(Id.from(params,CONTACT));
+			if (tile instanceof Contact || tile instanceof Switch) destinationTrigger = tile;
 		}
 		turnAtDestination = "on".equals(params.getString(TURN));
 		shunting = "on".equals(params.getString(SHUNTING));

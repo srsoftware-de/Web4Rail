@@ -162,7 +162,9 @@ public class Switch extends Tile{
 	}
 	
 	public boolean trigger(Context context) {
-		return state ? actionsOn.fire(context) : actionsOff.fire(context);
+		return state ? 
+			actionsOn.fire(context) : 
+			actionsOff.fire(context);
 	}
 	
 	public void state(boolean newState) {

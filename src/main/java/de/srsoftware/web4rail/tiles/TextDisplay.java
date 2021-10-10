@@ -74,8 +74,10 @@ public class TextDisplay extends StretchableTile implements Store.Listener {
 	}
 
 	public TextDisplay text(String tx) {
+		if (isNull(text) || !text.equals(tx)) {
+			displayText = tx;
+		}
 		text = tx;
-		displayText = tx;
 		int pos = text.indexOf("{");
 		Store.removeListener(this);
 		while (pos > -1) {

@@ -43,6 +43,7 @@ import de.srsoftware.web4rail.threads.DelayedExecution;
 import de.srsoftware.web4rail.threads.RoutePrepper;
 import de.srsoftware.web4rail.tiles.Block;
 import de.srsoftware.web4rail.tiles.Contact;
+import de.srsoftware.web4rail.tiles.Switch;
 import de.srsoftware.web4rail.tiles.Tile;
 
 /**
@@ -100,6 +101,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Route nextPreparedRoute;
 
 	private BrakeProcess brake;
+
+	private Tile destinationTrigger;
 
 	public static Object action(Params params, Plan plan) throws IOException {
 		String action = params.getString(ACTION);
@@ -500,11 +503,18 @@ public class Train extends BaseClass implements Comparable<Train> {
 			}
 			
 			if (isNull(destTag)) {
-				quitAutopilot();
+				Tile trigger = destinationTrigger; // quitAutopilot drops destinationTrigger
+				quitAutopilot(); 
 				plan.stream(t("{} reached it`s destination!",this));
+				if (isSet(trigger)) new DelayedExecution(1000,this) {
+					
+					@Override
+					public void execute() {
+						if (trigger instanceof Contact) ((Contact)trigger).trigger(200);
+						if (trigger instanceof Switch) ((Switch)trigger).trigger(new Context(Train.this));		
+					}
+				};				
 			}
-			
-			
 		}
 		if (isSet(brake)) brake.updateTime();
 		Integer waitTime = route.waitTime();
@@ -521,7 +531,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		stuckTrace = null;
 		if (autopilot) {
 			if (isNull(waitTime)) waitTime = 0;
-			if (waitTime>0)	plan.stream(t("{} waiting {} secs",this,(int)(waitTime/1000)));
+			if (waitTime>0)	plan.stream(t("{} waiting {} secs.",this,(int)(waitTime/1000)));
 			new DelayedExecution(waitTime,this) {
 			
 				@Override
@@ -789,6 +799,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		button(t("Select from plan"),Map.of(ACTION,ACTION_MOVE,ASSIGN,DESTINATION)).addTo(dest);
 		
 		dest.addTo(propList);		
+		if (isSet(destinationTrigger)) new Tag("li").content(t("Triggers {} when reaching destination",destinationTrigger)).addTo(propList);
 		if (isSet(route)) route.link("li", route).addTo(propList);
 		int ms = maxSpeed();
 		if (ms < Integer.MAX_VALUE) new Tag("li").content(t("Maximum Speed")+COL+maxSpeed()+NBSP+speedUnit).addTo(propList);
@@ -808,6 +819,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			ul.addTo(li).addTo(propList);
 		}
 		carList().addTo(propList);
+		
 
 		
 		formInputs.add(t("Name"), new Input(NAME,name()));
@@ -825,6 +837,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public String quitAutopilot() {
+		destinationTrigger = null;
 		if (isSet(routePrepper)) {
 			routePrepper.stop();
 			routePrepper = null;
@@ -949,6 +962,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return properties(t("{} is not a block!",tile));
 	}
+	
+	public void setDestinationTrigger(Tile destinationTrigger) {
+		this.destinationTrigger = destinationTrigger;
+	}
+
 	
 	public Object setFunction(int num, boolean active) {
 		// TODO
