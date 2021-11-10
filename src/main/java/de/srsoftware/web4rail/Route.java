@@ -390,6 +390,14 @@ public class Route extends BaseClass {
 		return endBlock;
 	}	
 	
+	public Direction endDirection() {
+		return endDirection;
+	}
+	
+	public boolean endsAt(Destination destination) {
+		return isSet(destination) && endBlock == destination.block && destination.accepts(endDirection); 
+	}
+	
 	public void finish(Train train) {
 		LOG.debug("{}.finish()",this);
 		if (isSet(context)) {

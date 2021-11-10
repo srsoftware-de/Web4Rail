@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Destination;
 import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
@@ -85,7 +86,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 	private HashSet<String> tags = new HashSet<String>();
 
-	private Block currentBlock,destination = null;
+	private Block currentBlock;
+	Destination destination = null;
 	HashSet<Tile> trace = new HashSet<Tile>();
 	private Vector<Block> lastBlocks = new Vector<Block>();
 	
@@ -363,7 +365,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		return properties();
 	}
 	
-	public Block destination(){
+	public Destination destination(){
 		//LOG.debug("{}.destination()",this);
 		if (isNull(destination)) {
 			String destTag = destinationTag();
@@ -383,7 +385,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 							break;
 					}
 				}
-				destination = BaseClass.get(new Id(destTag));				
+				destination = new Destination(BaseClass.get(new Id(destTag)));				
 			}
 		}// else LOG.debug("→ heading towards {}",destination);
 		return destination;
@@ -395,7 +397,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		}
 		return null;
 	}
-
+	
 	public String directedName() {
 		String result = name();
 		if (needsMainenance()) result+="⚠";
@@ -465,7 +467,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		direction = endedRoute.endDirection; // muss vor der Auswertung des Destination-Tags stehen!				
 		Block endBlock = endedRoute.endBlock();
 		Block startBlock = endedRoute.startBlock();
-		boolean resetDest = endBlock == destination;
+		boolean resetDest = endedRoute.endsAt(destination);
 		if (resetDest){
 			destination = null;
 			
@@ -793,7 +795,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		Tag dest = new Tag("li").content(t("Destination")+COL);
 		if (isSet(destination)) {
-			link("span",destination,Map.of(REALM,REALM_PLAN,ID,destination.id().toString(),ACTION,ACTION_CLICK),null).addTo(dest);
+			link("span",destination,Map.of(REALM,REALM_PLAN,ID,destination.block(),ACTION,ACTION_CLICK),null).addTo(dest);
 			new Button(t("Drop"),Map.of(REALM,REALM_TRAIN,ID,id,ACTION,ACTION_MOVE,DESTINATION,"")).addTo(dest);
 		}
 		button(t("Select from plan"),Map.of(ACTION,ACTION_MOVE,ASSIGN,DESTINATION)).addTo(dest);
@@ -869,7 +871,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (child == route) route = null;
 		//if (child == nextRoute) nextRoute = null; // TODO
 		if (child == currentBlock) currentBlock = null;
-		if (child == destination) destination = null;
+		if (isSet(destination) && child == destination.block) destination = null;
 		if (child == routePrepper) routePrepper.stop();
 		cars.remove(child);
 		trace.remove(child);
@@ -947,22 +949,25 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (dest.isEmpty()) {
 			destination = null;
 			return properties();
-		}
+		}		
 		Tile tile = plan.get(new Id(dest), true);
 		if (isNull(tile)) return properties(t("Tile {} not known!",dest));
 		if (tile instanceof Block) {
+			Block block = (Block) tile;
+			Direction enterDirection = null;
 			if (shunting) {
 				boolean connection = currentBlock.routes().stream().anyMatch(route -> route.startBlock() == currentBlock && route.endBlock() == tile);
 				if (!connection) return t("No direct route from {} to {}",currentBlock,tile);
-			}
+			} else enterDirection = block.determineDirection(dest);
 			
-			destination = (Block) tile;
+			destination = new Destination(block,enterDirection);
+
 			start(true);
 			return t("{} now heading for {}",this,destination);
 		}
 		return properties(t("{} is not a block!",tile));
 	}
-	
+
 	public void setDestinationTrigger(Tile destinationTrigger) {
 		this.destinationTrigger = destinationTrigger;
 	}

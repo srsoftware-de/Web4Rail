@@ -198,6 +198,11 @@ public abstract class Block extends StretchableTile{
 		return t("Trigger contact to learn new contact");
 	}
 	
+	public List<Route> arrivingRoutes() {
+		return routes().stream().filter(route -> route.endBlock() == Block.this).collect(Collectors.toList());
+	}
+
+	
 	@Override
 	protected HashSet<String> classes() {
 		HashSet<String> classes = super.classes();
@@ -242,6 +247,8 @@ public abstract class Block extends StretchableTile{
 	public Collection<? extends Contact> contacts() {
 		return internalContacts;
 	}
+	
+	public abstract Direction determineDirection(String dest);
 	
 	public abstract Direction directionA();
 	public abstract Direction directionB();

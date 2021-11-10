@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import de.srsoftware.web4rail.Application;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.Destination;
 import de.srsoftware.web4rail.EventListener;
 import de.srsoftware.web4rail.Plan.Direction;
 import de.srsoftware.web4rail.Route;
@@ -44,8 +45,8 @@ public class RoutePrepper extends BaseClass implements Runnable{
 			return derived;
 		}
 		
-		public boolean endsAt(Block block) {
-			return lastElement().endBlock() == block;
+		public boolean endsAt(Destination destination) {
+			return lastElement().endsAt(destination);
 		}
 		
 		private Trail prepend(Trail trail) {
@@ -106,7 +107,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		
 		if (error) return new PriorityQueue<>();
 		
-		Block destination = train.destination();
+		Destination destination = train.destination();
 		
 		Direction startDirection = c.direction();
 		LOG.debug("RoutePrepper.availableRoutes({},{},{}), dest = {}",startBlock,startDirection,train,destination);
@@ -232,7 +233,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		
 		if (error) return null;
 		
-		Block destination = train.destination();
+		Destination destination = train.destination();
 		
 		Direction startDirection = context.direction();
 		
@@ -241,7 +242,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		PriorityQueue<Trail> trails = new PriorityQueue<>();
 		
 		for (Route route : startBlock.leavingRoutes()) {
-			int score = (route.endBlock() == destination) ? 100_000 : 0;
+			int score = (route.endsAt(destination)) ? 100_000 : 0;
 			
 			if (isSet(startDirection) && route.startDirection != startDirection) { // Route startet entgegen der aktuellen Fahrtrichtung des Zuges
 				if (!train.pushPull) continue; // Zug kann nicht wenden
@@ -253,7 +254,7 @@ public class RoutePrepper extends BaseClass implements Runnable{
 			
 			if (!route.allowed(new Context(train).block(startBlock).direction(startDirection))) {
 				LOG.debug("       - {} not allowed for {}", route, train);
-				if (route.endBlock() != destination) continue;
+				if (!route.endsAt(destination)) continue;
 				LOG.debug("           …overridden by destination of train!", route, train);
 			}
 			

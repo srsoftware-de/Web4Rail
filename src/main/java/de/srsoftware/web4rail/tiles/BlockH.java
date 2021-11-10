@@ -3,9 +3,12 @@ package de.srsoftware.web4rail.tiles;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import de.srsoftware.web4rail.Connector;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.Route;
 import de.srsoftware.web4rail.tiles.Turnout.State;
 
 public class BlockH extends Block{
@@ -22,6 +25,16 @@ public class BlockH extends Block{
 			default:
 				return new HashMap<>();
 		}
+	}
+	
+	@Override
+	public Direction determineDirection(String id) {
+		Set<Direction> endDirections = arrivingRoutes().stream().map(Route::endDirection).collect(Collectors.toSet());
+		if (endDirections.size()<2) return endDirections.stream().findAny().get();
+		if (stretch()<2) return null;
+		if (id().equals(id)) return directionB();
+		if (((x+stretch()-1)+"-"+y).equals(id)) return directionA();
+		return null; 
 	}
 	
 	@Override

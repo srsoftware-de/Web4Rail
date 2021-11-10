@@ -18,6 +18,23 @@ var clickHistory = [];
 var messages = [];
 var android = false;
 
+function addBlockDirections(){
+	$('.BlockH').each(function (){
+		let block = $(this);
+		let width = block.attr('viewBox').split(" ")[2];
+		block.append('<polygon points="0,0 100,50 0,100" class="direction"></polygon>');
+		block.append('<polygon points="'+width+',0 '+(width-100)+',50 '+width+',100" class="direction"></polygon>');
+		block.html(block.html());
+	});
+	$('.BlockV').each(function (){
+		let block = $(this);
+		let height = block.attr('viewBox').split(" ")[3];
+		block.append('<polygon points="0,0 50,100 100,0" class="direction"></polygon>');
+		block.append('<polygon points="0,'+height+' 50,'+(height-100)+' 100,'+height+'" class="direction"></polygon>');
+		block.html(block.html());
+	});
+}
+
 function addClass(data){
 	parts = data.split(" ");
 	$('#'+parts[0]).addClass(parts[1]);
@@ -63,6 +80,7 @@ function assign(context){
 	pendingAssignment = context;
 	closeWindows();
 	$(PLAN).css('cursor','help');
+	if (context.realm == 'train' && context.action == 'move')addBlockDirections();
 	return false;
 }
 
@@ -101,6 +119,7 @@ function clickTile(x,y,shift){
 			request(pendingAssignment);
 			pendingAssignment = null;
 			$(PLAN).css('cursor','');
+			$('.direction').remove();
 			return false;
 		}
 		var json = {realm:'plan',action:'click',id:id};

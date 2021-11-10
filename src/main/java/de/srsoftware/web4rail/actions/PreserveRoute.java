@@ -23,7 +23,7 @@ public class PreserveRoute extends Action {
 		// These are NOT errors:
 		if (!train.usesAutopilot()) return true; // do not reserve routes, when not in auto-mode
 		Block endBlock = route.endBlock();
-		if (train.destination() == endBlock) return true; // do not reserve routes, when destination has been reached
+		if (route.endsAt(train.destination())) return true; // do not reserve routes, when destination has been reached
 
 		Integer waitTime = context.waitTime();
 		if (isSet(waitTime) && waitTime > 0) {

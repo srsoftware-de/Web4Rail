@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Connector;
+import de.srsoftware.web4rail.Destination;
 import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
@@ -539,8 +540,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		sb.append(", ");
 		sb.append(y);
 		sb.append(")");
-		if (isSet(occupyingTrain)) 
-			sb.append(title(occupyingTrain));
+		if (isSet(occupyingTrain)) sb.append(title(occupyingTrain));
 		
 		return sb.toString();
 	}
@@ -553,7 +553,7 @@ public abstract class Tile extends BaseClass implements Comparable<Tile> {
 		sb.append(" ");
 		sb.append(t(lengthUnit));
 		sb.append(")");
-		Block dest = train.destination();
+		Destination dest = train.destination();
 		if (isSet(dest)) sb.append(" → ").append(dest);
 		sb.append(":\n");
 		train.cars().forEach(car -> sb.append("\t- ").append(car).append("\n"));
