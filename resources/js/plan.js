@@ -80,7 +80,7 @@ function assign(context){
 	pendingAssignment = context;
 	closeWindows();
 	$(PLAN).css('cursor','help');
-	if (context.realm == 'train' && context.action == 'move')addBlockDirections();
+	if (context.assign == 'destination') addBlockDirections();
 	return false;
 }
 

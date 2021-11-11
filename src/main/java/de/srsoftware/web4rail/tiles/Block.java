@@ -248,7 +248,7 @@ public abstract class Block extends StretchableTile{
 		return internalContacts;
 	}
 	
-	public abstract Direction determineDirection(String dest);
+	public abstract Direction enterDirection(String dest);
 	
 	public abstract Direction directionA();
 	public abstract Direction directionB();

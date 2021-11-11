@@ -921,7 +921,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			if (shunting) {
 				boolean connection = currentBlock.routes().stream().anyMatch(route -> route.startBlock() == currentBlock && route.endBlock() == tile);
 				if (!connection) return t("No direct route from {} to {}",currentBlock,tile);
-			} else enterDirection = block.determineDirection(dest);
+			} else enterDirection = block.enterDirection(dest);
 			
 			destination = new Destination(block,enterDirection);
 

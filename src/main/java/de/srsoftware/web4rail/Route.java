@@ -395,7 +395,7 @@ public class Route extends BaseClass {
 	}
 	
 	public boolean endsAt(Destination destination) {
-		return isSet(destination) && endBlock == destination.block && destination.accepts(endDirection); 
+		return isSet(destination) && endBlock == destination.block && destination.accepts(endDirection.inverse()); 
 	}
 	
 	public void finish(Train train) {

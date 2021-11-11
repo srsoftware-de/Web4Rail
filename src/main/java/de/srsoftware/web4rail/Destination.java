@@ -50,11 +50,14 @@ public class Destination {
 		return Train.DESTINATION_PREFIX+parts[2];
 	}
 	
-	private Destination enterFrom(Direction enterFrom) {
+	public Destination enterFrom(Direction enterFrom) {
 		this.enterDirection = enterFrom;
 		return this;
 	}
 
+	public Direction enterFrom() {
+		return enterDirection;
+	}
 	
 	public static Destination from(String tag) {
 		if (BaseClass.isNull(tag)) return null;
@@ -91,7 +94,7 @@ public class Destination {
 	}
 
 	
-	private Destination shunting(boolean enable) {
+	public Destination shunting(boolean enable) {
 		this.shunting = enable;
 		return this;
 	}
@@ -100,31 +103,36 @@ public class Destination {
 		return shunting;
 	}
 
+	public String tag() {
+		StringBuilder flags = new StringBuilder();
+		if (turn) flags.append(Train.TURN_FLAG);
+		if (shunting) flags.append(Train.SHUNTING_FLAG);
+		if (enterDirection == Direction.EAST) flags.append('←');
+		if (enterDirection == Direction.WEST) flags.append('→');
+		if (enterDirection == Direction.NORTH)flags.append('↓');
+		if (enterDirection == Direction.SOUTH) flags.append('↑');
+		StringBuilder sb = new StringBuilder();
+		sb.append('@').append(block());
+		if (flags.length()>0) sb.append('+').append(flags);
+		return sb.toString(); 
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		if (enterDirection == null) {
 			sb.append(block);
 		} else {
-			sb.append(BaseClass.t("{} from {}",block,enterDirection.inverse()));
-		}
-		if (shunting || turn) {
-			sb.append("(");
-			if (shunting) sb.append("shunting ");
-			if (turn) sb.append("turn ");
-			sb.append(")");
+			sb.append(BaseClass.t("{} from {}",block,enterDirection));
 		}
 		return sb.toString();
 	}
 	
-	private void turn(boolean enable) {
+	public void turn(boolean enable) {
 		this.turn  = enable;
 	}
 	
 	public boolean turn() {
 		return turn;
 	}
-
-
-
 }

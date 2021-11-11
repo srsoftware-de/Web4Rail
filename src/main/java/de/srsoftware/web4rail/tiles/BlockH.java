@@ -28,12 +28,12 @@ public class BlockH extends Block{
 	}
 	
 	@Override
-	public Direction determineDirection(String id) {
+	public Direction enterDirection(String id) {
 		Set<Direction> endDirections = arrivingRoutes().stream().map(Route::endDirection).collect(Collectors.toSet());
-		if (endDirections.size()<2) return endDirections.stream().findAny().get();
+		if (endDirections.size()<2) return endDirections.stream().findAny().get().inverse();
 		if (stretch()<2) return null;
-		if (id().equals(id)) return directionB();
-		if (((x+stretch()-1)+"-"+y).equals(id)) return directionA();
+		if (id().equals(id)) return directionA();
+		if (((x+stretch()-1)+"-"+y).equals(id)) return directionB();
 		return null; 
 	}
 	
