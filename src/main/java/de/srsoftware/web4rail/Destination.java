@@ -3,7 +3,9 @@ package de.srsoftware.web4rail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.srsoftware.web4rail.BaseClass.Id;
 import de.srsoftware.web4rail.Plan.Direction;
+import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tiles.Block;
 
 public class Destination {
@@ -12,7 +14,12 @@ public class Destination {
 	private Direction enterDirection;
 	public Block block;
 
+	private boolean shunting = false;
+
+	private boolean turn = false;
+
 	public Destination(Block block, Direction enterFrom) {
+		if (block == null) throw new NullPointerException();
 		this.block = block;
 		this.enterDirection = enterFrom;
 	}
@@ -34,10 +41,90 @@ public class Destination {
 		return block.id().toString();
 	};
 	
+	public static String dropFirstFrom(String tag) {
+		if (BaseClass.isNull(tag)) return null;
+		
+		String[] parts = tag.split(Train.DESTINATION_PREFIX,3);
+		if (parts.length<3) return null;
+
+		return Train.DESTINATION_PREFIX+parts[2];
+	}
+	
+	private Destination enterFrom(Direction enterFrom) {
+		this.enterDirection = enterFrom;
+		return this;
+	}
+
+	
+	public static Destination from(String tag) {
+		if (BaseClass.isNull(tag)) return null;
+
+		LOG.debug("→ processing \"{}\"...",tag);		
+		String[] parts = tag.split(Train.DESTINATION_PREFIX,3);
+		if (parts.length<2) return null;
+		
+		String firstTag = parts[1];
+		LOG.debug("processing first tag: {}",firstTag);
+		if (firstTag.length()<1) return null;
+		int pos = firstTag.indexOf(Train.FLAG_SEPARATOR);
+		String blockId = pos<0 ? firstTag : firstTag.substring(0,pos);
+		
+		Block block = Block.get(new Id(blockId));
+		if (block == null) return null;
+		
+		Destination destination = new Destination(block);
+		if (pos>0) {
+			String modifiers = firstTag.substring(pos+1);
+			for (int i=0; i<modifiers.length(); i++) {
+				switch (modifiers.charAt(i)) {
+					case Train.SHUNTING_FLAG: destination.shunting(true); break;
+					case Train.TURN_FLAG: destination.turn(true); break;
+					case '→': destination.enterFrom(Direction.WEST); break;
+					case '←': destination.enterFrom(Direction.EAST); break;
+					case '↓': destination.enterFrom(Direction.NORTH); break;
+					case '↑': destination.enterFrom(Direction.SOUTH); break;
+				}				
+			}			
+		}
+		
+		return destination;
+	}
+
+	
+	private Destination shunting(boolean enable) {
+		this.shunting = enable;
+		return this;
+	}
+	
+	public boolean shunting() {
+		return shunting;
+	}
+
 	@Override
 	public String toString() {
-		return enterDirection == null ? block.toString() : BaseClass.t("{} from {}",block,enterDirection.inverse());
+		StringBuilder sb = new StringBuilder();
+		if (enterDirection == null) {
+			sb.append(block);
+		} else {
+			sb.append(BaseClass.t("{} from {}",block,enterDirection.inverse()));
+		}
+		if (shunting || turn) {
+			sb.append("(");
+			if (shunting) sb.append("shunting ");
+			if (turn) sb.append("turn ");
+			sb.append(")");
+		}
+		return sb.toString();
 	}
+	
+	private void turn(boolean enable) {
+		this.turn  = enable;
+	}
+	
+	public boolean turn() {
+		return turn;
+	}
+
 
 
 }

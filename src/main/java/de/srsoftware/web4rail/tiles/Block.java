@@ -487,6 +487,11 @@ public abstract class Block extends StretchableTile{
 	@Override
 	public String title() {
 		StringBuilder sb = new StringBuilder(name);
+		sb.append(" @ (");
+		sb.append(x);
+		sb.append(", ");
+		sb.append(y);
+		sb.append(")");
 		Train occupyingTrain = occupyingTrain();
 		if (isSet(occupyingTrain)) sb.append(title(occupyingTrain));
 		if (isSet(parkedTrains)) for (Train parked : parkedTrains.trains) sb.append(title(parked));

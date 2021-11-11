@@ -174,7 +174,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 
 	public void addTag(String tag) {
-		tags.add(tag);
+		if (isSet(tag))	{
+			tags.add(tag);
+			LOG.debug("added tag \"{}\" to {}",tag,this);
+		}
 	}
 	
 	private Object addCar(Params params) {
@@ -366,28 +369,11 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Destination destination(){
-		//LOG.debug("{}.destination()",this);
 		if (isNull(destination)) {
-			String destTag = destinationTag();
-			LOG.debug("→ processing \"{}\"...",destTag);
-			if (isSet(destTag)) {
-				destTag = destTag.split(DESTINATION_PREFIX)[1];
-				LOG.debug("....processing \"{}\"…",destTag);
-				for (int i=destTag.length()-1; i>0; i--) {
-					switch (destTag.charAt(i)) {
-						case FLAG_SEPARATOR:
-							destTag = destTag.substring(0,i);
-							i=0;
-							break;
-						case SHUNTING_FLAG:
-							LOG.debug("....enabled shunting option");
-							shunting = true; 
-							break;
-					}
-				}
-				destination = new Destination(BaseClass.get(new Id(destTag)));				
-			}
-		}// else LOG.debug("→ heading towards {}",destination);
+			destination = Destination.from(destinationTag());
+			LOG.debug("{}.destination() → {}",this,destination);
+			if (isSet(destination)) shunting |= destination.shunting();
+		}		
 		return destination;
 	}
 	
@@ -471,37 +457,13 @@ public class Train extends BaseClass implements Comparable<Train> {
 		if (resetDest){
 			destination = null;
 			
-			String destTag = destinationTag();
-			if (isSet(destTag)) {
-				LOG.debug("destination list: {}",destTag);
-				String[] parts = destTag.split(Train.DESTINATION_PREFIX);
-				for (int i=0; i<parts.length;i++) LOG.debug("  part {}: {}",i+1,parts[i]);
-				String destId = parts[1];
-				LOG.debug("destination tag: {}",destId);
-				boolean turn = false;
-				
-				for (int i=destId.length()-1; i>0; i--) {
-					switch (destId.charAt(i)) {
-						case Train.FLAG_SEPARATOR:
-							destId = destId.substring(0,i);
-							i=0;
-							break;
-						case Train.TURN_FLAG:
-							turn = true; 
-							LOG.debug("Turn flag is set!");
-							break;
-					}
-				}
-				if (destId.equals(endBlock.id().toString())) { 
-					if (turn) turn();
-					
-					// update destination tag: remove and add altered tag:
-					removeTag(destTag);
-					destTag = destTag.substring(parts[1].length()+1);
-					if (destTag.isEmpty()) { // no further destinations
-						destTag = null;
-					} else addTag(destTag);
-				}					
+			String destTag = destinationTag(); 
+			Destination destinationFromTag = Destination.from(destTag);
+			if (endedRoute.endsAt(destinationFromTag)) {
+				if (destinationFromTag.turn()) turn();
+				removeTag(destTag);
+				destTag = Destination.dropFirstFrom(destTag); 
+				addTag(destTag);
 			}
 			
 			if (isNull(destTag)) {
@@ -879,6 +841,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	}
 	
 	public Iterator<String> removeTag(String tag) {
+		LOG.debug("Removing tag \"{}\" from {}",tag,this);
 		tags.remove(tag);
 		return tags().iterator();
 	}
@@ -1106,6 +1069,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 	public SortedSet<String> tags() {
 		TreeSet<String> list = new TreeSet<String>(tags);
 		for (Car car:cars) list.addAll(car.tags());
+		LOG.debug("{}.tags() → {}",this,list);
 		return list;
 	}
 	

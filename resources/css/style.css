@@ -99,6 +99,11 @@ svg.preview rect{
 	fill:cyan;
 }
 
+polygon.direction {
+    fill: rgba(0,0,0,0.4) !important;
+    stroke: none;
+}
+
 svg rect.sig_a,
 svg rect.sig_b{
 	fill: inherit;
