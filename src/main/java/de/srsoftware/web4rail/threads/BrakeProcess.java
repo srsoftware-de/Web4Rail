@@ -101,7 +101,7 @@ public class BrakeProcess extends BaseClass implements Runnable{
 			route.brakeTime(brakeId,newTimeStep);
 			calculated = calcDistance(newTimeStep);
 			LOG.debug("Corrected brake timestep from {} to {} ms for {} @ {}.",timeStep,newTimeStep,train,route);
-			LOG.debug("Differemce from estimated distance: {} ({}%)",distance-calculated,100*(distance-calculated)/(float)distance);
+			LOG.debug("Difference from estimated distance: {} ({}%)",distance-calculated,100*(distance-calculated)/(float)distance);
 		}
 	}
 }

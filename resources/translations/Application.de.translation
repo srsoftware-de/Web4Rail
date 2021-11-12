@@ -87,6 +87,7 @@ Cars : Fahrzeuge
 &nbsp;cars : &nbsp;Fahrzeugen teilen
 Clear destinations : Ziele löschen
 Clear destinations of train : Ziele des Zugs löschen
+Clear trigger : Trigger löschen
 Clicked tile is not a {}! : Angeklickte Kachel ist kein {}!
 Click here to add conditions : Hier klicken, um Bedingungen hinzuzufügen
 Click here to select block! : Hier klicken, um Block auszuwählen!

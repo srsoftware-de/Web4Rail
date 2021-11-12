@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
@@ -454,6 +455,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 		Block endBlock = endedRoute.endBlock();
 		Block startBlock = endedRoute.startBlock();
 		boolean resetDest = endedRoute.endsAt(destination);
+		LinkedList<Tile> triggerRef = new LinkedList<>();
 		if (resetDest){
 			destination = null;
 			
@@ -467,17 +469,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 			}
 			
 			if (isNull(destTag)) {
-				Tile trigger = destinationTrigger; // quitAutopilot drops destinationTrigger
+				triggerRef.add(destinationTrigger); // quitAutopilot drops destinationTrigger
 				quitAutopilot(); 
 				plan.stream(t("{} reached it`s destination!",this));
-				if (isSet(trigger)) new DelayedExecution(1000,this) {
-					
-					@Override
-					public void execute() {
-						if (trigger instanceof Contact) ((Contact)trigger).trigger(200);
-						if (trigger instanceof Switch) ((Switch)trigger).trigger(new Context(Train.this));		
-					}
-				};				
 			}
 		}
 		if (isSet(brake)) brake.updateTime();
@@ -493,6 +487,16 @@ public class Train extends BaseClass implements Comparable<Train> {
 		trace.add(endBlock);
 		if (!trace.contains(startBlock)) startBlock.dropTrain(this);
 		stuckTrace = null;
+		if (!triggerRef.isEmpty()) new DelayedExecution(1000,this) {
+			
+			@Override
+			public void execute() {
+				Tile trigger = triggerRef.getFirst();
+				if (trigger instanceof Contact) ((Contact)trigger).trigger(200);
+				if (trigger instanceof Switch) ((Switch)trigger).trigger(new Context(Train.this));		
+			}
+		};				
+
 		if (autopilot) {
 			if (isNull(waitTime)) waitTime = 0;
 			if (waitTime>0)	plan.stream(t("{} waiting {} secs.",this,(int)(waitTime/1000)));

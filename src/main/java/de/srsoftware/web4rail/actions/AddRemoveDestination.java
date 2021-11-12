@@ -117,7 +117,10 @@ public class AddRemoveDestination extends Action {
 			formInputs.add(t("Turn at destination"),new Checkbox(TURN, t("Turn"), destination.turn()));
 			formInputs.add(t("Shunting"),new Checkbox(SHUNTING, t("Shunting"), destination.shunting()));
 		}
-		formInputs.add(t("Trigger Contact/Switch at destination")+": "+(isNull(destinationTrigger) ? t("unset") : destinationTrigger),button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,CONTACT)));
+		span = new Tag("span");
+		button(t("Select from plan"),Map.of(ACTION,ACTION_UPDATE,ASSIGN,CONTACT)).addTo(span);
+		button(t("Clear trigger"),Map.of(ACTION,ACTION_UPDATE,CONTACT,"0")).addTo(span);
+		formInputs.add(t("Trigger Contact/Switch at destination")+": "+(isNull(destinationTrigger) ? t("unset") : destinationTrigger),span);
 		return super.properties(preForm, formInputs, postForm,errors);
 	}
 	
@@ -146,8 +149,14 @@ public class AddRemoveDestination extends Action {
 			}
 		}
 		if (params.containsKey(CONTACT)) {
-			Tile tile = Tile.get(Id.from(params,CONTACT));
+			Id id = Id.from(params,CONTACT);
+			if (id.equals(0)) {
+				destinationTrigger = null;
+				return properties();
+			}
+			Tile tile = Tile.get(id);
 			if (tile instanceof Contact || tile instanceof Switch) destinationTrigger = tile;
+			return properties();
 		}
 		if (isSet(destination)) {
 			destination.turn("on".equals(params.getString(TURN)));

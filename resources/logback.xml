@@ -9,7 +9,7 @@
 		</encoder>
 		<filter class="de.srsoftware.web4rail.ThreadFilter">
 			<level>WARN</level>
-			<keywords>Brake, Contact, Feed, Route, e, u</keywords>
+			<keywords>BaseClass, ControlUnit, RoutePrepper, Tile</keywords>
 		</filter>
 	</appender>
 
