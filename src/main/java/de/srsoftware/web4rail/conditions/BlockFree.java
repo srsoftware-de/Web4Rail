@@ -25,6 +25,8 @@ public class BlockFree extends Condition {
 
 	@Override
 	public boolean fulfilledBy(Context context) {
+		if (isNull(context)) return false;
+		if (isSet(context.train())) context = context.clone().train(null); // block.isFree would return true, if context.train == block.train. That has to be avoided!
 		if (!inverted) return block.isFreeFor(context);
 		return !block.isFreeFor(new Context(block)); // block.isFreeFor würde true liefern, wenn der Zug im Kontext gleich dem Zug im Block wäre. Da wir aber nur wissen wollen, ob der Block belegt ist, brauchen wir einen Context ohne Zug.
 	}
