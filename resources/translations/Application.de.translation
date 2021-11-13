@@ -463,8 +463,10 @@ train has tag "{}" : Zug hat Markierung „{}“
 TrainHasTag : Zug hat Markierung
 train is a push-pull train : Zug ist ein Wendezug
 train is faster than {} {} : Zug ist schneller als {} {}
+Train is in "{}" :  Zug ist in „{}“
 train is longer than {} {} : Zug ist länger als {} {}
 train is not a push-pull train : Zug ist kein Wendezug
+Train is not in "{}" :  Zug ist nicht in „{}“
 train is not shunting : Zug rangiert nicht
 train is shorter than {} {} : Zug ist kürzer als {} {}
 TrainIsShunting : Rangierfahrt

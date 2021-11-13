@@ -377,6 +377,7 @@ public abstract class BaseClass implements Constants{
 	
 	@SuppressWarnings("unchecked")
 	public static <T extends BaseClass> T get(Id id) {
+		if (isNull(id)) return null;
 		return (T) registry.get(id);
 	}
 	

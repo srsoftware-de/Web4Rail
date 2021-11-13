@@ -83,13 +83,14 @@ public class DetermineTrainInBlock extends Action {
 	@Override
 	protected Object update(Params params) {
 		LOG.debug("update: {}",params);
+		parked = ("on".equals(params.get(PARKED_TRAIN)));
 		if (params.containsKey(BLOCK)) {
 			Tile tile = plan.get(new Id(params.getString(BLOCK)), true);
 			if (tile instanceof Block) {
 				block = (Block) tile;
+				return properties();
 			} else return t("Clicked tile is not a {}!",t("block"));
 		}
-		parked = ("on".equals(params.get(PARKED_TRAIN)));
 		return context().properties();
 	}
 }

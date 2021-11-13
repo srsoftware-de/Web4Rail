@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import de.srsoftware.tools.Tag;
 import de.srsoftware.web4rail.BaseClass;
+import de.srsoftware.web4rail.LoadCallback;
 import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.moving.Train;
 import de.srsoftware.web4rail.tags.Fieldset;
@@ -31,7 +32,8 @@ public class TrainWasInBlock extends Condition {
 	@Override
 	public boolean fulfilledBy(Context context) {
 		Train train = context.train();
-		if (isNull(train)) return false;		
+		if (isNull(train)) return false;
+		if (count == 0) return (train.currentBlock() == block) != inverted;
 		return train.lastBlocks(count).contains(block) != inverted;
 	}
 	
@@ -42,8 +44,14 @@ public class TrainWasInBlock extends Condition {
 	
 	public Condition load(JSONObject json) {
 		super.load(json);
-		if (json.has(BLOCK)) block(Block.get(new Id(json.getString(BLOCK))));
 		if (json.has(COUNT)) count = json.getInt(COUNT);
+		new LoadCallback() {
+			
+			@Override
+			public void afterLoad() {
+				if (json.has(BLOCK)) block(Block.get(Id.from(json, BLOCK)));	
+			}
+		};
 		return this;
 	}
 
@@ -63,18 +71,22 @@ public class TrainWasInBlock extends Condition {
 	@Override
 	public String toString() {
 		if (block == null) return "["+t("Click here to select block!")+"]";
+		if (count == 0) return t(inverted ? "Train is not in \"{}\"" : "Train is in \"{}\"", block);
 		return t(inverted ? "{} not within last {} blocks of train":"{} within last {} blocks of train",block,count);
 	}
 
 
 	@Override
 	protected Object update(Params params) {
-		if (!params.containsKey(BLOCK)) return t("No block id passed to TrainWasInBlock.update()!");
-		Id bid = new Id(params.getString(BLOCK));
+		Id bid = Id.from(params, BLOCK);
 		Tile tile = BaseClass.get(bid);
 		if (tile instanceof Shadow) tile = ((Shadow)tile).overlay();
-		if (tile instanceof Block) block = (Block) tile;
 		if (params.containsKey(COUNT)) count=params.getInt(COUNT);
+		if (tile instanceof Block) {
+			block = (Block) tile;
+			super.update(params);
+			return properties();
+		}
 		return super.update(params);
 	}
 }
