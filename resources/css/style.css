@@ -178,6 +178,7 @@ svg circle{
 	border-radius: 5px;
 	background: yellow;
 	z-index: 100;
+	font-size: 13px;
 }
 
 h2{
