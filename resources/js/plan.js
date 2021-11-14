@@ -41,10 +41,11 @@ function addClass(data){
 }
 
 function addMessage(txt){
-	messages.unshift(txt);
-	if (messages.length>5) messages.pop();
-	updateMessages();
-	setTimeout(fadeMessage,60000);
+	let mid = 'm'+Date.now();
+	$('#messages').append($('<div/>').attr('id',mid).html(txt));
+	setTimeout(function(){
+		$('#'+mid).remove();
+	},10000);
 }
 
 function addTile(x,y){	
@@ -189,24 +190,6 @@ function enableMove(ev){
 	return false; // otherwise body.click would also be triggered
 }
 
-function fadeMessage(){
-	if (messages.length > 1) {
-		messages.pop();
-		updateMessages();
-	} else {
-		messageOpacity -= 5;
-		if (messageOpacity < 1) {
-			messages.pop();
-			updateMessages();
-			return;
-		}
-		messageTimer = setTimeout(fadeMessage,100);
-		var o = messageOpacity;
-		if (o>OPAC) o=OPAC;	
-		$('#messages').css('opacity',o/OPAC);
-	}
-}
-
 function getCookie(key) {
     var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
     return keyValue ? keyValue[2] : null;
@@ -330,7 +313,6 @@ function runAction(ev){
 function stream(ev){
 	var data = ev.data;
 	data = data.replace(/%newline%/g,"\n");
-	console.log("received: ",data);
 	if (data.startsWith('<svg')) return place(data);
 	if (data.startsWith("heartbeat")) return heartbeat(data);
 	if (data.startsWith("place ")) return place(data.substring(6));
