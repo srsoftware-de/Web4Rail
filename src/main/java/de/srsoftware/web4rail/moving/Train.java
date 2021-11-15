@@ -374,7 +374,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			destination = Destination.from(destinationTag());
 			LOG.debug("{}.destination() → {}",this,destination);
 			if (isSet(destination)) shunting |= destination.shunting();
-		}		
+		}
 		return destination;
 	}
 	
@@ -499,7 +499,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 
 		if (autopilot) {
 			if (isNull(waitTime)) waitTime = 0;
-			if (waitTime>0)	plan.stream(t("{} waiting {} secs.",this,(int)(waitTime/1000)));
+			if (waitTime>0)	plan.stream(waitTime+"⌛"+t("{} waiting %secs% secs.",this));
 			new DelayedExecution(waitTime,this) {
 			
 				@Override

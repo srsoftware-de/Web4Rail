@@ -242,7 +242,8 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		PriorityQueue<Trail> trails = new PriorityQueue<>();
 		
 		for (Route route : startBlock.leavingRoutes()) {
-			int score = (route.endsAt(destination)) ? 100_000 : 0;
+			boolean reachesDest = route.endsAt(destination);			
+			int score = reachesDest ? 100_000 : 0;
 			
 			if (isSet(startDirection) && route.startDirection != startDirection) { // Route startet entgegen der aktuellen Fahrtrichtung des Zuges
 				if (!train.pushPull) continue; // Zug kann nicht wenden
@@ -254,13 +255,13 @@ public class RoutePrepper extends BaseClass implements Runnable{
 			
 			if (!route.allowed(new Context(train).block(startBlock).direction(startDirection))) {
 				LOG.debug("       - {} not allowed for {}", route, train);
-				if (!route.endsAt(destination)) continue;
+				if (!reachesDest) continue;
 				LOG.debug("           …overridden by destination of train!", route, train);
 			}
 			
 			trails.add(new Trail().add(route,score));
 		}
-		
+				
 		return trails;
 	}
 	

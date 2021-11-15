@@ -516,7 +516,7 @@ Values : Werte
 WaitForContact : Auf Kontakt warten
 Wait for {}, then : auf {} warten, dann
 Wait {} ms, then : {} ms warten, dann
-{} waiting {} secs. : {} wartet {} Sekunden.
+{} waiting %secs% secs. : {} wartet %secs% Sekunden.
 Wait times : Wartezeiten
 Was not able to assign {} to {}! : Konnte {} nicht an {} zuweisen!
 Was not able to lock {} : Konnte {} nicht reservieren

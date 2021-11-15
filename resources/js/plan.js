@@ -9,6 +9,7 @@ const POST = 'POST';
 const PROPS = 'props';
 const SQUARE = 30;
 const SVG = 'svg';
+const MSG_TIME = 5000;
 var selected = null;
 var mode = null;
 var messageTimer = null;
@@ -41,11 +42,18 @@ function addClass(data){
 }
 
 function addMessage(txt){
+	let delay = MSG_TIME;
+	if (txt.includes('⌛')){
+		let parts = txt.split('⌛');
+		delay = parseInt(parts[0]);
+		txt = parts[1];
+	}
 	let mid = 'm'+Date.now();
 	$('#messages').append($('<div/>').attr('id',mid).html(txt));
 	setTimeout(function(){
 		$('#'+mid).remove();
-	},10000);
+	},delay);
+	if (delay != MSG_TIME) countDown(mid,delay/1000,txt);
 }
 
 function addTile(x,y){	
@@ -86,11 +94,9 @@ function assign(context){
 }
 
 function changeSpeed(inputId){
-	console.log(inputId);
 	let parts = inputId.split('_');
 	let val = $('#'+inputId).val();
 	let data = 	{ realm : parts[0], id : parts[1], action : "setSpeed", speed : val};
-	console.log(data);
 	let caption = $('#'+inputId+'_caption');
 	caption.text(caption.text().replace(/\d+/,val));	
 	request(data); 
@@ -114,9 +120,7 @@ function clickTile(x,y,shift){
 		if (pendingAssignment != null) {
 			var key = pendingAssignment.assign;
 			delete pendingAssignment.assign;
-			console.log("assigning key:",key);
 			pendingAssignment[key] = id;
-			console.log("pA:",pendingAssignment);
 			request(pendingAssignment);
 			pendingAssignment = null;
 			$(PLAN).css('cursor','');
@@ -153,6 +157,15 @@ function copyCv(ev){
 	var td = ev.parentNode.previousSibling;
 	$('input[name=cv]').val(td.previousSibling.innerText);
 	$('input[name=val]').val(td.innerText);
+}
+
+function countDown(mid,time,msg){
+	time = parseInt(time);
+	$('#'+mid).html(msg.replace('%secs%',time));
+	time = time -1;
+	if (time>0)	setTimeout(function(){
+		countDown(mid,time,msg);		
+	},1000);
 }
 
 function dropClass(data){
@@ -235,7 +248,7 @@ function place(data){
 }
 
 function planClick(ev){
-	console.log('planClick:',ev);
+	//console.log('planClick:',ev);
 	var plan=$('#scroll').get(0);
 	var x = Math.floor((plan.scrollLeft+ev.clientX)/SQUARE);
 	var y = Math.floor((plan.scrollTop+ev.clientY)/SQUARE);
@@ -253,7 +266,7 @@ function planClick(ev){
 }
 
 function remember(lastClickedId){
-	console.log("lastClickedId: "+lastClickedId)
+	//console.log("lastClickedId: "+lastClickedId)
 	var index = clickHistory.indexOf(lastClickedId);
 	if (index > -1) clickHistory.splice(index, 1);
 	clickHistory.unshift(lastClickedId);
@@ -265,7 +278,7 @@ function remove(id){
 }
 
 function request(data){
-	console.log("request:",data);
+	//console.log("request:",data);
 	$.ajax({
 		url : 'plan',
 		method : POST,
@@ -331,7 +344,7 @@ function stream(ev){
 }
 
 function submitForm(formId){
-	console.log("submitForm("+formId+")");
+	//console.log("submitForm("+formId+")");
 	return request($('#'+formId).serialize());
 }
 
