@@ -104,6 +104,13 @@ public class ActionList extends Action implements Iterable<Action>{
 		}
 		return speed;
 	}
+	
+	private static void highlight(Window win, Action action) {
+		BaseClass scrollTarget = action.parent();
+		if (isNull(scrollTarget)) scrollTarget = action;
+		
+		win.children().add(new Tag("script").content("document.getElementById('"+scrollTarget.id()+"').scrollIntoView({ behavior: \"smooth\" }); document.getElementById('"+action.id()+"').classList.add('highlight');"));
+	}
 
 	@Override
 	public Iterator<Action> iterator() {
@@ -130,7 +137,7 @@ public class ActionList extends Action implements Iterable<Action>{
 		if (!isEmpty()) {
 			Tag list = new Tag("ol");
 			for (Action action : actions) {
-				Tag item = action.link("span",action, action.highlightId()).addTo(new Tag("li")).content(NBSP);
+				Tag item = action.link("span",action, action.highlightId()).id(action.id().toString()).addTo(new Tag("li")).content(NBSP);
 				action.button("↑", Map.of(ACTION,ACTION_MOVE)).title(t("move up")).addTo(item);
 				action.button("-", Map.of(ACTION,ACTION_DROP)).title(t("delete")).addTo(item);
 				if (action instanceof ActionList) ((ActionList) action).listAt(item);
@@ -245,7 +252,12 @@ public class ActionList extends Action implements Iterable<Action>{
 			case ACTION_START:
 				return start(action); 
 			case ACTION_UPDATE:
-				return action.update(params);
+				Object res = action.update(params);
+				if (res instanceof Window) {
+					Window win = (Window) res;
+					highlight(win,action);
+				}
+				return res;
 		}
 		return t("Unknown action: {}",command);
 	}

@@ -85,6 +85,6 @@ public class SetPower extends Action{
 		LOG.debug("update: {}",params);
 		String newState = params.getString(STATE);
 		if (isSet(newState)) pc = POWERCHANGE.valueOf(newState);
-		return parent().properties();
+		return context().properties();
 	}
 }

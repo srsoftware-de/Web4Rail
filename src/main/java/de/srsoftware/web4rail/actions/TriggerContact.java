@@ -91,7 +91,7 @@ public class TriggerContact extends Action {
 				contactOrSwitch = tile;
 			} else error = t("{} is neither a contact nor a switch!",tile);
 		}
-		return properties(error);
+		return context().properties(error);
 	}
 
 }
