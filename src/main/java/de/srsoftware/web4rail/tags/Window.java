@@ -1,6 +1,7 @@
 package de.srsoftware.web4rail.tags;
 
 import de.srsoftware.tools.Tag;
+import de.srsoftware.web4rail.BaseClass;
 
 /**
  * @author Stephan Richter, SRSoftware 2020-2021 * 
@@ -23,5 +24,12 @@ public class Window extends Tag{
 		.clazz("swapbtn")
 		.attr("onclick", "return swapTiling();")
 		.content("◧").addTo(this);		
+	}
+	
+	public void highlight(BaseClass element) {
+		BaseClass scrollTarget = element.parent();
+		if (scrollTarget == null) scrollTarget = element;
+		
+		children().add(new Tag("script").content("document.getElementById('"+scrollTarget.id()+"').scrollIntoView({ behavior: \"smooth\" }); document.getElementById('"+element.id()+"').classList.add('highlight');"));
 	}
 }

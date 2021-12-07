@@ -104,13 +104,6 @@ public class ActionList extends Action implements Iterable<Action>{
 		}
 		return speed;
 	}
-	
-	private static void highlight(Window win, Action action) {
-		BaseClass scrollTarget = action.parent();
-		if (isNull(scrollTarget)) scrollTarget = action;
-		
-		win.children().add(new Tag("script").content("document.getElementById('"+scrollTarget.id()+"').scrollIntoView({ behavior: \"smooth\" }); document.getElementById('"+action.id()+"').classList.add('highlight');"));
-	}
 
 	@Override
 	public Iterator<Action> iterator() {
@@ -253,10 +246,7 @@ public class ActionList extends Action implements Iterable<Action>{
 				return start(action); 
 			case ACTION_UPDATE:
 				Object res = action.update(params);
-				if (res instanceof Window) {
-					Window win = (Window) res;
-					highlight(win,action);
-				}
+				if (res instanceof Window) ((Window) res).highlight(action);
 				return res;
 		}
 		return t("Unknown action: {}",command);

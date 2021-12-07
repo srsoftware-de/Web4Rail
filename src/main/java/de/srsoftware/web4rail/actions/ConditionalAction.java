@@ -62,7 +62,7 @@ public class ConditionalAction extends ActionList {
 	public <T extends Tag> T listAt(T parent) {
 		T tag = super.listAt(parent);
 		if (!elseActions.isEmpty()) {
-			Tag div = new Tag("div").clazz("else");
+			Tag div = new Tag("div").id(elseActions.id().toString()).clazz("else");
 			new Tag("span").content(t("else:")+NBSP).addTo(div);
 			elseActions.listAt(div);
 			div.addTo(tag);

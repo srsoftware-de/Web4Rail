@@ -16,6 +16,7 @@ import de.srsoftware.web4rail.BaseClass;
 import de.srsoftware.web4rail.Params;
 import de.srsoftware.web4rail.Plan;
 import de.srsoftware.web4rail.actions.Action;
+import de.srsoftware.web4rail.actions.ActionList;
 import de.srsoftware.web4rail.tags.Checkbox;
 import de.srsoftware.web4rail.tags.Fieldset;
 import de.srsoftware.web4rail.tags.Select;
@@ -53,7 +54,18 @@ public abstract class Condition extends BaseClass {
 			case ACTION_PROPS:
 				return condition.properties();
 			case ACTION_UPDATE:
-				return condition.update(params);				
+				Object res = condition.update(params);
+				if (res instanceof Window) {
+					BaseClass parent = condition.parent();
+					while (isSet(parent)) {
+						if (parent instanceof ActionList) {
+							((Window) res).highlight(parent);
+							break;
+						}
+						parent = parent.parent();						
+					}
+				}
+				return res;				
 		}
 		return t("Unknown action: {}",action);
 	}
