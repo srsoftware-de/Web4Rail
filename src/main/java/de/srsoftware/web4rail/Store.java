@@ -12,7 +12,7 @@ import de.srsoftware.web4rail.tags.Select;
 public class Store {
 	
 	public interface Listener{
-		public void storeUpdated(Store store);
+		public void storeUpdated();
 	}
 	
 	private static final Logger LOG = org.slf4j.LoggerFactory.getLogger(Store.class);
@@ -28,8 +28,9 @@ public class Store {
 		stores.put(name, this);
 	}
 	
-	public void addListener(Listener listener) {
+	public Store addListener(Listener listener) {
 		listeners.add(listener);
+		return this;
 	}
 
 	public static Store get(String name) {
@@ -80,7 +81,7 @@ public class Store {
 				intValue = BaseClass.isNull(intValue) ? add : 10*intValue + add;
 			}  
 		}
-		listeners.forEach(listener -> listener.storeUpdated(this));
+		listeners.forEach(listener -> listener.storeUpdated());
 	}
 	
 	@Override

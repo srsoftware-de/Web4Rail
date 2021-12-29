@@ -129,6 +129,7 @@ public class AddRemoveDestination extends Action {
 		if (isNull(destination)) return t("Clear destinations of train");
 		String suffix = destination.turn() ? t("Turn") : null;
 		if (destination.shunting()) suffix = (isSet(suffix) ? suffix+" + " : "")+t("Shunting");
+		if (isSet(destinationTrigger)) suffix = (isSet(suffix) ? suffix+" + " : "")+t("Trigger {}",destinationTrigger);
 		return t("Add {} to destinations of train",destination)+(isSet(suffix) ? " ("+suffix+")" : "");
 	}
 	

@@ -96,23 +96,23 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		context = c;
 	}
 		
-	private static PriorityQueue<Trail> availableRoutes(Context c){
+	private static PriorityQueue<Trail> availableRoutes(Context context){
 		boolean error = false;
 		
-		Block startBlock = c.block();
+		Block startBlock = context.block();
 		if (isNull(startBlock) && (error=true)) LOG.warn("RoutePrepper.availableRoutes(…) called without a startBlock!");
 		
-		Train train = c.train();
+		Train train = context.train();
 		if (isNull(train) && (error=true)) LOG.warn("RoutePrepper.availableRoutes(…) called without a startBlock!");
 		
 		if (error) return new PriorityQueue<>();
 		
 		Destination destination = train.destination();
 		
-		Direction startDirection = c.direction();
+		Direction startDirection = context.direction();
 		LOG.debug("RoutePrepper.availableRoutes({},{},{}), dest = {}",startBlock,startDirection,train,destination);
 		
-		PriorityQueue<Trail> candidates = routesFrom(c); // map: route → score
+		PriorityQueue<Trail> candidates = routesFrom(context); // map: route → score
 		
 		if (isNull(destination) || train.isShunting()) {
 			LOG.debug("{} has no destination, returning {}",train,candidates);
@@ -121,14 +121,14 @@ public class RoutePrepper extends BaseClass implements Runnable{
 		
 		LOG.debug("{} is heading for {}, starting breadth-first search…",train,destination);
 		
-		for (int depth=1; depth<99; depth++) {
+		for (int depth=1; depth<33; depth++) {
 			if (candidates.stream().filter(trail -> trail.endsAt(destination)).count() > 0) return candidates; // return connectingTrails + other routes, in case all connecting trails are occupied
 			
 			PriorityQueue<Trail> nextLevelCandidates = new PriorityQueue<Trail>();
 			for (Trail trail : candidates) {
 				Route lastRoute = trail.lastElement();
-				c.block(lastRoute.endBlock()).direction(lastRoute.endDirection);
-				PriorityQueue<Trail> ongoing = routesFrom(c);
+				context.block(lastRoute.endBlock()).direction(lastRoute.endDirection);
+				PriorityQueue<Trail> ongoing = routesFrom(context);
 				if (!ongoing.isEmpty()) nextLevelCandidates.addAll(trail.derive(ongoing));
 			}
 			candidates = nextLevelCandidates;

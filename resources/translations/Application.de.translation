@@ -177,8 +177,8 @@ Effect : Effekt
 else\: : falls nicht:
 Emergency : Notfall
 empty train : leerer Zug
-enable : aktivieren
-enable {} : {} aktivieren
+enable : entsperren
+enable {} : {} entsperren
 Engage {} : {} aktivieren
 EngageDecoupler : Entkuppler aktivieren
 Enter new name for plan : Neuen Namen für den Plan eingeben
