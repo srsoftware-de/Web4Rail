@@ -237,8 +237,8 @@ public class Train extends BaseClass implements Comparable<Train> {
 	private Tag carList() {
 		Tag locoProp = new Tag("li").content(t("Locomotives and cars")+":");
 		Table carList = new Table();
-		carList.addHead(t("Car"),t("Actions"));
-
+		carList.addHead(t("Index"),t("Car"),t("Actions"));
+		int index = 0;
 		boolean first = true;
 		for (Car car : cars) {
 			Tag link = car.link(car.name()+(car.needsMaintenance()?"⚠":"")+(car.stockId.isEmpty() ? "" : " ("+car.stockId+")"));
@@ -250,7 +250,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 				car.button(t("decouple"),Map.of(ACTION,ACTION_DECOUPLE,REALM,REALM_CAR)).addTo(buttons);
 			}			
 			button(t("delete"),Map.of(ACTION,ACTION_DROP,CAR_ID,car.id().toString())).addTo(buttons);			
-			carList.addRow(link,buttons);
+			carList.addRow(++index,link,buttons);
 			first = false;
 		}
 		carList.addTo(locoProp);
@@ -264,7 +264,7 @@ public class Train extends BaseClass implements Comparable<Train> {
 			for (Car loco : locos) select.addOption(loco.id(), loco+(loco.stockId.isEmpty()?"":" ("+loco.stockId+")"));
 			select.addTo(addLocoForm);
 			new Button(t("add"),addLocoForm).addTo(addLocoForm);
-			carList.addRow(t("add locomotive"),addLocoForm);
+			carList.addRow("",t("add locomotive"),addLocoForm);
 		}
 		
 		List<Car> cars = BaseClass.listElements(Car.class).stream().filter(car -> !(car instanceof Locomotive)).filter(loco -> isNull(loco.train())).collect(Collectors.toList());
@@ -285,9 +285,10 @@ public class Train extends BaseClass implements Comparable<Train> {
 			}
 			select.addTo(addCarForm);
 			new Button(t("add"),addCarForm).addTo(addCarForm);
-			carList.addRow(t("add car"),addCarForm);
+			carList.addRow("",t("add car"),addCarForm);
 		}
 		if (isSet(currentBlock)) {
+			boolean trainsPresent = false;
 			Tag ul = new Tag("ul");
 			Train trainInBlock = isSet(currentBlock) ? currentBlock.occupyingTrain() : null;
 			if (isSet(trainInBlock) && trainInBlock != this) trainInBlock.link().addTo(new Tag("li")).addTo(ul);
@@ -296,8 +297,9 @@ public class Train extends BaseClass implements Comparable<Train> {
 				Tag li = new Tag("li").addTo(ul);
 				tr.link().addTo(li);
 				button(t("couple"),Map.of(ACTION,ACTION_CONNECT,REALM_TRAIN,tr.id().toString())).addTo(li);
+				trainsPresent = true;
 			}
-			carList.addRow(t("other trains in {}",currentBlock),ul);
+			if (trainsPresent) carList.addRow("",t("other trains in {}",currentBlock),ul);
 			
 		}
 		
